@@ -1,0 +1,322 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useNavigation } from '@/composables/useNavigation'
+import type { NavNode } from '@/types'
+import { useSidebar } from '@/composables/useSidebar'
+import { useTheme } from '@/composables/useTheme'
+import { useAuth } from '@/stores/auth'
+import { useAlert } from '@/composables/useAlert'
+import { useNotifications } from '@/composables/useNotifications'
+import type { Locale } from '@/types'
+
+const route = useRoute()
+const router = useRouter()
+const { toggle: toggleSidebar } = useSidebar()
+const { mode, setMode } = useTheme()
+const { user, logout, switchLocale: switchLocaleApi } = useAuth()
+const { success: showSuccess } = useAlert()
+const { unreadCount, items: recentNotifications, fetchUnreadCount, fetchList, markAllRead, markAsRead } = useNotifications()
+const { navbarTree, load: loadNavigation } = useNavigation()
+
+const currentLocale = computed<Locale>(() => {
+  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mw_locale') : null
+  return (stored as Locale) ?? 'en'
+})
+const supportedLocales: Locale[] = ['en', 'id', 'ja']
+
+const notificationCount = computed(() => unreadCount.value)
+const bellLoading = ref(false)
+
+const userName = computed(() => user.value?.name ?? '—')
+const userEmail = computed(() => user.value?.email ?? '—')
+
+function resolveHref(nodeRoute: string | null | undefined): string {
+  if (!nodeRoute || nodeRoute === '#') return '#'
+  return '#'
+}
+
+function isActive(node: NavNode): boolean {
+  if (node.route && route.name) {
+    if (route.name === node.route || route.name === `${node.route}.view`) return true
+  }
+  return node.children.some((c) => isActive(c))
+}
+
+function navigate(node: NavNode): void {
+  if (!node.route || node.route === '#') return
+  if (node.children.length > 0) return
+  const target = node.route.endsWith('.view') ? node.route : `${node.route}.view`
+  if (router.hasRoute(target)) {
+    router.push({ name: target })
+  } else if (router.hasRoute(node.route)) {
+    router.push({ name: node.route })
+  }
+}
+
+function switchLocale(locale: Locale): void {
+  try {
+    localStorage.setItem('mw_locale', locale)
+  } catch {
+    // ignore
+  }
+  switchLocaleApi(locale).then(() => {
+    showSuccess('Language updated.')
+    window.location.reload()
+  }).catch((e) => {
+    window.location.reload()
+  })
+}
+
+const loggingOut = computed(() => false)
+
+async function handleLogout(): Promise<void> {
+  await logout()
+  showSuccess('You have been logged out.')
+  router.push({ name: 'login.view' })
+}
+
+async function loadBellData(): Promise<void> {
+  await Promise.all([fetchUnreadCount(), fetchList(5)])
+}
+
+async function handleMarkAllRead(): Promise<void> {
+  bellLoading.value = true
+  try {
+    await markAllRead()
+    showSuccess('All notifications marked as read.')
+  } catch {
+    // silent
+  } finally {
+    bellLoading.value = false
+  }
+}
+
+async function handleNotificationClick(id: number | string, isRead: boolean): Promise<void> {
+  if (!isRead) {
+    try {
+      await markAsRead(id)
+    } catch {
+      // silent
+    }
+  }
+  router.push({ name: 'notifications.index.view' })
+}
+
+function notificationTime(n: { created_at_human: string | null; created_at_formatted: string | null; created_at: string | null }): string {
+  return n.created_at_human ?? n.created_at_formatted ?? n.created_at ?? '—'
+}
+
+onMounted(() => {
+  loadBellData()
+  loadNavigation('navbar')
+})
+</script>
+
+<template>
+  <nav class="app-header navbar navbar-expand bg-body">
+    <div class="container-fluid">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            href="#"
+            role="button"
+            aria-label="Toggle sidebar"
+            aria-expanded="false"
+            @click.prevent="toggleSidebar()"
+          >
+            <i class="bi bi-list" aria-hidden="true"></i>
+          </a>
+        </li>
+        <!-- Navbar tree: Home link -->
+        <li v-for="item in navbarTree" :key="item.id" class="nav-item">
+          <a
+            class="nav-link"
+            :href="resolveHref(item.route)"
+            @click.prevent="navigate(item)"
+          >
+            <i :class="item.icon || 'bi bi-circle'" aria-hidden="true"></i>
+            <span class="d-none d-md-inline ms-1">{{ item.name }}</span>
+          </a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav ms-auto">
+        <!-- Color mode toggle -->
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link"
+            href="#"
+            id="bd-theme"
+            aria-label="Toggle theme"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-sun-fill" :class="{ 'd-none': mode !== 'light' }" aria-hidden="true"></i>
+            <i class="bi bi-moon-fill" :class="{ 'd-none': mode !== 'dark' }" aria-hidden="true"></i>
+            <i class="bi bi-circle-half" :class="{ 'd-none': mode !== 'auto' }" aria-hidden="true"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme" style="--bs-dropdown-min-width: 8rem">
+            <li>
+              <button
+                type="button"
+                class="dropdown-item d-flex align-items-center"
+                :class="{ active: mode === 'light' }"
+                :aria-pressed="mode === 'light'"
+                @click="setMode('light')"
+              >
+                <i class="bi bi-sun-fill me-2"></i> Light
+                <i class="bi bi-check-lg ms-auto" :class="{ 'd-none': mode !== 'light' }"></i>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="dropdown-item d-flex align-items-center"
+                :class="{ active: mode === 'dark' }"
+                :aria-pressed="mode === 'dark'"
+                @click="setMode('dark')"
+              >
+                <i class="bi bi-moon-fill me-2"></i> Dark
+                <i class="bi bi-check-lg ms-auto" :class="{ 'd-none': mode !== 'dark' }"></i>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="dropdown-item d-flex align-items-center"
+                :class="{ active: mode === 'auto' }"
+                :aria-pressed="mode === 'auto'"
+                @click="setMode('auto')"
+              >
+                <i class="bi bi-circle-half me-2"></i> Auto
+                <i class="bi bi-check-lg ms-auto" :class="{ 'd-none': mode !== 'auto' }"></i>
+              </button>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Locale switcher -->
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link"
+            href="#"
+            data-bs-toggle="dropdown"
+            aria-label="Language"
+            aria-expanded="false"
+          >
+            <i class="bi bi-translate" aria-hidden="true"></i>
+            <span class="d-none d-md-inline ms-1 text-uppercase">{{ currentLocale }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li v-for="locale in supportedLocales" :key="locale">
+              <a
+                class="dropdown-item"
+                :class="{ active: currentLocale === locale }"
+                href="#"
+                @click.prevent="switchLocale(locale)"
+              >
+                {{ locale.toUpperCase() }}
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Notifications bell -->
+        <li class="nav-item dropdown" id="notification-bell">
+          <a
+            class="nav-link"
+            href="#"
+            data-bs-toggle="dropdown"
+            aria-label="Notifications"
+            aria-expanded="false"
+          >
+            <i class="bi bi-bell-fill" aria-hidden="true"></i>
+            <span v-if="notificationCount > 0" class="navbar-badge badge text-bg-danger">{{ notificationCount }}</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+            <span class="dropdown-item dropdown-header d-flex justify-content-between align-items-center">
+              <span>{{ notificationCount }} unread</span>
+              <button
+                v-if="notificationCount > 0"
+                class="btn btn-link btn-sm p-0 text-decoration-none"
+                type="button"
+                :disabled="bellLoading"
+                @click="handleMarkAllRead"
+              >
+                Mark all read
+              </button>
+            </span>
+            <div class="dropdown-divider"></div>
+            <div>
+              <a
+                v-for="n in recentNotifications.slice(0, 5)"
+                :key="n.id"
+                href="#"
+                class="dropdown-item"
+                :class="{ 'fw-semibold': !n.is_read }"
+                @click.prevent="handleNotificationClick(n.id, n.is_read)"
+              >
+                <i :class="n.icon || 'bi bi-bell'" class="me-2" aria-hidden="true"></i>
+                <span class="small">{{ n.message }}</span>
+                <span class="d-block text-muted fs-7">{{ notificationTime(n) }}</span>
+              </a>
+              <span v-if="recentNotifications.length === 0" class="dropdown-item text-secondary fs-7">No new notifications</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <router-link :to="{ name: 'notifications.index.view' }" class="dropdown-item dropdown-footer">View all</router-link>
+          </div>
+        </li>
+
+        <!-- User menu -->
+        <li class="nav-item dropdown user-menu">
+          <a
+            href="#"
+            class="nav-link dropdown-toggle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            aria-label="User menu"
+          >
+            <i class="bi bi-person-circle fs-5" aria-hidden="true"></i>
+            <span class="d-none d-md-inline ms-1">{{ userName }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+            <li class="user-header text-bg-primary">
+              <i class="bi bi-person-circle" style="font-size: 3.5rem;"></i>
+              <p>
+                {{ userName }}
+                <small>{{ userEmail }}</small>
+              </p>
+            </li>
+            <li class="px-3 py-2">
+              <div class="d-grid gap-2">
+                <router-link :to="{ name: 'profile.password.edit.view' }" class="btn btn-outline-secondary btn-sm text-start">
+                  <i class="bi bi-key me-1"></i> Password
+                </router-link>
+                <router-link :to="{ name: 'profile.two-factor.edit.view' }" class="btn btn-outline-secondary btn-sm text-start">
+                  <i class="bi bi-shield-lock me-1"></i> Two-Factor
+                </router-link>
+                <router-link :to="{ name: 'profile.connections.view' }" class="btn btn-outline-secondary btn-sm text-start">
+                  <i class="bi bi-link-45deg me-1"></i> Connected Accounts
+                </router-link>
+              </div>
+            </li>
+            <li class="user-footer">
+              <div class="float-end">
+                <button
+                  class="btn btn-outline-danger btn-sm"
+                  type="button"
+                  :disabled="loggingOut"
+                  @click="handleLogout"
+                >
+                  <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Logout
+                </button>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</template>

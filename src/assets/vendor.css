@@ -1,0 +1,7 @@
+/* Vendor CSS bundle — mirrors Monolith's resources/css/vendor.css.
+   AdminLTE/Bootstrap/OverlayScrollbars/Select2 styles, then Monolith overrides layer on top. */
+@import 'overlayscrollbars/styles/overlayscrollbars.css';
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'admin-lte/dist/css/adminlte.min.css';
+@import 'select2/dist/css/select2.min.css';
+@import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';

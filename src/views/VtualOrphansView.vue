@@ -1,0 +1,83 @@
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import Card from '@/components/Card.vue'
+import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import { useVtual } from '@/composables/useVtual'
+import { useAuth } from '@/stores/auth'
+import { useAlert } from '@/composables/useAlert'
+import type { VtualCreator } from '@/api/types'
+
+const router = useRouter()
+const { fetchOrphans } = useVtual()
+const { hasPermission } = useAuth()
+const { error: showError } = useAlert()
+
+const items = ref<VtualCreator[]>([])
+const loading = ref(true)
+const canManage = computed(() => hasPermission('manage any vtual resource'))
+
+const columns: DataTableColumn[] = [
+  { key: 'display_name', label: 'Name', sortable: true },
+  { key: 'slug', label: 'Slug', sortable: true },
+  { key: 'channels_count', label: 'Channels', sortable: true, align: 'center' },
+  { key: 'created_at', label: 'Created', sortable: true, align: 'end' },
+]
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    items.value = await fetchOrphans()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : 'Failed to load orphans')
+  } finally {
+    loading.value = false
+  }
+})
+
+function editOrphan(row: VtualCreator): void {
+  router.push({ name: 'vtual.orphans.edit.view', params: { id: row.id } })
+}
+</script>
+
+<template>
+  <Card title="Orphan Creators">
+    <template #actions>
+      <button
+        v-if="canManage"
+        class="btn btn-primary btn-sm"
+        @click="router.push({ name: 'vtual.orphans.create.view' })"
+      >
+        <i class="bi bi-plus-lg me-1"></i> Add Orphan
+      </button>
+    </template>
+
+    <DataTable
+      :columns="columns"
+      :rows="items"
+      :loading="loading"
+      search-placeholder="Search orphans…"
+      empty-icon="bi-search"
+      empty-title="No orphan creators found"
+      @row-click="editOrphan"
+    >
+      <template #cell-slug="{ row }: { row: VtualCreator }">
+        <code>{{ row.slug }}</code>
+      </template>
+
+      <template #cell-channels_count="{ row }: { row: VtualCreator }">
+        {{ row.channels_count ?? 0 }}
+      </template>
+
+      <template #cell-created_at="{ row }: { row: VtualCreator }">
+        <span class="text-muted small">{{ row.created_at_formatted ?? row.created_at ?? '—' }}</span>
+      </template>
+
+      <template v-if="canManage" #actions="{ row }: { row: VtualCreator }">
+        <button class="btn btn-outline-primary btn-sm" @click.stop="editOrphan(row)">
+          <i class="bi bi-pencil" aria-hidden="true"></i>
+        </button>
+      </template>
+    </DataTable>
+  </Card>
+</template>
