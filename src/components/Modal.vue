@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount, computed, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 type BootstrapModal = {
   show(): void
@@ -37,6 +38,8 @@ const emit = defineEmits<{
   shown: []
   hidden: []
 }>()
+
+const { t } = useI18n()
 
 const modalEl = ref<HTMLElement | null>(null)
 let modalInstance: BootstrapModal | null = null
@@ -115,7 +118,7 @@ onBeforeUnmount(() => {
             type="button"
             class="btn-close"
             data-bs-dismiss="modal"
-            aria-label="Close"
+            :aria-label="t('actions.close')"
           ></button>
         </div>
         <div class="modal-body">

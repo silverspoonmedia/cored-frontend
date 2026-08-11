@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useActivityLogs } from '@/composables/useActivityLogs'
 import { useAlert } from '@/composables/useAlert'
@@ -10,6 +11,7 @@ const route = useRoute()
 const router = useRouter()
 const { fetchOne, error } = useActivityLogs()
 const { error: showError } = useAlert()
+const { t } = useI18n()
 
 const entry = ref<ActivityLog | null>(null)
 const loading = ref(true)
@@ -53,31 +55,31 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Card :title="`Activity Log #${entry?.id ?? ''}`">
+  <Card :title="t('web.activity-log.show_card_title', { id: entry?.id ?? '' })">
     <template #actions>
       <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'activity-logs.index.view' })">
-        <i class="bi bi-arrow-left me-1"></i> Back to List
+        <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="entry">
       <dl class="row mb-0">
-        <dt class="col-sm-3">Log Name</dt>
+        <dt class="col-sm-3">{{ t('web.activity-log.log_name') }}</dt>
         <dd class="col-sm-9">{{ entry.log_name ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Event</dt>
+        <dt class="col-sm-3">{{ t('web.activity-log.event_label') }}</dt>
         <dd class="col-sm-9">{{ entry.event_label ?? entry.event ?? entry.description ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Subject</dt>
+        <dt class="col-sm-3">{{ t('web.activity-log.subject') }}</dt>
         <dd class="col-sm-9">{{ entry.subject_label ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Causer</dt>
+        <dt class="col-sm-3">{{ t('web.activity-log.causer') }}</dt>
         <dd class="col-sm-9">
           <template v-if="entry.causer">
             {{ entry.causer.name }}
@@ -86,20 +88,20 @@ onMounted(async () => {
           <template v-else>—</template>
         </dd>
 
-        <dt class="col-sm-3">Created At</dt>
+        <dt class="col-sm-3">{{ t('web.activity-log.created_at') }}</dt>
         <dd class="col-sm-9">{{ entry.created_at_formatted ?? entry.created_at ?? '—' }}</dd>
       </dl>
 
       <template v-if="hasChanges">
         <hr>
-        <h6 class="mb-3">Attribute Changes</h6>
+        <h6 class="mb-3">{{ t('web.activity-log.attribute_changes') }}</h6>
         <div class="table-responsive">
           <table class="table table-sm table-bordered mb-0">
             <thead>
               <tr>
-                <th>Attribute</th>
-                <th>Old Value</th>
-                <th>New Value</th>
+                <th>{{ t('web.activity-log.attribute_col') }}</th>
+                <th>{{ t('web.activity-log.old_value') }}</th>
+                <th>{{ t('web.activity-log.new_value') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -115,14 +117,14 @@ onMounted(async () => {
 
       <template v-if="hasProperties">
         <hr>
-        <h6 class="mb-3">Properties</h6>
+        <h6 class="mb-3">{{ t('web.activity-log.properties') }}</h6>
         <pre class="bg-body-tertiary border rounded p-3 small mb-0"><code>{{ propertiesJson }}</code></pre>
       </template>
     </div>
 
     <div v-else class="text-center py-4 text-muted">
       <i class="bi bi-exclamation-circle" style="font-size: 2rem;"></i>
-      <p class="mt-2">Activity log not found.</p>
+      <p class="mt-2">{{ t('web.activity-log.not_found') }}</p>
     </div>
   </Card>
 </template>

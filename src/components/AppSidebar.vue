@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import NavTree from '@/components/NavTree.vue'
 import { useNavigation } from '@/composables/useNavigation'
 import type { NavNode } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const { tree: sidebarNavigation, loading, load } = useNavigation()
 
@@ -97,11 +99,11 @@ onMounted(() => {
         <input
           type="search"
           class="form-control form-control-sm border-0"
-          placeholder="Search menu..."
+          :placeholder="t('web.sidebar.search_placeholder')"
           v-model="searchQuery"
           autocomplete="off"
           spellcheck="false"
-          aria-label="Search navigation"
+          :aria-label="t('web.sidebar.search_label')"
           aria-controls="sidebar-menu-root"
         >
       </div>
@@ -112,7 +114,7 @@ onMounted(() => {
           id="sidebar-menu-root"
           class="nav sidebar-menu flex-column"
           role="navigation"
-          aria-label="Main navigation"
+          :aria-label="t('ui.labels.main_navigation')"
           data-accordion="false"
         >
           <NavTree :items="filteredTree" />
@@ -120,12 +122,12 @@ onMounted(() => {
 
         <div v-else class="px-3 py-2 text-muted small">
           <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-          Loading navigation…
+          {{ t('ui.loading') }}
         </div>
       </nav>
 
       <div v-if="!loading && !hasResults" class="px-3 py-2 text-muted small">
-        No results found.
+        {{ t('web.sidebar.search_no_results') }}
       </div>
     </div>
   </aside>

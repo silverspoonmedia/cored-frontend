@@ -30,7 +30,7 @@ export function useNotifications() {
   async function fetchUnreadCount(): Promise<number> {
     try {
       const res = await get<ApiResponse<UnreadCountPayload>>('notifications/unread-count')
-      unreadCount.value = res.data?.count ?? 0
+      unreadCount.value = res.data?.unread ?? 0
       return unreadCount.value
     } catch {
       return unreadCount.value

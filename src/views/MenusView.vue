@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
@@ -10,6 +11,7 @@ import { useAuth } from '@/stores/auth'
 import type { MenuListItem } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList, deleteMenu } = useMenus()
 const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
@@ -24,16 +26,15 @@ const deleting = ref(false)
 
 const deleteMessage = computed(() => {
   if (!deleteTarget.value) return ''
-  const hasChildren = (deleteTarget.value.children_count ?? 0) > 0
-  return `Are you sure you want to delete this menu?${hasChildren ? ' This menu has children — they will be orphaned unless cascade is enabled.' : ''}`
+  return t('web.menus.delete_confirm_question', { name: deleteTarget.value.name })
 })
 
 const columns: DataTableColumn[] = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'type', label: 'Type', sortable: true, align: 'center' },
-  { key: 'route', label: 'Route', sortable: false },
-  { key: 'order', label: 'Order', sortable: true, align: 'center' },
-  { key: 'attributes', label: 'Attributes', sortable: false },
+  { key: 'name', label: t('web.menus.columns.name'), sortable: true },
+  { key: 'type', label: t('web.menus.columns.type'), sortable: true, align: 'center' },
+  { key: 'route', label: t('web.menus.columns.route'), sortable: false },
+  { key: 'order', label: t('web.menus.columns.order'), sortable: true, align: 'center' },
+  { key: 'attributes', label: t('web.menus.columns.attributes'), sortable: false },
 ]
 
 async function load(): Promise<void> {
@@ -51,11 +52,11 @@ async function handleDelete(): Promise<void> {
   deleting.value = true
   try {
     await deleteMenu(deleteTarget.value.id, cascade.value)
-    showSuccess(`Menu "${deleteTarget.value.name}" deleted.`)
+    showSuccess(t('web.menus.deleted', { name: deleteTarget.value.name }))
     deleteTarget.value = null
     await load()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to delete menu')
+    showError(e instanceof Error ? e.message : t('web.menus.delete_failed'))
   } finally {
     deleting.value = false
   }
@@ -65,12 +66,12 @@ onMounted(load)
 </script>
 
 <template>
-  <Card title="Navigation Menus">
+  <Card :title="t('web.menus.card_title')">
     <template #actions>
       <div class="d-flex gap-2">
         <select v-model="layout" class="form-select form-select-sm" style="width: auto;" @change="load">
-          <option value="sidebar">Sidebar</option>
-          <option value="navbar">Navbar</option>
+          <option value="sidebar">{{ t('web.menus.form.layouts.sidebar') }}</option>
+          <option value="navbar">{{ t('web.menus.form.layouts.navbar') }}</option>
         </select>
         <button v-if="canManage" class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'menus.trashed.view', query: { layout: layout } })">
           <i class="bi bi-trash3 me-1"></i> Trashed
@@ -86,9 +87,9 @@ onMounted(load)
       :rows="items"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search menus…"
+      :search-placeholder="t('web.menus.search_placeholder')"
       empty-icon="bi-list-nested"
-      empty-title="No menus found"
+      :empty-title="t('web.menus.empty_list')"
     >
       <template #cell-name="{ row }: { row: MenuListItem }">
         <span :class="{ 'ps-3': row.type === 'p', 'ps-4': row.type === 'c' }">
@@ -132,7 +133,7 @@ onMounted(load)
       v-model="showDeleteModal"
       :title="`Delete &quot;${deleteTarget?.name ?? ''}&quot;`"
       :message="deleteMessage"
-      confirm-label="Delete"
+      :confirm-label="t('ui.actions.delete')"
       confirm-variant="danger"
       @confirm="handleDelete"
     >

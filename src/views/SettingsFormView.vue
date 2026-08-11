@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useSettings } from '@/composables/useSettings'
@@ -10,6 +11,7 @@ import type { SettingEntry } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t, tm } = useI18n()
 const { fetchGroup, settings, loading, saving, saveGroup, error } = useSettings()
 const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
@@ -17,6 +19,51 @@ const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage settings'))
 
 const group = computed(() => route.params.group as string)
+
+const groupLabel = computed(() => {
+  const slugKey = group.value.replace(/-/g, '_')
+  return t(`web.settings.groups.${slugKey}`)
+})
+
+const fieldLabels = computed<Record<string, string>>(() => {
+  const obj = tm('web.settings.fields') as Record<string, string>
+  return obj ?? {}
+})
+
+const hints = computed<Record<string, string>>(() => {
+  const obj = tm('web.settings.hints') as Record<string, string>
+  return obj ?? {}
+})
+
+const optionLabels = computed<Record<string, Record<string, string>>>(() => {
+  const obj = tm('web.settings.options') as Record<string, Record<string, string>>
+  return obj ?? {}
+})
+
+function fieldLabel(key: string): string {
+  return fieldLabels.value[key] ?? key
+}
+
+function fieldHint(key: string): string | null {
+  const h = hints.value[key]
+  return h && h.length > 0 ? h : null
+}
+
+function optionLabel(key: string, opt: string): string {
+  const parts = key.split('.')
+  let node: unknown = optionLabels.value
+  for (const part of parts) {
+    if (node && typeof node === 'object' && part in (node as Record<string, unknown>)) {
+      node = (node as Record<string, unknown>)[part]
+    } else {
+      return opt
+    }
+  }
+  if (node && typeof node === 'object' && opt in (node as Record<string, string>)) {
+    return (node as Record<string, string>)[opt]
+  }
+  return opt
+}
 
 const entries = computed<Array<[string, SettingEntry]>>(() => {
   return Object.entries(settings.value)
@@ -26,10 +73,6 @@ const form = ref<Record<string, string | number | boolean>>({})
 
 function fieldId(key: string): string {
   return key.replace(/\./g, '_')
-}
-
-function humanLabel(key: string): string {
-  return key.split('.').pop()?.replace(/_/g, ' ') ?? key
 }
 
 function asBool(val: unknown): boolean {
@@ -114,7 +157,7 @@ async function handleSubmit(): Promise<void> {
 
   const ok = await saveGroup(group.value, payload)
   if (ok) {
-    showSuccess('Settings updated successfully.')
+    showSuccess(t('web.settings.updated'))
   } else if (error.value) {
     showError(error.value)
   }
@@ -126,20 +169,24 @@ onMounted(loadGroup)
 </script>
 
 <template>
-  <Card :title="`${group} Settings`">
+  <Card :title="groupLabel">
     <template #actions>
       <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'settings.index.view' })">
-        <i class="bi bi-arrow-left me-1"></i> Back to Settings
+        <i class="bi bi-arrow-left me-1"></i> {{ t('web.settings.back') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else>
+      <div v-if="!canManage" class="alert alert-info">
+        {{ t('web.settings.read_only') }}
+      </div>
+
       <form v-if="canManage" @submit.prevent="handleSubmit">
         <div v-for="[key, entry] in entries" :key="key" class="mb-3">
           <!-- Boolean -->
@@ -153,18 +200,19 @@ onMounted(loadGroup)
               @change="setBool(key, ($event.target as HTMLInputElement).checked)"
             >
             <label class="form-check-label" :for="fieldId(key)">
-              {{ humanLabel(key) }}
+              {{ fieldLabel(key) }}
             </label>
+            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
             <div class="text-muted small">
               <code>{{ key }}</code>
-              <span class="ms-2">Source: {{ entry.source }}</span>
+              <span class="ms-2">{{ t('web.settings.source', { source: entry.source }) }}</span>
             </div>
           </div>
 
           <!-- Array -->
           <div v-else-if="entry.type === 'array'">
             <label class="form-label" :for="fieldId(key)">
-              {{ humanLabel(key) }}
+              {{ fieldLabel(key) }}
             </label>
             <textarea
               :id="fieldId(key)"
@@ -173,15 +221,16 @@ onMounted(loadGroup)
               rows="2"
               @input="setStr(key, ($event.target as HTMLTextAreaElement).value)"
             ></textarea>
+            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
             <div class="text-muted small">
-              <code>{{ key }}</code> · Comma-separated values · Source: {{ entry.source }}
+              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
             </div>
           </div>
 
           <!-- Select (options present) -->
           <div v-else-if="entry.options && entry.options.length > 0">
             <label class="form-label" :for="fieldId(key)">
-              {{ humanLabel(key) }}
+              {{ fieldLabel(key) }}
             </label>
             <select
               :id="fieldId(key)"
@@ -189,17 +238,18 @@ onMounted(loadGroup)
               class="form-select"
               @change="setSelect(key, ($event.target as HTMLSelectElement).value)"
             >
-              <option v-for="opt in entry.options" :key="opt" :value="opt">{{ opt }}</option>
+              <option v-for="opt in entry.options" :key="opt" :value="opt">{{ optionLabel(key, opt) }}</option>
             </select>
+            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
             <div class="text-muted small">
-              <code>{{ key }}</code> · Source: {{ entry.source }}
+              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
             </div>
           </div>
 
           <!-- Number (int/float) -->
           <div v-else-if="entry.type === 'int' || entry.type === 'float'">
             <label class="form-label" :for="fieldId(key)">
-              {{ humanLabel(key) }}
+              {{ fieldLabel(key) }}
             </label>
             <input
               :id="fieldId(key)"
@@ -209,15 +259,16 @@ onMounted(loadGroup)
               class="form-control"
               @input="setNum(key, Number(($event.target as HTMLInputElement).value))"
             >
+            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
             <div class="text-muted small">
-              <code>{{ key }}</code> · Source: {{ entry.source }}
+              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
             </div>
           </div>
 
           <!-- String (default) -->
           <div v-else>
             <label class="form-label" :for="fieldId(key)">
-              {{ humanLabel(key) }}
+              {{ fieldLabel(key) }}
             </label>
             <input
               :id="fieldId(key)"
@@ -226,28 +277,33 @@ onMounted(loadGroup)
               class="form-control"
               @input="setStr(key, ($event.target as HTMLInputElement).value)"
             >
+            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
             <div class="text-muted small">
-              <code>{{ key }}</code> · Source: {{ entry.source }}
+              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
             </div>
           </div>
         </div>
 
-        <SubmitButton label="Save" :loading="saving" variant="primary" />
+        <SubmitButton :label="t('actions.save')" :loading="saving" variant="primary" />
       </form>
 
       <!-- Read-only -->
       <dl v-else class="row mb-0">
         <template v-for="[key, entry] in entries" :key="key">
           <dt class="col-sm-4">
-            {{ humanLabel(key) }}
+            {{ fieldLabel(key) }}
             <code class="d-block small text-muted">{{ key }}</code>
+            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
           </dt>
           <dd class="col-sm-8">
             <template v-if="entry.type === 'bool'">
-              {{ asBool(entry.value) ? 'Yes' : 'No' }}
+              {{ asBool(entry.value) ? t('ui.yes') : t('ui.no') }}
             </template>
             <template v-else-if="entry.type === 'array'">
               {{ asArrayString(entry.value) }}
+            </template>
+            <template v-else-if="entry.options && entry.options.length > 0">
+              {{ optionLabel(key, String(entry.value ?? '')) }}
             </template>
             <template v-else>
               {{ entry.value }}

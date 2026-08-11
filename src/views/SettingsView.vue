@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useSettings } from '@/composables/useSettings'
 
@@ -10,6 +11,7 @@ interface SettingsCard {
   route: string
 }
 
+const { t } = useI18n()
 const { groups, fetchGroups, loading } = useSettings()
 
 const iconMap: Record<string, string> = {
@@ -17,26 +19,25 @@ const iconMap: Record<string, string> = {
   'file-hosting': 'bi-cloud-upload',
   microstock: 'bi-images',
   vtual: 'bi-broadcast',
+  identity: 'bi-person-badge',
 }
 
-function humanize(slug: string): string {
-  return slug
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
+function groupLabel(slug: string): string {
+  const slugKey = slug.replace(/-/g, '_')
+  return t(`web.settings.groups.${slugKey}`)
 }
 
 const cards = computed<SettingsCard[]>(() => {
   const dynamic: SettingsCard[] = groups.value.map((slug) => ({
-    label: humanize(slug),
+    label: groupLabel(slug),
     icon: iconMap[slug] ?? 'bi-gear',
     group: slug,
     route: 'settings.group.view',
   }))
 
   const extras: SettingsCard[] = [
-    { label: 'Notification Audiences', icon: 'bi-bell', route: 'notification-audiences.index.view' },
-    { label: 'Currencies', icon: 'bi-currency-exchange', route: 'currencies.index.view' },
+    { label: t('web.settings.groups.notification_audiences'), icon: 'bi-bell', route: 'notification-audiences.index.view' },
+    { label: t('web.settings.groups.currencies'), icon: 'bi-currency-exchange', route: 'currencies.index.view' },
   ]
 
   return [...dynamic, ...extras]
@@ -46,11 +47,11 @@ onMounted(fetchGroups)
 </script>
 
 <template>
-  <Card title="Settings">
-    <p class="text-muted">Manage platform configuration and domain access.</p>
+  <Card :title="t('web.settings.title')">
+    <p class="text-muted">{{ t('web.settings.subtitle') }}</p>
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
     <div v-else class="row g-3">

@@ -18,7 +18,7 @@ export function useFileHostingUsage() {
     error.value = null
     try {
       const res = await get<ApiResponse<MicrostockBillingSummary>>(
-        'file-hosting/microstock/billing',
+        'microstock/billing',
       )
       if (res.status === 'success' && res.data) {
         return res.data
@@ -39,7 +39,7 @@ export function useFileHostingUsage() {
     error.value = null
     try {
       const res = await get<ApiResponse<{ items: MicrostockLedgerEntry[]; pagination: { has_more: boolean } }>>(
-        'file-hosting/microstock/billing/ledger',
+        'microstock/billing/ledger',
         params,
       )
       if (res.status === 'success' && res.data) {
@@ -61,7 +61,7 @@ export function useFileHostingUsage() {
     error.value = null
     try {
       const res = await get<ApiResponse<{ items: MicrostockUsageEvent[]; pagination: { has_more: boolean } }>>(
-        'file-hosting/microstock/billing/usage-events',
+        'microstock/billing/usage-events',
         params,
       )
       if (res.status === 'success' && res.data) {
@@ -83,7 +83,7 @@ export function useFileHostingUsage() {
     error.value = null
     try {
       const res = await get<ApiResponse<MicrostockPlatformOverview>>(
-        'file-hosting/microstock/billing/admin/overview',
+        'admin/microstock/billing/overview',
         params,
       )
       if (res.status === 'success' && res.data) {
@@ -105,7 +105,7 @@ export function useFileHostingUsage() {
     error.value = null
     try {
       const res = await get<ApiResponse<InferenceUsageEventListPayload>>(
-        'file-hosting/microstock/billing/admin/usage-events',
+        'admin/microstock/billing/usage-events',
         params,
       )
       if (res.status === 'success' && res.data) {

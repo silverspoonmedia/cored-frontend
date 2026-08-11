@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormTextarea from '@/components/FormTextarea.vue'
@@ -20,6 +21,7 @@ import type {
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const vtual = useVtual()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
@@ -63,16 +65,16 @@ const confirmState = ref<{ show: boolean; title: string; message: string; confir
   title: '',
   message: '',
   confirmText: 'Confirm',
-  confirmClass: 'btn-primary',
+  confirmClass: 'primary',
   action: null,
 })
 
-const linkKindOptions = [
-  { value: 'social', label: 'Social' },
-  { value: 'donation', label: 'Donation' },
-  { value: 'website', label: 'Website' },
-  { value: 'other', label: 'Other' },
-]
+const linkKindOptions = computed(() => [
+  { value: 'social', label: t('web.vtual.profiles.link_kinds.social') },
+  { value: 'donation', label: t('web.vtual.profiles.link_kinds.donation') },
+  { value: 'website', label: t('web.vtual.profiles.link_kinds.website') },
+  { value: 'other', label: t('web.vtual.profiles.link_kinds.other') },
+])
 
 async function loadAll(): Promise<void> {
   loading.value = true
@@ -97,7 +99,7 @@ async function loadAll(): Promise<void> {
     metaForm.bio = c.bio ?? ''
     metaForm.avatar_url = c.avatar_url ?? ''
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.load_failed'))
   } finally {
     loading.value = false
   }
@@ -115,9 +117,9 @@ async function handleSaveMeta(): Promise<void> {
       bio: metaForm.bio,
       avatar_url: metaForm.avatar_url,
     })
-    showSuccess('Profile updated.')
+    showSuccess(t('web.vtual.profiles.ajax.profile_updated'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.update_failed'))
   } finally {
     savingMeta.value = false
   }
@@ -128,10 +130,10 @@ async function handleMerge(): Promise<void> {
   merging.value = true
   try {
     await vtual.mergeCreator(creator.value.id, mergeDestinationId.value)
-    showSuccess('Creators merged.')
+    showSuccess(t('web.vtual.profiles.ajax.creators_merged'))
     router.push({ name: 'vtual.profiles.index.view' })
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Merge failed')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.merge_failed'))
   } finally {
     merging.value = false
   }
@@ -157,13 +159,13 @@ async function handleSaveLink(): Promise<void> {
       })
       links.value.push(created)
     }
-    showSuccess('Link saved.')
+    showSuccess(t('web.vtual.profiles.ajax.link_saved'))
     linkForm.label = ''
     linkForm.url = ''
     linkForm.kind = 'social'
     editingLinkId.value = null
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to save link')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.link_save_failed'))
   } finally {
     savingLink.value = false
   }
@@ -187,9 +189,9 @@ async function handleDeleteLink(linkId: string): Promise<void> {
   try {
     await vtual.deleteLink(linkId)
     links.value = links.value.filter((l) => l.id !== linkId)
-    showSuccess('Link removed.')
+    showSuccess(t('web.vtual.profiles.ajax.link_removed'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to delete link')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.link_delete_failed'))
   }
 }
 
@@ -200,21 +202,21 @@ async function handleAddChannel(): Promise<void> {
     const result = await vtual.addChannel(creator.value.id, channelForm.platform_key, channelForm.profile)
     if ('token' in result) {
       channelClaims.value.push(result)
-      showSuccess('Channel claim started. Paste the token in your channel bio to verify.')
+      showSuccess(t('web.vtual.profiles.ajax.channel_claim_started'))
     } else {
       channels.value.push(result)
-      showSuccess('Channel added.')
+      showSuccess(t('web.vtual.profiles.ajax.channel_added'))
     }
     channelForm.platform_key = ''
     channelForm.profile = ''
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to add channel')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.channel_add_failed'))
   } finally {
     addingChannel.value = false
   }
 }
 
-function openConfirm(title: string, message: string, action: () => Promise<void>, confirmText = 'Confirm', confirmClass = 'btn-primary'): void {
+function openConfirm(title: string, message: string, action: () => Promise<void>, confirmText = t('ui.actions.confirm'), confirmClass = 'primary'): void {
   confirmState.value = { show: true, title, message, confirmText, confirmClass, action }
 }
 
@@ -231,9 +233,9 @@ async function executeConfirm(): Promise<void> {
 async function handleRefreshChannel(channelId: string): Promise<void> {
   try {
     await vtual.refreshChannel(channelId)
-    showSuccess('Refresh queued.')
+    showSuccess(t('web.vtual.profiles.ajax.refresh_queued'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to refresh')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.refresh_failed'))
   }
 }
 
@@ -242,9 +244,9 @@ async function handleArchiveChannel(channelId: string): Promise<void> {
     const updated = await vtual.archiveChannel(channelId)
     channels.value = channels.value.filter((c) => c.id !== channelId)
     archivedChannels.value.push(updated)
-    showSuccess('Channel archived.')
+    showSuccess(t('web.vtual.profiles.ajax.channel_archived'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to archive')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.archive_failed'))
   }
 }
 
@@ -253,9 +255,9 @@ async function handleRestoreChannel(channelId: string): Promise<void> {
     const updated = await vtual.restoreChannel(channelId)
     archivedChannels.value = archivedChannels.value.filter((c) => c.id !== channelId)
     channels.value.push(updated)
-    showSuccess('Channel restored.')
+    showSuccess(t('web.vtual.profiles.ajax.channel_restored'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to restore')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.restore_failed'))
   }
 }
 
@@ -264,9 +266,9 @@ async function handlePromoteChannel(channelId: string): Promise<void> {
     const updated = await vtual.promoteChannel(channelId)
     const idx = channels.value.findIndex((c) => c.id === channelId)
     if (idx >= 0) channels.value[idx] = updated
-    showSuccess('Channel promoted.')
+    showSuccess(t('web.vtual.profiles.ajax.channel_promoted'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to promote')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.promote_failed'))
   }
 }
 
@@ -278,9 +280,9 @@ async function handleVerifyChannelClaim(claimId: string): Promise<void> {
     if (updated.status === 'verified' && updated.channel_id) {
       channelClaims.value = channelClaims.value.filter((c) => c.id !== claimId)
     }
-    showSuccess('Verification queued.')
+    showSuccess(t('web.vtual.profiles.ajax.verification_queued'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Verify failed')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.verify_failed'))
   }
 }
 
@@ -288,9 +290,9 @@ async function handleCancelChannelClaim(claimId: string): Promise<void> {
   try {
     await vtual.cancelChannelClaim(claimId)
     channelClaims.value = channelClaims.value.filter((c) => c.id !== claimId)
-    showSuccess('Claim cancelled.')
+    showSuccess(t('web.vtual.profiles.ajax.claim_cancelled'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to cancel')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.cancel_failed'))
   }
 }
 
@@ -300,9 +302,9 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
     if (updated.status === 'verified') {
       channelClaims.value = channelClaims.value.filter((c) => c.id !== claimId)
     }
-    showSuccess('Claim accepted.')
+    showSuccess(t('web.vtual.profiles.ajax.claim_accepted'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to accept')
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.accept_failed'))
   }
 }
 
@@ -320,81 +322,81 @@ function statusBadge(status: string): string {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
   <div v-else-if="creator" class="row g-3">
     <div class="col-lg-8">
       <!-- Meta form -->
-      <Card title="Profile">
+      <Card :title="t('web.vtual.profiles.profile_title')">
         <template #actions>
           <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'vtual.profiles.index.view' })">
-            <i class="bi bi-arrow-left me-1"></i> Back
+            <i class="bi bi-arrow-left me-1"></i> {{ t('web.vtual.profiles.page_title') }}
           </button>
           <a v-if="creator.profile_url" :href="creator.profile_url" target="_blank" class="btn btn-outline-primary btn-sm ms-1">
-            <i class="bi bi-box-arrow-up-right me-1"></i> View
+            <i class="bi bi-box-arrow-up-right me-1"></i> {{ t('web.vtual.profiles.view_profile') }}
           </a>
         </template>
 
         <form @submit.prevent="handleSaveMeta">
           <div class="row g-2">
             <div class="col-md-6">
-              <FormInput name="display_name" label="Display Name" v-model="metaForm.display_name" required />
+              <FormInput name="display_name" :label="t('web.vtual.profiles.fields.display_name')" v-model="metaForm.display_name" required />
             </div>
             <div class="col-md-6">
-              <FormInput name="slug" label="Slug" v-model="metaForm.slug" required />
+              <FormInput name="slug" :label="t('web.vtual.profiles.fields.slug')" v-model="metaForm.slug" required />
             </div>
             <div class="col-12">
-              <FormTextarea name="bio" label="Bio" v-model="metaForm.bio" :rows="3" />
+              <FormTextarea name="bio" :label="t('web.vtual.profiles.fields.bio')" v-model="metaForm.bio" :rows="3" />
             </div>
             <div class="col-12">
-              <FormInput name="avatar_url" label="Avatar URL" v-model="metaForm.avatar_url" />
+              <FormInput name="avatar_url" :label="t('web.vtual.profiles.fields.avatar_url')" v-model="metaForm.avatar_url" />
             </div>
           </div>
-          <SubmitButton v-if="canMutate" :loading="savingMeta" label="Save" class="mt-2" />
+          <SubmitButton v-if="canMutate" :loading="savingMeta" :label="t('ui.actions.save')" class="mt-2" />
         </form>
       </Card>
 
       <!-- Merge form -->
-      <Card title="Merge" class="mt-3" v-if="canMutate">
-        <p class="text-muted small">Merge this creator into another. All channels, links, and claims will be moved to the destination.</p>
+      <Card :title="t('web.vtual.profiles.merge_title')" class="mt-3" v-if="canMutate">
+        <p class="text-muted small">{{ t('web.vtual.profiles.merge_desc_short') }}</p>
         <form @submit.prevent="handleMerge" class="row g-2 align-items-end">
           <div class="col-md-8">
-            <FormInput name="destination_id" label="Destination Creator ID" v-model="mergeDestinationId" placeholder="UUID" />
+            <FormInput name="destination_id" :label="t('web.vtual.profiles.fields.destination_id')" v-model="mergeDestinationId" :placeholder="t('web.vtual.profiles.uuid_placeholder')" />
           </div>
           <div class="col-md-4">
-            <SubmitButton :loading="merging" label="Merge" confirm-class="btn-danger" />
+            <SubmitButton :loading="merging" :label="t('web.vtual.profiles.merge_button')" variant="danger" />
           </div>
         </form>
       </Card>
 
       <!-- Links -->
-      <Card title="External Links" class="mt-3">
+      <Card :title="t('web.vtual.profiles.links_title')" class="mt-3">
         <form v-if="canMutate" @submit.prevent="handleSaveLink" class="row g-2 mb-3 align-items-end">
           <div class="col-md-3">
-            <FormInput name="link_label" label="Label" v-model="linkForm.label" required />
+            <FormInput name="link_label" :label="t('web.vtual.profiles.fields.link_label')" v-model="linkForm.label" required />
           </div>
           <div class="col-md-4">
-            <FormInput name="link_url" label="URL" v-model="linkForm.url" required />
+            <FormInput name="link_url" :label="t('web.vtual.profiles.fields.link_url')" v-model="linkForm.url" required />
           </div>
           <div class="col-md-3">
-            <FormSelect name="link_kind" label="Kind" v-model="linkForm.kind" :options="linkKindOptions" />
+            <FormSelect name="link_kind" :label="t('web.vtual.profiles.fields.link_kind')" v-model="linkForm.kind" :options="linkKindOptions" />
           </div>
           <div class="col-md-2">
-            <SubmitButton :loading="savingLink" :label="editingLinkId ? 'Update' : 'Add'" />
-            <button v-if="editingLinkId" type="button" class="btn btn-outline-secondary btn-sm ms-1" @click="resetLinkForm">Cancel</button>
+            <SubmitButton :loading="savingLink" :label="editingLinkId ? t('ui.actions.update') : t('ui.actions.add')" />
+            <button v-if="editingLinkId" type="button" class="btn btn-outline-secondary btn-sm ms-1" @click="resetLinkForm">{{ t('ui.actions.cancel') }}</button>
           </div>
         </form>
 
-        <div v-if="links.length === 0" class="text-muted small">No links.</div>
+        <div v-if="links.length === 0" class="text-muted small">{{ t('web.vtual.profiles.no_links') }}</div>
         <div v-else class="table-responsive">
           <table class="table table-sm align-middle mb-0">
             <thead>
               <tr>
-                <th>Label</th>
-                <th>URL</th>
-                <th>Kind</th>
+                <th>{{ t('web.vtual.profiles.fields.link_label') }}</th>
+                <th>{{ t('web.vtual.profiles.fields.link_url') }}</th>
+                <th>{{ t('web.vtual.profiles.fields.link_kind') }}</th>
                 <th v-if="canMutate"></th>
               </tr>
             </thead>
@@ -405,7 +407,7 @@ function statusBadge(status: string): string {
                 <td><span class="badge text-bg-light">{{ link.kind }}</span></td>
                 <td v-if="canMutate" class="text-end">
                   <button class="btn btn-outline-secondary btn-sm" @click="editLink(link)"><i class="bi bi-pencil"></i></button>
-                  <button class="btn btn-outline-danger btn-sm ms-1" @click="openConfirm('Delete Link', 'Remove this link?', () => handleDeleteLink(link.id), 'Delete', 'btn-danger')"><i class="bi bi-trash"></i></button>
+                  <button class="btn btn-outline-danger btn-sm ms-1" @click="openConfirm(t('web.vtual.confirm.delete_link_title'), t('web.vtual.confirm.delete_link_body'), () => handleDeleteLink(link.id), t('ui.actions.delete'), 'danger')"><i class="bi bi-trash"></i></button>
                 </td>
               </tr>
             </tbody>
@@ -416,7 +418,7 @@ function statusBadge(status: string): string {
 
     <div class="col-lg-4">
       <!-- Channel claims -->
-      <Card title="Channel Claims" v-if="channelClaims.length > 0">
+      <Card :title="t('web.vtual.profiles.channel_claims_title')" v-if="channelClaims.length > 0">
         <div v-for="claim in channelClaims" :key="claim.id" class="border rounded p-2 mb-2">
           <div class="d-flex justify-content-between align-items-start">
             <div>
@@ -426,29 +428,29 @@ function statusBadge(status: string): string {
             <small class="text-muted">{{ claim.platform?.name }}</small>
           </div>
           <div v-if="claim.token" class="mt-2">
-            <div class="text-muted small">Token:</div>
+            <div class="text-muted small">{{ t('web.vtual.profiles.token_label') }}:</div>
             <code class="small d-block p-1 bg-light rounded">{{ claim.token }}</code>
           </div>
           <div class="mt-2 d-flex flex-wrap gap-1" v-if="canMutate">
-            <button class="btn btn-primary btn-sm" @click="handleVerifyChannelClaim(claim.id)">Verify</button>
-            <button class="btn btn-outline-secondary btn-sm" @click="handleCancelChannelClaim(claim.id)">Cancel</button>
-            <button v-if="canAcceptAnyway" class="btn btn-outline-warning btn-sm" @click="openConfirm('Accept Anyway', 'Accept this claim without verification?', () => handleAcceptAnywayChannelClaim(claim.id), 'Accept', 'btn-warning')">Accept Anyway</button>
+            <button class="btn btn-primary btn-sm" @click="handleVerifyChannelClaim(claim.id)">{{ t('web.vtual.actions.verify') }}</button>
+            <button class="btn btn-outline-secondary btn-sm" @click="handleCancelChannelClaim(claim.id)">{{ t('web.vtual.actions.cancel') }}</button>
+            <button v-if="canAcceptAnyway" class="btn btn-outline-warning btn-sm" @click="openConfirm(t('web.vtual.confirm.accept_anyway_title'), t('web.vtual.confirm.accept_anyway_body'), () => handleAcceptAnywayChannelClaim(claim.id), t('web.vtual.actions.accept'), 'warning')">{{ t('web.vtual.actions.accept_anyway') }}</button>
           </div>
         </div>
       </Card>
 
       <!-- Add channel -->
-      <Card title="Add Channel" v-if="canMutate && platforms.length > 0">
+      <Card :title="t('web.vtual.profiles.add_channel_title')" v-if="canMutate && platforms.length > 0">
         <form @submit.prevent="handleAddChannel">
-          <FormSelect name="platform_key" label="Platform" v-model="channelForm.platform_key" :options="platforms.filter(p => p.enabled).map(p => ({ value: p.key, label: p.name }))" required />
-          <FormInput name="profile" label="Profile URL / ID" v-model="channelForm.profile" required />
-          <SubmitButton :loading="addingChannel" label="Add" class="mt-2" />
+          <FormSelect name="platform_key" :label="t('web.vtual.profiles.fields.platform')" v-model="channelForm.platform_key" :options="platforms.filter(p => p.enabled).map(p => ({ value: p.key, label: p.name }))" required />
+          <FormInput name="profile" :label="t('web.vtual.profiles.fields.profile_url')" v-model="channelForm.profile" required />
+          <SubmitButton :loading="addingChannel" :label="t('ui.actions.add')" class="mt-2" />
         </form>
       </Card>
 
       <!-- Active channels -->
-      <Card title="Active Channels" class="mt-3">
-        <div v-if="channels.length === 0" class="text-muted small">No active channels.</div>
+      <Card :title="t('web.vtual.profiles.active_channels_title')" class="mt-3">
+        <div v-if="channels.length === 0" class="text-muted small">{{ t('web.vtual.profiles.no_active_channels') }}</div>
         <div v-for="ch in channels" :key="ch.id" class="border rounded p-2 mb-2">
           <div class="d-flex align-items-center gap-2">
             <img v-if="ch.avatar_url" :src="ch.avatar_url" class="rounded" style="width: 32px; height: 32px;" />
@@ -460,15 +462,15 @@ function statusBadge(status: string): string {
             <span class="badge" :class="statusBadge(ch.status)">{{ ch.status }}</span>
           </div>
           <div v-if="canMutate" class="mt-2 d-flex flex-wrap gap-1">
-            <button v-if="ch.visibility === 'private' && ch.discovery_source === 'discord_connection'" class="btn btn-outline-primary btn-sm" @click="handlePromoteChannel(ch.id)">Promote</button>
-            <button class="btn btn-outline-secondary btn-sm" @click="handleRefreshChannel(ch.id)">Refresh</button>
-            <button class="btn btn-outline-danger btn-sm" @click="openConfirm('Archive Channel', 'Archive this channel?', () => handleArchiveChannel(ch.id), 'Archive', 'btn-warning')">Archive</button>
+            <button v-if="ch.visibility === 'private' && ch.discovery_source === 'discord_connection'" class="btn btn-outline-primary btn-sm" @click="handlePromoteChannel(ch.id)">{{ t('web.vtual.actions.promote') }}</button>
+            <button class="btn btn-outline-secondary btn-sm" @click="handleRefreshChannel(ch.id)">{{ t('web.vtual.actions.refresh') }}</button>
+            <button class="btn btn-outline-danger btn-sm" @click="openConfirm(t('web.vtual.confirm.archive_channel_title'), t('web.vtual.confirm.archive_channel_body'), () => handleArchiveChannel(ch.id), t('web.vtual.actions.archive'), 'warning')">{{ t('web.vtual.actions.archive') }}</button>
           </div>
         </div>
       </Card>
 
       <!-- Archived channels -->
-      <Card title="Archived Channels" class="mt-3" v-if="archivedChannels.length > 0">
+      <Card :title="t('web.vtual.profiles.archived_channels_title')" class="mt-3" v-if="archivedChannels.length > 0">
         <div v-for="ch in archivedChannels" :key="ch.id" class="border rounded p-2 mb-2">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-person-circle fs-4"></i>
@@ -478,16 +480,16 @@ function statusBadge(status: string): string {
             </div>
             <span class="badge text-bg-secondary">{{ ch.status }}</span>
           </div>
-          <button v-if="canMutate" class="btn btn-outline-success btn-sm mt-1" @click="handleRestoreChannel(ch.id)">Restore</button>
+          <button v-if="canMutate" class="btn btn-outline-success btn-sm mt-1" @click="handleRestoreChannel(ch.id)">{{ t('web.vtual.actions.restore') }}</button>
         </div>
       </Card>
     </div>
 
     <ConfirmModal
-      :show="confirmState.show"
+      v-model="confirmState.show"
       :title="confirmState.title"
-      :confirm-text="confirmState.confirmText"
-      :confirm-class="confirmState.confirmClass"
+      :confirm-label="confirmState.confirmText"
+      :confirm-variant="confirmState.confirmClass"
       @confirm="executeConfirm"
       @cancel="confirmState.show = false; confirmState.action = null"
     >

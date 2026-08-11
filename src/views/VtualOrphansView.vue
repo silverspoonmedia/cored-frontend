@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useVtual } from '@/composables/useVtual'
@@ -9,6 +10,7 @@ import { useAlert } from '@/composables/useAlert'
 import type { VtualCreator } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOrphans } = useVtual()
 const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
@@ -17,19 +19,19 @@ const items = ref<VtualCreator[]>([])
 const loading = ref(true)
 const canManage = computed(() => hasPermission('manage any vtual resource'))
 
-const columns: DataTableColumn[] = [
-  { key: 'display_name', label: 'Name', sortable: true },
-  { key: 'slug', label: 'Slug', sortable: true },
-  { key: 'channels_count', label: 'Channels', sortable: true, align: 'center' },
-  { key: 'created_at', label: 'Created', sortable: true, align: 'end' },
-]
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'display_name', label: t('web.vtual-orphans.datatable.columns.display_name'), sortable: true },
+  { key: 'slug', label: t('web.vtual-orphans.datatable.columns.slug'), sortable: true },
+  { key: 'channels_count', label: t('web.vtual-orphans.datatable.columns.channels'), sortable: true, align: 'center' },
+  { key: 'created_at', label: t('web.vtual-orphans.datatable.columns.created_at'), sortable: true, align: 'end' },
+])
 
 onMounted(async () => {
   loading.value = true
   try {
     items.value = await fetchOrphans()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load orphans')
+    showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.load_failed'))
   } finally {
     loading.value = false
   }
@@ -41,14 +43,14 @@ function editOrphan(row: VtualCreator): void {
 </script>
 
 <template>
-  <Card title="Orphan Creators">
+  <Card :title="t('web.vtual-orphans.list_title')">
     <template #actions>
       <button
         v-if="canManage"
         class="btn btn-primary btn-sm"
         @click="router.push({ name: 'vtual.orphans.create.view' })"
       >
-        <i class="bi bi-plus-lg me-1"></i> Add Orphan
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.vtual-orphans.add_button') }}
       </button>
     </template>
 
@@ -56,9 +58,9 @@ function editOrphan(row: VtualCreator): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search orphans…"
+      :search-placeholder="t('web.vtual-orphans.datatable.search_placeholder')"
       empty-icon="bi-search"
-      empty-title="No orphan creators found"
+      :empty-title="t('web.vtual-orphans.datatable.empty')"
       @row-click="editOrphan"
     >
       <template #cell-slug="{ row }: { row: VtualCreator }">

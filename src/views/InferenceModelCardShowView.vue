@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useInferenceUsage } from '@/composables/useInferenceUsage'
 import { useAuth } from '@/stores/auth'
@@ -9,6 +10,7 @@ import type { AiModelCardDetail, InferenceUsageEvent } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchModelCardDetail, fetchUsageEvents } = useInferenceUsage()
 const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
@@ -24,7 +26,7 @@ async function loadCard(): Promise<void> {
   try {
     card.value = await fetchModelCardDetail(route.params.id as string)
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load model card')
+    showError(e instanceof Error ? e.message : t('web.inference.model_cards.load_failed'))
   } finally {
     loading.value = false
   }
@@ -54,7 +56,7 @@ onMounted(async () => {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
@@ -69,7 +71,7 @@ onMounted(async () => {
         class="btn btn-outline-primary btn-sm"
         @click="router.push({ name: 'inference.model-cards.edit.view', params: { id: card.id } })"
       >
-        <i class="bi bi-pencil me-1"></i> Edit
+        <i class="bi bi-pencil me-1"></i> {{ t('ui.actions.edit') }}
       </button>
     </div>
 
@@ -77,10 +79,10 @@ onMounted(async () => {
       <div class="col-md-3">
         <div class="card h-100">
           <div class="card-body">
-            <div class="text-muted small">Status</div>
+            <div class="text-muted small">{{ t('web.inference.model_cards.status_label') }}</div>
             <div class="fw-semibold">
-              <span v-if="card.is_active" class="badge text-bg-success">Active</span>
-              <span v-else class="badge text-bg-secondary">Inactive</span>
+              <span v-if="card.is_active" class="badge text-bg-success">{{ t('web.inference.model_cards.active_badge') }}</span>
+              <span v-else class="badge text-bg-secondary">{{ t('web.inference.model_cards.inactive_badge') }}</span>
             </div>
           </div>
         </div>
@@ -88,10 +90,10 @@ onMounted(async () => {
       <div class="col-md-3">
         <div class="card h-100">
           <div class="card-body">
-            <div class="text-muted small">Provider Rate</div>
+            <div class="text-muted small">{{ t('web.inference.model_cards.provider_rate_label') }}</div>
             <div class="small fw-semibold">
-              In ${{ card.provider_rate.input_per_million_usd.toFixed(2) }}
-              · Out ${{ card.provider_rate.output_per_million_usd.toFixed(2) }}
+              {{ t('web.inference.model_cards.in_short') }} ${{ card.provider_rate.input_per_million_usd.toFixed(2) }}
+              · {{ t('web.inference.model_cards.out_short') }} ${{ card.provider_rate.output_per_million_usd.toFixed(2) }}
             </div>
             <div v-if="card.provider_rate.provider_slug" class="text-muted small mt-1">
               <code>{{ card.provider_rate.provider_slug }}</code>
@@ -102,7 +104,7 @@ onMounted(async () => {
       <div class="col-md-2">
         <div class="card h-100">
           <div class="card-body">
-            <div class="text-muted small">Events</div>
+            <div class="text-muted small">{{ t('web.inference.model_cards.events_label') }}</div>
             <div class="fs-5 fw-semibold">{{ card.usage_summary.event_count.toLocaleString() }}</div>
           </div>
         </div>
@@ -110,7 +112,7 @@ onMounted(async () => {
       <div class="col-md-2">
         <div class="card h-100">
           <div class="card-body">
-            <div class="text-muted small">Total Tokens</div>
+            <div class="text-muted small">{{ t('web.inference.model_cards.total_tokens_label') }}</div>
             <div class="fs-5 fw-semibold">{{ card.usage_summary.total_tokens.toLocaleString() }}</div>
           </div>
         </div>
@@ -118,34 +120,34 @@ onMounted(async () => {
       <div class="col-md-2">
         <div class="card h-100">
           <div class="card-body">
-            <div class="text-muted small">Billable</div>
+            <div class="text-muted small">{{ t('web.inference.model_cards.billable_label') }}</div>
             <div class="fs-5 fw-semibold">{{ card.usage_summary.billable_usd }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <Card title="Recent Usage Events">
+    <Card :title="t('web.inference.model_cards.recent_events_title')">
       <div v-if="eventsLoading" class="text-center py-3">
         <div class="spinner-border spinner-border-sm text-primary" role="status">
-          <span class="visually-hidden">Loading…</span>
+          <span class="visually-hidden">{{ t('ui.loading') }}</span>
         </div>
       </div>
 
       <div v-else-if="events.length === 0" class="text-muted text-center py-3">
-        No usage events found.
+        {{ t('web.inference.model_cards.no_events') }}
       </div>
 
       <div v-else class="table-responsive">
         <table class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>User</th>
-              <th>Stage</th>
-              <th>Tokens</th>
-              <th>Billable</th>
-              <th>Snapshot</th>
+              <th>{{ t('web.inference.usage.columns.date') }}</th>
+              <th>{{ t('web.inference.usage.columns.user') }}</th>
+              <th>{{ t('web.inference.usage.columns.stage') }}</th>
+              <th>{{ t('web.inference.usage.columns.tokens') }}</th>
+              <th>{{ t('web.inference.usage.columns.billable') }}</th>
+              <th>{{ t('web.inference.usage.columns.snapshot') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -176,7 +178,7 @@ onMounted(async () => {
         class="btn btn-outline-secondary btn-sm"
         @click="router.push({ name: 'inference.model-cards.index.view' })"
       >
-        <i class="bi bi-arrow-left me-1"></i> Back
+        <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
       </button>
     </div>
   </template>

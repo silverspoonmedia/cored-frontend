@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
@@ -11,6 +12,7 @@ import { ApiError, type ServicePrice } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOne, create, update, fetchOptions } = useServices()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -33,7 +35,7 @@ const form = reactive({
 })
 
 const billingIntervals = ref<Record<string, string>>({})
-const planKinds = ref<Record<string, string>>({ '': '— None —' })
+const planKinds = ref<Record<string, string>>({ '': t('web.services.form.none_option') })
 const statuses = ref<Record<string, string>>({})
 
 function humanize(value: string): string {
@@ -65,7 +67,7 @@ async function load(): Promise<void> {
       isEdit.value ? fetchOne(route.params.id as string) : Promise.resolve(null),
     ])
     billingIntervals.value = Object.fromEntries(opts.billing_intervals.map((v) => [v, humanize(v)]))
-    planKinds.value = { '': '— None —', ...Object.fromEntries(opts.plan_kinds.map((v) => [v, humanize(v)])) }
+    planKinds.value = { '': t('web.services.form.none_option'), ...Object.fromEntries(opts.plan_kinds.map((v) => [v, humanize(v)])) }
     statuses.value = Object.fromEntries(opts.statuses.map((v) => [v, humanize(v)]))
 
     if (isEdit.value) {
@@ -82,7 +84,7 @@ async function load(): Promise<void> {
       form.prices = s.prices ? [...s.prices] : []
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load service')
+    showError(e instanceof Error ? e.message : t('web.services.load_failed'))
   } finally {
     loading.value = false
   }
@@ -109,10 +111,10 @@ async function handleSubmit(): Promise<void> {
   try {
     if (isEdit.value) {
       await update(route.params.id as string, payload)
-      showSuccess('Service updated.')
+      showSuccess(t('web.services.updated'))
     } else {
       await create(payload)
-      showSuccess('Service created.')
+      showSuccess(t('web.services.created'))
     }
     router.push({ name: 'services.index.view' })
   } catch (e) {
@@ -122,7 +124,7 @@ async function handleSubmit(): Promise<void> {
     } else if (e instanceof ApiError) {
       showError(e.message)
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to save')
+      showError(e instanceof Error ? e.message : t('web.services.save_failed'))
     }
   } finally {
     saving.value = false
@@ -133,64 +135,64 @@ onMounted(load)
 </script>
 
 <template>
-  <Card :title="isEdit ? 'Edit Service' : 'Create Service'">
+  <Card :title="isEdit ? t('web.services.edit_title') : t('web.services.create_title')">
     <template #actions>
       <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'services.index.view' })">
-        <i class="bi bi-arrow-left me-1"></i> Back
+        <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <form v-else @submit.prevent="handleSubmit" class="row g-3">
       <div class="col-md-6">
-        <FormInput name="code" label="Code" v-model="form.code" :error="fieldError('code')" required :disabled="saving" hint="lowercase, e.g. my-service" />
+        <FormInput name="code" :label="t('web.services.form.code')" v-model="form.code" :error="fieldError('code')" required :disabled="saving" :hint="t('web.services.form.code_hint')" />
       </div>
       <div class="col-md-6">
-        <FormInput name="name" label="Name" v-model="form.name" :error="fieldError('name')" required :disabled="saving" />
+        <FormInput name="name" :label="t('web.services.form.name')" v-model="form.name" :error="fieldError('name')" required :disabled="saving" />
       </div>
       <div class="col-12">
-        <FormInput name="description" label="Description" v-model="form.description" :error="fieldError('description')" :disabled="saving" />
+        <FormInput name="description" :label="t('web.services.form.description')" v-model="form.description" :error="fieldError('description')" :disabled="saving" />
       </div>
       <div class="col-md-4">
-        <FormSelect name="billing_interval" label="Billing Interval" v-model="form.billing_interval" :options="billingIntervals" :error="fieldError('billing_interval')" required :disabled="saving" />
+        <FormSelect name="billing_interval" :label="t('web.services.form.billing_interval')" v-model="form.billing_interval" :options="billingIntervals" :error="fieldError('billing_interval')" required :disabled="saving" />
       </div>
       <div class="col-md-4">
-        <FormInput name="fulfillment_target" label="Fulfillment Target" v-model="form.fulfillment_target" :error="fieldError('fulfillment_target')" :disabled="saving" />
+        <FormInput name="fulfillment_target" :label="t('web.services.form.fulfillment_target')" v-model="form.fulfillment_target" :error="fieldError('fulfillment_target')" :disabled="saving" />
       </div>
       <div class="col-md-4">
-        <FormInput name="entitlement" label="Entitlement" v-model="form.entitlement" :error="fieldError('entitlement')" :disabled="saving" />
+        <FormInput name="entitlement" :label="t('web.services.form.entitlement')" v-model="form.entitlement" :error="fieldError('entitlement')" :disabled="saving" />
       </div>
       <div class="col-md-4">
-        <FormSelect name="plan_kind" label="Plan Kind" v-model="form.plan_kind" :options="planKinds" :error="fieldError('plan_kind')" :disabled="saving" />
+        <FormSelect name="plan_kind" :label="t('web.services.form.plan_kind')" v-model="form.plan_kind" :options="planKinds" :error="fieldError('plan_kind')" :disabled="saving" />
       </div>
       <div class="col-md-4">
-        <FormInput name="storage_bytes" type="number" label="Storage (bytes)" v-model="form.storage_bytes" :error="fieldError('storage_bytes')" :disabled="saving" />
+        <FormInput name="storage_bytes" type="number" :label="t('web.services.form.storage_bytes')" v-model="form.storage_bytes" :error="fieldError('storage_bytes')" :disabled="saving" />
       </div>
       <div class="col-md-4">
-        <FormSelect name="status" label="Status" v-model="form.status" :options="statuses" :error="fieldError('status')" required :disabled="saving" />
+        <FormSelect name="status" :label="t('web.services.form.status')" v-model="form.status" :options="statuses" :error="fieldError('status')" required :disabled="saving" />
       </div>
 
       <!-- Prices -->
       <div class="col-12">
         <hr>
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0">Prices</h6>
+          <h6 class="mb-0">{{ t('web.services.form.prices') }}</h6>
           <button type="button" class="btn btn-outline-secondary btn-sm" :disabled="saving" @click="addPrice">
-            <i class="bi bi-plus-lg me-1"></i> Add Price
+            <i class="bi bi-plus-lg me-1"></i> {{ t('web.services.form.add_price') }}
           </button>
         </div>
         <div v-for="(price, index) in form.prices" :key="index" class="row g-2 mb-2 align-items-end">
           <div class="col-4">
-            <label class="form-label small">Currency</label>
+            <label class="form-label small">{{ t('web.services.form.price_currency') }}</label>
             <input v-model="price.currency" type="text" class="form-control form-control-sm" maxlength="3" :disabled="saving">
           </div>
           <div class="col-4">
-            <label class="form-label small">Amount</label>
+            <label class="form-label small">{{ t('web.services.form.price_amount') }}</label>
             <input v-model.number="price.amount" type="number" step="0.01" class="form-control form-control-sm" :disabled="saving">
           </div>
           <div class="col-auto">
@@ -199,13 +201,13 @@ onMounted(load)
             </button>
           </div>
         </div>
-        <p v-if="form.prices.length === 0" class="text-muted small mb-0">No prices set.</p>
+        <p v-if="form.prices.length === 0" class="text-muted small mb-0">{{ t('web.services.form.no_prices') }}</p>
       </div>
 
       <div class="col-12">
         <div class="d-flex gap-2">
-          <SubmitButton :label="isEdit ? 'Save Changes' : 'Create'" :loading="saving" variant="primary" />
-          <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'services.index.view' })">Cancel</button>
+          <SubmitButton :label="isEdit ? t('web.services.form.save_changes') : t('ui.actions.create')" :loading="saving" variant="primary" />
+          <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'services.index.view' })">{{ t('ui.actions.cancel') }}</button>
         </div>
       </div>
     </form>

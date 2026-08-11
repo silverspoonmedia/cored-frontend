@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useErrorLogs } from '@/composables/useErrorLogs'
 import type { ErrorLog } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = useErrorLogs()
 
 const filters = ref({
@@ -17,11 +19,11 @@ const filters = ref({
 })
 
 const columns: DataTableColumn[] = [
-  { key: 'level', label: 'Level', sortable: true },
-  { key: 'message', label: 'Message', sortable: false },
-  { key: 'occurrence_count', label: 'Count', sortable: true, align: 'center' },
-  { key: 'status', label: 'Status', sortable: true },
-  { key: 'last_seen_at', label: 'Last Seen', sortable: true, align: 'end' },
+  { key: 'level', label: t('web.error-log.columns.level'), sortable: true },
+  { key: 'message', label: t('web.error-log.columns.message'), sortable: false },
+  { key: 'occurrence_count', label: t('web.error-log.columns.count'), sortable: true, align: 'center' },
+  { key: 'status', label: t('web.error-log.columns.status'), sortable: true },
+  { key: 'last_seen_at', label: t('web.error-log.columns.last_seen'), sortable: true, align: 'end' },
 ]
 
 const filtered = computed<ErrorLog[]>(() => {
@@ -67,31 +69,31 @@ onMounted(() => fetchList({ limit: 100 }))
 </script>
 
 <template>
-  <Card title="Error Logs">
+  <Card :title="t('web.error-log.list_title')">
     <!-- Filters -->
     <div class="row g-2 mb-3">
       <div class="col-auto">
         <select v-model="filters.status" class="form-select form-select-sm">
-          <option value="">All statuses</option>
-          <option value="open">Open</option>
-          <option value="resolved">Resolved</option>
-          <option value="ignored">Ignored</option>
+          <option value="">{{ t('web.error-log.filters.all_statuses') }}</option>
+          <option value="open">{{ t('web.error-log.statuses.open') }}</option>
+          <option value="resolved">{{ t('web.error-log.statuses.resolved') }}</option>
+          <option value="ignored">{{ t('web.error-log.statuses.ignored') }}</option>
         </select>
       </div>
       <div class="col-auto">
         <select v-model="filters.level" class="form-select form-select-sm">
-          <option value="">All levels</option>
-          <option value="error">error</option>
-          <option value="critical">critical</option>
-          <option value="alert">alert</option>
-          <option value="emergency">emergency</option>
+          <option value="">{{ t('web.error-log.filters.all_levels') }}</option>
+          <option value="error">{{ t('web.error-log.levels.error') }}</option>
+          <option value="critical">{{ t('web.error-log.levels.critical') }}</option>
+          <option value="alert">{{ t('web.error-log.levels.alert') }}</option>
+          <option value="emergency">{{ t('web.error-log.levels.emergency') }}</option>
         </select>
       </div>
       <div class="col-auto">
         <select v-model="filters.type" class="form-select form-select-sm">
-          <option value="">All types</option>
-          <option value="exception">Exception</option>
-          <option value="log">Log</option>
+          <option value="">{{ t('web.error-log.filters.all_types') }}</option>
+          <option value="exception">{{ t('web.error-log.types.exception') }}</option>
+          <option value="log">{{ t('web.error-log.types.log') }}</option>
         </select>
       </div>
       <div class="col-auto">
@@ -99,7 +101,7 @@ onMounted(() => fetchList({ limit: 100 }))
           v-model="filters.q"
           type="search"
           class="form-control form-control-sm"
-          placeholder="Search message…"
+          :placeholder="t('web.error-log.filters.search')"
         >
       </div>
       <div class="col-auto">
@@ -115,7 +117,7 @@ onMounted(() => fetchList({ limit: 100 }))
       :loading="loading"
       :searchable="false"
       empty-icon="bi-bug"
-      empty-title="No error logs found"
+      :empty-title="t('web.error-log.empty_title')"
       @row-click="viewDetail"
     >
       <template #cell-level="{ row }: { row: ErrorLog }">
@@ -146,7 +148,7 @@ onMounted(() => fetchList({ limit: 100 }))
 
       <template #actions="{ row }: { row: ErrorLog }">
         <button class="btn btn-outline-secondary btn-sm" @click.stop="viewDetail(row)">
-          View Detail
+          {{ t('web.error-log.view_detail') }}
         </button>
       </template>
     </DataTable>

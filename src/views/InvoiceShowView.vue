@@ -1,6 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import CheckoutPanel from '@/components/CheckoutPanel.vue'
 import { useInvoices } from '@/composables/useInvoices'
@@ -9,6 +10,7 @@ import type { Invoice } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOne } = useInvoices()
 const { error: showError } = useAlert()
 
@@ -20,7 +22,7 @@ onMounted(async () => {
   try {
     invoice.value = await fetchOne(route.params.id as string)
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load invoice')
+    showError(e instanceof Error ? e.message : t('web.payments.invoices.load_failed'))
   } finally {
     loading.value = false
   }
@@ -49,13 +51,13 @@ function onStatusUpdated(status: string): void {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
   <div v-else-if="invoice" class="row g-3">
     <div class="col-lg-8">
-      <Card :title="`Invoice ${invoice.invoice_number}`">
+      <Card :title="t('web.payments.invoices.show_card_title', { number: invoice.invoice_number })">
         <template #actions>
           <button
             class="btn btn-outline-secondary btn-sm"

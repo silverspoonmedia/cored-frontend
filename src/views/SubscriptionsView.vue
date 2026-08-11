@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useSubscriptions } from '@/composables/useSubscriptions'
@@ -8,18 +9,19 @@ import { useAuth } from '@/stores/auth'
 import type { Subscription } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = useSubscriptions()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage subscription'))
 
-const columns: DataTableColumn[] = [
-  { key: 'subscription_number', label: 'Number', sortable: true },
-  { key: 'subscriber_name', label: 'Subscriber', sortable: true },
-  { key: 'plan_name', label: 'Plan', sortable: true },
-  { key: 'amount', label: 'Amount', sortable: true, align: 'end' },
-  { key: 'status', label: 'Status', sortable: true, align: 'center' },
-  { key: 'expires_at', label: 'Expires', sortable: true, align: 'end' },
-]
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'subscription_number', label: t('web.payments.subscriptions.datatable.columns.subscription_number'), sortable: true },
+  { key: 'subscriber_name', label: t('web.payments.subscriptions.datatable.columns.subscriber_name'), sortable: true },
+  { key: 'plan_name', label: t('web.payments.subscriptions.datatable.columns.plan_name'), sortable: true },
+  { key: 'amount', label: t('web.payments.subscriptions.datatable.columns.amount'), sortable: true, align: 'end' },
+  { key: 'status', label: t('web.payments.subscriptions.datatable.columns.status'), sortable: true, align: 'center' },
+  { key: 'expires_at', label: t('web.payments.subscriptions.datatable.columns.expires_at'), sortable: true, align: 'end' },
+])
 
 onMounted(() => fetchList())
 
@@ -41,10 +43,10 @@ function statusClass(status: string): string {
 </script>
 
 <template>
-  <Card title="Subscriptions">
+  <Card :title="t('web.payments.subscriptions.title')">
     <template #actions>
       <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'subscriptions.create.view' })">
-        <i class="bi bi-plus-lg me-1"></i> Add Subscription
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.payments.subscriptions.add_button') }}
       </button>
     </template>
 
@@ -52,9 +54,9 @@ function statusClass(status: string): string {
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search subscriptions…"
+      :search-placeholder="t('web.payments.subscriptions.datatable.search_placeholder')"
       empty-icon="bi-receipt"
-      empty-title="No subscriptions found"
+      :empty-title="t('web.payments.subscriptions.datatable.empty')"
       @row-click="showSub"
     >
       <template #cell-subscription_number="{ row }: { row: Subscription }">

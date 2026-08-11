@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useInferenceProviders } from '@/composables/useInferenceProviders'
 import { useAuth } from '@/stores/auth'
@@ -9,6 +10,7 @@ import type { InferenceProvider } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOne } = useInferenceProviders()
 const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
@@ -33,7 +35,7 @@ onMounted(async () => {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
@@ -82,7 +84,7 @@ onMounted(async () => {
       </dl>
     </Card>
 
-    <Card title="Model Rates" class="mt-3">
+    <Card :title="t('web.inference.providers.rates_title')" class="mt-3">
       <div v-if="!provider.model_rates || provider.model_rates.length === 0" class="text-muted text-center py-3">
         No model rates configured.
       </div>

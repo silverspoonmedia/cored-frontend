@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useDomainAccess } from '@/composables/useDomainAccess'
 import { useAlert } from '@/composables/useAlert'
@@ -10,6 +11,7 @@ import type { DomainAccess } from '@/api/types'
 const { items, loading, updatingKey, fetchList, toggleVisibility } = useDomainAccess()
 const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
+const { t } = useI18n()
 
 const canManage = computed(() => hasPermission('manage domain access'))
 
@@ -17,9 +19,9 @@ async function handleToggle(d: DomainAccess, checked: boolean): Promise<void> {
   const visibility = checked ? 'private' : 'public'
   const ok = await toggleVisibility(d.key, visibility)
   if (ok) {
-    showSuccess(`${d.label} visibility updated to ${visibility}.`)
+    showSuccess(t('web.domain-access.visibility_updated_to', { label: d.label, visibility }))
   } else {
-    showError(`Failed to update ${d.label} visibility.`)
+    showError(t('web.domain-access.failed_update_visibility', { label: d.label }))
   }
 }
 
@@ -27,18 +29,18 @@ onMounted(fetchList)
 </script>
 
 <template>
-  <Card title="Domain Access">
-    <p class="text-muted">Control product domain visibility. Private domains require a beta role or permission.</p>
+  <Card :title="t('web.domain-access.card_title')">
+    <p class="text-muted">{{ t('web.domain-access.card_subtitle') }}</p>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="items.length === 0" class="text-center text-muted py-5">
       <i class="bi bi-shield-lock" style="font-size: 2.5rem; opacity: 0.4;" aria-hidden="true"></i>
-      <p class="fw-semibold mb-1 d-block mt-2">No product domains found</p>
+      <p class="fw-semibold mb-1 d-block mt-2">{{ t('web.domain-access.no_domains') }}</p>
     </div>
 
     <div v-else class="row g-3">
@@ -51,7 +53,7 @@ onMounted(fetchList)
                 class="badge"
                 :class="d.visibility === 'private' ? 'text-bg-warning' : 'text-bg-success'"
               >
-                {{ d.visibility === 'private' ? 'Private' : 'Public' }}
+                {{ d.visibility === 'private' ? t('web.domain-access.private_label') : t('web.domain-access.public_label') }}
               </span>
             </div>
 
@@ -59,13 +61,13 @@ onMounted(fetchList)
 
             <p class="text-muted small mb-3">
               {{ d.visibility === 'private'
-                ? 'Access restricted to beta testers and privileged roles.'
-                : 'Accessible to all authenticated users.'
+                ? t('web.domain-access.private_restricted')
+                : t('web.domain-access.public_accessible')
               }}
             </p>
 
             <p class="text-muted small mb-3">
-              Beta role: <code>{{ d.beta_role }}</code>
+              {{ t('web.domain-access.beta_role_label') }} <code>{{ d.beta_role }}</code>
             </p>
 
             <div class="mt-auto">
@@ -80,11 +82,11 @@ onMounted(fetchList)
                   @change="handleToggle(d, ($event.target as HTMLInputElement).checked)"
                 >
                 <label class="form-check-label small" :for="`domain-toggle-${d.key}`">
-                  Private
+                  {{ t('web.domain-access.private_label') }}
                 </label>
               </div>
               <span v-else class="badge" :class="d.visibility === 'private' ? 'text-bg-warning' : 'text-bg-success'">
-                {{ d.visibility === 'private' ? 'Private' : 'Public' }}
+                {{ d.visibility === 'private' ? t('web.domain-access.private_label') : t('web.domain-access.public_label') }}
               </span>
             </div>
           </div>

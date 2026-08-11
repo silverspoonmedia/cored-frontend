@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useMenus } from '@/composables/useMenus'
@@ -9,6 +10,7 @@ import { useAuth } from '@/stores/auth'
 import type { MenuTrashedItem } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { trashedItems, loading, fetchTrashed, restoreMenu } = useMenus()
 const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
@@ -18,10 +20,10 @@ const canRestore = computed(() => hasPermission('restore menu'))
 const restoringId = ref<string | null>(null)
 
 const columns: DataTableColumn[] = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'ancestor_path', label: 'Ancestors', sortable: false },
-  { key: 'type', label: 'Type', sortable: true, align: 'center' },
-  { key: 'route', label: 'Route', sortable: false },
+  { key: 'name', label: t('web.menus.columns.name'), sortable: true },
+  { key: 'ancestor_path', label: t('web.menus.columns.ancestors'), sortable: false },
+  { key: 'type', label: t('web.menus.columns.type'), sortable: true, align: 'center' },
+  { key: 'route', label: t('web.menus.columns.route'), sortable: false },
 ]
 
 async function load(): Promise<void> {
@@ -32,10 +34,10 @@ async function handleRestore(row: MenuTrashedItem): Promise<void> {
   restoringId.value = row.id
   try {
     await restoreMenu(row.id)
-    showSuccess(`Menu "${row.name}" restored.`)
+    showSuccess(t('web.menus.restored', { name: row.name }))
     await load()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to restore menu')
+    showError(e instanceof Error ? e.message : t('web.menus.restore_failed'))
   } finally {
     restoringId.value = null
   }
@@ -45,15 +47,15 @@ onMounted(load)
 </script>
 
 <template>
-  <Card title="Trashed Menus">
+  <Card :title="t('web.menus.trashed_title')">
     <template #actions>
       <div class="d-flex gap-2">
         <select v-model="layout" class="form-select form-select-sm" style="width: auto;" @change="load">
-          <option value="sidebar">Sidebar</option>
-          <option value="navbar">Navbar</option>
+          <option value="sidebar">{{ t('web.menus.form.layouts.sidebar') }}</option>
+          <option value="navbar">{{ t('web.menus.form.layouts.navbar') }}</option>
         </select>
         <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'menus.index.view', query: { layout: layout } })">
-          <i class="bi bi-arrow-left me-1"></i> Back to List
+          <i class="bi bi-arrow-left me-1"></i> {{ t('web.menus.back_to_list') }}
         </button>
       </div>
     </template>
@@ -62,9 +64,9 @@ onMounted(load)
       :columns="columns"
       :rows="trashedItems"
       :loading="loading"
-      search-placeholder="Search trashed menus…"
+      :search-placeholder="t('web.menus.search_placeholder')"
       empty-icon="bi-trash3"
-      empty-title="No trashed menus found"
+      :empty-title="t('web.menus.empty_trashed')"
     >
       <template #cell-name="{ row }: { row: MenuTrashedItem }">
         <i v-if="row.icon" class="bi me-1" :class="row.icon" aria-hidden="true"></i>

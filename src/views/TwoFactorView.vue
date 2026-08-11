@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -10,6 +11,7 @@ import { useAuth } from '@/stores/auth'
 import { ApiError, type ApiResponse, type TwoFactorSetupPayload } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { user, fetchMe } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -75,7 +77,7 @@ async function confirmSetup(): Promise<void> {
       status.value = 'enabled'
       setup.value = null
       code.value = ''
-      showSuccess('Two-factor authentication enabled.')
+      showSuccess(t('web.auth.two_factor_enabled'))
     } else {
       error.value = res.message ?? 'Failed to confirm setup'
     }
@@ -105,7 +107,7 @@ async function disableTwoFactor(): Promise<void> {
       await fetchMe()
       status.value = 'idle'
       code.value = ''
-      showSuccess('Two-factor authentication disabled.')
+      showSuccess(t('web.auth.two_factor_disabled'))
     } else {
       error.value = res.message ?? 'Failed to disable'
     }
@@ -130,10 +132,10 @@ function handleCancel(): void {
 <template>
   <div class="row">
     <div class="col-lg-6">
-      <Card title="Two-Factor Authentication">
+      <Card :title="t('web.auth.two_factor_title')">
         <!-- State: idle (not enabled) -->
         <div v-if="status === 'idle'">
-          <p class="text-muted">Two-factor authentication is not enabled yet.</p>
+          <p class="text-muted">{{ t('web.auth.two_factor_not_enabled') }}</p>
           <p class="text-muted small">
             Add an extra layer of security to your account by requiring a verification code
             from your authenticator app.
@@ -145,7 +147,7 @@ function handleCancel(): void {
             @click="startSetup"
           >
             <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            Set up two-factor authentication
+            {{ t('web.auth.two_factor_setup_button') }}
           </button>
         </div>
 
@@ -161,13 +163,13 @@ function handleCancel(): void {
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Secret key</label>
+            <label class="form-label">{{ t('web.auth.two_factor_secret_label') }}</label>
             <p class="fw-bold font-monospace user-select-all">{{ setup.secret }}</p>
           </div>
 
           <p class="mb-3">
             <a :href="setup.qr_code_url" class="text-decoration-none">
-              Authenticator URL
+              {{ t('web.auth.two_factor_qr_url_label') }}
             </a>
           </p>
 
@@ -183,7 +185,7 @@ function handleCancel(): void {
             <FormInput
               name="code"
               type="text"
-              label="Authentication code"
+              :label="t('web.auth.two_factor_code_label')"
               v-model="code"
               placeholder="123456"
               required
@@ -193,14 +195,14 @@ function handleCancel(): void {
             />
 
             <div class="d-flex gap-2">
-              <SubmitButton label="Enable two-factor authentication" :loading="loading" variant="primary" />
+              <SubmitButton :label="t('web.auth.two_factor_confirm_button')" :loading="loading" variant="primary" />
               <button
                 type="button"
                 class="btn btn-outline-secondary"
                 :disabled="loading"
                 @click="handleCancel"
               >
-                Cancel
+                {{ t('ui.actions.cancel') }}
               </button>
             </div>
           </form>
@@ -208,7 +210,7 @@ function handleCancel(): void {
           <hr class="my-3">
 
           <form @submit.prevent="startSetup">
-            <SubmitButton label="Restart setup" :loading="loading" variant="outline-secondary" />
+            <SubmitButton :label="t('web.auth.two_factor_restart_setup')" :loading="loading" variant="outline-secondary" />
           </form>
         </div>
 
@@ -216,7 +218,7 @@ function handleCancel(): void {
         <div v-else-if="status === 'enabled'">
           <div class="alert alert-success" role="alert">
             <i class="bi bi-check-circle me-1" aria-hidden="true"></i>
-            Two-factor authentication is enabled for your account.
+            {{ t('web.auth.two_factor_is_enabled') }}
           </div>
 
           <div
@@ -235,7 +237,7 @@ function handleCancel(): void {
             <FormInput
               name="code"
               type="text"
-              label="Authentication code"
+              :label="t('web.auth.two_factor_code_label')"
               v-model="code"
               placeholder="123456"
               required
@@ -244,14 +246,14 @@ function handleCancel(): void {
             />
 
             <div class="d-flex gap-2">
-              <SubmitButton label="Disable two-factor authentication" :loading="loading" variant="danger" />
+              <SubmitButton :label="t('web.auth.two_factor_disable_button')" :loading="loading" variant="danger" />
               <button
                 type="button"
                 class="btn btn-outline-secondary"
                 :disabled="loading"
                 @click="handleCancel"
               >
-                Cancel
+                {{ t('ui.actions.cancel') }}
               </button>
             </div>
           </form>

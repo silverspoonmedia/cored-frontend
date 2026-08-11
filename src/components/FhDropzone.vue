@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatBytes, formatTransferRate, uploadFile, type UploadRow } from '@/composables/useFhUpload'
 import type { HostedFile } from '@/api/types'
 
@@ -21,6 +22,8 @@ const emit = defineEmits<{
   uploaded: [file: HostedFile]
   refresh: []
 }>()
+
+const { t } = useI18n()
 
 const MAX_CONCURRENT = 2
 const rows = ref<UploadRow[]>([])
@@ -90,11 +93,11 @@ function removePending(id: string): void {
 
 function statusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: 'Pending',
-    uploading: 'Uploading…',
-    completing: 'Completing…',
-    done: 'Done',
-    error: 'Failed',
+    pending: t('web.file-hosting.dropzone_status_pending'),
+    uploading: t('web.file-hosting.dropzone_status_uploading'),
+    completing: t('web.file-hosting.dropzone_status_completing'),
+    done: t('web.file-hosting.dropzone_status_done'),
+    error: t('web.file-hosting.dropzone_status_error'),
   }
   return labels[status] ?? status
 }
@@ -162,7 +165,7 @@ async function startBatch(): Promise<void> {
       scheduleDismiss(row.id)
     } catch (e) {
       row.status = 'error'
-      row.error = e instanceof Error ? e.message : 'Upload failed'
+      row.error = e instanceof Error ? e.message : t('web.file-hosting.dropzone_upload_failed')
       row.speed = ''
     }
   }
@@ -206,7 +209,7 @@ function scheduleDismiss(id: string): void {
       :class="{ 'border-primary bg-primary-subtle': isDragging, 'border-secondary': !isDragging }"
       role="button"
       tabindex="0"
-      aria-label="Upload files"
+      :aria-label="t('web.file-hosting.dropzone_aria_label')"
       @dragover="onDragOver"
       @dragleave="onDragLeave"
       @drop="onDrop"
@@ -214,8 +217,8 @@ function scheduleDismiss(id: string): void {
       @keydown="onDropzoneKeydown"
     >
       <i class="bi bi-cloud-arrow-up fs-2 d-block"></i>
-      <span class="fw-semibold">Drop files here or click to browse</span>
-      <div class="small text-muted mt-1">Max {{ maxFiles }} files per batch</div>
+      <span class="fw-semibold">{{ t('web.file-hosting.dropzone_hint') }}</span>
+      <div class="small text-muted mt-1">{{ t('web.file-hosting.dropzone_max_files', { count: maxFiles }) }}</div>
     </div>
 
     <input
@@ -233,7 +236,7 @@ function scheduleDismiss(id: string): void {
         :disabled="!canStart"
         @click.stop="startBatch"
       >
-        <i class="bi bi-play-fill me-1"></i> Start Upload
+        <i class="bi bi-play-fill me-1"></i> {{ t('web.file-hosting.dropzone_start_upload') }}
       </button>
     </div>
 

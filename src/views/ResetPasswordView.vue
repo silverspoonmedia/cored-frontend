@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { resetPassword } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -28,7 +30,7 @@ async function handleSubmit(): Promise<void> {
   try {
     await resetPassword(token.value, email.value, password.value, passwordConfirmation.value)
     done.value = true
-    showSuccess('Your password has been reset. You can now log in.')
+    showSuccess(t('passwords.reset'))
   } catch (e) {
     if (e instanceof ApiError && e.isValidation) {
       errors.value = e.errors ?? {}
@@ -58,9 +60,9 @@ function fieldError(field: string): string | null {
 <template>
   <div v-if="done" class="text-center">
     <i class="bi bi-check-circle fs-1 text-success" aria-hidden="true"></i>
-    <p class="mt-3 mb-0">Your password has been reset.</p>
+    <p class="mt-3 mb-0">{{ t('passwords.reset') }}</p>
     <p class="mt-3 mb-0">
-      <router-link :to="{ name: 'login.view' }">Sign in</router-link>
+      <router-link :to="{ name: 'login.view' }">{{ t('web.auth.sign_in') }}</router-link>
     </p>
   </div>
 
@@ -77,7 +79,7 @@ function fieldError(field: string): string | null {
           id="email"
           class="form-control"
           :class="{ 'is-invalid': fieldError('email') }"
-          placeholder="Enter your email"
+          :placeholder="t('web.auth.enter_email')"
           required
           autocomplete="email"
           v-model="email"
@@ -102,7 +104,7 @@ function fieldError(field: string): string | null {
           id="password"
           class="form-control"
           :class="{ 'is-invalid': fieldError('password') }"
-          placeholder="Enter new password"
+          :placeholder="t('web.auth.enter_new_password')"
           required
           autocomplete="new-password"
           v-model="password"
@@ -112,7 +114,7 @@ function fieldError(field: string): string | null {
           type="button"
           class="input-group-text"
           @click="showPassword = !showPassword"
-          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          :aria-label="showPassword ? t('ui.password.hide') : t('ui.password.show')"
           :aria-pressed="showPassword ? 'true' : 'false'"
         >
           <i :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'" aria-hidden="true"></i>
@@ -136,7 +138,7 @@ function fieldError(field: string): string | null {
           id="password_confirmation"
           class="form-control"
           :class="{ 'is-invalid': fieldError('password_confirmation') }"
-          placeholder="Re-enter new password"
+          :placeholder="t('web.auth.re_enter_new_password')"
           required
           autocomplete="new-password"
           v-model="passwordConfirmation"
@@ -152,12 +154,12 @@ function fieldError(field: string): string | null {
     <div class="d-grid">
       <button type="submit" class="btn btn-primary" :disabled="loading">
         <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-        {{ loading ? 'Resetting…' : 'Reset Password' }}
+        {{ loading ? t('web.auth.resetting') : t('web.auth.reset_password_submit') }}
       </button>
     </div>
   </form>
 
   <p v-if="!done" class="mt-3 mb-0">
-    <router-link :to="{ name: 'login.view' }">Back to login</router-link>
+    <router-link :to="{ name: 'login.view' }">{{ t('web.auth.back_to_login') }}</router-link>
   </p>
 </template>

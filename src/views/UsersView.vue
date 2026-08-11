@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useUsers } from '@/composables/useUsers'
@@ -8,16 +9,17 @@ import { useAuth } from '@/stores/auth'
 import type { UserManagement } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = useUsers()
 const { hasPermission } = useAuth()
 
 const canCreate = computed(() => hasPermission('create user'))
 
 const columns: DataTableColumn[] = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'email', label: 'Email', sortable: true },
-  { key: 'roles', label: 'Roles', sortable: false },
-  { key: 'created_at', label: 'Created', sortable: true, align: 'end' },
+  { key: 'name', label: t('web.users.datatable.columns.name'), sortable: true },
+  { key: 'email', label: t('web.users.datatable.columns.email'), sortable: true },
+  { key: 'roles', label: t('web.users.datatable.columns.roles'), sortable: false },
+  { key: 'created_at', label: t('web.users.datatable.columns.created'), sortable: true, align: 'end' },
 ]
 
 onMounted(() => fetchList())
@@ -28,14 +30,14 @@ function editUser(row: UserManagement): void {
 </script>
 
 <template>
-  <Card title="Users">
+  <Card :title="t('web.users.list_title')">
     <template #actions>
       <button
         v-if="canCreate"
         class="btn btn-primary btn-sm"
         @click="router.push({ name: 'users.create.view' })"
       >
-        <i class="bi bi-plus-lg me-1"></i> Add User
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.users.add_button') }}
       </button>
     </template>
 
@@ -43,9 +45,9 @@ function editUser(row: UserManagement): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search users…"
+      :search-placeholder="t('web.users.search_placeholder')"
       empty-icon="bi-people"
-      empty-title="No users found"
+      :empty-title="t('web.users.empty_title')"
       @row-click="editUser"
     >
       <template #cell-name="{ row }: { row: UserManagement }">
@@ -73,7 +75,7 @@ function editUser(row: UserManagement): void {
 
       <template #actions="{ row }: { row: UserManagement }">
         <button class="btn btn-outline-secondary btn-sm" @click.stop="editUser(row)">
-          Edit
+          {{ t('ui.actions.edit') }}
         </button>
       </template>
     </DataTable>

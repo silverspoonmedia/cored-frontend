@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAlert } from '@/composables/useAlert'
@@ -8,6 +9,7 @@ import type { VtualVtuberProfile, VtualCreatorClaim } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const vtual = useVtual()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -38,7 +40,7 @@ onMounted(async () => {
       startPolling()
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load')
+    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.load_failed'))
   } finally {
     loading.value = false
   }
@@ -57,7 +59,7 @@ function startPolling(): void {
       if (updated.status !== activeClaim.value.status) {
         activeClaim.value = updated
         if (updated.status === 'verified') {
-          showSuccess('Claim verified! You now own this profile.')
+          showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
           stopPolling()
         } else if (updated.status === 'cancelled' || updated.status === 'expired') {
           stopPolling()
@@ -83,10 +85,10 @@ async function handleStartClaim(channelId: string): Promise<void> {
   actionLoading.value = true
   try {
     activeClaim.value = await vtual.startClaim(profile.value.id, channelId)
-    showSuccess('Claim started. Paste the token in your channel description.')
+    showSuccess(t('web.vtual-vtuber.claim_step_token'))
     startPolling()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to start claim')
+    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.start_failed'))
   } finally {
     actionLoading.value = false
   }
@@ -97,9 +99,9 @@ async function handleVerify(): Promise<void> {
   actionLoading.value = true
   try {
     activeClaim.value = await vtual.verifyClaim(activeClaim.value.id)
-    showSuccess('Verification queued. Checking your channel bio…')
+    showSuccess(t('web.vtual-vtuber.claim_progress_processing'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Verify failed')
+    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.verify_failed'))
   } finally {
     actionLoading.value = false
   }
@@ -112,13 +114,13 @@ async function handleVerifyDiscord(): Promise<void> {
     const result = await vtual.verifyDiscordClaim(activeClaim.value.id)
     activeClaim.value = result
     if (result.status === 'verified') {
-      showSuccess('Verified via Discord!')
+      showSuccess(t('web.vtual-vtuber.claim_discord_verified'))
       stopPolling()
     } else {
-      showError('Discord connection does not match this creator.')
+      showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Discord verify failed')
+    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.discord_verify_failed'))
   } finally {
     actionLoading.value = false
   }
@@ -141,10 +143,10 @@ async function handleCancel(): Promise<void> {
   try {
     await vtual.cancelClaim(activeClaim.value.id)
     activeClaim.value = null
-    showSuccess('Claim cancelled.')
+    showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
     stopPolling()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to cancel')
+    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.cancel_failed'))
   } finally {
     actionLoading.value = false
   }
@@ -158,11 +160,11 @@ async function handleAcceptAnyway(): Promise<void> {
     const result = await vtual.acceptAnywayClaim(activeClaim.value.id)
     activeClaim.value = result
     if (result.status === 'verified') {
-      showSuccess('Claim accepted!')
+      showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
       stopPolling()
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to accept')
+    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.accept_failed'))
   } finally {
     actionLoading.value = false
   }
@@ -179,39 +181,38 @@ function platformIcon(key: string): string {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
   <div v-else-if="profile">
-    <Card :title="`Claim: ${profile.display_name}`">
+    <Card :title="t('web.vtual-vtuber.claim_page_title') + ': ' + profile.display_name">
       <template #actions>
         <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'vtual.vtuber.show.view', params: { slug: profile.slug } })">
-          <i class="bi bi-arrow-left me-1"></i> Back to Profile
+          <i class="bi bi-arrow-left me-1"></i> {{ t('web.vtual-vtuber.claim_back_to_profile') }}
         </button>
       </template>
 
       <!-- Blocked -->
       <div v-if="isBlocked" class="alert alert-warning">
         <i class="bi bi-exclamation-triangle me-1"></i>
-        You are blocked from claiming this profile until
-        <strong>{{ profile.claim_blocked_until_formatted }}</strong>.
+        {{ t('web.vtual-vtuber.claim_blocked_until', { until: profile.claim_blocked_until_formatted }) }}
       </div>
 
       <!-- Active claim -->
       <div v-else-if="hasActiveClaim && activeClaim" class="row g-3">
         <div class="col-md-8">
-          <Card title="Active Claim">
+          <Card :title="t('web.vtual-vtuber.claim_active_heading')">
             <div class="mb-3">
               <span class="badge text-bg-warning">{{ activeClaim.status }}</span>
               <span v-if="activeClaim.verify_queue_status" class="badge text-bg-info ms-1">
-                Queue: {{ activeClaim.verify_queue_status }}
+                {{ t('web.vtual-vtuber.claim_queue_status_label') }}: {{ activeClaim.verify_queue_status }}
               </span>
             </div>
 
             <!-- Proof channel -->
             <div v-if="activeClaim.channel" class="mb-3">
-              <div class="text-muted small">Proof Channel</div>
+              <div class="text-muted small">{{ t('web.vtual-vtuber.claim_proof_channel_label') }}</div>
               <div class="d-flex align-items-center gap-2">
                 <i class="bi" :class="platformIcon(activeClaim.channel.platform?.key ?? '')"></i>
                 <a v-if="activeClaim.channel.url" :href="activeClaim.channel.url" target="_blank">
@@ -223,9 +224,9 @@ function platformIcon(key: string): string {
 
             <!-- Token -->
             <div class="mb-3">
-              <div class="text-muted small">Token</div>
+              <div class="text-muted small">{{ t('web.vtual-vtuber.claim_token_label') }}</div>
               <div class="alert alert-info small mb-1">
-                Paste this token in your channel description/bio, then click Verify.
+                {{ t('web.vtual-vtuber.claim_token_help') }}
               </div>
               <code class="d-block p-2 bg-light rounded user-select-all">{{ activeClaim.token }}</code>
             </div>
@@ -233,8 +234,8 @@ function platformIcon(key: string): string {
             <!-- Attempts -->
             <div class="mb-3" v-if="activeClaim.attempt_count > 0">
               <span class="text-muted small">
-                Attempts: {{ activeClaim.attempt_count }} / {{ activeClaim.max_attempts }}
-                ({{ activeClaim.attempts_remaining }} remaining)
+                {{ t('web.vtual-vtuber.claim_attempts') }}: {{ activeClaim.attempt_count }} / {{ activeClaim.max_attempts }}
+                ({{ activeClaim.attempts_remaining }} {{ t('web.vtual-vtuber.claim_remaining') }})
               </span>
             </div>
 
@@ -242,32 +243,31 @@ function platformIcon(key: string): string {
             <div class="d-flex flex-wrap gap-2">
               <button class="btn btn-primary" :disabled="actionLoading || !activeClaim.can_verify" @click="handleVerify">
                 <span v-if="actionLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                Verify
+                {{ t('web.vtual-vtuber.claim_verify_button') }}
               </button>
-              <button class="btn btn-outline-danger" :disabled="actionLoading" @click="handleCancel">Cancel</button>
-              <button class="btn btn-outline-warning" :disabled="actionLoading" @click="handleAcceptAnyway">Accept Anyway</button>
-              <button class="btn btn-outline-secondary" :disabled="actionLoading" @click="handleVerifyDiscord">Verify with Discord</button>
+              <button class="btn btn-outline-danger" :disabled="actionLoading" @click="handleCancel">{{ t('ui.actions.cancel') }}</button>
+              <button class="btn btn-outline-warning" :disabled="actionLoading" @click="handleAcceptAnyway">{{ t('web.vtual.claims.accept_anyway') }}</button>
+              <button class="btn btn-outline-secondary" :disabled="actionLoading" @click="handleVerifyDiscord">{{ t('web.vtual-vtuber.claim_discord_verify_button') }}</button>
             </div>
 
             <!-- Discord connect hint -->
             <div v-if="discordConnectUrl" class="mt-2 small text-muted">
-              No Discord connected?
+              {{ t('web.vtual-vtuber.claim_no_discord') }}
               <a :href="discordConnectUrl" target="_blank" class="text-decoration-none">
-                <i class="bi bi-discord me-1"></i>Connect Discord first
-              </a>
-              , then return here and click Verify with Discord.
+                <i class="bi bi-discord me-1"></i>{{ t('web.vtual-vtuber.claim_discord_connect_cta') }}
+              </a>{{ t('web.vtual-vtuber.claim_discord_return_hint') }}
             </div>
           </Card>
         </div>
 
         <div class="col-md-4">
-          <Card title="Steps">
+          <Card :title="t('web.vtual-vtuber.claim_steps_heading')">
             <ol class="small mb-0 ps-3">
-              <li>Paste the token above in your channel description/bio.</li>
-              <li>Wait for the change to be public.</li>
-              <li>Click <strong>Verify</strong>.</li>
-              <li>We check your channel bio for the token.</li>
-              <li>If found, you become the owner of this profile.</li>
+              <li>{{ t('web.vtual-vtuber.claim_step_token') }}</li>
+              <li>{{ t('web.vtual-vtuber.claim_step_wait') }}</li>
+              <li>{{ t('web.vtual-vtuber.claim_step_verify') }}</li>
+              <li>{{ t('web.vtual-vtuber.claim_step_check') }}</li>
+              <li>{{ t('web.vtual-vtuber.claim_step_owner') }}</li>
             </ol>
           </Card>
         </div>
@@ -275,9 +275,9 @@ function platformIcon(key: string): string {
 
       <!-- Pre-claim: channel list -->
       <div v-else-if="showChannelsSection">
-        <p class="text-muted">Select a channel to prove ownership of this profile.</p>
+        <p class="text-muted">{{ t('web.vtual-vtuber.claim_select_channel_hint') }}</p>
         <div v-if="!profile.channels || profile.channels.length === 0" class="text-muted text-center py-3">
-          No channels available for verification.
+          {{ t('web.vtual-vtuber.claim_no_channels_for_verify') }}
         </div>
         <div v-else class="row g-2">
           <div v-for="ch in profile.channels" :key="ch.id" class="col-md-6">
@@ -289,7 +289,7 @@ function platformIcon(key: string): string {
                   <div class="text-muted small">{{ ch.platform?.name }}</div>
                 </div>
                 <button class="btn btn-primary btn-sm" :disabled="actionLoading" @click="handleStartClaim(ch.id)">
-                  Claim
+                  {{ t('web.vtual-vtuber.claim_button') }}
                 </button>
               </div>
             </div>

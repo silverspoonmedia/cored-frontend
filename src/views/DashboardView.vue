@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DashboardSessionCard from '@/components/DashboardSessionCard.vue'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 
 const { user, hasPermission, resendVerification } = useAuth()
+const { t } = useI18n()
 const { success: showSuccess, error: showError } = useAlert()
 
 const canViewUser = computed(() => hasPermission('view user'))
@@ -29,7 +31,7 @@ async function handleResend(): Promise<void> {
   resending.value = true
   try {
     await resendVerification()
-    showSuccess('Verification email sent.')
+    showSuccess(t('api.auth.verification_sent'))
   } catch (e) {
     showError(e instanceof Error ? e.message : 'Failed to send')
   } finally {
@@ -43,13 +45,13 @@ async function handleResend(): Promise<void> {
     <div class="col-lg-8">
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title mb-0">Welcome, {{ user?.name ?? '—' }}</h3>
+          <h3 class="card-title mb-0">{{ t('web.dashboard.welcome', { name: user?.name ?? '—' }) }}</h3>
         </div>
         <div class="card-body">
           <p class="text-muted mb-3">{{ user?.email ?? '—' }}</p>
 
           <div class="mb-3">
-            <strong>Role:</strong>
+            <strong>{{ t('ui.labels.role') }}:</strong>
             <template v-if="user && user.roles.length">
               <span
                 v-for="role in user.roles"

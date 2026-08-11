@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useInferenceModelCards } from '@/composables/useInferenceModelCards'
@@ -8,16 +9,17 @@ import { useAuth } from '@/stores/auth'
 import type { AiModelCard } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList, destroy } = useInferenceModelCards()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage inference catalog'))
 
 const columns: DataTableColumn[] = [
-  { key: 'slug', label: 'Slug', sortable: true },
-  { key: 'display_name', label: 'Display Name', sortable: true },
-  { key: 'is_active', label: 'Active', sortable: true, align: 'center' },
-  { key: 'needs_rate_classification', label: 'Needs Rate', sortable: false, align: 'center' },
-  { key: 'updated_at', label: 'Updated', sortable: true, align: 'end' },
+  { key: 'slug', label: t('web.inference.model_cards.datatable.columns.slug'), sortable: true },
+  { key: 'display_name', label: t('web.inference.model_cards.datatable.columns.display_name'), sortable: true },
+  { key: 'is_active', label: t('web.inference.model_cards.datatable.columns.is_active'), sortable: true, align: 'center' },
+  { key: 'needs_rate_classification', label: t('web.inference.model_cards.needs_rate_label'), sortable: false, align: 'center' },
+  { key: 'updated_at', label: t('web.inference.model_cards.datatable.columns.updated_at'), sortable: true, align: 'end' },
 ]
 
 onMounted(() => fetchList())
@@ -32,10 +34,10 @@ function editCard(row: AiModelCard): void {
 </script>
 
 <template>
-  <Card title="AI Model Cards">
+  <Card :title="t('web.inference.model_cards.list_title')">
     <template #actions>
       <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'inference.model-cards.create.view' })">
-        <i class="bi bi-plus-lg me-1"></i> Add Model Card
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.inference.model_cards.add_button') }}
       </button>
     </template>
 
@@ -43,9 +45,9 @@ function editCard(row: AiModelCard): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search model cards…"
+      :search-placeholder="t('web.inference.model_cards.search_placeholder')"
       empty-icon="bi-cpu"
-      empty-title="No model cards found"
+      :empty-title="t('web.inference.model_cards.empty_title')"
       @row-click="showCard"
     >
       <template #cell-slug="{ row }: { row: AiModelCard }">
@@ -58,12 +60,12 @@ function editCard(row: AiModelCard): void {
 
       <template #cell-is_active="{ row }: { row: AiModelCard }">
         <span class="badge" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
-          {{ row.is_active ? 'Active' : 'Inactive' }}
+          {{ row.is_active ? t('web.inference.model_cards.active_badge') : t('web.inference.model_cards.inactive_badge') }}
         </span>
       </template>
 
       <template #cell-needs_rate_classification="{ row }: { row: AiModelCard }">
-        <span v-if="row.needs_rate_classification" class="badge text-bg-warning">Yes</span>
+        <span v-if="row.needs_rate_classification" class="badge text-bg-warning">{{ t('web.inference.model_cards.yes_badge') }}</span>
         <span v-else class="text-muted">—</span>
       </template>
 

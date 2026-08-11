@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useErrorLogs } from '@/composables/useErrorLogs'
 import { useAlert } from '@/composables/useAlert'
@@ -8,6 +9,7 @@ import type { ErrorLog } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOne, updateStatus, error } = useErrorLogs()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -38,6 +40,7 @@ async function load(): Promise<void> {
     entry.value = await fetchOne(id)
   } catch {
     if (error.value) showError(error.value)
+    else showError(t('web.error-log.load_failed'))
   } finally {
     loading.value = false
   }
@@ -48,9 +51,9 @@ async function changeStatus(status: string): Promise<void> {
   actionLoading.value = true
   try {
     entry.value = await updateStatus(entry.value.id, status)
-    showSuccess('Status updated.')
+    showSuccess(t('web.error-log.status_updated'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update status')
+    showError(e instanceof Error ? e.message : t('web.error-log.status_update_failed'))
   } finally {
     actionLoading.value = false
   }
@@ -60,7 +63,7 @@ onMounted(load)
 </script>
 
 <template>
-  <Card title="Error Log Detail">
+  <Card :title="t('web.error-log.show_title')">
     <template #actions>
       <div class="d-flex flex-wrap gap-2">
         <button
@@ -69,7 +72,7 @@ onMounted(load)
           :disabled="actionLoading"
           @click="changeStatus('resolved')"
         >
-          Resolve
+          {{ t('web.error-log.actions.resolve') }}
         </button>
         <button
           v-if="entry && entry.status !== 'ignored'"
@@ -77,7 +80,7 @@ onMounted(load)
           :disabled="actionLoading"
           @click="changeStatus('ignored')"
         >
-          Ignore
+          {{ t('web.error-log.actions.ignore') }}
         </button>
         <button
           v-if="entry && entry.status !== 'open'"
@@ -85,54 +88,54 @@ onMounted(load)
           :disabled="actionLoading"
           @click="changeStatus('open')"
         >
-          Reopen
+          {{ t('web.error-log.actions.reopen') }}
         </button>
         <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'error-logs.index.view' })">
-          <i class="bi bi-arrow-left me-1"></i> Back to List
+          <i class="bi bi-arrow-left me-1"></i> {{ t('web.error-log.back_to_list_button') }}
         </button>
       </div>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="entry">
       <dl class="row mb-0">
-        <dt class="col-sm-3">Status</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.status') }}</dt>
         <dd class="col-sm-9">{{ entry.status_label ?? entry.status ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Level</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.level') }}</dt>
         <dd class="col-sm-9">
           <span class="badge text-bg-danger me-1">{{ entry.level ?? '—' }}</span>
           <span v-if="entry.type" class="badge text-bg-light border">{{ entry.type }}</span>
         </dd>
 
-        <dt class="col-sm-3">Occurrences</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.occurrence_count') }}</dt>
         <dd class="col-sm-9">{{ entry.occurrence_count ?? 1 }}</dd>
 
-        <dt class="col-sm-3">Message</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.message') }}</dt>
         <dd class="col-sm-9">{{ entry.message ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Exception Class</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.exception_class') }}</dt>
         <dd class="col-sm-9"><code>{{ entry.exception_class ?? '—' }}</code></dd>
 
-        <dt class="col-sm-3">Location</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.location') }}</dt>
         <dd class="col-sm-9"><code v-if="location">{{ location }}</code><template v-else>—</template></dd>
 
-        <dt class="col-sm-3">First Seen</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.first_seen_at') }}</dt>
         <dd class="col-sm-9">{{ entry.first_seen_at_formatted ?? entry.first_seen_at ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Last Seen</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.last_seen_at') }}</dt>
         <dd class="col-sm-9">{{ entry.last_seen_at_formatted ?? entry.last_seen_at ?? '—' }}</dd>
 
-        <dt class="col-sm-3">Fingerprint</dt>
+        <dt class="col-sm-3">{{ t('web.error-log.fields.fingerprint') }}</dt>
         <dd class="col-sm-9"><code class="small">{{ entry.fingerprint ?? '—' }}</code></dd>
 
         <template v-if="entry.resolved_by">
-          <dt class="col-sm-3">Resolved By</dt>
+          <dt class="col-sm-3">{{ t('web.error-log.fields.resolved_by') }}</dt>
           <dd class="col-sm-9">
             {{ entry.resolved_by.name }}
             <span class="text-muted">({{ entry.resolved_by.email }})</span>
@@ -143,20 +146,20 @@ onMounted(load)
 
       <template v-if="hasContext">
         <hr>
-        <h6 class="mb-3">Context</h6>
+        <h6 class="mb-3">{{ t('web.error-log.sections.context') }}</h6>
         <pre class="bg-body-tertiary border rounded p-3 small mb-0"><code>{{ contextJson }}</code></pre>
       </template>
 
       <template v-if="entry.trace">
         <hr>
-        <h6 class="mb-3">Stack Trace</h6>
+        <h6 class="mb-3">{{ t('web.error-log.sections.trace') }}</h6>
         <pre class="bg-body-tertiary border rounded p-3 small mb-0" style="max-height: 28rem; overflow: auto;"><code>{{ entry.trace }}</code></pre>
       </template>
     </div>
 
     <div v-else class="text-center py-4 text-muted">
       <i class="bi bi-exclamation-circle" style="font-size: 2rem;"></i>
-      <p class="mt-2">Error log not found.</p>
+      <p class="mt-2">{{ t('web.error-log.not_found_message') }}</p>
     </div>
   </Card>
 </template>

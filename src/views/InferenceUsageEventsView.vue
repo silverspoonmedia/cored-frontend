@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
@@ -11,6 +12,7 @@ import type { InferenceUsageOverview, InferenceUsageEvent } from '@/api/types'
 const { fetchOverview, fetchUsageEvents } = useInferenceUsage()
 const { items: modelCards, fetchList: fetchModelCards } = useInferenceModelCards()
 const { error: showError } = useAlert()
+const { t } = useI18n()
 
 const overview = ref<InferenceUsageOverview | null>(null)
 const events = ref<InferenceUsageEvent[]>([])
@@ -29,7 +31,7 @@ const filters = reactive({
 })
 
 const modelOptions = computed(() => [
-  { value: '', label: 'All Models' },
+  { value: '', label: t('web.inference.usage.all_models') },
   ...modelCards.value.map((c) => ({ value: c.slug, label: c.display_name ?? c.slug })),
 ])
 
@@ -48,7 +50,7 @@ async function loadOverview(): Promise<void> {
   try {
     overview.value = await fetchOverview(buildParams())
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load overview')
+    showError(e instanceof Error ? e.message : t('web.inference.usage.overview_load_failed'))
   } finally {
     loading.value = false
   }
@@ -74,7 +76,7 @@ async function loadEvents(reset = true): Promise<void> {
     }
     hasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load events')
+    showError(e instanceof Error ? e.message : t('web.inference.usage.events_load_failed'))
   } finally {
     eventsLoading.value = false
     loadingMore.value = false
@@ -93,31 +95,31 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Card title="Inference Usage Events">
+  <Card :title="t('web.inference.usage.list_title')">
     <form class="row g-2 mb-4" @submit.prevent="applyFilters">
       <div class="col-md-2">
-        <FormInput name="from" label="From" type="date" v-model="filters.from" />
+        <FormInput name="from" :label="t('web.inference.usage.filters.from')" type="date" v-model="filters.from" />
       </div>
       <div class="col-md-2">
-        <FormInput name="to" label="To" type="date" v-model="filters.to" />
+        <FormInput name="to" :label="t('web.inference.usage.filters.to')" type="date" v-model="filters.to" />
       </div>
       <div class="col-md-3">
-        <FormSelect name="model_slug" label="Model" v-model="filters.model_slug" :options="modelOptions" />
+        <FormSelect name="model_slug" :label="t('web.inference.usage.filters.model')" v-model="filters.model_slug" :options="modelOptions" />
       </div>
       <div class="col-md-2">
-        <FormInput name="user_id" label="User ID" v-model="filters.user_id" />
+        <FormInput name="user_id" :label="t('web.inference.usage.filters.user_id')" v-model="filters.user_id" />
       </div>
       <div class="col-md-2">
-        <FormInput name="stage" label="Stage" v-model="filters.stage" />
+        <FormInput name="stage" :label="t('web.inference.usage.filters.stage')" v-model="filters.stage" />
       </div>
       <div class="col-md-1 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+        <button type="submit" class="btn btn-primary btn-sm w-100">{{ t('web.inference.usage.filter_button') }}</button>
       </div>
     </form>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
@@ -125,37 +127,37 @@ onMounted(async () => {
       <div class="row g-3 mb-4">
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Events</div>
+            <div class="text-muted small">{{ t('web.inference.usage.totals.events') }}</div>
             <div class="fs-5 fw-bold">{{ overview.totals.event_count.toLocaleString() }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Users</div>
+            <div class="text-muted small">{{ t('web.inference.usage.totals.users') }}</div>
             <div class="fs-5 fw-bold">{{ overview.totals.unique_users.toLocaleString() }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Tokens</div>
+            <div class="text-muted small">{{ t('web.inference.usage.totals.tokens') }}</div>
             <div class="fs-5 fw-bold">{{ overview.totals.total_tokens.toLocaleString() }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Provider Cost</div>
+            <div class="text-muted small">{{ t('web.inference.usage.totals.provider_cost') }}</div>
             <div class="fs-5 fw-bold">{{ overview.totals.provider_cost_usd }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Billable</div>
+            <div class="text-muted small">{{ t('web.inference.usage.totals.billable') }}</div>
             <div class="fs-5 fw-bold">{{ overview.totals.billable_usd }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Margin</div>
+            <div class="text-muted small">{{ t('web.inference.usage.totals.margin') }}</div>
             <div class="fs-5 fw-bold">{{ overview.totals.margin_usd }}</div>
           </div>
         </div>
@@ -163,8 +165,8 @@ onMounted(async () => {
 
       <div class="row g-3 mb-4">
         <div class="col-md-4">
-          <Card title="By Model">
-            <div v-if="overview.by_model.length === 0" class="text-muted small">No data</div>
+          <Card :title="t('web.inference.usage.by_model')">
+            <div v-if="overview.by_model.length === 0" class="text-muted small">{{ t('web.inference.usage.no_data') }}</div>
             <table v-else class="table table-sm mb-0">
               <tbody>
                 <tr v-for="row in overview.by_model" :key="row.resolved_model">
@@ -177,8 +179,8 @@ onMounted(async () => {
           </Card>
         </div>
         <div class="col-md-4">
-          <Card title="By Stage">
-            <div v-if="overview.by_stage.length === 0" class="text-muted small">No data</div>
+          <Card :title="t('web.inference.usage.by_stage')">
+            <div v-if="overview.by_stage.length === 0" class="text-muted small">{{ t('web.inference.usage.no_data') }}</div>
             <table v-else class="table table-sm mb-0">
               <tbody>
                 <tr v-for="row in overview.by_stage" :key="row.stage">
@@ -191,8 +193,8 @@ onMounted(async () => {
           </Card>
         </div>
         <div class="col-md-4">
-          <Card title="By Provider">
-            <div v-if="overview.by_provider.length === 0" class="text-muted small">No data</div>
+          <Card :title="t('web.inference.usage.by_provider')">
+            <div v-if="overview.by_provider.length === 0" class="text-muted small">{{ t('web.inference.usage.no_data') }}</div>
             <table v-else class="table table-sm mb-0">
               <tbody>
                 <tr v-for="row in overview.by_provider" :key="row.inference_provider_id ?? 'unknown'">
@@ -206,15 +208,15 @@ onMounted(async () => {
         </div>
       </div>
 
-      <Card title="By Billing Source">
-        <div v-if="Object.keys(overview.by_billing_source).length === 0" class="text-muted small">No data</div>
+      <Card :title="t('web.inference.usage.by_source')">
+        <div v-if="Object.keys(overview.by_billing_source).length === 0" class="text-muted small">{{ t('web.inference.usage.no_data') }}</div>
         <table v-else class="table table-sm mb-0">
           <thead>
             <tr>
-              <th>Source</th>
-              <th class="text-end">Events</th>
-              <th class="text-end">Provider Cost</th>
-              <th class="text-end">Billable</th>
+              <th>{{ t('web.inference.usage.columns.source') }}</th>
+              <th class="text-end">{{ t('web.inference.usage.totals.events') }}</th>
+              <th class="text-end">{{ t('web.inference.usage.totals.provider_cost') }}</th>
+              <th class="text-end">{{ t('web.inference.usage.totals.billable') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -229,28 +231,28 @@ onMounted(async () => {
       </Card>
     </template>
 
-    <Card title="Usage Events" class="mt-4">
+    <Card :title="t('web.inference.usage.events_table_title')" class="mt-4">
       <div v-if="eventsLoading" class="text-center py-3">
         <div class="spinner-border spinner-border-sm text-primary" role="status">
-          <span class="visually-hidden">Loading…</span>
+          <span class="visually-hidden">{{ t('ui.loading') }}</span>
         </div>
       </div>
       <div v-else-if="events.length === 0" class="text-muted text-center py-3">
-        No events found.
+        {{ t('web.inference.usage.no_events') }}
       </div>
       <div v-else>
         <div class="table-responsive">
           <table class="table table-sm table-hover align-middle mb-0">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>User</th>
-                <th>Model</th>
-                <th>Provider</th>
-                <th>Stage</th>
-                <th class="text-end">Tokens</th>
-                <th class="text-end">Billable</th>
-                <th>Snapshot</th>
+                <th>{{ t('web.inference.usage.columns.date') }}</th>
+                <th>{{ t('web.inference.usage.columns.user') }}</th>
+                <th>{{ t('web.inference.usage.columns.model') }}</th>
+                <th>{{ t('web.inference.usage.columns.provider') }}</th>
+                <th>{{ t('web.inference.usage.columns.stage') }}</th>
+                <th class="text-end">{{ t('web.inference.usage.columns.tokens') }}</th>
+                <th class="text-end">{{ t('web.inference.usage.columns.billable') }}</th>
+                <th>{{ t('web.inference.usage.columns.snapshot') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -275,7 +277,7 @@ onMounted(async () => {
         <div v-if="hasMore" class="text-center mt-3">
           <button class="btn btn-outline-primary btn-sm" :disabled="loadingMore" @click="loadEvents(false)">
             <span v-if="loadingMore" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            Load More
+            {{ t('web.inference.usage.load_more') }}
           </button>
         </div>
       </div>

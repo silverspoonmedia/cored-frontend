@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useAlert } from '@/composables/useAlert'
 
+const { t } = useI18n()
 const { alerts, dismiss } = useAlert()
 </script>
 
@@ -29,7 +31,7 @@ const { alerts, dismiss } = useAlert()
       <button
         type="button"
         class="btn-close"
-        aria-label="Close"
+        :aria-label="t('actions.close')"
         @click="dismiss(alert.id)"
       ></button>
     </div>

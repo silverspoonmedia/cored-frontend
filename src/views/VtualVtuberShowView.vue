@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAlert } from '@/composables/useAlert'
 import type { VtualVtuberProfile } from '@/api/types'
 
 const route = useRoute()
+const { t } = useI18n()
 const vtual = useVtual()
 const { error: showError } = useAlert()
 
@@ -18,7 +20,7 @@ onMounted(async () => {
   try {
     profile.value = await vtual.fetchVtuberProfile(route.params.slug as string)
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load profile')
+    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.show.errors.load_failed'))
   } finally {
     loading.value = false
   }
@@ -35,7 +37,7 @@ function platformIcon(key: string): string {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
@@ -60,12 +62,12 @@ function platformIcon(key: string): string {
               :href="profile.claim_process_url"
               class="btn btn-outline-primary btn-sm"
             >
-              <i class="bi bi-shield-check me-1"></i> Claim Profile
+              <i class="bi bi-shield-check me-1"></i> {{ t('web.vtual-vtuber.show.claim_profile') }}
             </a>
           </div>
 
           <div v-if="profile.claim_blocked_until" class="alert alert-warning small mb-0">
-            Claim blocked until {{ profile.claim_blocked_until_formatted }}
+            {{ t('web.vtual-vtuber.show.claim_blocked_until', { until: profile.claim_blocked_until_formatted }) }}
           </div>
         </div>
 
@@ -74,7 +76,7 @@ function platformIcon(key: string): string {
 
         <hr v-if="profile.channels && profile.channels.length > 0" />
         <div v-if="profile.channels && profile.channels.length > 0">
-          <h6 class="small fw-semibold text-muted mb-2">Channels</h6>
+          <h6 class="small fw-semibold text-muted mb-2">{{ t('web.vtual-vtuber.show.channels_title') }}</h6>
           <div v-for="ch in profile.channels" :key="ch.id" class="d-flex align-items-center gap-2 mb-1">
             <i class="bi" :class="platformIcon(ch.platform?.key ?? '')"></i>
             <a v-if="ch.url" :href="ch.url" target="_blank" class="small text-decoration-none">
@@ -89,10 +91,10 @@ function platformIcon(key: string): string {
 
     <!-- Content panel -->
     <div class="col-md-8">
-      <Card title="Content">
+      <Card :title="t('web.vtual-vtuber.show.content_title')">
         <div v-if="!profile.contents || profile.contents.length === 0" class="text-muted text-center py-4">
           <i class="bi bi-collection fs-2 d-block mb-2"></i>
-          No content available.
+          {{ t('web.vtual-vtuber.show.no_content') }}
         </div>
         <div v-else class="row g-3">
           <div v-for="content in profile.contents" :key="content.id" class="col-md-6">
@@ -107,9 +109,9 @@ function platformIcon(key: string): string {
                 <span class="badge text-bg-light mb-1">{{ content.type }}</span>
                 <h6 class="card-title small">
                   <a v-if="content.url" :href="content.url" target="_blank" class="text-decoration-none">
-                    {{ content.title ?? 'Untitled' }}
+                    {{ content.title ?? t('web.vtual-vtuber.untitled') }}
                   </a>
-                  <span v-else>{{ content.title ?? 'Untitled' }}</span>
+                  <span v-else>{{ content.title ?? t('web.vtual-vtuber.untitled') }}</span>
                 </h6>
                 <div class="text-muted small">
                   {{ content.platform?.name ?? '—' }}

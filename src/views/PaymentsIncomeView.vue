@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
@@ -7,6 +8,7 @@ import { usePaymentsIncome } from '@/composables/usePaymentsIncome'
 import { useAlert } from '@/composables/useAlert'
 import type { PaymentIncomeOverview, Invoice } from '@/api/types'
 
+const { t } = useI18n()
 const { fetchOverview, fetchInvoices } = usePaymentsIncome()
 const { error: showError } = useAlert()
 
@@ -25,25 +27,25 @@ const filters = reactive({
   gateway: '',
 })
 
-const basisOptions = [
-  { value: 'paid_at', label: 'Paid At' },
-  { value: 'withdrawable_at', label: 'Withdrawable At' },
-]
+const basisOptions = computed(() => [
+  { value: 'paid_at', label: t('web.payments.income.filters.basis_paid_at') },
+  { value: 'withdrawable_at', label: t('web.payments.income.filters.basis_withdrawable_at') },
+])
 
-const gatewayOptions = [
-  { value: '', label: 'All Gateways' },
-  { value: 'midtrans', label: 'Midtrans' },
-  { value: 'ipaymu', label: 'iPaymu' },
-]
+const gatewayOptions = computed(() => [
+  { value: '', label: t('web.payments.income.filters.all_gateways') },
+  { value: 'midtrans', label: t('web.payments.income.filters.gateway_midtrans') },
+  { value: 'ipaymu', label: t('web.payments.income.filters.gateway_ipaymu') },
+])
 
 const pipelineBuckets = computed(() => {
   if (!overview.value?.pipeline) return []
   return [
-    { key: 'awaiting_settlement', label: 'Awaiting Settlement' },
-    { key: 'ready_to_disburse', label: 'Ready to Disburse' },
-    { key: 'in_payout', label: 'In Payout' },
-    { key: 'disbursed', label: 'Disbursed' },
-    { key: 'failed_payout', label: 'Failed Payout' },
+    { key: 'awaiting_settlement', label: t('web.payments.income.pipeline.awaiting_settlement') },
+    { key: 'ready_to_disburse', label: t('web.payments.income.pipeline.ready_to_disburse') },
+    { key: 'in_payout', label: t('web.payments.income.pipeline.in_payout') },
+    { key: 'disbursed', label: t('web.payments.income.pipeline.disbursed') },
+    { key: 'failed_payout', label: t('web.payments.income.pipeline.failed_payout') },
   ].map((b) => ({
     ...b,
     data: overview.value!.pipeline[b.key] ?? { invoice_count: 0, service_revenue: 0, service_revenue_formatted: '—' },
@@ -63,7 +65,7 @@ async function loadOverview(): Promise<void> {
   try {
     overview.value = await fetchOverview(buildParams())
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load overview')
+    showError(e instanceof Error ? e.message : t('web.payments.income.load_overview_failed'))
   } finally {
     loading.value = false
   }
@@ -89,7 +91,7 @@ async function loadInvoices(reset = true): Promise<void> {
     }
     hasMorePages.value = currentPage.value < res.pagination.last_page
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load invoices')
+    showError(e instanceof Error ? e.message : t('web.payments.income.load_invoices_failed'))
   } finally {
     invoicesLoading.value = false
     loadingMore.value = false
@@ -115,28 +117,28 @@ function statusClass(status: string): string {
 </script>
 
 <template>
-  <Card title="Payments Income">
+  <Card :title="t('web.payments.income.title')">
     <form class="row g-2 mb-4" @submit.prevent="applyFilters">
       <div class="col-md-2">
-        <FormInput name="from" label="From" type="date" v-model="filters.from" />
+        <FormInput name="from" :label="t('web.payments.income.filters.from')" type="date" v-model="filters.from" />
       </div>
       <div class="col-md-2">
-        <FormInput name="to" label="To" type="date" v-model="filters.to" />
+        <FormInput name="to" :label="t('web.payments.income.filters.to')" type="date" v-model="filters.to" />
       </div>
       <div class="col-md-3">
-        <FormSelect name="basis" label="Basis" v-model="filters.basis" :options="basisOptions" />
+        <FormSelect name="basis" :label="t('web.payments.income.filters.basis')" v-model="filters.basis" :options="basisOptions" />
       </div>
       <div class="col-md-3">
-        <FormSelect name="gateway" label="Gateway" v-model="filters.gateway" :options="gatewayOptions" />
+        <FormSelect name="gateway" :label="t('web.payments.income.filters.gateway')" v-model="filters.gateway" :options="gatewayOptions" />
       </div>
       <div class="col-md-2 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+        <button type="submit" class="btn btn-primary btn-sm w-100">{{ t('web.payments.income.filters.apply') }}</button>
       </div>
     </form>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('web.payments.income.loading') }}</span>
       </div>
     </div>
 
@@ -144,31 +146,31 @@ function statusClass(status: string): string {
       <div class="row g-3 mb-4">
         <div class="col-6 col-md">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Service Revenue</div>
+            <div class="text-muted small">{{ t('web.payments.income.summary.service_revenue') }}</div>
             <div class="fs-5 fw-bold">{{ overview.summary.service_revenue_formatted }}</div>
           </div>
         </div>
         <div class="col-6 col-md">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Buyer Fees</div>
+            <div class="text-muted small">{{ t('web.payments.income.summary.buyer_fees') }}</div>
             <div class="fs-5 fw-bold">{{ overview.summary.buyer_fees_formatted }}</div>
           </div>
         </div>
         <div class="col-6 col-md">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Cash Collected</div>
+            <div class="text-muted small">{{ t('web.payments.income.summary.cash_collected') }}</div>
             <div class="fs-5 fw-bold">{{ overview.summary.cash_collected_formatted }}</div>
           </div>
         </div>
         <div class="col-6 col-md">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Invoices</div>
+            <div class="text-muted small">{{ t('web.payments.income.summary.invoice_count') }}</div>
             <div class="fs-5 fw-bold">{{ overview.summary.invoice_count }}</div>
           </div>
         </div>
         <div class="col-6 col-md">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Avg Order Value</div>
+            <div class="text-muted small">{{ t('web.payments.income.summary.avg_order_value') }}</div>
             <div class="fs-5 fw-bold">{{ overview.summary.avg_order_value_formatted }}</div>
           </div>
         </div>
@@ -186,8 +188,8 @@ function statusClass(status: string): string {
 
       <div class="row g-3 mb-4">
         <div class="col-md-4">
-          <Card title="By Gateway">
-            <div v-if="overview.by_gateway.length === 0" class="text-muted small">No data</div>
+          <Card :title="t('web.payments.income.breakdown.gateway')">
+            <div v-if="overview.by_gateway.length === 0" class="text-muted small">{{ t('web.payments.income.no_data') }}</div>
             <table v-else class="table table-sm mb-0">
               <tbody>
                 <tr v-for="row in overview.by_gateway" :key="row.label">
@@ -200,8 +202,8 @@ function statusClass(status: string): string {
           </Card>
         </div>
         <div class="col-md-4">
-          <Card title="By Channel">
-            <div v-if="overview.by_channel.length === 0" class="text-muted small">No data</div>
+          <Card :title="t('web.payments.income.breakdown.channel')">
+            <div v-if="overview.by_channel.length === 0" class="text-muted small">{{ t('web.payments.income.no_data') }}</div>
             <table v-else class="table table-sm mb-0">
               <tbody>
                 <tr v-for="row in overview.by_channel" :key="row.label">
@@ -214,8 +216,8 @@ function statusClass(status: string): string {
           </Card>
         </div>
         <div class="col-md-4">
-          <Card title="By Product">
-            <div v-if="overview.by_invoiceable_type.length === 0" class="text-muted small">No data</div>
+          <Card :title="t('web.payments.income.breakdown.product')">
+            <div v-if="overview.by_invoiceable_type.length === 0" class="text-muted small">{{ t('web.payments.income.no_data') }}</div>
             <table v-else class="table table-sm mb-0">
               <tbody>
                 <tr v-for="row in overview.by_invoiceable_type" :key="row.label">
@@ -229,16 +231,16 @@ function statusClass(status: string): string {
         </div>
       </div>
 
-      <Card title="Daily Breakdown" class="mb-4">
-        <div v-if="overview.daily.length === 0" class="text-muted small">No data</div>
+      <Card :title="t('web.payments.income.daily.title')" class="mb-4">
+        <div v-if="overview.daily.length === 0" class="text-muted small">{{ t('web.payments.income.no_data') }}</div>
         <div v-else class="table-responsive">
           <table class="table table-sm mb-0">
             <thead>
               <tr>
-                <th>Date</th>
-                <th class="text-end">Invoices</th>
-                <th class="text-end">Service Revenue</th>
-                <th class="text-end">Cash Collected</th>
+                <th>{{ t('web.payments.income.daily.date') }}</th>
+                <th class="text-end">{{ t('web.payments.income.daily.invoices') }}</th>
+                <th class="text-end">{{ t('web.payments.income.daily.service_revenue') }}</th>
+                <th class="text-end">{{ t('web.payments.income.daily.cash_collected') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -253,26 +255,26 @@ function statusClass(status: string): string {
         </div>
       </Card>
 
-      <Card title="Invoices">
+      <Card :title="t('web.payments.income.invoices_title')">
         <div v-if="invoicesLoading" class="text-center py-3">
           <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">Loading…</span>
+            <span class="visually-hidden">{{ t('web.payments.income.loading') }}</span>
           </div>
         </div>
         <div v-else-if="invoices.length === 0" class="text-muted text-center py-3">
-          No invoices found.
+          {{ t('web.payments.income.no_invoices') }}
         </div>
         <div v-else>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th>Invoice Number</th>
-                  <th class="text-center">Status</th>
-                  <th class="text-end">Subtotal</th>
-                  <th class="text-end">Fee</th>
-                  <th class="text-end">Total</th>
-                  <th>Created</th>
+                  <th>{{ t('web.payments.income.table.invoice_number') }}</th>
+                  <th class="text-center">{{ t('web.payments.income.table.status') }}</th>
+                  <th class="text-end">{{ t('web.payments.income.table.subtotal') }}</th>
+                  <th class="text-end">{{ t('web.payments.income.table.fee') }}</th>
+                  <th class="text-end">{{ t('web.payments.income.table.total') }}</th>
+                  <th>{{ t('web.payments.income.table.created') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,7 +294,7 @@ function statusClass(status: string): string {
           <div v-if="hasMorePages" class="text-center mt-3">
             <button class="btn btn-outline-primary btn-sm" :disabled="loadingMore" @click="loadInvoices(false)">
               <span v-if="loadingMore" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-              Load More
+              {{ t('web.payments.income.load_more') }}
             </button>
           </div>
         </div>

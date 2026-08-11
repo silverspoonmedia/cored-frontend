@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { forgotPassword } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -23,7 +25,7 @@ async function handleSubmit(): Promise<void> {
   try {
     await forgotPassword(email.value)
     sent.value = true
-    showSuccess('If the email exists, a reset link has been sent.')
+    showSuccess(t('passwords.sent'))
   } catch (e) {
     if (e instanceof ApiError && e.isValidation) {
       errors.value = e.errors ?? {}
@@ -53,9 +55,9 @@ function fieldError(field: string): string | null {
 <template>
   <div v-if="sent" class="text-center">
     <i class="bi bi-envelope-check fs-1 text-success" aria-hidden="true"></i>
-    <p class="mt-3 mb-0">If the email exists, a reset link has been sent.</p>
+    <p class="mt-3 mb-0">{{ t('web.auth.forgot_password_sent') }}</p>
     <p class="mt-3 mb-0">
-      <router-link :to="{ name: 'login.view' }">Back to login</router-link>
+      <router-link :to="{ name: 'login.view' }">{{ t('web.auth.back_to_login') }}</router-link>
     </p>
   </div>
 
@@ -72,7 +74,7 @@ function fieldError(field: string): string | null {
           id="email"
           class="form-control"
           :class="{ 'is-invalid': fieldError('email') }"
-          placeholder="Enter your email"
+          :placeholder="t('web.auth.enter_email')"
           required
           autofocus
           autocomplete="email"
@@ -89,12 +91,12 @@ function fieldError(field: string): string | null {
     <div class="d-grid">
       <button type="submit" class="btn btn-primary" :disabled="loading">
         <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-        {{ loading ? 'Sending…' : 'Send Reset Link' }}
+        {{ loading ? t('web.auth.sending') : t('web.auth.send_reset_link') }}
       </button>
     </div>
   </form>
 
   <p v-if="!sent" class="mt-3 mb-0">
-    <router-link :to="{ name: 'login.view' }">Back to login</router-link>
+    <router-link :to="{ name: 'login.view' }">{{ t('web.auth.back_to_login') }}</router-link>
   </p>
 </template>

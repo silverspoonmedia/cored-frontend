@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 const { verifyTwoFactor } = useAuth()
 const { error: showError } = useAlert()
 
@@ -15,8 +17,8 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 
 const token = computed(() => {
-  const t = route.query.token
-  return typeof t === 'string' ? t : ''
+  const tokenQuery = route.query.token
+  return typeof tokenQuery === 'string' ? tokenQuery : ''
 })
 
 async function handleSubmit(): Promise<void> {
@@ -50,7 +52,7 @@ function backToLogin(): void {
 <template>
   <div>
     <p class="text-muted small mb-3">
-      Enter the 6-digit code from your authenticator app to complete login.
+      {{ t('web.auth.two_factor_challenge_help') }}
     </p>
 
     <div
@@ -63,13 +65,13 @@ function backToLogin(): void {
     </div>
 
     <div v-if="!token" class="alert alert-warning" role="alert">
-      No two-factor challenge token found. Please log in again.
+      {{ t('web.auth.two_factor_no_token') }}
     </div>
 
     <form v-else @submit.prevent="handleSubmit">
       <div class="mb-3">
         <label for="code" class="form-label">
-          Authentication code<span class="text-danger">*</span>
+          {{ t('web.auth.two_factor_code_label') }}<span class="text-danger">*</span>
         </label>
         <div class="input-group">
           <input
@@ -95,13 +97,13 @@ function backToLogin(): void {
       <div class="d-grid">
         <button type="submit" class="btn btn-primary" :disabled="loading || !code">
           <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-          {{ loading ? 'Verifying…' : 'Verify' }}
+          {{ loading ? t('web.auth.verifying') : t('web.auth.verify_two_factor') }}
         </button>
       </div>
     </form>
 
     <p class="mt-3 mb-0">
-      <a href="#" @click.prevent="backToLogin">Back to login</a>
+      <a href="#" @click.prevent="backToLogin">{{ t('web.auth.back_to_login') }}</a>
     </p>
   </div>
 </template>

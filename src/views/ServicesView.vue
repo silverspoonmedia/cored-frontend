@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useServices } from '@/composables/useServices'
@@ -8,6 +9,7 @@ import { useAuth } from '@/stores/auth'
 import type { Service } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = useServices()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage service'))
@@ -39,7 +41,7 @@ function statusClass(status: string): string {
 </script>
 
 <template>
-  <Card title="Services">
+  <Card :title="t('web.services.title')">
     <template #actions>
       <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'services.create.view' })">
         <i class="bi bi-plus-lg me-1"></i> Add Service
@@ -50,9 +52,9 @@ function statusClass(status: string): string {
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search services…"
+      :search-placeholder="t('web.services.search_placeholder')"
       empty-icon="bi-box-seam"
-      empty-title="No services found"
+      :empty-title="t('web.services.empty_title')"
       @row-click="showService"
     >
       <template #cell-code="{ row }: { row: Service }">

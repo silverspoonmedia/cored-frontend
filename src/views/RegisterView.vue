@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { register } = useAuth()
 const { error: showError } = useAlert()
 
@@ -66,7 +68,7 @@ function fieldError(field: string): string | null {
           id="name"
           class="form-control"
           :class="{ 'is-invalid': fieldError('name') }"
-          placeholder="Enter your name"
+          :placeholder="t('web.auth.enter_name')"
           required
           autofocus
           autocomplete="name"
@@ -92,7 +94,7 @@ function fieldError(field: string): string | null {
           id="email"
           class="form-control"
           :class="{ 'is-invalid': fieldError('email') }"
-          placeholder="Enter your email"
+          :placeholder="t('web.auth.enter_email')"
           required
           autocomplete="email"
           v-model="email"
@@ -117,7 +119,7 @@ function fieldError(field: string): string | null {
           id="password"
           class="form-control"
           :class="{ 'is-invalid': fieldError('password') }"
-          placeholder="Enter your password"
+          :placeholder="t('web.auth.enter_password')"
           required
           autocomplete="new-password"
           v-model="password"
@@ -127,7 +129,7 @@ function fieldError(field: string): string | null {
           type="button"
           class="input-group-text"
           @click="showPassword = !showPassword"
-          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          :aria-label="showPassword ? t('ui.password.hide') : t('ui.password.show')"
           :aria-pressed="showPassword ? 'true' : 'false'"
         >
           <i :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'" aria-hidden="true"></i>
@@ -151,7 +153,7 @@ function fieldError(field: string): string | null {
           id="password_confirmation"
           class="form-control"
           :class="{ 'is-invalid': fieldError('password_confirmation') }"
-          placeholder="Re-enter your password"
+          :placeholder="t('web.auth.re_enter_password')"
           required
           autocomplete="new-password"
           v-model="passwordConfirmation"
@@ -167,13 +169,13 @@ function fieldError(field: string): string | null {
     <div class="d-grid">
       <button type="submit" class="btn btn-primary" :disabled="loading">
         <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-        {{ loading ? 'Signing up…' : 'Sign Up' }}
+        {{ loading ? t('web.auth.signing_up') : t('web.auth.sign_up') }}
       </button>
     </div>
   </form>
 
   <p class="mt-3 mb-0">
-    Already have an account?
-    <router-link :to="{ name: 'login.view' }">Sign in</router-link>
+    {{ t('web.auth.has_account') }}
+    <router-link :to="{ name: 'login.view' }">{{ t('web.auth.sign_in') }}</router-link>
   </p>
 </template>

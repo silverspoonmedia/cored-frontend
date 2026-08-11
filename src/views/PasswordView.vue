@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -9,6 +10,7 @@ import { useAlert } from '@/composables/useAlert'
 import { ApiError, type ApiResponse } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { success: showSuccess, error: showError } = useAlert()
 
 const form = reactive({
@@ -42,7 +44,7 @@ async function handleSubmit(): Promise<void> {
       password_confirmation: form.password_confirmation,
     })
 
-    showSuccess('Password updated successfully.')
+    showSuccess(t('web.auth.password_updated'))
     form.current_password = ''
     form.password = ''
     form.password_confirmation = ''
@@ -70,12 +72,12 @@ function handleCancel(): void {
 <template>
   <div class="row">
     <div class="col-lg-6">
-      <Card title="Password">
+      <Card :title="t('web.profile.password_card')">
         <form novalidate @submit.prevent="handleSubmit">
           <FormInput
             name="current_password"
             type="password"
-            label="Current password"
+            :label="t('web.profile.current_password')"
             v-model="form.current_password"
             :error="fieldError('current_password')"
             autocomplete="current-password"
@@ -86,7 +88,7 @@ function handleCancel(): void {
           <FormInput
             name="password"
             type="password"
-            label="New password"
+            :label="t('web.profile.new_password')"
             v-model="form.password"
             :error="fieldError('password')"
             autocomplete="new-password"
@@ -98,7 +100,7 @@ function handleCancel(): void {
           <FormInput
             name="password_confirmation"
             type="password"
-            label="Confirm new password"
+            :label="t('web.profile.confirm_password')"
             v-model="form.password_confirmation"
             :error="fieldError('password_confirmation')"
             autocomplete="new-password"
@@ -107,14 +109,14 @@ function handleCancel(): void {
           />
 
           <div class="d-flex gap-2">
-            <SubmitButton label="Save" :loading="loading" variant="primary" />
+            <SubmitButton :label="t('ui.actions.save')" :loading="loading" variant="primary" />
             <button
               type="button"
               class="btn btn-outline-secondary"
               :disabled="loading"
               @click="handleCancel"
             >
-              Cancel
+              {{ t('ui.actions.cancel') }}
             </button>
           </div>
         </form>

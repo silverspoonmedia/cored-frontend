@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useInferenceProviders } from '@/composables/useInferenceProviders'
@@ -8,16 +9,17 @@ import { useAuth } from '@/stores/auth'
 import type { InferenceProvider } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = useInferenceProviders()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage inference catalog'))
 
 const columns: DataTableColumn[] = [
-  { key: 'slug', label: 'Slug', sortable: true },
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'is_active', label: 'Active', sortable: true, align: 'center' },
-  { key: 'model_rates_count', label: 'Rates', sortable: false, align: 'center' },
-  { key: 'updated_at', label: 'Updated', sortable: true, align: 'end' },
+  { key: 'slug', label: t('web.inference.providers.datatable.columns.slug'), sortable: true },
+  { key: 'name', label: t('web.inference.providers.datatable.columns.name'), sortable: true },
+  { key: 'is_active', label: t('web.inference.providers.datatable.columns.is_active'), sortable: true, align: 'center' },
+  { key: 'model_rates_count', label: t('web.inference.providers.datatable.columns.model_rates_count'), sortable: false, align: 'center' },
+  { key: 'updated_at', label: t('web.inference.providers.datatable.columns.updated_at'), sortable: true, align: 'end' },
 ]
 
 onMounted(() => fetchList())
@@ -32,10 +34,10 @@ function viewProvider(row: InferenceProvider): void {
 </script>
 
 <template>
-  <Card title="Inference Providers">
+  <Card :title="t('web.inference.providers.list_title')">
     <template #actions>
       <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'inference.providers.create.view' })">
-        <i class="bi bi-plus-lg me-1"></i> Add Provider
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.inference.providers.add_button') }}
       </button>
     </template>
 
@@ -43,9 +45,9 @@ function viewProvider(row: InferenceProvider): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search providers…"
+      :search-placeholder="t('web.inference.providers.search_placeholder')"
       empty-icon="bi-hdd-network"
-      empty-title="No providers found"
+      :empty-title="t('web.inference.providers.empty_title')"
       @row-click="editProvider"
     >
       <template #cell-slug="{ row }: { row: InferenceProvider }">
@@ -54,7 +56,7 @@ function viewProvider(row: InferenceProvider): void {
 
       <template #cell-is_active="{ row }: { row: InferenceProvider }">
         <span class="badge" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
-          {{ row.is_active ? 'Active' : 'Inactive' }}
+          {{ row.is_active ? t('web.inference.providers.active') : t('web.inference.providers.inactive') }}
         </span>
       </template>
 

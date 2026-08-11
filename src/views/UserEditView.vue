@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect2 from '@/components/FormSelect2.vue'
@@ -12,6 +13,7 @@ import { ApiError, type ApiResponse, type UserManagement, type ActivityLog } fro
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOne, fetchAssignableRoles, assignableRoles, createUser, updateUser } = useUsers()
 const { forUser } = useActivityLogs()
 const { success: showSuccess, error: showError } = useAlert()
@@ -66,7 +68,7 @@ async function load(): Promise<void> {
       }
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load user')
+    showError(e instanceof Error ? e.message : t('web.users.load_failed'))
   } finally {
     loading.value = false
   }
@@ -91,10 +93,10 @@ async function handleSubmit(): Promise<void> {
   try {
     if (isEdit.value && userId.value) {
       await updateUser(userId.value, payload)
-      showSuccess('User updated successfully.')
+      showSuccess(t('api.users.updated'))
     } else {
       await createUser(payload)
-      showSuccess('User created successfully.')
+      showSuccess(t('api.users.created'))
     }
     router.push({ name: 'users.index.view' })
   } catch (e) {
@@ -106,7 +108,7 @@ async function handleSubmit(): Promise<void> {
     } else if (e instanceof ApiError) {
       showError(e.message)
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to save user')
+      showError(e instanceof Error ? e.message : t('web.users.save_failed'))
     }
   } finally {
     saving.value = false
@@ -117,16 +119,16 @@ onMounted(load)
 </script>
 
 <template>
-  <Card :title="isEdit ? 'Edit User' : 'Create User'">
+  <Card :title="isEdit ? t('web.users.edit_title') : t('web.users.create_title')">
     <template #actions>
       <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'users.index.view' })">
-        <i class="bi bi-arrow-left me-1"></i> Back to List
+        <i class="bi bi-arrow-left me-1"></i> {{ t('web.users.back_to_list') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
@@ -135,7 +137,7 @@ onMounted(load)
         <form @submit.prevent="handleSubmit">
           <FormInput
             name="name"
-            label="Name"
+            :label="t('web.users.form.name_label')"
             v-model="form.name"
             :error="fieldError('name')"
             required
@@ -145,7 +147,7 @@ onMounted(load)
           <FormInput
             name="email"
             type="email"
-            label="Email"
+            :label="t('web.users.form.email_label')"
             v-model="form.email"
             :error="fieldError('email')"
             required
@@ -155,19 +157,19 @@ onMounted(load)
           <FormInput
             name="password"
             type="password"
-            label="Password"
+            :label="t('web.users.form.password_label')"
             v-model="form.password"
             :error="fieldError('password')"
             autocomplete="new-password"
             :required="!isEdit"
             :disabled="saving"
-            :hint="isEdit ? 'Leave blank to keep current password.' : 'Minimum 8 characters.'"
+            :hint="isEdit ? t('web.users.form.password_hint_edit') : t('web.users.form.password_hint_create')"
           />
 
           <FormInput
             name="password_confirmation"
             type="password"
-            label="Confirm Password"
+            :label="t('web.users.form.password_confirm')"
             v-model="form.password_confirmation"
             :error="fieldError('password_confirmation')"
             autocomplete="new-password"
@@ -177,19 +179,19 @@ onMounted(load)
 
           <FormSelect2
             name="role"
-            label="Role"
+            :label="t('ui.labels.role')"
             v-model="form.role"
             :options="roleOptions"
             :error="fieldError('role')"
-            placeholder="Select a role"
+            :placeholder="t('web.users.form.role_placeholder')"
             required
             :disabled="saving"
           />
 
           <div class="d-flex gap-2">
-            <SubmitButton :label="isEdit ? 'Save Changes' : 'Create User'" :loading="saving" variant="primary" />
+            <SubmitButton :label="isEdit ? t('web.users.save_changes') : t('web.users.create_submit')" :loading="saving" variant="primary" />
             <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'users.index.view' })">
-              Cancel
+              {{ t('actions.cancel') }}
             </button>
           </div>
         </form>
@@ -197,15 +199,15 @@ onMounted(load)
 
       <!-- Activity history sidebar (edit only) -->
       <div v-if="isEdit" class="col-lg-4">
-        <Card title="Activity History">
+        <Card :title="t('web.users.activity_history_title')">
           <div v-if="activityLogs.length === 0" class="text-muted small">
-            No recent activity.
+            {{ t('web.users.no_recent_activity') }}
           </div>
           <ul v-else class="list-unstyled mb-0">
             <li v-for="log in activityLogs.slice(0, 10)" :key="log.id" class="mb-2 pb-2 border-bottom">
               <div class="small fw-medium">{{ log.event_label ?? log.event ?? log.description }}</div>
               <div class="text-muted small">
-                {{ log.causer?.name ?? 'System' }} · {{ log.created_at_human ?? log.created_at_formatted ?? '' }}
+                {{ log.causer?.name ?? t('web.users.system_actor') }} · {{ log.created_at_human ?? log.created_at_formatted ?? '' }}
               </div>
             </li>
           </ul>

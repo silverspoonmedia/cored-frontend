@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -13,6 +14,7 @@ const route = useRoute()
 const router = useRouter()
 const { assignableRoles, loading, load, fetchOne } = useNotificationAudiences()
 const { success: showSuccess, error: showError } = useAlert()
+const { t } = useI18n()
 
 const audienceType = computed(() => route.params.type as string)
 
@@ -32,7 +34,7 @@ async function loadAudience(): Promise<void> {
     selectedRoles.value = [...data.roles]
     notifySubjectUser.value = data.notify_subject_user
   } else {
-    showError('Failed to load notification audience')
+    showError(t('web.notification-audiences.failed_load'))
   }
   fetching.value = false
 }
@@ -78,13 +80,13 @@ async function handleSubmit(): Promise<void> {
       audience.value = res.data
       selectedRoles.value = [...res.data.roles]
       notifySubjectUser.value = res.data.notify_subject_user
-      showSuccess('Notification audience updated.')
+      showSuccess(t('web.notification-audiences.updated'))
       router.push({ name: 'notification-audiences.index.view' })
     } else {
-      showError(res.message ?? 'Failed to update notification audience')
+      showError(res.message ?? t('web.notification-audiences.failed_update'))
     }
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Failed to update notification audience'
+    const msg = e instanceof Error ? e.message : t('web.notification-audiences.failed_update')
     showError(msg)
   } finally {
     submitting.value = false
@@ -93,10 +95,10 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-  <Card title="Edit notification audience">
+  <Card :title="t('web.notification-audiences.edit_title')">
     <div v-if="fetching" class="text-center py-4">
       <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-      Loading…
+      {{ t('web.notification-audiences.loading') }}
     </div>
 
     <template v-else-if="audience">
@@ -107,7 +109,7 @@ async function handleSubmit(): Promise<void> {
 
       <form novalidate @submit.prevent="handleSubmit">
         <div class="mb-3">
-          <label class="form-label">Target roles</label>
+          <label class="form-label">{{ t('web.notification-audiences.target_roles_label') }}</label>
           <div class="d-flex flex-column gap-2">
             <div
               v-for="role in assignableRoles"
@@ -128,19 +130,19 @@ async function handleSubmit(): Promise<void> {
             </div>
           </div>
           <small class="form-text text-muted">
-            Select which roles receive this notification type.
+            {{ t('web.notification-audiences.select_roles_hint') }}
           </small>
         </div>
 
         <FormCheckbox
           name="notify_subject_user"
-          label="Also notify the subject user"
+          :label="t('web.notification-audiences.notify_subject_user_label')"
           switch
           v-model="notifySubjectUser"
         />
 
         <SubmitButton
-          label="Save"
+          :label="t('ui.actions.save')"
           :loading="submitting"
           variant="primary"
         />
@@ -148,7 +150,7 @@ async function handleSubmit(): Promise<void> {
     </template>
 
     <div v-else class="text-center py-4 text-muted">
-      Notification audience not found.
+      {{ t('web.notification-audiences.not_found') }}
     </div>
   </Card>
 </template>

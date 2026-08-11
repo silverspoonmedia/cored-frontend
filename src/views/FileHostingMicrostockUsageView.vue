@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useFileHostingUsage } from '@/composables/useFileHostingUsage'
 import { useAuth } from '@/stores/auth'
@@ -12,6 +13,7 @@ import type {
   InferenceUsageEvent,
 } from '@/api/types'
 
+const { t } = useI18n()
 const { fetchBilling, fetchLedger, fetchUsageEvents, fetchAdminOverview, fetchAdminUsageEvents } =
   useFileHostingUsage()
 const { hasPermission } = useAuth()
@@ -46,7 +48,7 @@ async function loadBilling(): Promise<void> {
   try {
     billing.value = await fetchBilling()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load billing')
+    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_billing'))
   } finally {
     loading.value = false
   }
@@ -70,7 +72,7 @@ async function loadLedger(reset = true): Promise<void> {
     }
     ledgerHasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load ledger')
+    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_ledger'))
   } finally {
     ledgerLoading.value = false
   }
@@ -94,7 +96,7 @@ async function loadUsage(reset = true): Promise<void> {
     }
     usageHasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load usage events')
+    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_usage'))
   } finally {
     usageLoading.value = false
   }
@@ -105,7 +107,7 @@ async function loadPlatform(): Promise<void> {
   try {
     platformOverview.value = await fetchAdminOverview()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load platform overview')
+    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform'))
   } finally {
     platformLoading.value = false
   }
@@ -129,7 +131,7 @@ async function loadPlatformEvents(reset = true): Promise<void> {
     }
     platformEventsHasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load platform events')
+    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform_events'))
   } finally {
     platformEventsLoading.value = false
   }
@@ -152,10 +154,10 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
 </script>
 
 <template>
-  <Card title="Microstock Usage">
+  <Card :title="t('web.microstock.usage.title')">
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
@@ -163,33 +165,33 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
       <div class="row g-3 mb-4">
         <div class="col-md-4">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Balance</div>
-            <div class="fs-5 fw-bold">{{ billing.balance_formatted }}</div>
+            <div class="text-muted small">{{ t('web.microstock.usage.balance') }}</div>
+            <div class="fs-5 fw-bold">{{ billing.balance_usd }}</div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Estimate</div>
-            <div class="fs-5 fw-bold">{{ billing.estimate_formatted }}</div>
+            <div class="text-muted small">{{ t('web.microstock.usage.estimate') }}</div>
+            <div class="fs-5 fw-bold">{{ billing.estimated_per_analysis_usd }}</div>
           </div>
         </div>
         <div v-if="billing.daily_free?.enabled" class="col-md-4">
           <div class="border rounded p-3 text-center">
-            <div class="text-muted small">Daily Free</div>
-            <div class="fs-5 fw-bold">{{ billing.daily_free.slots_consumed_today }} / {{ billing.daily_free.daily_limit }}</div>
+            <div class="text-muted small">{{ t('web.microstock.usage.daily_free') }}</div>
+            <div class="fs-5 fw-bold">{{ billing.daily_free.used }} / {{ billing.daily_free.limit }}</div>
           </div>
         </div>
       </div>
 
       <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-          <button class="nav-link" :class="{ active: activeTab === 'ledger' }" @click="switchTab('ledger')">Ledger</button>
+          <button class="nav-link" :class="{ active: activeTab === 'ledger' }" @click="switchTab('ledger')">{{ t('web.microstock.usage.tabs.ledger') }}</button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" :class="{ active: activeTab === 'usage' }" @click="switchTab('usage')">Usage</button>
+          <button class="nav-link" :class="{ active: activeTab === 'usage' }" @click="switchTab('usage')">{{ t('web.microstock.usage.tabs.usage') }}</button>
         </li>
         <li v-if="canViewPlatform" class="nav-item">
-          <button class="nav-link" :class="{ active: activeTab === 'platform' }" @click="switchTab('platform')">Platform</button>
+          <button class="nav-link" :class="{ active: activeTab === 'platform' }" @click="switchTab('platform')">{{ t('web.microstock.usage.tabs.platform') }}</button>
         </li>
       </ul>
 
@@ -197,19 +199,19 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
       <div v-if="activeTab === 'ledger'">
         <div v-if="ledgerLoading" class="text-center py-3">
           <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">Loading…</span>
+            <span class="visually-hidden">{{ t('ui.loading') }}</span>
           </div>
         </div>
-        <div v-else-if="ledger.length === 0" class="text-muted text-center py-3">No ledger entries found.</div>
+        <div v-else-if="ledger.length === 0" class="text-muted text-center py-3">{{ t('web.microstock.usage.no_ledger') }}</div>
         <div v-else>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th class="text-end">Amount</th>
-                  <th class="text-end">Balance</th>
+                  <th>{{ t('web.microstock.usage.col_date') }}</th>
+                  <th>{{ t('web.microstock.usage.col_description') }}</th>
+                  <th class="text-end">{{ t('web.microstock.usage.col_amount') }}</th>
+                  <th class="text-end">{{ t('web.microstock.usage.col_balance') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -223,7 +225,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
             </table>
           </div>
           <div v-if="ledgerHasMore" class="text-center mt-3">
-            <button class="btn btn-outline-primary btn-sm" @click="loadLedger(false)">Load More</button>
+            <button class="btn btn-outline-primary btn-sm" @click="loadLedger(false)">{{ t('web.microstock.usage.load_more') }}</button>
           </div>
         </div>
       </div>
@@ -232,22 +234,22 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
       <div v-if="activeTab === 'usage'">
         <div v-if="usageLoading" class="text-center py-3">
           <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">Loading…</span>
+            <span class="visually-hidden">{{ t('ui.loading') }}</span>
           </div>
         </div>
-        <div v-else-if="usageEvents.length === 0" class="text-muted text-center py-3">No usage events found.</div>
+        <div v-else-if="usageEvents.length === 0" class="text-muted text-center py-3">{{ t('web.microstock.usage.no_usage_events') }}</div>
         <div v-else>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>File</th>
-                  <th>Stage</th>
-                  <th>Model</th>
-                  <th class="text-end">Tokens</th>
-                  <th class="text-end">Cost</th>
-                  <th>Source</th>
+                  <th>{{ t('web.microstock.usage.col_date') }}</th>
+                  <th>{{ t('web.microstock.usage.col_file') }}</th>
+                  <th>{{ t('web.microstock.usage.col_stage') }}</th>
+                  <th>{{ t('web.microstock.usage.col_model') }}</th>
+                  <th class="text-end">{{ t('web.microstock.usage.col_tokens') }}</th>
+                  <th class="text-end">{{ t('web.microstock.usage.col_cost') }}</th>
+                  <th>{{ t('web.microstock.usage.col_source') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -264,7 +266,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
             </table>
           </div>
           <div v-if="usageHasMore" class="text-center mt-3">
-            <button class="btn btn-outline-primary btn-sm" @click="loadUsage(false)">Load More</button>
+            <button class="btn btn-outline-primary btn-sm" @click="loadUsage(false)">{{ t('web.microstock.usage.load_more') }}</button>
           </div>
         </div>
       </div>
@@ -273,7 +275,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
       <div v-if="activeTab === 'platform' && canViewPlatform">
         <div v-if="platformLoading" class="text-center py-3">
           <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">Loading…</span>
+            <span class="visually-hidden">{{ t('ui.loading') }}</span>
           </div>
         </div>
 
@@ -281,37 +283,37 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
           <div class="row g-3 mb-4">
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
-                <div class="text-muted small">Provider Cost</div>
+                <div class="text-muted small">{{ t('web.microstock.usage.col_provider_cost') }}</div>
                 <div class="fs-5 fw-bold">{{ platformOverview.totals.provider_cost_usd }}</div>
               </div>
             </div>
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
-                <div class="text-muted small">Billable</div>
+                <div class="text-muted small">{{ t('web.microstock.usage.col_billable') }}</div>
                 <div class="fs-5 fw-bold">{{ platformOverview.totals.billable_usd }}</div>
               </div>
             </div>
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
-                <div class="text-muted small">Margin</div>
+                <div class="text-muted small">{{ t('web.microstock.usage.col_margin') }}</div>
                 <div class="fs-5 fw-bold">{{ platformOverview.totals.margin_usd }}</div>
               </div>
             </div>
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
-                <div class="text-muted small">Events</div>
+                <div class="text-muted small">{{ t('web.microstock.usage.col_events') }}</div>
                 <div class="fs-5 fw-bold">{{ platformOverview.totals.event_count.toLocaleString() }}</div>
               </div>
             </div>
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
-                <div class="text-muted small">Users</div>
+                <div class="text-muted small">{{ t('web.microstock.usage.col_users') }}</div>
                 <div class="fs-5 fw-bold">{{ platformOverview.totals.unique_users.toLocaleString() }}</div>
               </div>
             </div>
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
-                <div class="text-muted small">Daily Free Cost</div>
+                <div class="text-muted small">{{ t('web.microstock.usage.col_daily_free_cost') }}</div>
                 <div class="fs-5 fw-bold">{{ platformOverview.daily_free.subsidized_provider_cost_usd }}</div>
               </div>
             </div>
@@ -319,7 +321,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
 
           <div class="row g-3 mb-4">
             <div class="col-md-4">
-              <Card title="By Source">
+              <Card :title="t('web.microstock.usage.by_source')">
                 <table class="table table-sm mb-0">
                   <tbody>
                     <tr v-for="(row, source) in platformOverview.by_billing_source" :key="source">
@@ -332,7 +334,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
               </Card>
             </div>
             <div class="col-md-4">
-              <Card title="By Stage">
+              <Card :title="t('web.microstock.usage.by_stage')">
                 <table class="table table-sm mb-0">
                   <tbody>
                     <tr v-for="row in platformOverview.by_stage" :key="row.stage">
@@ -345,7 +347,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
               </Card>
             </div>
             <div class="col-md-4">
-              <Card title="By Model">
+              <Card :title="t('web.microstock.usage.by_model')">
                 <table class="table table-sm mb-0">
                   <tbody>
                     <tr v-for="row in platformOverview.by_model" :key="row.resolved_model">
@@ -359,27 +361,27 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
             </div>
           </div>
 
-          <Card title="All Usage Events">
+          <Card :title="t('web.microstock.usage.all_usage_events')">
             <div v-if="platformEventsLoading" class="text-center py-3">
               <div class="spinner-border spinner-border-sm text-primary" role="status">
-                <span class="visually-hidden">Loading…</span>
+                <span class="visually-hidden">{{ t('ui.loading') }}</span>
               </div>
             </div>
             <div v-else-if="platformEvents.length === 0" class="text-muted text-center py-3">
-              No events found.
+              {{ t('web.microstock.usage.no_events') }}
             </div>
             <div v-else>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle mb-0">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>User</th>
-                      <th>File</th>
-                      <th>Stage</th>
-                      <th class="text-end">Provider Cost</th>
-                      <th class="text-end">Cost</th>
-                      <th>Source</th>
+                      <th>{{ t('web.microstock.usage.col_date') }}</th>
+                      <th>{{ t('web.microstock.usage.col_user') }}</th>
+                      <th>{{ t('web.microstock.usage.col_file') }}</th>
+                      <th>{{ t('web.microstock.usage.col_stage') }}</th>
+                      <th class="text-end">{{ t('web.microstock.usage.col_provider_cost') }}</th>
+                      <th class="text-end">{{ t('web.microstock.usage.col_cost') }}</th>
+                      <th>{{ t('web.microstock.usage.col_source') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -396,7 +398,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
                 </table>
               </div>
               <div v-if="platformEventsHasMore" class="text-center mt-3">
-                <button class="btn btn-outline-primary btn-sm" @click="loadPlatformEvents(false)">Load More</button>
+                <button class="btn btn-outline-primary btn-sm" @click="loadPlatformEvents(false)">{{ t('web.microstock.usage.load_more') }}</button>
               </div>
             </div>
           </Card>

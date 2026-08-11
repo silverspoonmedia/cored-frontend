@@ -187,7 +187,7 @@ export interface AppNotification {
 }
 
 export interface UnreadCountPayload {
-  count: number
+  unread: number
 }
 
 // --- Settings ---
@@ -233,7 +233,7 @@ export interface UserAssignableRole {
 }
 
 export interface UserManagement {
-  id: number
+  id: string
   name: string
   email: string
   email_verified_at: string | null
@@ -267,6 +267,12 @@ export interface MenuListItem {
   user_include_ids: string[]
   user_exclude_ids: string[]
   children_count?: number
+  created_at?: string | null
+  created_at_formatted?: string | null
+  created_at_human?: string | null
+  updated_at?: string | null
+  updated_at_formatted?: string | null
+  updated_at_human?: string | null
 }
 
 export interface MenuAncestor {
@@ -478,14 +484,16 @@ export interface PaymentIncomeInvoicesPayload {
 
 // --- Microstock Usage ---
 export interface MicrostockBillingSummary {
-  balance: number
-  balance_formatted: string
-  estimate: number
-  estimate_formatted: string
+  balance_micro_usd: number
+  balance_usd: string
+  estimated_per_analysis_micro_usd: number
+  estimated_per_analysis_usd: string
   daily_free?: {
     enabled: boolean
-    slots_consumed_today: number
-    daily_limit: number
+    limit: number
+    used: number
+    remaining: number
+    resets_at: string | null
   }
 }
 
@@ -588,15 +596,15 @@ export interface PaymentChannel {
   routing_type: string | null
   policy_key: string | null
   routes?: PaymentChannelRoute[]
-  checkout_quote?: {
-    estimated_channel_fee: number
-    estimated_channel_fee_formatted: string | null
-    estimated_customer_total: number
-    estimated_customer_total_formatted: string | null
-    fee_label: string
-    fee_type: string | null
-    fee_basis: string | null
-  }
+  estimated_channel_fee?: number
+  estimated_channel_fee_formatted?: string | null
+  estimated_customer_total?: number
+  estimated_customer_total_formatted?: string | null
+  fee_label?: string
+  fee_type?: string | null
+  fee_basis?: string | null
+  gateway_name?: string | null
+  route_role?: string | null
 }
 
 // --- Checkout ---
@@ -711,6 +719,9 @@ export interface Invoice {
   subtotal_formatted?: string
   payment_channel_fee: number
   payment_channel_fee_formatted?: string
+  payment_channel_fee_type?: string | null
+  payment_channel_fee_label?: string | null
+  payment_channel_fee_basis?: string | null
   customer_gross_total: number
   customer_gross_total_formatted?: string
   currency: string
@@ -868,6 +879,7 @@ export interface ProductActivationSummary {
     pending: number
     suspended: number
     expired: number
+    total?: number
   }
   product_metrics: Record<string, unknown>
 }
@@ -880,7 +892,7 @@ export interface ProductActivationShowPayload {
     last_page: number
     per_page: number
     total: number
-    has_more: boolean
+    has_more?: boolean
   }
 }
 
@@ -1153,13 +1165,13 @@ export interface FhTrashPayload {
 
 export interface FhQuota {
   used_bytes: number
-  used_bytes_human: string
+  used_bytes_human: string | null
   pending_bytes: number
-  pending_bytes_human: string
+  pending_bytes_human: string | null
   reserved_bytes: number
-  reserved_bytes_human: string
+  reserved_bytes_human: string | null
   quota_bytes: number
-  quota_bytes_human: string
+  quota_bytes_human: string | null
   remaining_bytes: number | null
   remaining_bytes_human: string | null
   state: string
@@ -1438,4 +1450,21 @@ export interface FhCollectionPayload {
   collection_hint: string | null
   collection_billing_mode: string | null
   collection_locked: boolean
+}
+
+export interface FhCollectionStatusPayload {
+  status: string
+  phase: string | null
+  billing_tier: string | null
+  hint: string | null
+  csv_path: string | null
+  total: number
+  processed: number
+  finalized: number
+  failed: number
+}
+
+export interface FhCollectionExportPayload {
+  path: string
+  count: number
 }

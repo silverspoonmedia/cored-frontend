@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -8,6 +9,7 @@ import { useAuth } from '@/stores/auth'
 
 const { currencies, loading, updating, load, toggleActive, setSettlement } = useCurrencies()
 const { hasPermission } = useAuth()
+const { t } = useI18n()
 
 const canManage = computed(() => hasPermission('manage settings'))
 
@@ -17,7 +19,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card title="Currencies">
+  <Card :title="t('web.currencies.title')">
     <template #actions>
       <button
         v-if="canManage"
@@ -32,26 +34,26 @@ onMounted(() => {
 
     <div v-if="loading && !currencies.length" class="text-center py-4">
       <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-      Loading…
+      {{ t('ui.loading') }}
     </div>
 
     <EmptyState
       v-else-if="!currencies.length"
       icon="bi-currency-exchange"
-      title="No currencies"
-      message="Currencies will appear here once seeded."
+      :title="t('web.currencies.no_currencies_title')"
+      :message="t('web.currencies.no_currencies_message')"
     />
 
     <div v-else class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Name</th>
-            <th>Symbol</th>
-            <th>Active</th>
-            <th>Settlement</th>
-            <th v-if="canManage" class="text-end">Actions</th>
+            <th>{{ t('web.currencies.code_col') }}</th>
+            <th>{{ t('web.currencies.name_col') }}</th>
+            <th>{{ t('web.currencies.symbol_col') }}</th>
+            <th>{{ t('web.currencies.active_col') }}</th>
+            <th>{{ t('web.currencies.settlement_col') }}</th>
+            <th v-if="canManage" class="text-end">{{ t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -62,16 +64,16 @@ onMounted(() => {
             <td>
               <StatusBadge
                 :status="currency.is_active ? 'active' : 'inactive'"
-                :label="currency.is_active ? 'Yes' : 'No'"
+                :label="currency.is_active ? t('web.currencies.yes') : t('web.currencies.no')"
               />
             </td>
             <td>
               <StatusBadge
                 v-if="currency.is_settlement"
                 status="active"
-                label="Yes"
+                :label="t('web.currencies.yes')"
               />
-              <span v-else class="badge text-bg-secondary">No</span>
+              <span v-else class="badge text-bg-secondary">{{ t('web.currencies.no') }}</span>
             </td>
             <td v-if="canManage" class="text-end">
               <button
@@ -86,7 +88,7 @@ onMounted(() => {
                   role="status"
                   aria-hidden="true"
                 ></span>
-                {{ currency.is_active ? 'Deactivate' : 'Activate' }}
+                {{ currency.is_active ? t('web.currencies.deactivate_button') : t('web.currencies.activate_button') }}
               </button>
 
               <button
@@ -96,7 +98,7 @@ onMounted(() => {
                 :disabled="updating.has(currency.code)"
                 @click="setSettlement(currency.code)"
               >
-                Set as settlement
+                {{ t('web.currencies.set_settlement_button') }}
               </button>
             </td>
           </tr>

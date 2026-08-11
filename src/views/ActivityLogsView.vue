@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useActivityLogs } from '@/composables/useActivityLogs'
 import type { ActivityLog } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = useActivityLogs()
 
 const columns: DataTableColumn[] = [
-  { key: 'event', label: 'Event', sortable: true },
-  { key: 'subject', label: 'Subject', sortable: false },
-  { key: 'causer', label: 'Causer', sortable: false },
-  { key: 'created_at', label: 'Time', sortable: true, align: 'end' },
+  { key: 'event', label: t('web.activity-log.columns.event'), sortable: true },
+  { key: 'subject', label: t('web.activity-log.columns.subject'), sortable: false },
+  { key: 'causer', label: t('web.activity-log.columns.causer'), sortable: false },
+  { key: 'created_at', label: t('web.activity-log.columns.time'), sortable: true, align: 'end' },
 ]
 
 onMounted(() => fetchList({ limit: 100 }))
@@ -28,14 +30,14 @@ function timeLabel(row: ActivityLog): string {
 </script>
 
 <template>
-  <Card title="Activity Logs">
+  <Card :title="t('web.activity-log.list_title')">
     <DataTable
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search activity logs…"
+      :search-placeholder="t('web.activity-log.search_placeholder')"
       empty-icon="bi-clock-history"
-      empty-title="No activity logs found"
+      :empty-title="t('web.activity-log.empty_title')"
       @row-click="viewDetail"
     >
       <template #cell-event="{ row }: { row: ActivityLog }">
@@ -63,7 +65,7 @@ function timeLabel(row: ActivityLog): string {
           class="btn btn-outline-secondary btn-sm"
           @click.stop="viewDetail(row)"
         >
-          View Detail
+          {{ t('web.activity-log.view_detail') }}
         </button>
       </template>
     </DataTable>

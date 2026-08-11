@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { usePaymentChannels } from '@/composables/usePaymentChannels'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { PaymentChannel } from '@/api/types'
 
+const { t } = useI18n()
 const { fetchList, updateChannel, updateRoute, syncPolicy } = usePaymentChannels()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
@@ -87,7 +89,7 @@ async function handleSyncPolicy(): Promise<void> {
 </script>
 
 <template>
-  <Card title="Payment Channels">
+  <Card :title="t('web.payments.channels.title')">
     <template #actions>
       <button
         v-if="canManage"
@@ -105,7 +107,7 @@ async function handleSyncPolicy(): Promise<void> {
       <input
         type="text"
         class="form-control"
-        placeholder="Search channels…"
+        :placeholder="t('web.payments.channels.search_placeholder')"
         v-model="search"
       />
     </div>

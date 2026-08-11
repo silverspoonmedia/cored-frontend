@@ -17,7 +17,7 @@ export function usePaymentsIncome() {
     error.value = null
     try {
       const res = await get<ApiResponse<PaymentIncomeOverview>>(
-        'payments/income/overview',
+        'payments/income',
         params,
       )
       if (res.status === 'success' && res.data) {

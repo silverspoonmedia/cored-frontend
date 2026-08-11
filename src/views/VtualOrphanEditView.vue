@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormTextarea from '@/components/FormTextarea.vue'
@@ -13,6 +14,7 @@ import type { VtualChannel, VtualPlatform } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const vtual = useVtual()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -59,7 +61,7 @@ async function load(): Promise<void> {
     channels.value = chs
     platforms.value = plats
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load orphan')
+    showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.load_failed'))
   } finally {
     loading.value = false
   }
@@ -82,10 +84,10 @@ async function handleSubmit(): Promise<void> {
   try {
     if (isEdit.value) {
       await vtual.updateCreator(route.params.id as string, payload)
-      showSuccess('Orphan updated.')
+      showSuccess(t('web.vtual-orphans.ajax.updated'))
     } else {
       await vtual.createOrphan(payload)
-      showSuccess('Orphan created.')
+      showSuccess(t('web.vtual-orphans.ajax.created'))
     }
     router.push({ name: 'vtual.orphans.index.view' })
   } catch (e) {
@@ -95,7 +97,7 @@ async function handleSubmit(): Promise<void> {
     } else if (e instanceof ApiError) {
       showError(e.message)
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to save')
+      showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.save_failed'))
     }
   } finally {
     saving.value = false
@@ -108,15 +110,15 @@ async function handleAddChannel(): Promise<void> {
   try {
     const result = await vtual.addChannel(route.params.id as string, channelForm.platform_key, channelForm.profile)
     if ('token' in result) {
-      showError('Channel claim started. Verify via the profile page.')
+      showError(t('web.vtual-orphans.ajax.channel_claim_started'))
     } else {
       channels.value.push(result)
-      showSuccess('Channel added.')
+      showSuccess(t('web.vtual-orphans.ajax.channel_added'))
     }
     channelForm.platform_key = ''
     channelForm.profile = ''
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to add channel')
+    showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.channel_add_failed'))
   } finally {
     addingChannel.value = false
   }
@@ -136,19 +138,19 @@ onMounted(load)
 </script>
 
 <template>
-  <Card :title="isEdit ? 'Edit Orphan Creator' : 'Create Orphan Creator'">
+  <Card :title="isEdit ? t('web.vtual-orphans.edit_title') : t('web.vtual-orphans.create_title')">
     <template #actions>
       <button
         class="btn btn-outline-secondary btn-sm"
         @click="router.push({ name: 'vtual.orphans.index.view' })"
       >
-        <i class="bi bi-arrow-left me-1"></i> Back
+        <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
@@ -156,25 +158,25 @@ onMounted(load)
       <form @submit.prevent="handleSubmit" style="max-width: 600px;">
         <FormInput
           name="display_name"
-          label="Display Name"
+          :label="t('web.vtual-orphans.form.display_name')"
           v-model="form.display_name"
           :error="fieldError('display_name')"
           required
           :disabled="saving"
-          hint="The creator's public display name"
+          :hint="t('web.vtual-orphans.form.display_name_hint')"
         />
         <FormInput
           v-if="isEdit"
           name="slug"
-          label="Slug"
+          :label="t('web.vtual-orphans.form.slug')"
           v-model="form.slug"
           :error="fieldError('slug')"
           :disabled="saving"
-          hint="URL-friendly identifier (lowercase, hyphens only)"
+          :hint="t('web.vtual-orphans.form.slug_hint')"
         />
         <FormTextarea
           name="bio"
-          label="Bio"
+          :label="t('web.vtual-orphans.form.bio')"
           v-model="form.bio"
           :error="fieldError('bio')"
           :disabled="saving"
@@ -182,36 +184,36 @@ onMounted(load)
         />
         <FormInput
           name="avatar_url"
-          label="Avatar URL"
+          :label="t('web.vtual-orphans.form.avatar_url')"
           type="url"
           v-model="form.avatar_url"
           :error="fieldError('avatar_url')"
           :disabled="saving"
-          placeholder="https://…"
+          :placeholder="t('web.vtual-orphans.form.avatar_url_placeholder')"
         />
         <div class="d-flex gap-2">
-          <SubmitButton :label="isEdit ? 'Save Changes' : 'Create'" :loading="saving" variant="primary" />
+          <SubmitButton :label="isEdit ? t('web.vtual-orphans.form.submit_update') : t('ui.actions.create')" :loading="saving" variant="primary" />
           <button
             type="button"
             class="btn btn-outline-secondary"
             :disabled="saving"
             @click="router.push({ name: 'vtual.orphans.index.view' })"
           >
-            Cancel
+            {{ t('ui.actions.cancel') }}
           </button>
         </div>
       </form>
 
       <!-- Channel management (edit only) -->
       <div v-if="isEdit" class="mt-4">
-        <h5>Channels</h5>
+        <h5>{{ t('web.vtual-orphans.channels.section_title') }}</h5>
 
         <!-- Add channel form -->
         <form @submit.prevent="handleAddChannel" class="row g-2 mb-3 align-items-end" style="max-width: 600px;">
           <div class="col-md-4">
             <FormSelect
               name="ch_platform"
-              label="Platform"
+              :label="t('web.vtual-orphans.channels.platform')"
               v-model="channelForm.platform_key"
               :options="platforms.filter(p => p.enabled).map(p => ({ value: p.key, label: p.name }))"
               required
@@ -220,26 +222,26 @@ onMounted(load)
           <div class="col-md-5">
             <FormInput
               name="ch_profile"
-              label="Profile URL / ID"
+              :label="t('web.vtual-orphans.channels.profile_or_id')"
               v-model="channelForm.profile"
               required
             />
           </div>
           <div class="col-md-3">
-            <SubmitButton :loading="addingChannel" label="Add" />
+            <SubmitButton :loading="addingChannel" :label="t('ui.actions.add')" />
           </div>
         </form>
 
         <!-- Channels table -->
-        <div v-if="channels.length === 0" class="text-muted small">No channels.</div>
+        <div v-if="channels.length === 0" class="text-muted small">{{ t('web.vtual-orphans.channels.empty') }}</div>
         <div v-else class="table-responsive">
           <table class="table table-sm align-middle mb-0">
             <thead>
               <tr>
                 <th></th>
-                <th>Platform</th>
-                <th>Handle / ID</th>
-                <th>Status</th>
+                <th>{{ t('web.vtual-orphans.channels.platform') }}</th>
+                <th>{{ t('web.vtual-orphans.channels.handle_or_id') }}</th>
+                <th>{{ t('web.vtual-orphans.channels.status') }}</th>
               </tr>
             </thead>
             <tbody>

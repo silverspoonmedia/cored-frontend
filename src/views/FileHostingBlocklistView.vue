@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -10,6 +11,7 @@ import type { FhHashBlocklistEntry } from '@/api/types'
 
 const fh = useFileHosting()
 const { success: showSuccess, error: showError } = useAlert()
+const { t } = useI18n()
 
 const entries = ref<FhHashBlocklistEntry[]>([])
 const loading = ref(true)
@@ -27,7 +29,7 @@ async function loadEntries(): Promise<void> {
   try {
     entries.value = await fh.fetchBlocklist()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load blocklist')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.blocklist_failed_load'))
   } finally {
     loading.value = false
   }
@@ -40,12 +42,12 @@ async function handleSubmit(): Promise<void> {
   submitting.value = true
   try {
     await fh.addBlocklistEntry(form.value.sha256.trim().toLowerCase(), form.value.reason.trim() || null)
-    showSuccess('Entry added.')
+    showSuccess(t('web.file-hosting.blocklist_entry_added'))
     form.value.sha256 = ''
     form.value.reason = ''
     await loadEntries()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to add entry')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.blocklist_failed_add'))
   } finally {
     submitting.value = false
   }
@@ -60,59 +62,59 @@ async function handleDelete(): Promise<void> {
   if (!deleteTarget.value) return
   try {
     await fh.removeBlocklistEntry(deleteTarget.value.id)
-    showSuccess('Entry removed.')
+    showSuccess(t('web.file-hosting.blocklist_entry_removed'))
     showDeleteConfirm.value = false
     deleteTarget.value = null
     await loadEntries()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to remove entry')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.blocklist_failed_remove'))
   }
 }
 </script>
 
 <template>
-  <Card title="Hash Blocklist">
+  <Card :title="t('web.file-hosting.blocklist_title_card')">
     <div class="row g-3">
       <div class="col-lg-5">
-        <Card title="Add Entry">
+        <Card :title="t('web.file-hosting.blocklist_add_entry_title')">
           <form @submit.prevent="handleSubmit">
             <FormInput
               name="sha256"
-              label="SHA-256 Hash"
+              :label="t('web.file-hosting.blocklist_sha256_label')"
               v-model="form.sha256"
-              placeholder="64-char hex string"
+              :placeholder="t('web.file-hosting.blocklist_sha256_placeholder_input')"
               :maxlength="64"
               required
             />
             <FormInput
               name="reason"
-              label="Reason"
+              :label="t('web.file-hosting.blocklist_reason')"
               v-model="form.reason"
-              placeholder="Optional reason"
+              :placeholder="t('web.file-hosting.blocklist_reason_placeholder_input')"
               :maxlength="255"
             />
-            <SubmitButton :loading="submitting" label="Add to Blocklist" />
+            <SubmitButton :loading="submitting" :label="t('web.file-hosting.blocklist_add_button')" />
           </form>
         </Card>
       </div>
 
       <div class="col-lg-7">
-        <Card title="Blocked Hashes">
+        <Card :title="t('web.file-hosting.blocklist_blocked_hashes_title')">
           <div v-if="loading" class="text-center py-3">
             <div class="spinner-border spinner-border-sm text-primary" role="status">
-              <span class="visually-hidden">Loading…</span>
+              <span class="visually-hidden">{{ t('ui.loading') }}</span>
             </div>
           </div>
           <div v-else-if="entries.length === 0" class="text-muted text-center py-3">
-            No blocked hashes.
+            {{ t('web.file-hosting.blocklist_empty') }}
           </div>
           <div v-else class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th>SHA-256</th>
-                  <th>Reason</th>
-                  <th>Added</th>
+                  <th>{{ t('web.file-hosting.blocklist_sha256_col') }}</th>
+                  <th>{{ t('web.file-hosting.blocklist_reason_col') }}</th>
+                  <th>{{ t('web.file-hosting.blocklist_added_col') }}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -135,15 +137,14 @@ async function handleDelete(): Promise<void> {
     </div>
 
     <ConfirmModal
-      :show="showDeleteConfirm"
-      title="Remove Entry"
-      confirm-text="Remove"
-      confirm-class="btn-danger"
+      v-model="showDeleteConfirm"
+      :title="t('web.file-hosting.blocklist_remove_title')"
+      :confirm-label="t('web.file-hosting.blocklist_remove_button')"
+      confirm-variant="danger"
       @confirm="handleDelete"
       @cancel="showDeleteConfirm = false; deleteTarget = null"
     >
-      <p>Remove this hash from the blocklist?</p>
-      <p class="text-muted small">Files with this checksum will be able to be shared publicly again.</p>
+      <p>{{ t('web.file-hosting.blocklist_remove_message') }}</p>
     </ConfirmModal>
   </Card>
 </template>

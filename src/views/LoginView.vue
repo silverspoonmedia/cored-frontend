@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 const { login } = useAuth()
 const { error: showError } = useAlert()
 
@@ -78,7 +80,7 @@ function fieldError(field: string): string | null {
           id="email"
           class="form-control"
           :class="{ 'is-invalid': fieldError('email') }"
-          placeholder="Enter your email"
+          :placeholder="t('web.auth.enter_email')"
           required
           autofocus
           autocomplete="email"
@@ -104,7 +106,7 @@ function fieldError(field: string): string | null {
           id="password"
           class="form-control"
           :class="{ 'is-invalid': fieldError('password') }"
-          placeholder="Enter your password"
+          :placeholder="t('web.auth.enter_password')"
           required
           autocomplete="current-password"
           v-model="password"
@@ -114,7 +116,7 @@ function fieldError(field: string): string | null {
           type="button"
           class="input-group-text"
           @click="showPassword = !showPassword"
-          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          :aria-label="showPassword ? t('ui.password.hide') : t('ui.password.show')"
           :aria-pressed="showPassword ? 'true' : 'false'"
         >
           <i :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'" aria-hidden="true"></i>
@@ -137,14 +139,14 @@ function fieldError(field: string): string | null {
             v-model="rememberMe"
             :disabled="loading"
           />
-          <label for="remember_me" class="form-check-label">Remember Me</label>
+          <label for="remember_me" class="form-check-label">{{ t('web.auth.remember_me') }}</label>
         </div>
       </div>
       <div class="col-sm-5">
         <div class="d-grid">
           <button type="submit" class="btn btn-primary" :disabled="loading">
             <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            {{ loading ? 'Signing in…' : 'Sign In' }}
+            {{ loading ? t('web.auth.signing_in') : t('web.auth.sign_in') }}
           </button>
         </div>
       </div>
@@ -152,9 +154,9 @@ function fieldError(field: string): string | null {
   </form>
 
   <p class="mt-3 mb-1">
-    <router-link :to="{ name: 'auth.forgot-password.view' }">Forgot your password?</router-link>
+    <router-link :to="{ name: 'auth.forgot-password.view' }">{{ t('web.auth.forgot_password_link') }}</router-link>
   </p>
   <p class="mb-0">
-    Don't have an account? <router-link :to="{ name: 'auth.register.view' }">Register now</router-link>
+    {{ t('web.auth.no_account') }} <router-link :to="{ name: 'auth.register.view' }">{{ t('web.auth.register_now') }}</router-link>
   </p>
 </template>

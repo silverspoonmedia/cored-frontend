@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAuth } from '@/stores/auth'
@@ -9,6 +10,7 @@ import type { VtualPlatformCredential } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const vtual = useVtual()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
@@ -24,7 +26,7 @@ async function loadCredentials(): Promise<void> {
   try {
     credentials.value = await vtual.fetchCredentials(platformId.value)
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load credentials')
+    showError(e instanceof Error ? e.message : t('web.vtual.credentials.load_failed'))
   } finally {
     loading.value = false
   }
@@ -33,28 +35,28 @@ async function loadCredentials(): Promise<void> {
 onMounted(loadCredentials)
 
 async function handleDelete(cred: VtualPlatformCredential): Promise<void> {
-  if (!confirm(`Delete credential "${cred.label}"?`)) return
+  if (!confirm(t('web.vtual.confirm.delete_credential_body'))) return
   setAction(cred.id, true)
   try {
     await vtual.deleteCredential(cred.id)
     credentials.value = credentials.value.filter((c) => c.id !== cred.id)
-    showSuccess('Credential deleted.')
+    showSuccess(t('web.vtual.credentials.deleted'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to delete')
+    showError(e instanceof Error ? e.message : t('web.vtual.credentials.delete_failed'))
   } finally {
     setAction(cred.id, false)
   }
 }
 
 async function handleRevoke(cred: VtualPlatformCredential): Promise<void> {
-  if (!confirm(`Revoke credential "${cred.label}"? Runtime tokens will be cleared.`)) return
+  if (!confirm(t('web.vtual.confirm.revoke_credential_body'))) return
   setAction(cred.id, true)
   try {
     const updated = await vtual.revokeCredential(cred.id)
     updateCredentialInList(updated)
-    showSuccess('Credential revoked.')
+    showSuccess(t('web.vtual.credentials.revoked'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to revoke')
+    showError(e instanceof Error ? e.message : t('web.vtual.credentials.revoke_failed'))
   } finally {
     setAction(cred.id, false)
   }
@@ -65,9 +67,9 @@ async function handleTest(cred: VtualPlatformCredential): Promise<void> {
   try {
     const updated = await vtual.testCredential(cred.id)
     updateCredentialInList(updated)
-    showSuccess('Test passed.')
+    showSuccess(t('web.vtual.credentials.test_passed'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Test failed')
+    showError(e instanceof Error ? e.message : t('web.vtual.credentials.test_failed'))
   } finally {
     setAction(cred.id, false)
   }
@@ -95,38 +97,38 @@ function statusClass(status: string): string {
 </script>
 
 <template>
-  <Card title="Platform Credentials">
+  <Card :title="t('web.vtual.admin.credentials.platform_title')">
     <template #actions>
       <button
         v-if="canManage"
         class="btn btn-primary btn-sm"
         @click="router.push({ name: 'vtual.platform-credentials.create.view', params: { platformId } })"
       >
-        <i class="bi bi-plus-lg me-1"></i> Add Credential
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.vtual.credentials.add') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="credentials.length === 0" class="text-muted text-center py-4">
-      No credentials found for this platform.
+      {{ t('web.vtual.credentials.empty') }}
     </div>
 
     <div v-else class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Label</th>
-            <th>Type</th>
-            <th class="text-center">Status</th>
-            <th class="text-center">Priority</th>
-            <th>Secret Hint</th>
-            <th>Verified</th>
-            <th class="text-end">Actions</th>
+            <th>{{ t('web.vtual.credentials.label') }}</th>
+            <th>{{ t('web.vtual.credentials.type') }}</th>
+            <th class="text-center">{{ t('web.vtual.credentials.status_active') }}</th>
+            <th class="text-center">{{ t('web.vtual.credentials.priority') }}</th>
+            <th>{{ t('web.vtual.credentials.hint') }}</th>
+            <th>{{ t('web.vtual.credentials.verified_at') }}</th>
+            <th class="text-end">{{ t('web.vtual.table.label_actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -145,7 +147,7 @@ function statusClass(status: string): string {
                   class="btn btn-outline-success"
                   :disabled="actionLoading[cred.id]"
                   @click="handleTest(cred)"
-                  title="Test"
+                  :title="t('web.vtual.credentials.test')"
                 >
                   <span v-if="actionLoading[cred.id]" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                   <i v-else class="bi bi-lightning" aria-hidden="true"></i>
@@ -154,14 +156,14 @@ function statusClass(status: string): string {
                   class="btn btn-outline-warning"
                   :disabled="actionLoading[cred.id]"
                   @click="handleRevoke(cred)"
-                  title="Revoke"
+                  :title="t('web.vtual.credentials.revoke')"
                 >
                   <i class="bi bi-shield-x" aria-hidden="true"></i>
                 </button>
                 <button
                   class="btn btn-outline-primary"
                   @click="router.push({ name: 'vtual.platform-credentials.edit.view', params: { id: cred.id } })"
-                  title="Edit"
+                  :title="t('web.vtual.admin.credentials.edit_action')"
                 >
                   <i class="bi bi-pencil" aria-hidden="true"></i>
                 </button>
@@ -169,7 +171,7 @@ function statusClass(status: string): string {
                   class="btn btn-outline-danger"
                   :disabled="actionLoading[cred.id]"
                   @click="handleDelete(cred)"
-                  title="Delete"
+                  :title="t('web.vtual.credentials.delete')"
                 >
                   <i class="bi bi-trash" aria-hidden="true"></i>
                 </button>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { usePaymentGateways } from '@/composables/usePaymentGateways'
@@ -8,6 +9,7 @@ import { useAuth } from '@/stores/auth'
 import type { PaymentGateway } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = usePaymentGateways()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage payment gateway'))
@@ -28,7 +30,7 @@ function editGateway(row: PaymentGateway): void {
 </script>
 
 <template>
-  <Card title="Payment Gateways">
+  <Card :title="t('web.payments.gateways.title')">
     <template #actions>
       <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'payment-gateways.create.view' })">
         <i class="bi bi-plus-lg me-1"></i> Add Gateway
@@ -39,9 +41,9 @@ function editGateway(row: PaymentGateway): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search gateways…"
+      :search-placeholder="t('web.payments.gateways.search_placeholder')"
       empty-icon="bi-credit-card"
-      empty-title="No gateways found"
+      :empty-title="t('web.payments.gateways.empty_title')"
       @row-click="editGateway"
     >
       <template #cell-name="{ row }: { row: PaymentGateway }">

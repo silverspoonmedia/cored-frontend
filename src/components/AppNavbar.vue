@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/composables/useNavigation'
 import type { NavNode } from '@/types'
 import { useSidebar } from '@/composables/useSidebar'
@@ -8,10 +9,11 @@ import { useTheme } from '@/composables/useTheme'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useNotifications } from '@/composables/useNotifications'
-import type { Locale } from '@/types'
+import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 
 const route = useRoute()
 const router = useRouter()
+const { t, locale } = useI18n()
 const { toggle: toggleSidebar } = useSidebar()
 const { mode, setMode } = useTheme()
 const { user, logout, switchLocale: switchLocaleApi } = useAuth()
@@ -19,11 +21,8 @@ const { success: showSuccess } = useAlert()
 const { unreadCount, items: recentNotifications, fetchUnreadCount, fetchList, markAllRead, markAsRead } = useNotifications()
 const { navbarTree, load: loadNavigation } = useNavigation()
 
-const currentLocale = computed<Locale>(() => {
-  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mw_locale') : null
-  return (stored as Locale) ?? 'en'
-})
-const supportedLocales: Locale[] = ['en', 'id', 'ja']
+const currentLocale = computed<AppLocale>(() => locale.value as AppLocale)
+const supportedLocales = SUPPORTED_LOCALES
 
 const notificationCount = computed(() => unreadCount.value)
 const bellLoading = ref(false)
@@ -54,17 +53,12 @@ function navigate(node: NavNode): void {
   }
 }
 
-function switchLocale(locale: Locale): void {
-  try {
-    localStorage.setItem('mw_locale', locale)
-  } catch {
-    // ignore
-  }
+function switchLocale(locale: AppLocale): void {
+  setLocale(locale)
   switchLocaleApi(locale).then(() => {
-    showSuccess('Language updated.')
-    window.location.reload()
-  }).catch((e) => {
-    window.location.reload()
+    showSuccess(t('web.navbar.language_updated'))
+  }).catch(() => {
+    // locale already switched client-side, API sync is best-effort
   })
 }
 
@@ -72,7 +66,7 @@ const loggingOut = computed(() => false)
 
 async function handleLogout(): Promise<void> {
   await logout()
-  showSuccess('You have been logged out.')
+  showSuccess(t('web.navbar.logged_out'))
   router.push({ name: 'login.view' })
 }
 
@@ -84,7 +78,7 @@ async function handleMarkAllRead(): Promise<void> {
   bellLoading.value = true
   try {
     await markAllRead()
-    showSuccess('All notifications marked as read.')
+    showSuccess(t('web.navbar.all_notifications_marked_read'))
   } catch {
     // silent
   } finally {
@@ -122,7 +116,7 @@ onMounted(() => {
             class="nav-link"
             href="#"
             role="button"
-            aria-label="Toggle sidebar"
+            :aria-label="t('web.navbar.toggle_sidebar')"
             aria-expanded="false"
             @click.prevent="toggleSidebar()"
           >
@@ -149,7 +143,7 @@ onMounted(() => {
             class="nav-link"
             href="#"
             id="bd-theme"
-            aria-label="Toggle theme"
+            :aria-label="t('web.navbar.toggle_theme')"
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
@@ -166,7 +160,7 @@ onMounted(() => {
                 :aria-pressed="mode === 'light'"
                 @click="setMode('light')"
               >
-                <i class="bi bi-sun-fill me-2"></i> Light
+                <i class="bi bi-sun-fill me-2"></i> {{ t('web.navbar.theme_light') }}
                 <i class="bi bi-check-lg ms-auto" :class="{ 'd-none': mode !== 'light' }"></i>
               </button>
             </li>
@@ -178,7 +172,7 @@ onMounted(() => {
                 :aria-pressed="mode === 'dark'"
                 @click="setMode('dark')"
               >
-                <i class="bi bi-moon-fill me-2"></i> Dark
+                <i class="bi bi-moon-fill me-2"></i> {{ t('web.navbar.theme_dark') }}
                 <i class="bi bi-check-lg ms-auto" :class="{ 'd-none': mode !== 'dark' }"></i>
               </button>
             </li>
@@ -190,7 +184,7 @@ onMounted(() => {
                 :aria-pressed="mode === 'auto'"
                 @click="setMode('auto')"
               >
-                <i class="bi bi-circle-half me-2"></i> Auto
+                <i class="bi bi-circle-half me-2"></i> {{ t('web.navbar.theme_auto') }}
                 <i class="bi bi-check-lg ms-auto" :class="{ 'd-none': mode !== 'auto' }"></i>
               </button>
             </li>
@@ -203,7 +197,7 @@ onMounted(() => {
             class="nav-link"
             href="#"
             data-bs-toggle="dropdown"
-            aria-label="Language"
+            :aria-label="t('ui.labels.language')"
             aria-expanded="false"
           >
             <i class="bi bi-translate" aria-hidden="true"></i>
@@ -229,7 +223,7 @@ onMounted(() => {
             class="nav-link"
             href="#"
             data-bs-toggle="dropdown"
-            aria-label="Notifications"
+            :aria-label="t('web.notifications.bell_label')"
             aria-expanded="false"
           >
             <i class="bi bi-bell-fill" aria-hidden="true"></i>
@@ -237,7 +231,7 @@ onMounted(() => {
           </a>
           <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
             <span class="dropdown-item dropdown-header d-flex justify-content-between align-items-center">
-              <span>{{ notificationCount }} unread</span>
+              <span>{{ t('web.navbar.unread_count', { count: notificationCount }) }}</span>
               <button
                 v-if="notificationCount > 0"
                 class="btn btn-link btn-sm p-0 text-decoration-none"
@@ -245,7 +239,7 @@ onMounted(() => {
                 :disabled="bellLoading"
                 @click="handleMarkAllRead"
               >
-                Mark all read
+                {{ t('web.navbar.mark_all_read') }}
               </button>
             </span>
             <div class="dropdown-divider"></div>
@@ -262,10 +256,10 @@ onMounted(() => {
                 <span class="small">{{ n.message }}</span>
                 <span class="d-block text-muted fs-7">{{ notificationTime(n) }}</span>
               </a>
-              <span v-if="recentNotifications.length === 0" class="dropdown-item text-secondary fs-7">No new notifications</span>
+              <span v-if="recentNotifications.length === 0" class="dropdown-item text-secondary fs-7">{{ t('web.navbar.no_new_notifications') }}</span>
             </div>
             <div class="dropdown-divider"></div>
-            <router-link :to="{ name: 'notifications.index.view' }" class="dropdown-item dropdown-footer">View all</router-link>
+            <router-link :to="{ name: 'notifications.index.view' }" class="dropdown-item dropdown-footer">{{ t('web.navbar.view_all') }}</router-link>
           </div>
         </li>
 
@@ -276,7 +270,7 @@ onMounted(() => {
             class="nav-link dropdown-toggle"
             data-bs-toggle="dropdown"
             aria-expanded="false"
-            aria-label="User menu"
+            :aria-label="t('ui.labels.user_menu')"
           >
             <i class="bi bi-person-circle fs-5" aria-hidden="true"></i>
             <span class="d-none d-md-inline ms-1">{{ userName }}</span>
@@ -292,13 +286,13 @@ onMounted(() => {
             <li class="px-3 py-2">
               <div class="d-grid gap-2">
                 <router-link :to="{ name: 'profile.password.edit.view' }" class="btn btn-outline-secondary btn-sm text-start">
-                  <i class="bi bi-key me-1"></i> Password
+                  <i class="bi bi-key me-1"></i> {{ t('web.navbar.password') }}
                 </router-link>
                 <router-link :to="{ name: 'profile.two-factor.edit.view' }" class="btn btn-outline-secondary btn-sm text-start">
-                  <i class="bi bi-shield-lock me-1"></i> Two-Factor
+                  <i class="bi bi-shield-lock me-1"></i> {{ t('web.navbar.two_factor') }}
                 </router-link>
                 <router-link :to="{ name: 'profile.connections.view' }" class="btn btn-outline-secondary btn-sm text-start">
-                  <i class="bi bi-link-45deg me-1"></i> Connected Accounts
+                  <i class="bi bi-link-45deg me-1"></i> {{ t('web.navbar.connected_accounts') }}
                 </router-link>
               </div>
             </li>
@@ -310,7 +304,7 @@ onMounted(() => {
                   :disabled="loggingOut"
                   @click="handleLogout"
                 >
-                  <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Logout
+                  <i class="bi bi-box-arrow-right" aria-hidden="true"></i> {{ t('web.navbar.logout') }}
                 </button>
               </div>
             </li>

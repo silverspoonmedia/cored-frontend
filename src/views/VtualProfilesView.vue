@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAlert } from '@/composables/useAlert'
@@ -7,6 +8,7 @@ import type { VtualCreator } from '@/api/types'
 
 const { fetchOwned } = useVtual()
 const { error: showError } = useAlert()
+const { t } = useI18n()
 
 const profiles = ref<VtualCreator[]>([])
 const loading = ref(true)
@@ -16,7 +18,7 @@ onMounted(async () => {
   try {
     profiles.value = await fetchOwned()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load profiles')
+    showError(e instanceof Error ? e.message : t('web.vtual.failed_load_profiles'))
   } finally {
     loading.value = false
   }
@@ -24,25 +26,25 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Card title="My Creator Profiles">
+  <Card :title="t('web.vtual.my_creator_profiles')">
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="profiles.length === 0" class="text-muted text-center py-4">
-      No creator profiles found.
+      {{ t('web.vtual.no_creator_profiles') }}
     </div>
 
     <div v-else class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Creator</th>
-            <th>Slug</th>
-            <th class="text-center">Channels</th>
-            <th class="text-end">Actions</th>
+            <th>{{ t('web.vtual.creator_col') }}</th>
+            <th>{{ t('web.vtual.slug_col') }}</th>
+            <th class="text-center">{{ t('web.vtual.channels_col') }}</th>
+            <th class="text-end">{{ t('web.vtual.actions_col') }}</th>
           </tr>
         </thead>
         <tbody>

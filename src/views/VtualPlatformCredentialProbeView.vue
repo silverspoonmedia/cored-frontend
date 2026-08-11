@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import FormInput from '@/components/FormInput.vue'
@@ -15,6 +16,7 @@ import type { ApiResponse, VtualPlatform } from '@/api/types'
 const router = useRouter()
 const { fetchPlatforms } = useVtual()
 const { error: showError } = useAlert()
+const { t } = useI18n()
 
 const platforms = ref<VtualPlatform[]>([])
 const loading = ref(true)
@@ -53,7 +55,7 @@ onMounted(async () => {
       form.platform_id = platforms.value[0]!.id
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load platforms')
+    showError(e instanceof Error ? e.message : t('web.vtual.failed_load_platforms'))
   } finally {
     loading.value = false
   }
@@ -79,7 +81,7 @@ async function handleSubmit(): Promise<void> {
     if (res.status === 'success' && res.data) {
       result.value = JSON.stringify(res.data, null, 2)
     } else {
-      result.value = res.message ?? 'No data returned.'
+      result.value = res.message ?? t('web.vtual.no_data_returned')
     }
   } catch (e) {
     if (e instanceof ApiError && e.isValidation) {
@@ -88,7 +90,7 @@ async function handleSubmit(): Promise<void> {
     } else if (e instanceof ApiError) {
       showError(e.message)
     } else {
-      showError(e instanceof Error ? e.message : 'Probe failed')
+      showError(e instanceof Error ? e.message : t('web.vtual.probe_failed'))
     }
   } finally {
     saving.value = false
@@ -97,23 +99,23 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-  <Card title="Platform API Probe">
+  <Card :title="t('web.vtual.platform_api_probe_title')">
     <template #actions>
       <button class="btn btn-outline-secondary btn-sm" @click="router.back()">
-        <i class="bi bi-arrow-left me-1"></i> Back
+        <i class="bi bi-arrow-left me-1"></i> {{ t('web.vtual.back_button') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <form v-else @submit.prevent="handleSubmit" style="max-width: 700px;">
       <FormSelect
         name="platform_id"
-        label="Platform"
+        :label="t('web.vtual.platform_label')"
         v-model="form.platform_id"
         :options="platforms.map((p) => ({ value: p.id, label: p.name }))"
         :error="fieldError('platform_id')"
@@ -122,7 +124,7 @@ async function handleSubmit(): Promise<void> {
       />
       <FormSelect
         name="method"
-        label="HTTP Method"
+        :label="t('web.vtual.http_method_label')"
         v-model="form.method"
         :options="methodOptions"
         :error="fieldError('method')"
@@ -130,41 +132,41 @@ async function handleSubmit(): Promise<void> {
       />
       <FormInput
         name="ids"
-        label="IDs (comma-separated)"
+        :label="t('web.vtual.ids_label')"
         v-model="form.ids"
         :error="fieldError('ids')"
         :disabled="saving"
-        placeholder="e.g. abc123,def456"
+        :placeholder="t('web.vtual.ids_placeholder')"
       />
       <FormInput
         name="handle"
-        label="Handle"
+        :label="t('web.vtual.handle_label')"
         v-model="form.handle"
         :error="fieldError('handle')"
         :disabled="saving"
       />
       <FormInput
         name="parts"
-        label="Parts"
+        :label="t('web.vtual.parts_label')"
         v-model="form.parts"
         :error="fieldError('parts')"
         :disabled="saving"
-        hint="e.g. snippets,videos"
+        :hint="t('web.vtual.parts_hint')"
       />
       <FormCheckbox
         name="chunked"
-        label="Chunked"
+        :label="t('web.vtual.chunked_label')"
         v-model="form.chunked"
         :error="fieldError('chunked')"
         :disabled="saving"
       />
 
       <div class="d-flex gap-2 mb-3">
-        <SubmitButton label="Run Probe" :loading="saving" variant="primary" icon="bi-bug" />
+        <SubmitButton :label="t('web.vtual.run_probe')" :loading="saving" variant="primary" icon="bi-bug" />
       </div>
 
       <div v-if="result" class="mt-3">
-        <h6>Result</h6>
+        <h6>{{ t('web.vtual.result_label') }}</h6>
         <pre class="bg-light p-3 rounded small" style="max-height: 400px; overflow-y: auto;">{{ result }}</pre>
       </div>
     </form>

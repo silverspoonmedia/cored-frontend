@@ -65,19 +65,14 @@ export function useProductActivations() {
     loading.value = true
     error.value = null
     try {
-      const res = await get<ApiResponse<{ data: ProductActivation[]; pagination: unknown }>>(
+      const res = await get<ApiResponse<ProductActivation[]>>(
         'admin/product-activations',
         params,
       )
       if (res.status === 'success' && res.data) {
         return {
-          items: res.data.data ?? [],
-          pagination: (res.data.pagination as {
-            current_page: number
-            last_page: number
-            per_page: number
-            total: number
-          }) ?? { current_page: 1, last_page: 1, per_page: 50, total: 0 },
+          items: res.data,
+          pagination: { current_page: 1, last_page: 1, per_page: 50, total: res.data.length },
         }
       }
       return { items: [], pagination: { current_page: 1, last_page: 1, per_page: 50, total: 0 } }

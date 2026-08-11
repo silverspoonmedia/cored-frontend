@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import CheckoutPanel from '@/components/CheckoutPanel.vue'
 import { useServicePurchases } from '@/composables/useServicePurchases'
@@ -9,6 +10,7 @@ import type { ServicePurchase } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOne, updateQuantity } = useServicePurchases()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -33,7 +35,7 @@ onMounted(async () => {
     purchase.value = await fetchOne(route.params.id as string)
     quantity.value = purchase.value.quantity
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load service purchase')
+    showError(e instanceof Error ? e.message : t('web.services.purchases.load_failed'))
   } finally {
     loading.value = false
   }
@@ -44,9 +46,9 @@ async function handleUpdateQty(): Promise<void> {
   updatingQty.value = true
   try {
     purchase.value = await updateQuantity(purchase.value.id, quantity.value)
-    showSuccess('Quantity updated.')
+    showSuccess(t('web.services.purchases.quantity_updated'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update quantity')
+    showError(e instanceof Error ? e.message : t('web.services.purchases.update_failed'))
   } finally {
     updatingQty.value = false
   }
@@ -67,16 +69,16 @@ function statusClass(status: string): string {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
   <div v-else-if="purchase" class="row g-3">
     <div class="col-lg-8">
-      <Card title="Service Purchase">
+      <Card :title="t('web.services.purchases.title')">
         <template #actions>
           <button class="btn btn-outline-secondary btn-sm" @click="router.back()">
-            <i class="bi bi-arrow-left me-1"></i> Back
+            <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
           </button>
         </template>
 
@@ -85,10 +87,10 @@ function statusClass(status: string): string {
         </div>
 
         <dl class="row mb-0">
-          <dt class="col-sm-3">Service</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.service') }}</dt>
           <dd class="col-sm-9">{{ purchase.service?.name ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Quantity</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.quantity') }}</dt>
           <dd class="col-sm-9">
             <span v-if="!canEditQty">{{ purchase.quantity }}</span>
             <div v-else class="d-flex align-items-center gap-2">
@@ -106,33 +108,33 @@ function statusClass(status: string): string {
                 @click="handleUpdateQty"
               >
                 <span v-if="updatingQty" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                Update
+                {{ t('web.services.purchases.fields.update') }}
               </button>
             </div>
           </dd>
 
-          <dt class="col-sm-3">Display Amount</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.display_amount') }}</dt>
           <dd class="col-sm-9">{{ purchase.display_amount_formatted ?? purchase.display_amount }}</dd>
 
-          <dt class="col-sm-3">Charge Amount</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.charge_amount') }}</dt>
           <dd class="col-sm-9">{{ purchase.charge_amount_formatted ?? purchase.charge_amount }}</dd>
 
-          <dt class="col-sm-3">Currency</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.currency') }}</dt>
           <dd class="col-sm-9">{{ purchase.display_currency }}</dd>
 
-          <dt v-if="purchase.storage_gain_human" class="col-sm-3">Storage Gain</dt>
+          <dt v-if="purchase.storage_gain_human" class="col-sm-3">{{ t('web.services.purchases.fields.storage_gain') }}</dt>
           <dd v-if="purchase.storage_gain_human" class="col-sm-9">{{ purchase.storage_gain_human }}</dd>
 
-          <dt class="col-sm-3">Change Type</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.change_type') }}</dt>
           <dd class="col-sm-9">{{ purchase.change_type ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Period Start</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.period_start') }}</dt>
           <dd class="col-sm-9">{{ purchase.period_start_formatted ?? purchase.period_start ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Period End</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.period_end') }}</dt>
           <dd class="col-sm-9">{{ purchase.period_end_formatted ?? purchase.period_end ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Created At</dt>
+          <dt class="col-sm-3">{{ t('web.services.purchases.fields.created_at') }}</dt>
           <dd class="col-sm-9">{{ purchase.created_at_formatted ?? purchase.created_at ?? '—' }}</dd>
         </dl>
       </Card>

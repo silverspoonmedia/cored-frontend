@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import Modal from '@/components/Modal.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
@@ -21,6 +22,7 @@ const {
 } = useFileHosting()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { t } = useI18n()
 
 const workspaces = ref<FhWorkspace[]>([])
 const loading = ref(true)
@@ -67,7 +69,7 @@ async function loadWorkspaces(): Promise<void> {
       if (first) await selectWorkspace(first)
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load workspaces')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_load_workspaces'))
   } finally {
     loading.value = false
   }
@@ -84,7 +86,7 @@ async function selectWorkspace(ws: FhWorkspace): Promise<void> {
     members.value = m
     activity.value = a
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load workspace detail')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_load_workspace_detail'))
     members.value = []
     activity.value = []
   } finally {
@@ -97,13 +99,13 @@ async function handleCreate(): Promise<void> {
   creating.value = true
   try {
     const ws = await createWorkspace(createName.value.trim())
-    showSuccess(`Workspace "${ws.name}" created.`)
+    showSuccess(t('web.file-hosting.workspace_created', { name: ws.name }))
     workspaces.value.push(ws)
     showCreate.value = false
     createName.value = ''
     await selectWorkspace(ws)
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to create workspace')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_create_workspace'))
   } finally {
     creating.value = false
   }
@@ -114,11 +116,11 @@ async function handleInvite(): Promise<void> {
   inviting.value = true
   try {
     await inviteMember(selected.value.id, inviteEmail.value.trim(), inviteRole.value)
-    showSuccess(`Invitation sent to ${inviteEmail.value}.`)
+    showSuccess(t('web.file-hosting.invitation_sent', { email: inviteEmail.value }))
     inviteEmail.value = ''
     inviteRole.value = 'viewer'
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to invite member')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_invite_member'))
   } finally {
     inviting.value = false
   }
@@ -129,11 +131,11 @@ async function handleAcceptInvite(): Promise<void> {
   accepting.value = true
   try {
     await acceptInvite(inviteToken.value.trim())
-    showSuccess('Invitation accepted.')
+    showSuccess(t('web.file-hosting.invitation_accepted'))
     inviteToken.value = ''
     await loadWorkspaces()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to accept invite')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_accept_invite'))
   } finally {
     accepting.value = false
   }
@@ -145,9 +147,9 @@ async function handleRoleChange(member: FhWorkspaceMember, role: string): Promis
     const updated = await updateMemberRole(selected.value.id, member.user_id, role)
     const idx = members.value.findIndex((m) => m.id === member.id)
     if (idx >= 0) members.value[idx] = updated
-    showSuccess('Role updated.')
+    showSuccess(t('web.file-hosting.role_updated'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update role')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_update_role'))
   }
 }
 
@@ -161,9 +163,9 @@ async function handleRemoveMember(): Promise<void> {
   try {
     await removeMember(selected.value.id, removeTarget.value.user_id)
     members.value = members.value.filter((m) => m.id !== removeTarget.value!.id)
-    showSuccess('Member removed.')
+    showSuccess(t('web.file-hosting.member_removed'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to remove member')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_remove_member'))
   } finally {
     removeTarget.value = null
   }
@@ -173,10 +175,10 @@ async function handleArchive(): Promise<void> {
   if (!selected.value) return
   try {
     const ws = await archiveWorkspace(selected.value.id)
-    showSuccess(`Workspace "${ws.name}" archived.`)
+    showSuccess(t('web.file-hosting.workspace_archived', { name: ws.name }))
     await loadWorkspaces()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to archive workspace')
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_archive_workspace'))
   }
 }
 
@@ -191,26 +193,26 @@ function roleBadgeClass(role: string): string {
 <template>
   <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading…</span>
+      <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
   </div>
 
   <div v-else class="row g-3">
     <!-- Workspace list -->
     <div class="col-lg-4">
-      <Card title="Workspaces">
+      <Card :title="t('web.file-hosting.workspaces_title')">
         <template #actions>
           <button
             v-if="canManage"
             class="btn btn-primary btn-sm"
             @click="showCreate = true"
           >
-            <i class="bi bi-plus-lg me-1"></i> New
+            <i class="bi bi-plus-lg me-1"></i> {{ t('actions.new') }}
           </button>
         </template>
 
         <div v-if="!workspaces.length" class="text-muted text-center py-3">
-          No workspaces yet.
+          {{ t('web.file-hosting.workspaces_empty') }}
         </div>
         <div v-else class="list-group list-group-flush">
           <button
@@ -230,19 +232,19 @@ function roleBadgeClass(role: string): string {
             <div class="small d-flex gap-2 mt-1">
               <span class="badge text-bg-light">{{ ws.kind }}</span>
               <span class="badge" :class="roleBadgeClass(ws.my_role ?? '')">{{ ws.my_role ?? '—' }}</span>
-              <span v-if="ws.is_owner" class="badge text-bg-warning">Owner</span>
+              <span v-if="ws.is_owner" class="badge text-bg-warning">{{ t('web.file-hosting.owner') }}</span>
             </div>
           </button>
         </div>
       </Card>
 
-      <Card title="Accept Invitation" class="mt-3">
+      <Card :title="t('web.file-hosting.accept_invitation')" class="mt-3">
         <div class="input-group">
           <input
             v-model="inviteToken"
             type="text"
             class="form-control"
-            placeholder="Invite token"
+            :placeholder="t('web.file-hosting.invite_token_placeholder')"
             maxlength="64"
           />
           <button
@@ -297,7 +299,7 @@ function roleBadgeClass(role: string): string {
         </Card>
 
         <!-- Members -->
-        <Card title="Members" class="mt-3">
+        <Card :title="t('web.file-hosting.members_title')" class="mt-3">
           <div v-if="detailLoading" class="text-center py-3">
             <div class="spinner-border spinner-border-sm text-primary"></div>
           </div>
@@ -375,20 +377,20 @@ function roleBadgeClass(role: string): string {
         </Card>
 
         <!-- Activity feed -->
-        <Card title="Recent Activity" class="mt-3">
+        <Card :title="t('web.file-hosting.recent_activity')" class="mt-3">
           <div v-if="detailLoading" class="text-center py-3">
             <div class="spinner-border spinner-border-sm text-primary"></div>
           </div>
           <div v-else-if="!activity.length" class="text-muted text-center py-3">
-            No activity recorded.
+            {{ t('web.file-hosting.no_activity_recorded') }}
           </div>
           <ul v-else class="list-unstyled mb-0">
             <li v-for="a in activity" :key="a.id" class="d-flex gap-2 mb-2">
               <i class="bi bi-circle-fill text-primary small mt-1"></i>
               <div>
                 <div>
-                  <strong>{{ a.causer?.name ?? 'System' }}</strong>
-                  <span class="text-muted"> — {{ a.event ?? a.description ?? 'activity' }}</span>
+                  <strong>{{ a.causer?.name ?? t('web.file-hosting.system') }}</strong>
+                  <span class="text-muted"> — {{ a.event ?? a.description ?? t('web.file-hosting.activity') }}</span>
                 </div>
                 <div v-if="a.description" class="small text-muted">{{ a.description }}</div>
                 <div class="small text-muted">{{ a.created_at ?? '—' }}</div>
@@ -401,20 +403,20 @@ function roleBadgeClass(role: string): string {
   </div>
 
   <!-- Create workspace modal -->
-  <Modal v-model="showCreate" title="Create Workspace">
+  <Modal v-model="showCreate" :title="t('web.file-hosting.create_workspace_title')">
     <div class="mb-3">
-      <label class="form-label">Workspace name</label>
+      <label class="form-label">{{ t('web.file-hosting.workspace_name_label') }}</label>
       <input
         v-model="createName"
         type="text"
         class="form-control"
         maxlength="255"
-        placeholder="My Team Workspace"
+        :placeholder="t('web.file-hosting.workspace_name_placeholder')"
         @keyup.enter="handleCreate"
       />
     </div>
     <template #footer>
-      <button type="button" class="btn btn-outline-secondary" @click="showCreate = false">Cancel</button>
+      <button type="button" class="btn btn-outline-secondary" @click="showCreate = false">{{ t('web.file-hosting.cancel') }}</button>
       <button
         type="button"
         class="btn btn-primary"
@@ -422,7 +424,7 @@ function roleBadgeClass(role: string): string {
         @click="handleCreate"
       >
         <span v-if="creating" class="spinner-border spinner-border-sm me-1"></span>
-        Create
+        {{ t('web.file-hosting.create') }}
       </button>
     </template>
   </Modal>
@@ -430,9 +432,9 @@ function roleBadgeClass(role: string): string {
   <!-- Archive confirm -->
   <ConfirmModal
     v-model="showArchive"
-    title="Archive Workspace"
-    :message="`Archive &quot;${selected?.name ?? ''}&quot;? Members will lose access. This cannot be undone.`"
-    confirm-label="Archive"
+    :title="t('web.file-hosting.archive_workspace_title')"
+    :message="t('web.file-hosting.archive_workspace_message', { name: selected?.name ?? '' })"
+    :confirm-label="t('web.file-hosting.archive_button')"
     confirm-variant="danger"
     @confirm="handleArchive"
   />
@@ -440,9 +442,9 @@ function roleBadgeClass(role: string): string {
   <!-- Remove member confirm -->
   <ConfirmModal
     v-model="showRemoveMember"
-    title="Remove Member"
-    :message="`Remove ${removeTarget?.user?.name ?? removeTarget?.user_id} from this workspace?`"
-    confirm-label="Remove"
+    :title="t('web.file-hosting.remove_member_title')"
+    :message="t('web.file-hosting.remove_member_message', { name: removeTarget?.user?.name ?? removeTarget?.user_id })"
+    :confirm-label="t('web.file-hosting.remove_button')"
     confirm-variant="danger"
     @confirm="handleRemoveMember"
   />

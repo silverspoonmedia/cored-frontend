@@ -40,7 +40,8 @@ function onCancel(): void {
     :title="title"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <p class="mb-0">{{ message }}</p>
+    <p v-if="message" class="mb-0">{{ message }}</p>
+    <slot v-else />
 
     <template #footer>
       <button

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import { useProductActivations } from '@/composables/useProductActivations'
@@ -10,6 +11,7 @@ import type { ProductActivationShowPayload, ProductActivation } from '@/api/type
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchProductShow, approve, reject, suspend, reactivate } = useProductActivations()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
@@ -23,11 +25,11 @@ const stateFilter = ref('')
 const actionLoading = ref<string | null>(null)
 
 const stateOptions = [
-  { value: '', label: 'All States' },
-  { value: 'active', label: 'Active' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'suspended', label: 'Suspended' },
-  { value: 'expired', label: 'Expired' },
+  { value: '', label: t('product-activations.filter_all_states') },
+  { value: 'active', label: t('product-activations.state_active') },
+  { value: 'pending', label: t('product-activations.state_pending') },
+  { value: 'suspended', label: t('product-activations.state_suspended') },
+  { value: 'expired', label: t('product-activations.state_expired') },
 ]
 
 async function load(): Promise<void> {
@@ -39,7 +41,7 @@ async function load(): Promise<void> {
       undefined,
     )
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load product activations')
+    showError(e instanceof Error ? e.message : t('web.product-activations.failed_load'))
   } finally {
     loading.value = false
   }
@@ -62,39 +64,39 @@ async function handleApprove(act: ProductActivation): Promise<void> {
   actionLoading.value = act.id
   try {
     await approve(act.id)
-    showSuccess('Activation approved.')
+    showSuccess(t('product-activations.approved'))
     await load()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to approve')
+    showError(e instanceof Error ? e.message : t('product-activations.cannot_approve', { state: act.state }))
   } finally {
     actionLoading.value = null
   }
 }
 
 async function handleReject(act: ProductActivation): Promise<void> {
-  const reason = prompt('Rejection reason:')
+  const reason = prompt(t('product-activations.reject_reason_prompt'))
   if (!reason) return
   actionLoading.value = act.id
   try {
     await reject(act.id, reason)
-    showSuccess('Activation rejected.')
+    showSuccess(t('product-activations.rejected'))
     await load()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to reject')
+    showError(e instanceof Error ? e.message : t('product-activations.cannot_reject', { state: act.state }))
   } finally {
     actionLoading.value = null
   }
 }
 
 async function handleSuspend(act: ProductActivation): Promise<void> {
-  const reason = prompt('Suspension reason (optional):')
+  const reason = prompt(t('product-activations.suspend_reason_prompt'))
   actionLoading.value = act.id
   try {
     await suspend(act.id, reason ?? undefined)
-    showSuccess('Activation suspended.')
+    showSuccess(t('product-activations.suspended'))
     await load()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to suspend')
+    showError(e instanceof Error ? e.message : t('product-activations.cannot_suspend', { state: act.state }))
   } finally {
     actionLoading.value = null
   }
@@ -104,10 +106,10 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
   actionLoading.value = act.id
   try {
     await reactivate(act.id)
-    showSuccess('Activation reactivated.')
+    showSuccess(t('product-activations.reactivated'))
     await load()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to reactivate')
+    showError(e instanceof Error ? e.message : t('product-activations.cannot_reactivate', { state: act.state }))
   } finally {
     actionLoading.value = null
   }
@@ -115,28 +117,28 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
 </script>
 
 <template>
-  <Card :title="`Product: ${productKey}`">
+  <Card :title="t('product-activations.product_title', { product: productKey })">
     <template #actions>
       <button
         class="btn btn-outline-secondary btn-sm"
         @click="router.push({ name: 'product-activations.index.view' })"
       >
-        <i class="bi bi-arrow-left me-1"></i> Back
+        <i class="bi bi-arrow-left me-1"></i> {{ t('product-activations.back_to_products') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="data">
       <dl class="row mb-3">
-        <dt class="col-sm-3">Product</dt>
+        <dt class="col-sm-3">{{ t('product-activations.col_product') }}</dt>
         <dd class="col-sm-9"><code>{{ productKey }}</code></dd>
 
-        <dt class="col-sm-3">Type</dt>
+        <dt class="col-sm-3">{{ t('product-activations.col_type') }}</dt>
         <dd class="col-sm-9">
           <span
             v-if="data.summary.activation_type"
@@ -148,7 +150,7 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
           <span v-else class="text-muted">—</span>
         </dd>
 
-        <dt v-if="data.summary.fulfillment_target" class="col-sm-3">Fulfillment</dt>
+        <dt v-if="data.summary.fulfillment_target" class="col-sm-3">{{ t('product-activations.fulfillment_target') }}</dt>
         <dd v-if="data.summary.fulfillment_target" class="col-sm-9">
           <code>{{ data.summary.fulfillment_target }}</code>
         </dd>
@@ -158,25 +160,25 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
         <div class="col-6 col-md-3">
           <div class="border rounded p-3 text-center">
             <div class="fs-4 fw-bold text-success">{{ data.summary.counts.active }}</div>
-            <div class="small text-muted">Active</div>
+            <div class="small text-muted">{{ t('product-activations.state_active') }}</div>
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="border rounded p-3 text-center">
             <div class="fs-4 fw-bold text-warning">{{ data.summary.counts.pending }}</div>
-            <div class="small text-muted">Pending</div>
+            <div class="small text-muted">{{ t('product-activations.state_pending') }}</div>
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="border rounded p-3 text-center">
             <div class="fs-4 fw-bold text-secondary">{{ data.summary.counts.suspended }}</div>
-            <div class="small text-muted">Suspended</div>
+            <div class="small text-muted">{{ t('product-activations.state_suspended') }}</div>
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="border rounded p-3 text-center">
             <div class="fs-4 fw-bold text-danger">{{ data.summary.counts.expired }}</div>
-            <div class="small text-muted">Expired</div>
+            <div class="small text-muted">{{ t('product-activations.state_expired') }}</div>
           </div>
         </div>
       </div>
@@ -184,7 +186,7 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
       <div class="mb-3" style="max-width: 300px;">
         <FormSelect
           name="state-filter"
-          label="Filter by State"
+          :label="t('product-activations.filter_by_state')"
           v-model="stateFilter"
           :options="stateOptions"
         />
@@ -192,19 +194,19 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
 
       <div v-if="data.activations.length === 0" class="text-muted text-center py-4">
         <i class="bi bi-people fs-1 d-block mb-2"></i>
-        No activations found.
+        {{ t('product-activations.no_activations') }}
       </div>
 
       <div v-else class="table-responsive">
         <table class="table table-hover align-middle">
           <thead>
             <tr>
-              <th>User</th>
-              <th class="text-center">State</th>
-              <th>Source</th>
-              <th>Activated</th>
-              <th>Updated</th>
-              <th v-if="canManage" class="text-end">Actions</th>
+              <th>{{ t('product-activations.col_user') }}</th>
+              <th class="text-center">{{ t('product-activations.col_state') }}</th>
+              <th>{{ t('product-activations.col_source') }}</th>
+              <th>{{ t('product-activations.col_activated_at') }}</th>
+              <th>{{ t('product-activations.col_updated_at') }}</th>
+              <th v-if="canManage" class="text-end">{{ t('product-activations.col_actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -224,7 +226,7 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
               <td class="small">{{ act.updated_at_human ?? act.updated_at_formatted ?? act.updated_at ?? '—' }}</td>
               <td v-if="canManage" class="text-end">
                 <div v-if="actionLoading === act.id" class="spinner-border spinner-border-sm" role="status">
-                  <span class="visually-hidden">Loading…</span>
+                  <span class="visually-hidden">{{ t('ui.loading') }}</span>
                 </div>
                 <template v-else>
                   <button

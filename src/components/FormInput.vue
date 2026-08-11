@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import FormField from './FormField.vue'
+
+const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   name: string
@@ -16,6 +19,7 @@ const props = withDefaults(defineProps<{
   toggleable?: boolean | null
   disabled?: boolean
   readonly?: boolean
+  maxlength?: number
 }>(), {
   type: 'text',
   modelValue: '',
@@ -90,6 +94,7 @@ function togglePassword(): void {
         :required="required"
         :disabled="disabled"
         :readonly="readonly"
+        :maxlength="maxlength"
         :class="inputClasses"
         @input="onInput"
         @blur="emit('blur', $event)"
@@ -99,7 +104,7 @@ function togglePassword(): void {
         type="button"
         class="input-group-text"
         @click="togglePassword"
-        :aria-label="showPassword ? 'Hide password' : 'Show password'"
+        :aria-label="showPassword ? t('ui.password.hide') : t('ui.password.show')"
         :aria-pressed="showPassword ? 'true' : 'false'"
       >
         <i :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'" aria-hidden="true"></i>
@@ -120,6 +125,7 @@ function togglePassword(): void {
       :required="required"
       :disabled="disabled"
       :readonly="readonly"
+      :maxlength="maxlength"
       :class="inputClasses"
       @input="onInput"
       @blur="emit('blur', $event)"

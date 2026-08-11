@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+
+const { t } = useI18n()
 
 const monolithWebUrl = import.meta.env.VITE_MONOLITH_WEB_URL ?? ''
 
@@ -16,8 +19,8 @@ function openConnectionsPage(): void {
 </script>
 
 <template>
-  <Card title="Connections">
-    <h5 class="h6 mb-2">Discord</h5>
+  <Card :title="t('web.identity-connections.card_title')">
+    <h5 class="h6 mb-2">{{ t('web.identity-connections.discord_heading') }}</h5>
 
     <p class="text-muted small mb-3">
       Discord connection management is handled through the main Monolith web application.

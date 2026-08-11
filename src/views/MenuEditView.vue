@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormCheckbox from '@/components/FormCheckbox.vue'
@@ -15,6 +16,7 @@ import type { SelectOption } from '@/components/FormSelect2.vue'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchOne, createMenu, updateMenu } = useMenus()
 const { fetchMenus, fetchRoles, fetchUsers } = useLookups()
 const { success: showSuccess, error: showError } = useAlert()
@@ -29,7 +31,7 @@ const errors = ref<Record<string, string[]>>({})
 const menuName = ref('')
 
 const cardTitle = computed(() =>
-  isEdit.value ? `Edit menu: ${menuName.value}` : 'New menu details',
+  isEdit.value ? t('web.menus.edit_card_title', { name: menuName.value }) : t('web.menus.new_card_title'),
 )
 
 const form = reactive({
@@ -49,28 +51,28 @@ const form = reactive({
   reference_id: '',
 })
 
-const typeOptions: Record<string, string> = {
-  h: 'Header (h)',
-  p: 'Parent (p)',
-  c: 'Child (c)',
-}
+const typeOptions = computed<Record<string, string>>(() => ({
+  h: t('web.menus.form.types.h'),
+  p: t('web.menus.form.types.p'),
+  c: t('web.menus.form.types.c'),
+}))
 
-const layoutOptions: Record<string, string> = {
-  sidebar: 'Sidebar',
-  navbar: 'Navbar',
-}
+const layoutOptions = computed<Record<string, string>>(() => ({
+  sidebar: t('web.menus.form.layouts.sidebar'),
+  navbar: t('web.menus.form.layouts.navbar'),
+}))
 
 const positionOptions = computed<Record<string, string>>(() => {
   if (isEdit.value) {
     return {
-      before: 'Before reference',
-      after: 'After reference',
+      before: t('web.menus.form.position.before'),
+      after: t('web.menus.form.position.after'),
     } as Record<string, string>
   }
   return {
-    append: 'Append to group',
-    before: 'Before reference',
-    after: 'After reference',
+    append: t('web.menus.form.position.append'),
+    before: t('web.menus.form.position.before'),
+    after: t('web.menus.form.position.after'),
   } as Record<string, string>
 })
 
@@ -123,7 +125,7 @@ async function load(): Promise<void> {
       selectedUserExcludes.value = excludes.map((r) => ({ value: r.id, label: r.text }))
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load menu')
+    showError(e instanceof Error ? e.message : t('web.menus.load_failed'))
   } finally {
     loading.value = false
   }
@@ -160,10 +162,10 @@ async function handleSubmit(): Promise<void> {
   try {
     if (isEdit.value && menuId.value) {
       await updateMenu(menuId.value, payload)
-      showSuccess('Menu updated successfully.')
+      showSuccess(t('api.navigation.updated'))
     } else {
       await createMenu(payload)
-      showSuccess('Menu created successfully.')
+      showSuccess(t('api.navigation.created'))
     }
     router.push({ name: 'menus.index.view', query: { layout: form.layout } })
   } catch (e) {
@@ -175,7 +177,7 @@ async function handleSubmit(): Promise<void> {
     } else if (e instanceof ApiError) {
       showError(e.message)
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to save menu')
+      showError(e instanceof Error ? e.message : t('web.menus.save_failed'))
     }
   } finally {
     saving.value = false
@@ -193,13 +195,13 @@ onMounted(load)
   <Card :title="cardTitle">
     <template #actions>
       <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'menus.index.view', query: { layout: layout } })">
-        <i class="bi bi-arrow-left me-1"></i> Back to List
+        <i class="bi bi-arrow-left me-1"></i> {{ t('web.menus.back_to_list') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
@@ -208,10 +210,10 @@ onMounted(load)
         <div class="col-md-6">
           <FormTranslatableInput
             name="name"
-            label="Name"
+            :label="t('web.menus.form.name_label')"
             v-model="form.name"
             :error="fieldError('name')"
-            :hint="'Provide a label for each supported locale. Navigation uses the viewer\'s active locale.'"
+            :hint="t('web.menus.form.name_hint')"
             required
             :disabled="saving"
           />
@@ -219,12 +221,12 @@ onMounted(load)
         <div class="col-md-6">
           <FormSelect2
             name="type"
-            label="Type"
+            :label="t('web.menus.columns.type')"
             v-model="form.type"
             :options="typeOptions"
             :error="fieldError('type')"
-            placeholder="Select type"
-            :hint="'h must be root, p under h, c under p.'"
+            :placeholder="t('web.menus.form.type_placeholder')"
+            :hint="t('web.menus.form.type_hint')"
             required
             :disabled="saving"
           />
@@ -234,64 +236,64 @@ onMounted(load)
       <FormSelect2
         v-if="!isEdit"
         name="layout"
-        label="Layout"
+        :label="t('web.menus.columns.layout')"
         v-model="form.layout"
         :options="layoutOptions"
         :error="fieldError('layout')"
-        :hint="'Which shell region renders this menu tree (sidebar or navbar). Cannot be changed after create.'"
+        :hint="t('web.menus.form.layout_hint')"
         required
         :disabled="saving"
       />
       <FormInput
         v-else
         name="layout"
-        label="Layout"
+        :label="t('web.menus.columns.layout')"
         :model-value="form.layout"
         readonly
-        :hint="'Layout is fixed after create. Add a new menu to target another region.'"
+        :hint="t('web.menus.form.layout_readonly_hint')"
       />
 
       <FormTranslatableInput
         name="description"
-        label="Description"
+        :label="t('web.menus.form.description_label')"
         v-model="form.description"
         :error="fieldError('description')"
-        :hint="'Optional helper text per locale.'"
+        :hint="t('web.menus.form.description_hint')"
         :disabled="saving"
       />
 
       <FormSelect2
         name="parent"
-        label="Parent"
+        :label="t('web.menus.form.parent_label')"
         v-model="form.parent"
         :ajax-url="'lookups/menus'"
         :ajax-params="menuAjaxParams"
         :selected-options="selectedParent"
         :error="fieldError('parent')"
-        placeholder="None (root)"
+        :placeholder="t('web.menus.form.parent_placeholder')"
         :disabled="saving || form.type === 'h'"
-        :hint="form.type === 'h' ? 'Headers cannot have a parent.' : ''"
+        :hint="form.type === 'h' ? t('web.menus.form.headers_no_parent') : ''"
       />
 
       <div class="row">
         <div class="col-md-6">
           <FormInput
             name="route"
-            label="Route Name"
+            :label="t('web.menus.form.route_label')"
             v-model="form.route"
             :error="fieldError('route')"
             :disabled="saving"
-            hint="Registered Laravel route name (e.g. dashboard), not a URL."
+            :hint="t('web.menus.form.route_hint')"
           />
         </div>
         <div class="col-md-6">
           <FormInput
             name="icon"
-            label="Icon"
+            :label="t('web.menus.form.icon_label')"
             v-model="form.icon"
             :error="fieldError('icon')"
             :disabled="saving"
-            hint="Full icon class, e.g. bi bi-house."
+            :hint="t('web.menus.form.icon_hint')"
           />
         </div>
       </div>
@@ -300,7 +302,7 @@ onMounted(load)
         <div class="col-md-6">
           <FormCheckbox
             name="authenticate"
-            label="Authenticated users only"
+            :label="t('web.menus.form.authenticate')"
             v-model="form.authenticate"
             :error="fieldError('authenticate')"
             :disabled="saving"
@@ -309,7 +311,7 @@ onMounted(load)
         <div class="col-md-6">
           <FormCheckbox
             name="guest_only"
-            label="Guests only"
+            :label="t('web.menus.form.guest_only')"
             v-model="form.guest_only"
             :error="fieldError('guest_only')"
             :disabled="saving"
@@ -319,13 +321,13 @@ onMounted(load)
 
       <FormSelect2
         name="roles"
-        label="Roles allowed to view"
+        :label="t('web.menus.form.roles_label')"
         v-model="form.roles"
         :multiple="true"
         :ajax-url="'lookups/roles'"
         :selected-options="selectedRoles"
         :error="fieldError('roles')"
-        :hint="'Leave empty for everyone who passes other rules. Incompatible with guest only.'"
+        :hint="t('web.menus.form.roles_hint')"
         :disabled="saving"
       />
 
@@ -333,7 +335,7 @@ onMounted(load)
         <div class="col-md-6">
           <FormSelect2
             name="user_includes"
-            label="Included users (allowlist)"
+            :label="t('web.menus.form.user_includes')"
             v-model="form.user_includes"
             :multiple="true"
             :ajax-url="'lookups/users'"
@@ -345,7 +347,7 @@ onMounted(load)
         <div class="col-md-6">
           <FormSelect2
             name="user_excludes"
-            label="Excluded users (blacklist)"
+            :label="t('web.menus.form.user_excludes')"
             v-model="form.user_excludes"
             :multiple="true"
             :ajax-url="'lookups/users'"
@@ -357,40 +359,40 @@ onMounted(load)
       </div>
 
       <hr />
-      <p class="text-muted small mb-2">Placement (optional)</p>
+      <p class="text-muted small mb-2">{{ t('web.menus.form.placement_heading') }}</p>
 
       <div class="row">
         <div class="col-md-6">
           <FormSelect2
             name="position"
-            label="Position"
+            :label="t('web.menus.form.position_label')"
             v-model="form.position"
             :options="positionOptions"
             :error="fieldError('position')"
-            :placeholder="isEdit ? 'Do not change order' : 'Default (end of group)'"
+            :placeholder="isEdit ? t('web.menus.form.position_no_change') : t('web.menus.form.position_default')"
             :disabled="saving"
           />
         </div>
         <div class="col-md-6">
           <FormSelect2
             name="reference_id"
-            label="Reference menu"
+            :label="t('web.menus.form.reference_label')"
             v-model="form.reference_id"
             :ajax-url="'lookups/menus'"
             :ajax-params="menuAjaxParams"
             :selected-options="selectedReference"
             :error="fieldError('reference_id')"
-            placeholder="Select reference menu"
-            :hint="isEdit ? 'Required when position is set. Clear both to keep order unchanged.' : 'Required when position is before or after.'"
+            :placeholder="t('web.menus.form.reference_placeholder')"
+            :hint="isEdit ? t('web.menus.form.reference_hint_edit') : t('web.menus.form.reference_hint_create')"
             :disabled="saving"
           />
         </div>
       </div>
 
       <div class="d-flex gap-2 mt-3">
-        <SubmitButton :label="isEdit ? 'Update' : 'Save'" :loading="saving" variant="primary" />
+        <SubmitButton :label="isEdit ? t('actions.update') : t('actions.save')" :loading="saving" variant="primary" />
         <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'menus.index.view', query: { layout: form.layout } })">
-          Cancel
+          {{ t('actions.cancel') }}
         </button>
       </div>
     </form>

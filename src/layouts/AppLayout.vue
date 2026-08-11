@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppNavbar from '@/components/AppNavbar.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import AppAlert from '@/components/AppAlert.vue'
@@ -13,6 +14,7 @@ defineProps<{
 }>()
 
 const route = useRoute()
+const { t } = useI18n()
 const { init: initSidebar, closeMobile } = useSidebar()
 const { openActiveAncestors } = useTreeview()
 const { tree, load } = useNavigation()
@@ -53,7 +55,7 @@ watch(tree, () => syncActiveAncestors(route.name as string | null))
             <div class="col-sm-6">
               <nav aria-label="breadcrumb">
                 <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"><router-link :to="{ name: 'dashboard.view' }" class="text-decoration-none">Home</router-link></li>
+                  <li class="breadcrumb-item"><router-link :to="{ name: 'dashboard.view' }" class="text-decoration-none">{{ t('ui.home') }}</router-link></li>
                   <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
                 </ol>
               </nav>
@@ -72,7 +74,7 @@ watch(tree, () => syncActiveAncestors(route.name as string | null))
 
     <footer class="app-footer">
       <div class="float-end d-none d-sm-inline">Monolith</div>
-      <strong>Copyright &copy; {{ new Date().getFullYear() }}</strong> All rights reserved.
+      <strong>{{ t('ui.copyright', { year: new Date().getFullYear() }) }}</strong> {{ t('ui.all_rights_reserved') }}
     </footer>
   </div>
 </template>

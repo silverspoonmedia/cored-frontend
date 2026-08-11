@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import { useNotificationAudiences } from '@/composables/useNotificationAudiences'
@@ -7,6 +8,7 @@ import { useAuth } from '@/stores/auth'
 
 const { items, loading, load } = useNotificationAudiences()
 const { hasPermission } = useAuth()
+const { t } = useI18n()
 
 const canManage = computed(() => hasPermission('manage settings'))
 
@@ -16,7 +18,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card title="Notification audiences">
+  <Card :title="t('web.notification-audiences.index_title')">
     <template #actions>
       <button
         type="button"
@@ -29,28 +31,28 @@ onMounted(() => {
     </template>
 
     <p class="text-muted small mb-3">
-      Who receives each activity notification type.
+      {{ t('web.notification-audiences.index_subtitle') }}
     </p>
 
     <div v-if="loading && !items.length" class="text-center py-4">
       <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-      Loading…
+      {{ t('web.notification-audiences.loading') }}
     </div>
 
     <EmptyState
       v-else-if="!items.length"
       icon="bi-bell-slash"
-      title="No notification types configured"
+      :title="t('web.notification-audiences.empty_title')"
     />
 
     <div v-else class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Type</th>
-            <th>Roles</th>
-            <th>Include subject user</th>
-            <th v-if="canManage" class="text-end">Actions</th>
+            <th>{{ t('web.notification-audiences.type_col') }}</th>
+            <th>{{ t('web.notification-audiences.roles_col') }}</th>
+            <th>{{ t('web.notification-audiences.include_subject_col') }}</th>
+            <th v-if="canManage" class="text-end">{{ t('actions.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -68,13 +70,13 @@ onMounted(() => {
               </template>
               <span v-else class="text-muted">—</span>
             </td>
-            <td>{{ item.notify_subject_user ? 'Yes' : 'No' }}</td>
+            <td>{{ item.notify_subject_user ? t('web.currencies.yes') : t('web.currencies.no') }}</td>
             <td v-if="canManage" class="text-end">
               <router-link
                 :to="{ name: 'notification-audiences.edit.view', params: { type: item.type } }"
                 class="btn btn-sm btn-outline-primary"
               >
-                <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+                <i class="bi bi-pencil" aria-hidden="true"></i> {{ t('actions.edit') }}
               </router-link>
             </td>
           </tr>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useProductActivations } from '@/composables/useProductActivations'
 import { useAlert } from '@/composables/useAlert'
@@ -9,6 +10,7 @@ import type { ProductActivationSummary } from '@/api/types'
 const router = useRouter()
 const { fetchProducts } = useProductActivations()
 const { error: showError } = useAlert()
+const { t } = useI18n()
 
 const products = ref<ProductActivationSummary[]>([])
 const loading = ref(true)
@@ -18,7 +20,7 @@ onMounted(async () => {
   try {
     products.value = await fetchProducts()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load products')
+    showError(e instanceof Error ? e.message : t('web.product-activations.failed_load'))
   } finally {
     loading.value = false
   }
@@ -46,16 +48,16 @@ function isScalar(val: unknown): boolean {
 </script>
 
 <template>
-  <Card title="Product Activations">
+  <Card :title="t('web.product-activations.title')">
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="products.length === 0" class="text-muted text-center py-4">
       <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
-      No products found.
+      {{ t('web.product-activations.no_products') }}
     </div>
 
     <div v-else class="row g-3">
@@ -74,15 +76,15 @@ function isScalar(val: unknown): boolean {
             </div>
 
             <div v-if="p.fulfillment_target" class="mb-2">
-              <span class="text-muted small">Fulfillment:</span>
+              <span class="text-muted small">{{ t('web.product-activations.fulfillment_label') }}</span>
               <code class="small">{{ p.fulfillment_target }}</code>
             </div>
 
             <div class="d-flex gap-2 mb-3">
-              <span class="badge text-bg-success">Active: {{ p.counts.active }}</span>
-              <span class="badge text-bg-warning">Pending: {{ p.counts.pending }}</span>
-              <span class="badge text-bg-secondary">Suspended: {{ p.counts.suspended }}</span>
-              <span class="badge text-bg-danger">Expired: {{ p.counts.expired }}</span>
+              <span class="badge text-bg-success">{{ t('web.product-activations.active_label') }} {{ p.counts.active }}</span>
+              <span class="badge text-bg-warning">{{ t('web.product-activations.pending_label') }} {{ p.counts.pending }}</span>
+              <span class="badge text-bg-secondary">{{ t('web.product-activations.suspended_label') }} {{ p.counts.suspended }}</span>
+              <span class="badge text-bg-danger">{{ t('web.product-activations.expired_label') }} {{ p.counts.expired }}</span>
             </div>
 
             <ul v-if="p.product_metrics && Object.keys(p.product_metrics).length > 0" class="list-unstyled small text-muted mb-3">
@@ -100,7 +102,7 @@ function isScalar(val: unknown): boolean {
               class="btn btn-outline-primary btn-sm"
               @click="router.push({ name: 'product-activations.show.view', params: { productKey: p.product_key } })"
             >
-              <i class="bi bi-graph-up me-1"></i> View
+              <i class="bi bi-graph-up me-1"></i> {{ t('web.product-activations.view_button') }}
             </button>
           </div>
         </div>

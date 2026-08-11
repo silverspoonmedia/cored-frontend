@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useInvoices } from '@/composables/useInvoices'
 import type { Invoice } from '@/api/types'
 
 const router = useRouter()
+const { t } = useI18n()
 const { items, loading, fetchList } = useInvoices()
 
 const columns: DataTableColumn[] = [
@@ -38,14 +40,14 @@ function statusClass(status: string): string {
 </script>
 
 <template>
-  <Card title="Invoices">
+  <Card :title="t('web.payments.invoices.title')">
     <DataTable
       :columns="columns"
       :rows="items"
       :loading="loading"
-      search-placeholder="Search invoices…"
+      :search-placeholder="t('web.payments.invoices.search_placeholder')"
       empty-icon="bi-receipt"
-      empty-title="No invoices found"
+      :empty-title="t('web.payments.invoices.empty_title')"
       @row-click="viewInvoice"
     >
       <template #cell-invoice_number="{ row }: { row: Invoice }">

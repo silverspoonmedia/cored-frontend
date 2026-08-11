@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
+const { t } = useI18n()
 
 function applyBodyClass(): void {
   const body = document.body
@@ -22,7 +24,7 @@ watch(() => route.path, applyBodyClass)
 
 <template>
   <a href="#main-content" class="visually-hidden-focusable skip-link p-2">
-    Skip to content
+    {{ t('ui.skip_to_content') }}
   </a>
   <router-view />
 </template>

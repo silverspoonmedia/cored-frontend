@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
@@ -11,6 +12,7 @@ import { ApiError } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const { fetchCredential, createCredential, updateCredential } = useVtual()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -33,11 +35,11 @@ const form = reactive({
   expires_at: '',
 })
 
-const typeOptions = [
-  { value: 'api_key', label: 'API Key' },
-  { value: 'oauth_app', label: 'OAuth App' },
-  { value: 'bearer', label: 'Bearer Token' },
-]
+const typeOptions = computed(() => [
+  { value: 'api_key', label: t('web.vtual-platform-credentials.type_api_key') },
+  { value: 'oauth_app', label: t('web.vtual-platform-credentials.type_oauth_app') },
+  { value: 'bearer', label: t('web.vtual-platform-credentials.type_bearer') },
+])
 
 function fieldError(field: string): string | null {
   const list = errors.value[field]
@@ -72,7 +74,7 @@ async function load(): Promise<void> {
     form.type = cred.type
     form.priority = String(cred.priority ?? 100)
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load credential')
+    showError(e instanceof Error ? e.message : t('web.vtual-platform-credentials.load_failed'))
   } finally {
     loading.value = false
   }
@@ -101,10 +103,10 @@ async function handleSubmit(): Promise<void> {
         delete (updatePayload as Record<string, unknown>).secret
       }
       await updateCredential(credentialId.value!, updatePayload)
-      showSuccess('Credential updated.')
+      showSuccess(t('web.vtual.ajax.credential_saved'))
     } else {
       await createCredential(platformId.value!, payload)
-      showSuccess('Credential created.')
+      showSuccess(t('web.vtual.ajax.credential_saved'))
     }
     router.push({
       name: 'vtual.platform-credentials.platform.view',
@@ -117,7 +119,7 @@ async function handleSubmit(): Promise<void> {
     } else if (e instanceof ApiError) {
       showError(e.message)
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to save')
+      showError(e instanceof Error ? e.message : t('web.vtual-platform-credentials.save_failed'))
     }
   } finally {
     saving.value = false
@@ -128,26 +130,26 @@ onMounted(load)
 </script>
 
 <template>
-  <Card :title="isEdit ? 'Edit Credential' : 'Create Credential'">
+  <Card :title="isEdit ? t('web.vtual-platform-credentials.edit_title') : t('web.vtual-platform-credentials.create_title')">
     <template #actions>
       <button
         class="btn btn-outline-secondary btn-sm"
         @click="router.back()"
       >
-        <i class="bi bi-arrow-left me-1"></i> Back
+        <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <form v-else @submit.prevent="handleSubmit" style="max-width: 600px;">
       <FormInput
         name="label"
-        label="Label"
+        :label="t('web.vtual-platform-credentials.label_field')"
         v-model="form.label"
         :error="fieldError('label')"
         required
@@ -155,33 +157,33 @@ onMounted(load)
       />
       <FormSelect
         name="type"
-        label="Type"
+        :label="t('web.vtual-platform-credentials.type_field')"
         v-model="form.type"
         :error="fieldError('type')"
         :options="typeOptions"
         :disabled="isEdit || saving"
-        hint="Cannot be changed after creation"
+        :hint="t('web.vtual-platform-credentials.type_hint')"
       />
       <FormInput
         name="priority"
-        label="Priority"
+        :label="t('web.vtual-platform-credentials.priority_field')"
         type="number"
         v-model="form.priority"
         :error="fieldError('priority')"
         :disabled="saving"
       />
 
-      <h6 class="mt-3 mb-2">Secret</h6>
+      <h6 class="mt-3 mb-2">{{ t('web.vtual-platform-credentials.secret_heading') }}</h6>
 
       <template v-if="form.type === 'api_key'">
         <FormInput
           name="api_key"
-          label="API Key"
+          :label="t('web.vtual-platform-credentials.api_key_label')"
           type="password"
           v-model="form.api_key"
           :error="fieldError('secret.api_key')"
           :disabled="saving"
-          :placeholder="isEdit ? 'Leave blank to keep unchanged' : ''"
+          :placeholder="isEdit ? t('web.vtual-platform-credentials.keep_unchanged_placeholder') : ''"
           :toggleable="true"
         />
       </template>
@@ -189,20 +191,20 @@ onMounted(load)
       <template v-if="form.type === 'oauth_app'">
         <FormInput
           name="client_id"
-          label="Client ID"
+          :label="t('web.vtual-platform-credentials.client_id_label')"
           v-model="form.client_id"
           :error="fieldError('secret.client_id')"
           :disabled="saving"
-          :placeholder="isEdit ? 'Leave blank to keep unchanged' : ''"
+          :placeholder="isEdit ? t('web.vtual-platform-credentials.keep_unchanged_placeholder') : ''"
         />
         <FormInput
           name="client_secret"
-          label="Client Secret"
+          :label="t('web.vtual-platform-credentials.client_secret_label')"
           type="password"
           v-model="form.client_secret"
           :error="fieldError('secret.client_secret')"
           :disabled="saving"
-          :placeholder="isEdit ? 'Leave blank to keep unchanged' : ''"
+          :placeholder="isEdit ? t('web.vtual-platform-credentials.keep_unchanged_placeholder') : ''"
           :toggleable="true"
         />
       </template>
@@ -210,38 +212,38 @@ onMounted(load)
       <template v-if="form.type === 'bearer'">
         <FormInput
           name="access_token"
-          label="Access Token"
+          :label="t('web.vtual-platform-credentials.access_token_label')"
           type="password"
           v-model="form.access_token"
           :error="fieldError('secret.access_token')"
           :disabled="saving"
-          :placeholder="isEdit ? 'Leave blank to keep unchanged' : ''"
+          :placeholder="isEdit ? t('web.vtual-platform-credentials.keep_unchanged_placeholder') : ''"
           :toggleable="true"
         />
         <FormInput
           name="refresh_token"
-          label="Refresh Token"
+          :label="t('web.vtual-platform-credentials.refresh_token_label')"
           type="password"
           v-model="form.refresh_token"
           :error="fieldError('secret.refresh_token')"
           :disabled="saving"
-          :placeholder="isEdit ? 'Leave blank to keep unchanged' : ''"
+          :placeholder="isEdit ? t('web.vtual-platform-credentials.keep_unchanged_placeholder') : ''"
           :toggleable="true"
         />
         <FormInput
           name="expires_at"
-          label="Expires At"
+          :label="t('web.vtual-platform-credentials.expires_at_label')"
           v-model="form.expires_at"
           :error="fieldError('secret.expires_at')"
           :disabled="saving"
-          placeholder="e.g. 2025-12-31T23:59:59Z"
+          :placeholder="t('web.vtual-platform-credentials.expires_at_placeholder')"
         />
       </template>
 
       <div class="d-flex gap-2 mt-3">
-        <SubmitButton :label="isEdit ? 'Save Changes' : 'Create'" :loading="saving" variant="primary" />
+        <SubmitButton :label="isEdit ? t('web.vtual-platform-credentials.save_changes') : t('web.vtual-platform-credentials.create_submit')" :loading="saving" variant="primary" />
         <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.back()">
-          Cancel
+          {{ t('actions.cancel') }}
         </button>
       </div>
     </form>

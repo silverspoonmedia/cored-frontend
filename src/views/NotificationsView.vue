@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useNotifications } from '@/composables/useNotifications'
 import { useAlert } from '@/composables/useAlert'
 import type { AppNotification } from '@/api/types'
 
+const { t } = useI18n()
 const { items, loading, fetchList, markAllRead, markAsRead } = useNotifications()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -13,7 +15,7 @@ onMounted(() => fetchList())
 async function handleMarkAllRead(): Promise<void> {
   try {
     await markAllRead()
-    showSuccess('All notifications marked as read.')
+    showSuccess(t('web.navbar.all_notifications_marked_read'))
   } catch (e) {
     showError(e instanceof Error ? e.message : 'Failed to mark notifications as read')
   }
@@ -35,7 +37,7 @@ function timeLabel(n: AppNotification): string {
 </script>
 
 <template>
-  <Card title="Notifications">
+  <Card :title="t('web.notifications.title')">
     <template #actions>
       <button
         v-if="items.length > 0"
