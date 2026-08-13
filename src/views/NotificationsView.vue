@@ -17,7 +17,7 @@ async function handleMarkAllRead(): Promise<void> {
     await markAllRead()
     showSuccess(t('web.navbar.all_notifications_marked_read'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to mark notifications as read')
+    showError(e instanceof Error ? e.message : t('web.notifications.mark_all_failed'))
   }
 }
 
@@ -45,28 +45,28 @@ function timeLabel(n: AppNotification): string {
         :disabled="loading"
         @click="handleMarkAllRead"
       >
-        <i class="bi bi-check2-all me-1"></i> Mark All Read
+        <i class="bi bi-check2-all me-1"></i> {{ t('web.notifications.mark_all_read') }}
       </button>
     </template>
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="items.length === 0" class="text-center text-muted py-5" role="status">
       <i class="bi bi-bell-slash" style="font-size: 2.5rem; opacity: 0.4;" aria-hidden="true"></i>
-      <p class="fw-semibold mb-1 d-block mt-2">No notifications</p>
+      <p class="fw-semibold mb-1 d-block mt-2">{{ t('web.notifications.empty') }}</p>
     </div>
 
     <div v-else class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th>Message</th>
-            <th>Status</th>
-            <th class="text-end">Time</th>
+            <th>{{ t('web.notifications.columns.message') }}</th>
+            <th>{{ t('web.notifications.columns.status') }}</th>
+            <th class="text-end">{{ t('web.notifications.columns.time') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -82,8 +82,8 @@ function timeLabel(n: AppNotification): string {
               <span>{{ n.message }}</span>
             </td>
             <td>
-              <span v-if="n.is_read" class="badge text-bg-light border text-muted">Read</span>
-              <span v-else class="badge text-bg-primary">Unread</span>
+              <span v-if="n.is_read" class="badge text-bg-light border text-muted">{{ t('web.notifications.status.read') }}</span>
+              <span v-else class="badge text-bg-primary">{{ t('web.notifications.status.unread') }}</span>
             </td>
             <td class="text-end">
               <span class="text-muted small">{{ timeLabel(n) }}</span>

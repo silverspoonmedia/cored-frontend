@@ -9,7 +9,7 @@ import type {
   InferenceUsageEventListPayload,
 } from '@/api/types'
 
-export function useFileHostingUsage() {
+export function useMicrostockBilling() {
   const loading = ref(false)
   const error = ref<string | null>(null)
 

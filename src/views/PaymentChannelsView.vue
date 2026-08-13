@@ -33,7 +33,7 @@ onMounted(async () => {
   try {
     channels.value = await fetchList()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to load channels')
+    showError(e instanceof Error ? e.message : t('web.payments.channels.updated'))
   } finally {
     loading.value = false
   }
@@ -43,9 +43,9 @@ async function toggleChannel(ch: PaymentChannel): Promise<void> {
   try {
     await updateChannel(ch.code, { is_active: !ch.is_active })
     ch.is_active = !ch.is_active
-    showSuccess(`Channel ${ch.is_active ? 'activated' : 'deactivated'}.`)
+    showSuccess(t('web.payments.channels.updated'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update channel')
+    showError(e instanceof Error ? e.message : t('web.payments.channels.updated'))
   }
 }
 
@@ -55,9 +55,9 @@ async function toggleRoute(ch: PaymentChannel, routeId: string): Promise<void> {
   try {
     await updateRoute(routeId, { is_active: !route.is_active })
     route.is_active = !route.is_active
-    showSuccess(`Route ${route.is_active ? 'activated' : 'deactivated'}.`)
+    showSuccess(t('web.payments.channels.route_updated'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update route')
+    showError(e instanceof Error ? e.message : t('web.payments.channels.route_updated'))
   }
 }
 
@@ -70,7 +70,7 @@ async function updatePriority(ch: PaymentChannel, routeId: string, event: Event)
     await updateRoute(routeId, { priority })
     route.priority = priority
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update priority')
+    showError(e instanceof Error ? e.message : t('web.payments.channels.route_updated'))
   }
 }
 
@@ -78,10 +78,10 @@ async function handleSyncPolicy(): Promise<void> {
   syncing.value = true
   try {
     const stats = await syncPolicy()
-    showSuccess(`Synced ${stats.channels} channels, ${stats.routes} routes.`)
+    showSuccess(t('web.payments.channels.sync_policy_done', { channels: stats.channels, routes: stats.routes }))
     channels.value = await fetchList()
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Sync failed')
+    showError(e instanceof Error ? e.message : t('web.payments.channels.sync_policy_done', { channels: 0, routes: 0 }))
   } finally {
     syncing.value = false
   }
@@ -99,7 +99,7 @@ async function handleSyncPolicy(): Promise<void> {
       >
         <span v-if="syncing" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
         <i v-else class="bi bi-arrow-repeat me-1"></i>
-        Sync Policy
+        {{ t('web.payments.channels.sync_policy') }}
       </button>
     </template>
 
@@ -114,12 +114,12 @@ async function handleSyncPolicy(): Promise<void> {
 
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading…</span>
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
     <div v-else-if="filteredChannels.length === 0" class="text-muted text-center py-4">
-      No channels found.
+      {{ t('web.payments.channels.no_results') }}
     </div>
 
     <div v-else class="row g-3">
@@ -140,18 +140,18 @@ async function handleSyncPolicy(): Promise<void> {
                 />
               </div>
               <span v-else class="badge" :class="ch.is_active ? 'text-bg-success' : 'text-bg-secondary'">
-                {{ ch.is_active ? 'Active' : 'Inactive' }}
+                {{ ch.is_active ? t('web.payments.channels.status.active') : t('web.payments.channels.status.inactive') }}
               </span>
             </div>
 
             <div v-if="ch.routes && ch.routes.length > 0" class="mt-2">
-              <h6 class="small fw-semibold mb-1">Routes</h6>
+              <h6 class="small fw-semibold mb-1">{{ t('web.payments.channels.routes_title') }}</h6>
               <table class="table table-sm mb-0">
                 <thead>
                   <tr>
-                    <th>Gateway</th>
-                    <th class="text-center">Priority</th>
-                    <th class="text-center">Active</th>
+                    <th>{{ t('web.payments.channels.intro.gateway') }}</th>
+                    <th class="text-center">{{ t('web.payments.gateways.form.priority') }}</th>
+                    <th class="text-center">{{ t('web.payments.gateways.form.is_active') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -178,7 +178,7 @@ async function handleSyncPolicy(): Promise<void> {
                         />
                       </div>
                       <span v-else class="badge" :class="route.is_active ? 'text-bg-success' : 'text-bg-secondary'">
-                        {{ route.is_active ? 'On' : 'Off' }}
+                        {{ route.is_active ? t('web.payments.channels.status.active') : t('web.payments.channels.status.inactive') }}
                       </span>
                     </td>
                   </tr>

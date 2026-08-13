@@ -8,6 +8,7 @@ import AppAlert from '@/components/AppAlert.vue'
 import { useNavigation } from '@/composables/useNavigation'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTreeview } from '@/composables/useTreeview'
+import { useBreadcrumbs } from '@/composables/useBreadcrumbs'
 
 defineProps<{
   title?: string
@@ -18,6 +19,7 @@ const { t } = useI18n()
 const { init: initSidebar, closeMobile } = useSidebar()
 const { openActiveAncestors } = useTreeview()
 const { tree, load } = useNavigation()
+const { breadcrumbs } = useBreadcrumbs()
 
 function syncActiveAncestors(name: string | null): void {
   if (!tree.value.length) return
@@ -55,8 +57,10 @@ watch(tree, () => syncActiveAncestors(route.name as string | null))
             <div class="col-sm-6">
               <nav aria-label="breadcrumb">
                 <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"><router-link :to="{ name: 'dashboard.view' }" class="text-decoration-none">{{ t('ui.home') }}</router-link></li>
-                  <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+                  <li v-for="(crumb, idx) in breadcrumbs" :key="idx" class="breadcrumb-item" :class="{ active: idx === breadcrumbs.length - 1 }" :aria-current="idx === breadcrumbs.length - 1 ? 'page' : undefined">
+                    <router-link v-if="crumb.routeName && idx < breadcrumbs.length - 1" :to="{ name: crumb.routeName }" class="text-decoration-none">{{ crumb.label }}</router-link>
+                    <span v-else>{{ crumb.label }}</span>
+                  </li>
                 </ol>
               </nav>
             </div>

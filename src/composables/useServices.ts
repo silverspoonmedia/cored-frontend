@@ -1,6 +1,6 @@
 import { useResource } from '@/composables/useResource'
-import { get } from '@/api/client'
-import type { ApiResponse, Service, ServiceOptions } from '@/api/types'
+import { get, post } from '@/api/client'
+import type { ApiResponse, Service, ServiceOptions, ServicePurchase } from '@/api/types'
 
 export function useServices() {
   const base = useResource<Service>('services')
@@ -13,6 +13,17 @@ export function useServices() {
     return { billing_intervals: [], plan_kinds: [], statuses: [] }
   }
 
+  async function checkout(serviceId: string, currency: string, quantity = 1): Promise<ServicePurchase> {
+    const res = await post<ApiResponse<ServicePurchase>>(`services/${serviceId}/checkout`, {
+      currency,
+      quantity,
+    })
+    if (res.status === 'success' && res.data) {
+      return res.data
+    }
+    throw new Error(res.message ?? 'Checkout failed')
+  }
+
   return {
     items: base.items,
     loading: base.loading,
@@ -23,5 +34,6 @@ export function useServices() {
     create: base.create,
     update: base.update,
     destroy: base.destroy,
+    checkout,
   }
 }

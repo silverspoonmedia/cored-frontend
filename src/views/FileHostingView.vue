@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,6 +7,9 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import Modal from '@/components/Modal.vue'
 import FhDropzone from '@/components/FhDropzone.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
+import { useMicrostock } from '@/composables/useMicrostock'
+import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
+import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { HostedFile, FhFolder, FhBrowsePayload, FhQuota, FhWorkspace } from '@/api/types'
@@ -15,8 +18,11 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
-const { hasPermission } = useAuth()
+const ms = useMicrostock()
+const { hasPermission, token } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { subscribe: subscribeFhRealtime, unsubscribe: unsubscribeFhRealtime } = useFileHostingRealtime()
+const { connected: echoConnected } = useEcho(() => token.value)
 
 const browse = ref<FhBrowsePayload | null>(null)
 const quota = ref<FhQuota | null>(null)
@@ -147,7 +153,7 @@ async function handleLockCollection(): Promise<void> {
   try {
     const hint = composeHint()
     const billing = collectionBillingMode.value || null
-    await fh.lockCollection(collectionFolder.value.id, hint || null, billing)
+    await ms.lockCollection(collectionFolder.value.id, hint || null, billing)
     showSuccess(t('web.file-hosting.collection_locked'))
     showCollectionModal.value = false
     await loadAll()
@@ -164,7 +170,47 @@ function canLockCollection(folder: FhFolder): boolean {
   return folder.collection_status === 'draft' || folder.collection_status === 'failed'
 }
 
-onMounted(loadAll)
+const fhRealtimeHandlers = {
+  onListingChanged: () => loadBrowse(),
+  onQuotaChanged: () => loadQuota(),
+  onCollectionAnalysisProgress: () => loadBrowse(),
+  onAssetMetadataProgress: () => loadBrowse(),
+}
+
+let fhPollTimer: ReturnType<typeof setInterval> | null = null
+const FH_POLL_INTERVAL_MS = 30_000
+
+function startFhPolling(): void {
+  if (fhPollTimer) return
+  fhPollTimer = setInterval(() => {
+    if (document.visibilityState !== 'visible') return
+    if (echoConnected.value) {
+      stopFhPolling()
+      return
+    }
+    loadAll()
+  }, FH_POLL_INTERVAL_MS)
+}
+
+function stopFhPolling(): void {
+  if (fhPollTimer) {
+    clearInterval(fhPollTimer)
+    fhPollTimer = null
+  }
+}
+
+onMounted(() => {
+  loadAll()
+  subscribeFhRealtime(fhRealtimeHandlers)
+  if (!echoConnected.value) {
+    startFhPolling()
+  }
+})
+
+onUnmounted(() => {
+  unsubscribeFhRealtime(fhRealtimeHandlers)
+  stopFhPolling()
+})
 
 watch(() => route.params.folderId, () => {
   if (route.name === 'file-hosting.index.view') {

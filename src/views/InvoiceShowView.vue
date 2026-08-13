@@ -6,7 +6,7 @@ import Card from '@/components/Card.vue'
 import CheckoutPanel from '@/components/CheckoutPanel.vue'
 import { useInvoices } from '@/composables/useInvoices'
 import { useAlert } from '@/composables/useAlert'
-import type { Invoice } from '@/api/types'
+import type { Invoice, InvoiceStatusPayload } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -46,6 +46,17 @@ function onStatusUpdated(status: string): void {
     invoice.value = { ...invoice.value, status }
   }
 }
+
+function onInvoiceUpdated(payload: InvoiceStatusPayload): void {
+  if (invoice.value) {
+    invoice.value = {
+      ...invoice.value,
+      status: payload.status,
+      paid_at: payload.paid_at,
+      expired_at: payload.expired_at,
+    }
+  }
+}
 </script>
 
 <template>
@@ -63,7 +74,7 @@ function onStatusUpdated(status: string): void {
             class="btn btn-outline-secondary btn-sm"
             @click="router.push({ name: 'invoices.index.view' })"
           >
-            <i class="bi bi-arrow-left me-1"></i> Back
+            <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
           </button>
         </template>
 
@@ -72,44 +83,44 @@ function onStatusUpdated(status: string): void {
         </div>
 
         <dl class="row mb-0">
-          <dt class="col-sm-3">Invoice Number</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.invoice_number') }}</dt>
           <dd class="col-sm-9"><code>{{ invoice.invoice_number }}</code></dd>
 
-          <dt class="col-sm-3">Subtotal</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.subtotal') }}</dt>
           <dd class="col-sm-9">{{ invoice.subtotal_formatted ?? invoice.subtotal ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Payment Channel Fee</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.fee') }}</dt>
           <dd class="col-sm-9">{{ invoice.payment_channel_fee_formatted ?? invoice.payment_channel_fee ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Total</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.total') }}</dt>
           <dd class="col-sm-9">{{ invoice.customer_gross_total_formatted ?? invoice.customer_gross_total ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Currency</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.currency') }}</dt>
           <dd class="col-sm-9">{{ invoice.currency }}</dd>
 
-          <dt class="col-sm-3">Payment Method</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.payment_method') }}</dt>
           <dd class="col-sm-9">{{ invoice.payment_method ?? '—' }}</dd>
 
-          <dt v-if="invoice.payment_gateway" class="col-sm-3">Payment Gateway</dt>
+          <dt v-if="invoice.payment_gateway" class="col-sm-3">{{ t('web.payments.invoices.fields.gateway') }}</dt>
           <dd v-if="invoice.payment_gateway" class="col-sm-9">{{ invoice.payment_gateway.display_name }}</dd>
 
-          <dt class="col-sm-3">External Transaction ID</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.external_transaction_id') }}</dt>
           <dd class="col-sm-9">{{ invoice.external_transaction_id ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Paid At</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.paid_at') }}</dt>
           <dd class="col-sm-9">{{ invoice.paid_at_formatted ?? invoice.paid_at ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Expired At</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.expired_at') }}</dt>
           <dd class="col-sm-9">{{ invoice.expired_at_formatted ?? invoice.expired_at ?? '—' }}</dd>
 
-          <dt class="col-sm-3">Created At</dt>
+          <dt class="col-sm-3">{{ t('web.payments.invoices.fields.created_at') }}</dt>
           <dd class="col-sm-9">{{ invoice.created_at_formatted ?? invoice.created_at ?? '—' }}</dd>
         </dl>
       </Card>
     </div>
 
     <div class="col-lg-4">
-      <CheckoutPanel :invoice="invoice" @status-updated="onStatusUpdated" />
+      <CheckoutPanel :invoice="invoice" @status-updated="onStatusUpdated" @invoice-updated="onInvoiceUpdated" />
     </div>
   </div>
 </template>

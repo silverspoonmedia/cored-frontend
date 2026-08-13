@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAlert } from '@/composables/useAlert'
+import { getEcho } from '@/composables/useEcho'
 import type { VtualVtuberProfile, VtualCreatorClaim } from '@/api/types'
 
 const route = useRoute()
@@ -18,6 +19,7 @@ const activeClaim = ref<VtualCreatorClaim | null>(null)
 const loading = ref(true)
 const actionLoading = ref(false)
 const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
+let echoChannel: string | null = null
 
 const hasActiveClaim = computed(() => activeClaim.value?.status === 'pending')
 const isBlocked = computed(() => {
@@ -37,6 +39,7 @@ onMounted(async () => {
     const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
     if (existing) {
       activeClaim.value = existing
+      subscribeClaimRealtime(existing.id)
       startPolling()
     }
   } catch (e) {
@@ -48,6 +51,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopPolling()
+  unsubscribeClaimRealtime()
 })
 
 function startPolling(): void {
@@ -80,12 +84,63 @@ function stopPolling(): void {
   }
 }
 
+function subscribeClaimRealtime(claimId: string): void {
+  const echo = getEcho()
+  if (!echo) return
+
+  unsubscribeClaimRealtime()
+
+  try {
+    const channel = echo.private(`vtual.claim.${claimId}`)
+    channel.listen('.claim.progress', (payload: { phase?: string; claim?: VtualCreatorClaim }) => {
+      const claim = payload.claim
+      if (!claim) return
+
+      if (payload.phase === 'verified') {
+        activeClaim.value = claim
+        showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
+        stopPolling()
+        const target = claim.profile_url
+        if (target) {
+          setTimeout(() => router.push({ name: 'vtual.profiles.show.view', params: { id: claim.creator_id } }), 800)
+        }
+      } else if (payload.phase === 'cancelled' || payload.phase === 'max_attempts_blocked') {
+        activeClaim.value = null
+        stopPolling()
+      } else if (payload.phase === 'verify_failed') {
+        activeClaim.value = claim
+        showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
+      } else {
+        activeClaim.value = claim
+      }
+    })
+    echoChannel = `vtual.claim.${claimId}`
+    stopPolling()
+  } catch {
+    // Echo not available — polling stays active as fallback
+  }
+}
+
+function unsubscribeClaimRealtime(): void {
+  if (!echoChannel) return
+  const echo = getEcho()
+  if (echo) {
+    try {
+      echo.leave(echoChannel)
+    } catch {
+      // ignore
+    }
+  }
+  echoChannel = null
+}
+
 async function handleStartClaim(channelId: string): Promise<void> {
   if (!profile.value || actionLoading.value) return
   actionLoading.value = true
   try {
     activeClaim.value = await vtual.startClaim(profile.value.id, channelId)
     showSuccess(t('web.vtual-vtuber.claim_step_token'))
+    subscribeClaimRealtime(activeClaim.value.id)
     startPolling()
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.start_failed'))

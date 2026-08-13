@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/composables/useNavigation'
@@ -9,6 +9,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useNotifications } from '@/composables/useNotifications'
+import { useEcho } from '@/composables/useEcho'
 import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 
 const route = useRoute()
@@ -16,10 +17,11 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const { toggle: toggleSidebar } = useSidebar()
 const { mode, setMode } = useTheme()
-const { user, logout, switchLocale: switchLocaleApi } = useAuth()
+const { user, logout, switchLocale: switchLocaleApi, token } = useAuth()
 const { success: showSuccess } = useAlert()
-const { unreadCount, items: recentNotifications, fetchUnreadCount, fetchList, markAllRead, markAsRead } = useNotifications()
+const { unreadCount, items: recentNotifications, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
 const { navbarTree, load: loadNavigation } = useNavigation()
+const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho(() => token.value)
 
 const currentLocale = computed<AppLocale>(() => locale.value as AppLocale)
 const supportedLocales = SUPPORTED_LOCALES
@@ -101,9 +103,50 @@ function notificationTime(n: { created_at_human: string | null; created_at_forma
   return n.created_at_human ?? n.created_at_formatted ?? n.created_at ?? '—'
 }
 
+const POLL_INTERVAL_MS = 60_000
+const REALTIME_GRACE_MS = 30_000
+let pollTimer: ReturnType<typeof setInterval> | null = null
+let graceTimer: ReturnType<typeof setTimeout> | null = null
+
+function startPolling(): void {
+  if (pollTimer) return
+  pollTimer = setInterval(() => {
+    fetchUnreadCount()
+  }, POLL_INTERVAL_MS)
+}
+
+function stopPolling(): void {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
 onMounted(() => {
   loadBellData()
   loadNavigation('navbar')
+
+  const echoStarted = initEcho()
+  if (echoStarted) {
+    startRealtime()
+    graceTimer = setTimeout(() => {
+      if (!echoConnected.value) {
+        startPolling()
+      }
+    }, REALTIME_GRACE_MS)
+  } else {
+    startPolling()
+  }
+})
+
+onUnmounted(() => {
+  stopPolling()
+  stopRealtime()
+  disconnectEcho()
+  if (graceTimer) {
+    clearTimeout(graceTimer)
+    graceTimer = null
+  }
 })
 </script>
 

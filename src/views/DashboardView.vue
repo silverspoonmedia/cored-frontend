@@ -13,18 +13,18 @@ const canViewUser = computed(() => hasPermission('view user'))
 const canViewMenu = computed(() => hasPermission('view menu'))
 const resending = ref(false)
 
-const sessionLabels = {
-  title: 'Live session',
-  hint: 'Refresh fetches your current profile from the server.',
-  name: 'Name',
-  email: 'Email',
-  roles: 'Role',
-  noRoles: 'No roles assigned',
-  refresh: 'Refresh',
-  refreshing: 'Refreshing…',
-  refreshedAt: 'Updated',
-  loadFailed: 'Failed to load session data.',
-}
+const sessionLabels = computed(() => ({
+  title: t('web.dashboard.session_island.title'),
+  hint: t('web.dashboard.session_island.hint'),
+  name: t('ui.labels.name'),
+  email: t('ui.labels.email'),
+  roles: t('ui.labels.role'),
+  noRoles: t('web.dashboard.no_roles'),
+  refresh: t('web.dashboard.session_island.refresh'),
+  refreshing: t('web.dashboard.session_island.refreshing'),
+  refreshedAt: t('web.dashboard.session_island.refreshed_at'),
+  loadFailed: t('web.dashboard.session_island.load_failed'),
+}))
 
 async function handleResend(): Promise<void> {
   if (resending.value) return
@@ -33,7 +33,7 @@ async function handleResend(): Promise<void> {
     await resendVerification()
     showSuccess(t('api.auth.verification_sent'))
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to send')
+    showError(e instanceof Error ? e.message : t('web.dashboard.session_island.load_failed'))
   } finally {
     resending.value = false
   }
@@ -59,16 +59,16 @@ async function handleResend(): Promise<void> {
                 class="badge text-bg-primary"
               >{{ role }}</span>
             </template>
-            <span v-else class="text-muted">No roles assigned</span>
+            <span v-else class="text-muted">{{ t('web.dashboard.no_roles') }}</span>
           </div>
 
           <div class="mb-3">
-            <strong>Status:</strong>
+            <strong>{{ t('ui.labels.status') }}:</strong>
             <template v-if="user?.email_verified_at">
-              <span class="badge text-bg-success">Verified</span>
+              <span class="badge text-bg-success">{{ t('ui.status.verified') }}</span>
             </template>
             <template v-else>
-              <span class="badge text-bg-warning">Unverified</span>
+              <span class="badge text-bg-warning">{{ t('ui.status.unverified') }}</span>
               <button
                 type="button"
                 class="btn btn-sm btn-outline-primary ms-2"
@@ -76,26 +76,26 @@ async function handleResend(): Promise<void> {
                 @click="handleResend"
               >
                 <span v-if="resending" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                Resend verification
+                {{ t('web.dashboard.resend_verification') }}
               </button>
             </template>
           </div>
 
           <div class="mb-3">
-            <strong>Two-Factor:</strong>
+            <strong>{{ t('menu.two_factor') }}:</strong>
             <template v-if="user?.two_factor_enabled">
-              <span class="badge text-bg-success">Enabled</span>
+              <span class="badge text-bg-success">{{ t('web.auth.two_factor_enabled_short') }}</span>
             </template>
             <template v-else>
-              <span class="badge text-bg-warning">Disabled</span>
+              <span class="badge text-bg-warning">{{ t('web.auth.two_factor_disabled_short') }}</span>
               <router-link :to="{ name: 'profile.two-factor.edit.view' }" class="btn btn-sm btn-outline-primary ms-2">
-                Set up Two-Factor
+                {{ t('web.auth.two_factor_setup_button') }}
               </router-link>
             </template>
           </div>
 
           <div class="mb-3">
-            <strong>Permissions:</strong>
+            <strong>{{ t('ui.labels.permissions') }}:</strong>
             <template v-if="user && user.permissions.length">
               <span
                 v-for="permission in user.permissions"
@@ -103,7 +103,7 @@ async function handleResend(): Promise<void> {
                 class="badge text-bg-secondary"
               >{{ permission }}</span>
             </template>
-            <span v-else class="text-muted">No permissions assigned</span>
+            <span v-else class="text-muted">{{ t('web.dashboard.no_permissions') }}</span>
           </div>
         </div>
       </div>
@@ -112,21 +112,21 @@ async function handleResend(): Promise<void> {
     <div class="col-lg-4">
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title mb-0">Quick Access</h3>
+          <h3 class="card-title mb-0">{{ t('web.dashboard.quick_access') }}</h3>
         </div>
         <div class="card-body">
           <div class="d-grid gap-2">
             <router-link v-if="canViewUser" :to="{ name: 'users.index.view' }" class="btn btn-outline-primary">
-              <i class="bi bi-people me-1"></i> Users
+              <i class="bi bi-people me-1"></i> {{ t('menu.users') }}
             </router-link>
             <router-link v-if="canViewMenu" :to="{ name: 'menus.index.view' }" class="btn btn-outline-primary">
-              <i class="bi bi-list-nested me-1"></i> Navigation
+              <i class="bi bi-list-nested me-1"></i> {{ t('menu.navigation') }}
             </router-link>
             <router-link :to="{ name: 'profile.password.edit.view' }" class="btn btn-outline-secondary">
-              <i class="bi bi-key me-1"></i> Password
+              <i class="bi bi-key me-1"></i> {{ t('menu.password') }}
             </router-link>
             <router-link :to="{ name: 'profile.two-factor.edit.view' }" class="btn btn-outline-secondary">
-              <i class="bi bi-shield-lock me-1"></i> Two-Factor
+              <i class="bi bi-shield-lock me-1"></i> {{ t('menu.two_factor') }}
             </router-link>
           </div>
         </div>

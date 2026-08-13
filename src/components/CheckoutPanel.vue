@@ -2,8 +2,11 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useInvoices } from '@/composables/useInvoices'
+import { usePaymentRealtime } from '@/composables/usePaymentRealtime'
+import { useEcho } from '@/composables/useEcho'
+import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
-import type { Invoice, PaymentChannel, CheckoutResult } from '@/api/types'
+import type { Invoice, PaymentChannel, CheckoutResult, InvoiceStatusPayload } from '@/api/types'
 
 const props = defineProps<{
   invoice: Invoice
@@ -12,10 +15,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'status-updated': [status: string]
+  'invoice-updated': [payload: InvoiceStatusPayload]
 }>()
 
 const { fetchCheckoutChannels, channelCheckout, syncStatus } = useInvoices()
 const { error: showError, success: showSuccess } = useAlert()
+const { subscribeInvoice, unsubscribeInvoice, subscribeRoutingCatalog, unsubscribeRoutingCatalog } = usePaymentRealtime()
+const { token } = useAuth()
+const { connected: echoConnected } = useEcho(() => token.value)
 const { t } = useI18n()
 
 const channels = ref<PaymentChannel[]>(props.channels ?? [])
@@ -59,19 +66,56 @@ onMounted(async () => {
   }
 
   if (isPayable.value) {
-    startPolling()
+    subscribeInvoice(props.invoice.id, handleInvoiceStatusChanged)
+    subscribeRoutingCatalog(refreshChannels)
+    if (!echoConnected.value) {
+      startPolling()
+    }
   }
 })
 
 onUnmounted(() => {
+  unsubscribeInvoice()
+  unsubscribeRoutingCatalog()
   stopPolling()
 })
+
+function handleInvoiceStatusChanged(payload: InvoiceStatusPayload): void {
+  if (payload.status !== props.invoice.status) {
+    emit('status-updated', payload.status)
+    emit('invoice-updated', payload)
+    if (payload.status === 'paid') {
+      showSuccess(t('web.payments.payment_confirmed'))
+      stopPolling()
+    }
+  }
+}
+
+async function refreshChannels(): Promise<void> {
+  if (!isPayable.value) return
+  try {
+    const fresh = await fetchCheckoutChannels(props.invoice.id)
+    if (fresh.length > 0) {
+      channels.value = fresh
+      if (!channels.value.some((c) => c.code === selectedChannel.value)) {
+        selectedChannel.value = fresh[0]!.code
+      }
+    }
+  } catch {
+    // non-critical
+  }
+}
 
 function startPolling(): void {
   stopPolling()
   pollTimer.value = setInterval(async () => {
+    if (document.visibilityState !== 'visible') return
+    if (echoConnected.value) {
+      stopPolling()
+      return
+    }
     await handleSyncStatus()
-  }, 60000)
+  }, 15_000)
 }
 
 function stopPolling(): void {

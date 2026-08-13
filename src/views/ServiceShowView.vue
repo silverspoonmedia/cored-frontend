@@ -1,31 +1,59 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useServices } from '@/composables/useServices'
+import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { Service } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const { fetchOne } = useServices()
-const { error: showError } = useAlert()
+const { fetchOne, checkout } = useServices()
+const { hasPermission } = useAuth()
+const { success: showSuccess, error: showError } = useAlert()
 
 const service = ref<Service | null>(null)
 const loading = ref(true)
+const submitting = ref(false)
+
+const checkoutCurrency = ref('')
+const checkoutQuantity = ref(1)
+
+const canInitiatePayment = computed(() => hasPermission('purchase service') || hasPermission('initiate payment'))
+const isAddonPlan = computed(() => service.value?.plan_kind === 'addon')
+const canCheckout = computed(() => canInitiatePayment.value && service.value?.status === 'active' && (service.value?.prices?.length ?? 0) > 0)
+const maxPurchaseQuantity = 99
 
 onMounted(async () => {
   loading.value = true
   try {
     service.value = await fetchOne(route.params.id as string)
+    if (service.value?.prices?.length) {
+      checkoutCurrency.value = service.value.prices[0].currency
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.services.load_failed'))
   } finally {
     loading.value = false
   }
 })
+
+async function handleCheckout(): Promise<void> {
+  if (!service.value || submitting.value) return
+  submitting.value = true
+  try {
+    const purchase = await checkout(service.value.id, checkoutCurrency.value, checkoutQuantity.value)
+    showSuccess(t('api.services.checkout_success'))
+    router.push({ name: 'service-purchases.show.view', params: { id: purchase.id } })
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.services.checkout_failed'))
+  } finally {
+    submitting.value = false
+  }
+}
 </script>
 
 <template>
@@ -71,8 +99,36 @@ onMounted(async () => {
         <span v-else>—</span>
       </dd>
 
-      <dt class="col-sm-3">{{ t('web.services.show.description') }}</dt>
+      <dt class="col-sm-3">{{ t('web.services.form.description') }}</dt>
       <dd class="col-sm-9">{{ service.description ?? '—' }}</dd>
     </dl>
+
+    <form v-if="canCheckout" class="d-flex flex-wrap gap-2 align-items-end" @submit.prevent="handleCheckout">
+      <div>
+        <label class="form-label" for="checkout-currency">{{ t('web.services.show.checkout_currency') }}</label>
+        <select id="checkout-currency" v-model="checkoutCurrency" class="form-select" required>
+          <option v-for="price in service.prices" :key="price.id" :value="price.currency">
+            {{ price.amount_formatted ?? `${price.currency} — ${price.amount}` }}
+          </option>
+        </select>
+      </div>
+      <div v-if="isAddonPlan">
+        <label class="form-label" for="checkout-quantity">{{ t('web.services.show.purchase_quantity') }}</label>
+        <input
+          id="checkout-quantity"
+          v-model.number="checkoutQuantity"
+          type="number"
+          class="form-control"
+          min="1"
+          :max="maxPurchaseQuantity"
+          required
+        />
+      </div>
+      <button type="submit" class="btn btn-primary" :disabled="submitting">
+        <span v-if="submitting" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        <i v-else class="bi bi-credit-card me-1" aria-hidden="true"></i>
+        {{ t('web.services.show.start_checkout') }}
+      </button>
+    </form>
   </Card>
 </template>

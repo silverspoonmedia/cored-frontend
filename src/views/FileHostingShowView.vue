@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
+import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
+import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useAuth } from '@/stores/auth'
 import type { HostedFile } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
+const { token } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { subscribe, unsubscribe } = useFileHostingRealtime()
+const { connected: echoConnected } = useEcho(() => token.value)
 
 const file = ref<HostedFile | null>(null)
 const loading = ref(true)
@@ -22,7 +28,7 @@ const renameValue = ref('')
 const showDeleteConfirm = ref(false)
 const showVisibilityConfirm = ref(false)
 
-onMounted(async () => {
+async function loadFile(): Promise<void> {
   loading.value = true
   try {
     file.value = await fh.fetchFile(route.params.id as string)
@@ -31,6 +37,45 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+}
+
+const showHandlers = {
+  onListingChanged: () => loadFile(),
+}
+
+let showPollTimer: ReturnType<typeof setInterval> | null = null
+const SHOW_POLL_MS = 30_000
+
+function startShowPolling(): void {
+  if (showPollTimer) return
+  showPollTimer = setInterval(() => {
+    if (document.visibilityState !== 'visible') return
+    if (echoConnected.value) {
+      stopShowPolling()
+      return
+    }
+    loadFile()
+  }, SHOW_POLL_MS)
+}
+
+function stopShowPolling(): void {
+  if (showPollTimer) {
+    clearInterval(showPollTimer)
+    showPollTimer = null
+  }
+}
+
+onMounted(() => {
+  loadFile()
+  subscribe(showHandlers)
+  if (!echoConnected.value) {
+    startShowPolling()
+  }
+})
+
+onUnmounted(() => {
+  unsubscribe(showHandlers)
+  stopShowPolling()
 })
 
 function ctxParams(): Record<string, unknown> {

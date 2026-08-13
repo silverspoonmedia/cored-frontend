@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
-import { useFileHostingUsage } from '@/composables/useFileHostingUsage'
+import { useMicrostockBilling } from '@/composables/useMicrostockBilling'
+import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
+import { useEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type {
@@ -15,9 +17,11 @@ import type {
 
 const { t } = useI18n()
 const { fetchBilling, fetchLedger, fetchUsageEvents, fetchAdminOverview, fetchAdminUsageEvents } =
-  useFileHostingUsage()
-const { hasPermission } = useAuth()
+  useMicrostockBilling()
+const { hasPermission, token } = useAuth()
 const { error: showError } = useAlert()
+const { subscribe, unsubscribe } = useFileHostingRealtime()
+const { connected: echoConnected } = useEcho(() => token.value)
 
 const canViewPlatform = computed(() => hasPermission('view platform billing'))
 
@@ -137,9 +141,52 @@ async function loadPlatformEvents(reset = true): Promise<void> {
   }
 }
 
+const msHandlers = {
+  onCollectionAnalysisProgress: () => {
+    loadBilling()
+    loadLedger(true)
+  },
+  onAssetMetadataProgress: () => {
+    loadBilling()
+    loadLedger(true)
+  },
+}
+
+let msPollTimer: ReturnType<typeof setInterval> | null = null
+const MS_POLL_MS = 30_000
+
+function startMsPolling(): void {
+  if (msPollTimer) return
+  msPollTimer = setInterval(() => {
+    if (document.visibilityState !== 'visible') return
+    if (echoConnected.value) {
+      stopMsPolling()
+      return
+    }
+    loadBilling()
+    loadLedger(true)
+  }, MS_POLL_MS)
+}
+
+function stopMsPolling(): void {
+  if (msPollTimer) {
+    clearInterval(msPollTimer)
+    msPollTimer = null
+  }
+}
+
 onMounted(async () => {
   await loadBilling()
   await loadLedger(true)
+  subscribe(msHandlers)
+  if (!echoConnected.value) {
+    startMsPolling()
+  }
+})
+
+onUnmounted(() => {
+  unsubscribe(msHandlers)
+  stopMsPolling()
 })
 
 async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {

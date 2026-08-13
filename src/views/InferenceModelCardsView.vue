@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useInferenceModelCards } from '@/composables/useInferenceModelCards'
 import { useAuth } from '@/stores/auth'
+import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import type { AiModelCard } from '@/api/types'
 
 const router = useRouter()
@@ -22,7 +23,11 @@ const columns: DataTableColumn[] = [
   { key: 'updated_at', label: t('web.inference.model_cards.datatable.columns.updated_at'), sortable: true, align: 'end' },
 ]
 
-onMounted(() => fetchList())
+useListingLiveUpdate('inference-model-cards-table', () => fetchList())
+
+onMounted(() => {
+  fetchList()
+})
 
 function showCard(row: AiModelCard): void {
   router.push({ name: 'inference.model-cards.show.view', params: { id: row.id } })

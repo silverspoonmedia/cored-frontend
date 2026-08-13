@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useUsers } from '@/composables/useUsers'
 import { useAuth } from '@/stores/auth'
+import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import type { UserManagement } from '@/api/types'
 
 const router = useRouter()
@@ -22,7 +23,11 @@ const columns: DataTableColumn[] = [
   { key: 'created_at', label: t('web.users.datatable.columns.created'), sortable: true, align: 'end' },
 ]
 
-onMounted(() => fetchList())
+useListingLiveUpdate('users-table', () => fetchList())
+
+onMounted(() => {
+  fetchList()
+})
 
 function editUser(row: UserManagement): void {
   router.push({ name: 'users.edit.view', params: { id: row.id } })

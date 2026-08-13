@@ -2546,7 +2546,8 @@
           "paid_at": "Paid at",
           "expired_at": "Expires at",
           "created_at": "Created at",
-          "payment_route": "Checkout route"
+          "payment_route": "Checkout route",
+          "external_transaction_id": "外部取引ID"
         },
         "load_failed": "Failed to load invoice"
       },

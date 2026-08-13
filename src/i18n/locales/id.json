@@ -2546,7 +2546,8 @@
           "paid_at": "Paid at",
           "expired_at": "Expires at",
           "created_at": "Created at",
-          "payment_route": "Rute checkout"
+          "payment_route": "Rute checkout",
+          "external_transaction_id": "ID transaksi eksternal"
         },
         "load_failed": "Failed to load invoice"
       },

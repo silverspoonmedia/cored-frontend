@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import Modal from '@/components/Modal.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
+import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
+import { useEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { FhWorkspace, FhWorkspaceMember, FhWorkspaceActivity } from '@/api/types'
@@ -20,8 +22,10 @@ const {
   removeMember,
   fetchActivity,
 } = useFileHosting()
-const { hasPermission } = useAuth()
+const { hasPermission, token } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { subscribe: subscribeFh, unsubscribe: unsubscribeFh } = useFileHostingRealtime()
+const { connected: echoConnected } = useEcho(() => token.value)
 const { t } = useI18n()
 
 const workspaces = ref<FhWorkspace[]>([])
@@ -56,8 +60,52 @@ const showArchive = ref(false)
 const showRemoveMember = ref(false)
 const removeTarget = ref<FhWorkspaceMember | null>(null)
 
+const wsHandlers = {
+  onMembersChanged: () => {
+    if (selected.value) {
+      fetchMembers(selected.value.id).then((m) => { members.value = m }).catch(() => {})
+    }
+  },
+  onActivityAppended: () => {
+    if (selected.value) {
+      fetchActivity(selected.value.id, 50).then((a) => { activity.value = a }).catch(() => {})
+    }
+  },
+}
+
+let wsPollTimer: ReturnType<typeof setInterval> | null = null
+const WS_POLL_MS = 30_000
+
+function startWsPolling(): void {
+  if (wsPollTimer) return
+  wsPollTimer = setInterval(() => {
+    if (document.visibilityState !== 'visible') return
+    if (echoConnected.value) {
+      stopWsPolling()
+      return
+    }
+    loadWorkspaces()
+  }, WS_POLL_MS)
+}
+
+function stopWsPolling(): void {
+  if (wsPollTimer) {
+    clearInterval(wsPollTimer)
+    wsPollTimer = null
+  }
+}
+
 onMounted(async () => {
   await loadWorkspaces()
+  subscribeFh(wsHandlers)
+  if (!echoConnected.value) {
+    startWsPolling()
+  }
+})
+
+onUnmounted(() => {
+  unsubscribeFh(wsHandlers)
+  stopWsPolling()
 })
 
 async function loadWorkspaces(): Promise<void> {

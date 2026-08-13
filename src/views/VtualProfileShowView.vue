@@ -64,7 +64,7 @@ const confirmState = ref<{ show: boolean; title: string; message: string; confir
   show: false,
   title: '',
   message: '',
-  confirmText: 'Confirm',
+  confirmText: '',
   confirmClass: 'primary',
   action: null,
 })

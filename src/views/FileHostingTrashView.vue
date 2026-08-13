@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
+import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
+import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useAuth } from '@/stores/auth'
 import type { FhTrashPayload } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
+const { token } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { subscribe, unsubscribe } = useFileHostingRealtime()
+const { connected: echoConnected } = useEcho(() => token.value)
 
 const trash = ref<FhTrashPayload | null>(null)
 const loading = ref(true)
@@ -39,7 +45,44 @@ async function loadTrash(): Promise<void> {
   }
 }
 
-onMounted(loadTrash)
+const trashHandlers = {
+  onListingChanged: () => loadTrash(),
+}
+
+let trashPollTimer: ReturnType<typeof setInterval> | null = null
+const TRASH_POLL_MS = 30_000
+
+function startTrashPolling(): void {
+  if (trashPollTimer) return
+  trashPollTimer = setInterval(() => {
+    if (document.visibilityState !== 'visible') return
+    if (echoConnected.value) {
+      stopTrashPolling()
+      return
+    }
+    loadTrash()
+  }, TRASH_POLL_MS)
+}
+
+function stopTrashPolling(): void {
+  if (trashPollTimer) {
+    clearInterval(trashPollTimer)
+    trashPollTimer = null
+  }
+}
+
+onMounted(() => {
+  loadTrash()
+  subscribe(trashHandlers)
+  if (!echoConnected.value) {
+    startTrashPolling()
+  }
+})
+
+onUnmounted(() => {
+  unsubscribe(trashHandlers)
+  stopTrashPolling()
+})
 
 function openConfirm(type: 'folder' | 'file', id: string, action: 'restore' | 'force-delete'): void {
   actionTarget.value = { type, id, action }

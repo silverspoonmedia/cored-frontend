@@ -748,6 +748,17 @@ export interface Invoice {
   checkout_session?: Record<string, unknown> | null
 }
 
+export interface InvoiceStatusPayload {
+  invoice_id: string
+  status: string
+  previous_status: string | null
+  paid_at: string | null
+  expired_at: string | null
+  invoiceable_type: string | null
+  invoiceable_id: string | null
+  invoiceable_status: string | null
+}
+
 // --- Service Purchases ---
 export interface ServicePurchaseFxRate {
   fx_rate: number | null
@@ -762,6 +773,13 @@ export interface ServicePurchaseFxRate {
 
 export interface ServicePurchaseEntitlement {
   id: string
+  status: string | null
+  is_permanent: boolean
+  quantity: number
+  ends_at: string | null
+  ends_at_formatted: string | null
+  grace_ends_at: string | null
+  grace_ends_at_formatted: string | null
   [key: string]: unknown
 }
 
@@ -1444,7 +1462,7 @@ export interface FhUploadCompleteResult {
   file: HostedFile
 }
 
-export interface FhCollectionPayload {
+export interface MicrostockCollectionPayload {
   id: string
   collection_status: string | null
   collection_hint: string | null
@@ -1452,7 +1470,7 @@ export interface FhCollectionPayload {
   collection_locked: boolean
 }
 
-export interface FhCollectionStatusPayload {
+export interface MicrostockCollectionStatusPayload {
   status: string
   phase: string | null
   billing_tier: string | null
@@ -1464,7 +1482,7 @@ export interface FhCollectionStatusPayload {
   failed: number
 }
 
-export interface FhCollectionExportPayload {
+export interface MicrostockCollectionExportPayload {
   path: string
   count: number
 }

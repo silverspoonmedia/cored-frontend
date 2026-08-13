@@ -1,0 +1,189 @@
+/* Order/Invoice show page styles — ported from Monolith resources/css/payments/order-invoice-show.css */
+.ois {
+  --ois-surface: #f8fafc;
+  --ois-card-bg: #ffffff;
+  --ois-text-strong: #0f172a;
+  --ois-step-num-bg: #0f172a;
+  --ois-step-active-border: #2563eb;
+  --ois-step-active-bg: #eff6ff;
+  --ois-step-done-border: #86efac;
+  --ois-step-done-bg: #f0fdf4;
+  --ois-step-done-num: #16a34a;
+  --ois-channel-border: #93c5fd;
+  --ois-channel-hover-bg: #f8fafc;
+  --ois-channel-hover-border: #2563eb;
+  --ois-channel-selected-bg: #eff6ff;
+  --ois-channel-text: #1e3a8a;
+  --ois-link: #2563eb;
+  --ois-link-hover: #1d4ed8;
+  --ois-hero-gradient-start: #eff6ff;
+  --ois-hero-gradient-mid: #f8fafc;
+  --ois-hero-gradient-end: #ecfdf5;
+}
+
+[data-bs-theme="dark"] .ois {
+  --ois-surface: rgba(255, 255, 255, 0.03);
+  --ois-card-bg: #1e293b;
+  --ois-text-strong: #f1f5f9;
+  --ois-step-num-bg: #475569;
+  --ois-step-active-border: #3b82f6;
+  --ois-step-active-bg: rgba(59, 130, 246, 0.12);
+  --ois-step-done-border: #22c55e;
+  --ois-step-done-bg: rgba(34, 197, 94, 0.10);
+  --ois-step-done-num: #22c55e;
+  --ois-channel-border: #3b82f6;
+  --ois-channel-hover-bg: rgba(255, 255, 255, 0.05);
+  --ois-channel-hover-border: #3b82f6;
+  --ois-channel-selected-bg: rgba(59, 130, 246, 0.15);
+  --ois-channel-text: #93c5fd;
+  --ois-link: #60a5fa;
+  --ois-link-hover: #93c5fd;
+  --ois-hero-gradient-start: rgba(59, 130, 246, 0.08);
+  --ois-hero-gradient-mid: rgba(255, 255, 255, 0.02);
+  --ois-hero-gradient-end: rgba(34, 197, 94, 0.06);
+}
+
+.ois-hero {
+  background: linear-gradient(135deg, var(--ois-hero-gradient-start) 0%, var(--ois-hero-gradient-mid) 55%, var(--ois-hero-gradient-end) 100%);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.5rem;
+  padding: 1.35rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.ois-hero__eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bs-secondary-color, #6c758d);
+  margin-bottom: 0.35rem;
+}
+
+.ois-hero__title {
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ois-hero__amount {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--ois-text-strong);
+  margin: 0.5rem 0 0;
+}
+
+.ois-hero__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.ois-sidebar-card {
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.5rem;
+  background: var(--bs-body-bg, #fff);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1rem;
+}
+
+.ois-sidebar-card:last-child {
+  margin-bottom: 0;
+}
+
+.ois-sidebar-card__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bs-secondary-color, #6c758d);
+  margin-bottom: 0.75rem;
+}
+
+.ois-steps {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .ois-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ois-step {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--bs-body-bg, #fff);
+}
+
+.ois-step.is-active {
+  border-color: var(--ois-step-active-border);
+  background: var(--ois-step-active-bg);
+}
+
+.ois-step.is-done {
+  border-color: var(--ois-step-done-border);
+  background: var(--ois-step-done-bg);
+}
+
+.ois-step__num {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--ois-step-num-bg);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ois-step.is-active .ois-step__num {
+  background: var(--ois-step-active-border);
+}
+
+.ois-step.is-done .ois-step__num {
+  background: var(--ois-step-done-num);
+}
+
+.ois-step__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ois-step__body {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c758d);
+  margin: 0.15rem 0 0;
+}
+
+.ois-status-secondary {
+  background: var(--bs-secondary-bg, #e2e3e5);
+  color: var(--bs-secondary-color, #41464b);
+}
+
+.ois-status-warning {
+  background: var(--bs-warning-bg-subtle, #fff3cd);
+  color: var(--bs-warning-text-emphasis, #664d03);
+}
+
+.ois-status-success {
+  background: var(--bs-success-bg-subtle, #d1e7dd);
+  color: var(--bs-success-text-emphasis, #0a3622);
+}
+
+.ois-status-danger {
+  background: var(--bs-danger-bg-subtle, #f8d7da);
+  color: var(--bs-danger-text-emphasis, #58151c);
+}
