@@ -868,27 +868,6 @@ export interface ServicePurchase {
   updated_at_human: string | null
 }
 
-// --- Discord Connections ---
-export interface DiscordConnection {
-  type: string
-  id: string
-  name: string
-  verified: boolean
-  revoked?: boolean
-  friend_sync?: boolean
-  show_activity?: boolean
-  two_way_link?: boolean
-  visibility?: number
-  integrations?: unknown[]
-}
-
-export interface ConnectionsPayload {
-  discord_connected: boolean
-  discord_oauth_configured: boolean
-  discord_connections: DiscordConnection[]
-  discord_synced_at: string | null
-}
-
 // --- Product Activations ---
 export interface ProductActivationUser {
   id: string

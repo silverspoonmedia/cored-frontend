@@ -119,10 +119,7 @@ function subscribeClaimRealtime(claimId: string): void {
         activeClaim.value = claim
         showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
         stopPolling()
-        const target = claim.profile_url
-        if (target) {
-          setTimeout(() => router.push({ name: 'vtual.profiles.show.view', params: { id: claim.creator_id } }), 800)
-        }
+        setTimeout(() => router.push({ name: 'vtual.profiles.show.view', params: { id: claim.creator_id } }), 800)
       } else if (payload.phase === 'cancelled' || payload.phase === 'max_attempts_blocked') {
         activeClaim.value = null
         stopPolling()

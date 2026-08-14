@@ -1,9 +1,14 @@
-import Echo from 'laravel-echo'
+import Echo, { type EchoOptions } from 'laravel-echo'
 import Pusher from 'pusher-js'
+import type { ChannelAuthorizerGenerator } from 'pusher-js'
 import { ref, type Ref } from 'vue'
 import { resolveApiUrl } from '@/api/baseUrl'
 
-let echoInstance: Echo | null = null
+type PusherEcho = Echo<'pusher'>
+type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
+
+let echoInstance: PusherEcho | null = null
+let stopConnectionWatch: (() => void) | null = null
 const connected = ref(false)
 
 export interface BroadcastConfig {
@@ -31,45 +36,72 @@ function readConfig(): BroadcastConfig | null {
     key,
     cluster: (import.meta.env.VITE_PUSHER_APP_CLUSTER as string | undefined) ?? 'mt1',
     host,
-    port: Number(import.meta.env.VITE_PUSHER_PORT as string | undefined) ?? 443,
+    port: Number(import.meta.env.VITE_PUSHER_PORT as string | undefined) || 443,
     scheme: (import.meta.env.VITE_PUSHER_SCHEME as string | undefined) ?? 'https',
     authEndpoint,
   }
 }
 
-function createEcho(config: BroadcastConfig, tokenProvider: () => string | null): Echo {
-  Pusher.Runtime = Pusher.Runtime || {}
+function createEcho(config: BroadcastConfig, tokenProvider: () => string | null): PusherEcho {
+  const authorizer: ChannelAuthorizerGenerator = (channel) => ({
+    authorize: (socketId, callback) => {
+      const token = tokenProvider()
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      }
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
 
-  const options: Echo.Options = {
+      fetch(config.authEndpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          socket_id: socketId,
+          channel_name: channel.name,
+        }),
+      })
+        .then(async (res) => {
+          const data: unknown = await res.json()
+          if (!res.ok) {
+            callback(new Error('Broadcast auth failed'), null)
+            return
+          }
+          if (
+            typeof data !== 'object'
+            || data === null
+            || !('auth' in data)
+            || typeof data.auth !== 'string'
+          ) {
+            callback(new Error('Invalid broadcast auth response'), null)
+            return
+          }
+          callback(null, {
+            auth: data.auth,
+            ...('channel_data' in data && typeof data.channel_data === 'string'
+              ? { channel_data: data.channel_data }
+              : {}),
+            ...('shared_secret' in data && typeof data.shared_secret === 'string'
+              ? { shared_secret: data.shared_secret }
+              : {}),
+          })
+        })
+        .catch((err: unknown) => {
+          callback(err instanceof Error ? err : new Error(String(err)), null)
+        })
+    },
+  })
+
+  const options: PusherEchoOptions = {
     broadcaster: 'pusher',
     key: config.key,
     cluster: config.cluster,
     forceTLS: config.scheme === 'https',
     encrypted: true,
-    authorizer: (channel) => ({
-      authorize: (socketId, callback) => {
-        const token = tokenProvider()
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        }
-        if (token) {
-          headers.Authorization = `Bearer ${token}`
-        }
-
-        fetch(config.authEndpoint, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            socket_id: socketId,
-            channel_name: channel.name,
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => callback(null, data))
-          .catch((err) => callback(err, null))
-      },
-    }),
+    Pusher,
+    authorizer,
+    authEndpoint: config.authEndpoint,
   }
 
   if (config.host) {
@@ -85,7 +117,6 @@ function createEcho(config: BroadcastConfig, tokenProvider: () => string | null)
 }
 
 export function useEcho(tokenProvider: () => string | null): {
-  echo: Ref<Echo | null>
   connected: Ref<boolean>
   init: () => boolean
   disconnect: () => void
@@ -98,25 +129,22 @@ export function useEcho(tokenProvider: () => string | null): {
 
     try {
       echoInstance = createEcho(config, tokenProvider)
-
-      const connection = (echoInstance as unknown as { connector?: { pusher?: { connection?: { state?: string; bind?: (event: string, cb: (data: { current?: string }) => void) => void } } } }).connector?.pusher?.connection
-      if (connection) {
-        connection.bind('state_change', ({ current }) => {
-          connected.value = current === 'connected'
-        })
-        if (connection.state === 'connected') {
-          connected.value = true
-        }
-      }
+      stopConnectionWatch = echoInstance.connector.onConnectionChange((status) => {
+        connected.value = status === 'connected'
+      })
+      connected.value = echoInstance.connectionStatus() === 'connected'
 
       return true
     } catch {
       echoInstance = null
+      stopConnectionWatch = null
       return false
     }
   }
 
   function disconnect(): void {
+    stopConnectionWatch?.()
+    stopConnectionWatch = null
     if (echoInstance) {
       echoInstance.disconnect()
       echoInstance = null
@@ -125,13 +153,12 @@ export function useEcho(tokenProvider: () => string | null): {
   }
 
   return {
-    echo: ref(echoInstance),
     connected,
     init,
     disconnect,
   }
 }
 
-export function getEcho(): Echo | null {
+export function getEcho(): PusherEcho | null {
   return echoInstance
 }
