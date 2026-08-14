@@ -1,6 +1,5 @@
+import { apiUrl } from './baseUrl'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 type TokenGetter = () => string | null
 type RefreshHandler = () => Promise<string | null>
@@ -109,14 +108,7 @@ async function request<T>(
   body: Record<string, unknown> | FormData | null = null,
   query: Record<string, unknown> | null = null,
 ): Promise<T> {
-  const url = new URL(`${BASE_URL}/${uri.replace(/^\//, '')}`)
-  if (query) {
-    for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null) {
-        url.searchParams.set(key, String(value))
-      }
-    }
-  }
+  const url = apiUrl(uri, query)
 
   const isFormData = body instanceof FormData
   const bodyStr = body === null ? undefined : isFormData ? body : JSON.stringify(body)
@@ -187,14 +179,7 @@ export async function getBlob(
   uri: string,
   query?: Record<string, unknown>,
 ): Promise<{ blob: Blob; filename: string | null }> {
-  const url = new URL(`${BASE_URL}/${uri.replace(/^\//, '')}`)
-  if (query) {
-    for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null) {
-        url.searchParams.set(key, String(value))
-      }
-    }
-  }
+  const url = apiUrl(uri, query)
 
   const headers = (): Headers => {
     const h = new Headers()

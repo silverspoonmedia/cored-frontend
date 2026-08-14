@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import $ from '@/utils/jquery-setup'
 import FormField from './FormField.vue'
 import { useAuth } from '@/stores/auth'
+import { resolveApiUrl } from '@/api/baseUrl'
 import { processLookupResults, type Select2Result } from '@/utils/select2-lookup'
 
 export interface SelectOption {
@@ -67,10 +68,9 @@ const selectClasses = computed(() => ({
 
 function buildAjaxConfig() {
   if (!props.ajaxUrl) return undefined
-  const baseUrl = import.meta.env.VITE_API_BASE_URL as string
   const fullUrl = props.ajaxUrl.startsWith('http')
     ? props.ajaxUrl
-    : `${baseUrl}/${props.ajaxUrl.replace(/^\//, '')}`
+    : resolveApiUrl(props.ajaxUrl)
 
   return {
     url: fullUrl,

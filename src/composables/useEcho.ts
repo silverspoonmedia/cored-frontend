@@ -1,6 +1,7 @@
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 import { ref, type Ref } from 'vue'
+import { resolveApiUrl } from '@/api/baseUrl'
 
 let echoInstance: Echo | null = null
 const connected = ref(false)
@@ -18,8 +19,7 @@ function readConfig(): BroadcastConfig | null {
   const key = import.meta.env.VITE_PUSHER_APP_KEY as string | undefined
   if (!key) return null
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL as string | undefined
-  const authEndpoint = `${apiBase ?? ''}/broadcasting/auth`
+  const authEndpoint = resolveApiUrl('broadcasting/auth')
 
   const rawHost = import.meta.env.VITE_PUSHER_HOST as string | undefined
   const host = typeof rawHost === 'string' && rawHost.trim() !== ''
