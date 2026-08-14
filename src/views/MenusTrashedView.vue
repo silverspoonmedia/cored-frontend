@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions from '@/components/RowActions.vue'
 import { useMenus } from '@/composables/useMenus'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
@@ -90,13 +91,16 @@ onMounted(load)
       </template>
 
       <template v-if="canRestore" #actions="{ row }: { row: MenuTrashedItem }">
-        <button
-          class="btn btn-success btn-sm"
-          :disabled="restoringId === row.id"
-          @click.stop="handleRestore(row)"
-        >
-          <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
-        </button>
+        <RowActions
+          :actions="[{
+            key: 'restore',
+            icon: 'arrow-counterclockwise',
+            label: t('actions.restore'),
+            variant: 'success',
+            disabled: restoringId === row.id,
+            onClick: () => handleRestore(row),
+          }]"
+        />
       </template>
     </DataTable>
   </Card>

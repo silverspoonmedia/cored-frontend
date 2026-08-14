@@ -3,15 +3,19 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
+import { useConnections } from '@/composables/useConnections'
 import { useAlert } from '@/composables/useAlert'
 import { getEcho } from '@/composables/useEcho'
 import type { VtualVtuberProfile, VtualCreatorClaim } from '@/api/types'
+import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const vtual = useVtual()
+const connections = useConnections()
 const { success: showSuccess, error: showError } = useAlert()
 
 const profile = ref<VtualVtuberProfile | null>(null)
@@ -29,6 +33,21 @@ const isBlocked = computed(() => {
 const showChannelsSection = computed(() => !hasActiveClaim.value && !isBlocked.value)
 
 onMounted(async () => {
+  const params = new URLSearchParams(window.location.search)
+  const status = params.get('discord')
+  if (status === 'connected') {
+    showSuccess(t('web.identity-connections.discord_connected_flash'))
+  } else if (status === 'denied') {
+    showError(t('web.identity-connections.discord_denied'))
+  } else if (status === 'error') {
+    showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
+  }
+  if (status) {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('discord')
+    window.history.replaceState({}, '', url.toString())
+  }
+
   loading.value = true
   try {
     const slug = route.params.slug as string
@@ -181,16 +200,24 @@ async function handleVerifyDiscord(): Promise<void> {
   }
 }
 
-const monolithWebUrl = import.meta.env.VITE_MONOLITH_WEB_URL ?? ''
-const discordConnectUrl = computed(() => {
-  if (!monolithWebUrl || !activeClaim.value || !profile.value) return ''
-  const params = new URLSearchParams({
-    intent: 'claim_verify',
-    slug: profile.value.slug,
-    claim_id: activeClaim.value.id,
-  })
-  return `${monolithWebUrl}/auth/discord/redirect?${params.toString()}`
-})
+const discordConnecting = ref(false)
+
+async function connectDiscord(): Promise<void> {
+  if (!activeClaim.value || !profile.value || discordConnecting.value) return
+  discordConnecting.value = true
+  try {
+    const url = await connections.authorizeUrl({
+      intent: 'claim_verify',
+      slug: profile.value.slug,
+      claim_id: activeClaim.value.id,
+      return_path: `/apps/vtual/vtubers/${profile.value.slug}/claim`,
+    })
+    window.location.href = url
+  } catch (e) {
+    discordConnecting.value = false
+    showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
+  }
+}
 
 async function handleCancel(): Promise<void> {
   if (!activeClaim.value || actionLoading.value) return
@@ -259,7 +286,7 @@ function platformIcon(key: string): string {
         <div class="col-md-8">
           <Card :title="t('web.vtual-vtuber.claim_active_heading')">
             <div class="mb-3">
-              <span class="badge text-bg-warning">{{ activeClaim.status }}</span>
+              <StatusBadge :status="activeClaim.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
               <span v-if="activeClaim.verify_queue_status" class="badge text-bg-info ms-1">
                 {{ t('web.vtual-vtuber.claim_queue_status_label') }}: {{ activeClaim.verify_queue_status }}
               </span>
@@ -306,11 +333,11 @@ function platformIcon(key: string): string {
             </div>
 
             <!-- Discord connect hint -->
-            <div v-if="discordConnectUrl" class="mt-2 small text-muted">
+            <div class="mt-2 small text-muted">
               {{ t('web.vtual-vtuber.claim_no_discord') }}
-              <a :href="discordConnectUrl" target="_blank" class="text-decoration-none">
+              <button type="button" class="btn btn-link btn-sm p-0 align-baseline" :disabled="discordConnecting" @click="connectDiscord">
                 <i class="bi bi-discord me-1"></i>{{ t('web.vtual-vtuber.claim_discord_connect_cta') }}
-              </a>{{ t('web.vtual-vtuber.claim_discord_return_hint') }}
+              </button>{{ t('web.vtual-vtuber.claim_discord_return_hint') }}
             </div>
           </Card>
         </div>

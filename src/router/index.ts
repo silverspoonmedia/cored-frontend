@@ -1,20 +1,74 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteLocationRaw, type RouteRecordRaw } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { useAuth } from '@/stores/auth'
+import { SETTINGS_MENU_GROUPS } from '@/utils/settingsGroup'
+
+const LEGACY_APP_ROOTS = new Set([
+  'dashboard',
+  'profile',
+  'currencies',
+  'notification-audiences',
+  'activity-logs',
+  'error-logs',
+  'notifications',
+  'settings',
+  'domain-access',
+  'users',
+  'menus',
+  'inference',
+  'payment-gateways',
+  'subscriptions',
+  'services',
+  'invoices',
+  'vtual',
+  'product-activations',
+  'payments',
+  'file-hosting',
+  'payment-channels',
+  'service-purchases',
+])
+
+function legacyAppsRedirect(to: RouteLocationNormalized): RouteLocationRaw {
+  const root = String(to.params.legacyRoot ?? '')
+  if (!LEGACY_APP_ROOTS.has(root)) {
+    return { name: 'not-found.view' }
+  }
+  const rest = to.params.pathMatch
+  const tail = Array.isArray(rest) && rest.length > 0
+    ? `/${rest.join('/')}`
+    : typeof rest === 'string' && rest.length > 0
+      ? `/${rest}`
+      : ''
+  return { path: `/apps/${root}${tail}`, query: to.query, hash: to.hash }
+}
+
+const settingsMenuRoutes: RouteRecordRaw[] = SETTINGS_MENU_GROUPS.map((group) => ({
+  path: `/apps/settings/${group}`,
+  name: `settings.${group}`,
+  component: AppLayout,
+  meta: { requiresAuth: true, titleKey: 'web.settings.title' },
+  children: [
+    {
+      path: '',
+      name: `settings.${group}.view`,
+      component: () => import('@/views/SettingsFormView.vue'),
+    },
+  ],
+}))
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/dashboard',
+      redirect: '/apps/dashboard',
     },
     {
       path: '/login',
       name: 'login',
       component: AuthLayout,
-      meta: { guestOnly: true },
+      meta: { guestOnly: true, titleKey: 'web.auth.login_title', headingKey: 'web.auth.login_heading' },
       children: [
         {
           path: '',
@@ -27,7 +81,7 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: AuthLayout,
-      meta: { guestOnly: true },
+      meta: { guestOnly: true, titleKey: 'web.auth.register_title', headingKey: 'web.auth.register_heading' },
       children: [
         {
           path: '',
@@ -40,7 +94,7 @@ const router = createRouter({
       path: '/forgot-password',
       name: 'forgot-password',
       component: AuthLayout,
-      meta: { guestOnly: true },
+      meta: { guestOnly: true, titleKey: 'web.auth.forgot_password_title', headingKey: 'web.auth.forgot_password_heading' },
       children: [
         {
           path: '',
@@ -53,7 +107,7 @@ const router = createRouter({
       path: '/reset-password',
       name: 'reset-password',
       component: AuthLayout,
-      meta: { guestOnly: true },
+      meta: { guestOnly: true, titleKey: 'web.auth.reset_password_title', headingKey: 'web.auth.reset_password_heading' },
       children: [
         {
           path: '',
@@ -66,7 +120,7 @@ const router = createRouter({
       path: '/two-factor-challenge',
       name: 'two-factor.challenge',
       component: AuthLayout,
-      meta: { guestOnly: true },
+      meta: { guestOnly: true, titleKey: 'web.auth.two_factor_challenge_title', headingKey: 'web.auth.two_factor_challenge_heading' },
       children: [
         {
           path: '',
@@ -76,11 +130,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/dashboard',
+      path: '/apps/dashboard',
       name: 'dashboard',
       component: AppLayout,
-      props: { title: 'Dashboard' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.dashboard.title' },
       children: [
         {
           path: '',
@@ -90,11 +143,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/profile/password',
+      path: '/apps/profile/password',
       name: 'profile.password.edit',
       component: AppLayout,
-      props: { title: 'Password' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.profile.password_title' },
       children: [
         {
           path: '',
@@ -104,11 +156,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/profile/two-factor',
+      path: '/apps/profile/two-factor',
       name: 'profile.two-factor.edit',
       component: AppLayout,
-      props: { title: 'Two-Factor Authentication' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.auth.two_factor_title' },
       children: [
         {
           path: '',
@@ -118,11 +169,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/profile/connections',
+      path: '/apps/profile/connections',
       name: 'profile.connections',
       component: AppLayout,
-      props: { title: 'Connections' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.identity-connections.page_title' },
       children: [
         {
           path: '',
@@ -132,11 +182,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/currencies',
+      path: '/apps/currencies',
       name: 'currencies.index',
       component: AppLayout,
-      props: { title: 'Currencies' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.currencies.title' },
       children: [
         {
           path: '',
@@ -146,11 +195,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/notification-audiences',
+      path: '/apps/notification-audiences',
       name: 'notification-audiences.index',
       component: AppLayout,
-      props: { title: 'Notification Audiences' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.notification-audiences.title' },
       children: [
         {
           path: '',
@@ -160,11 +208,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/notification-audiences/:type/edit',
+      path: '/apps/notification-audiences/:type/edit',
       name: 'notification-audiences.edit',
       component: AppLayout,
-      props: { title: 'Edit Notification Audience' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.notification-audiences.edit_title' },
       children: [
         {
           path: '',
@@ -174,11 +221,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/activity-logs',
+      path: '/apps/activity-logs',
       name: 'activity-logs.index',
       component: AppLayout,
-      props: { title: 'Activity Logs' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.activity-log.title' },
       children: [
         {
           path: '',
@@ -188,11 +234,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/activity-logs/:id',
+      path: '/apps/activity-logs/:id',
       name: 'activity-logs.show',
       component: AppLayout,
-      props: { title: 'Activity Log Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.activity-log.show_title' },
       children: [
         {
           path: '',
@@ -202,11 +247,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/error-logs',
+      path: '/apps/error-logs',
       name: 'error-logs.index',
       component: AppLayout,
-      props: { title: 'Error Logs' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.error-log.title' },
       children: [
         {
           path: '',
@@ -216,11 +260,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/error-logs/:id',
+      path: '/apps/error-logs/:id',
       name: 'error-logs.show',
       component: AppLayout,
-      props: { title: 'Error Log Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.error-log.show_title' },
       children: [
         {
           path: '',
@@ -230,11 +273,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/notifications',
+      path: '/apps/notifications',
       name: 'notifications.index',
       component: AppLayout,
-      props: { title: 'Notifications' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.notifications.title' },
       children: [
         {
           path: '',
@@ -244,11 +286,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/settings',
+      path: '/apps/settings',
       name: 'settings.index',
       component: AppLayout,
-      props: { title: 'Settings' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.settings.title' },
       children: [
         {
           path: '',
@@ -257,12 +298,12 @@ const router = createRouter({
         },
       ],
     },
+    ...settingsMenuRoutes,
     {
-      path: '/settings/:group',
+      path: '/apps/settings/:group',
       name: 'settings.group',
       component: AppLayout,
-      props: { title: 'Group Settings' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.settings.title' },
       children: [
         {
           path: '',
@@ -272,11 +313,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/domain-access',
+      path: '/apps/domain-access',
       name: 'domain-access.index',
       component: AppLayout,
-      props: { title: 'Domain Access' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'domain-access.title' },
       children: [
         {
           path: '',
@@ -286,11 +326,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/users',
+      path: '/apps/users',
       name: 'users.index',
       component: AppLayout,
-      props: { title: 'Users' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.users.title' },
       children: [
         {
           path: '',
@@ -300,11 +339,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/users/create',
+      path: '/apps/users/create',
       name: 'users.create',
       component: AppLayout,
-      props: { title: 'Create User' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.users.create_title' },
       children: [
         {
           path: '',
@@ -314,11 +352,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/users/:id/edit',
+      path: '/apps/users/:id/edit',
       name: 'users.edit',
       component: AppLayout,
-      props: { title: 'Edit User' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.users.edit_title' },
       children: [
         {
           path: '',
@@ -328,11 +365,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/menus',
+      path: '/apps/menus',
       name: 'menus.index',
       component: AppLayout,
-      props: { title: 'Navigation Menus' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.menus.title' },
       children: [
         {
           path: '',
@@ -342,11 +378,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/menus/create',
+      path: '/apps/menus/create',
       name: 'menus.create',
       component: AppLayout,
-      props: { title: 'Create Menu' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.menus.create_title' },
       children: [
         {
           path: '',
@@ -356,11 +391,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/menus/:id/edit',
+      path: '/apps/menus/:id/edit',
       name: 'menus.edit',
       component: AppLayout,
-      props: { title: 'Edit Menu' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.menus.edit_title' },
       children: [
         {
           path: '',
@@ -370,11 +404,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/menus/trashed',
+      path: '/apps/menus/trashed',
       name: 'menus.trashed',
       component: AppLayout,
-      props: { title: 'Trashed Menus' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.menus.trashed_title' },
       children: [
         {
           path: '',
@@ -384,11 +417,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/model-cards',
+      path: '/apps/inference/model-cards',
       name: 'inference.model-cards.index',
       component: AppLayout,
-      props: { title: 'AI Model Cards' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.model_cards.title' },
       children: [
         {
           path: '',
@@ -398,11 +430,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/model-cards/create',
+      path: '/apps/inference/model-cards/create',
       name: 'inference.model-cards.create',
       component: AppLayout,
-      props: { title: 'Create Model Card' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.model_cards.create_title' },
       children: [
         {
           path: '',
@@ -412,11 +443,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/model-cards/:id/edit',
+      path: '/apps/inference/model-cards/:id/edit',
       name: 'inference.model-cards.edit',
       component: AppLayout,
-      props: { title: 'Edit Model Card' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.model_cards.edit_title' },
       children: [
         {
           path: '',
@@ -426,11 +456,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/model-cards/:id',
+      path: '/apps/inference/model-cards/:id',
       name: 'inference.model-cards.show',
       component: AppLayout,
-      props: { title: 'Model Card Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.model_cards.show_title' },
       children: [
         {
           path: '',
@@ -440,11 +469,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/providers',
+      path: '/apps/inference/providers',
       name: 'inference.providers.index',
       component: AppLayout,
-      props: { title: 'Inference Providers' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.providers.title' },
       children: [
         {
           path: '',
@@ -454,11 +482,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/providers/:id',
+      path: '/apps/inference/providers/:id',
       name: 'inference.providers.show',
       component: AppLayout,
-      props: { title: 'Inference Provider' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.providers.show_title' },
       children: [
         {
           path: '',
@@ -468,11 +495,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/providers/create',
+      path: '/apps/inference/providers/create',
       name: 'inference.providers.create',
       component: AppLayout,
-      props: { title: 'Create Provider' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.providers.create_title' },
       children: [
         {
           path: '',
@@ -482,11 +508,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/providers/:id/edit',
+      path: '/apps/inference/providers/:id/edit',
       name: 'inference.providers.edit',
       component: AppLayout,
-      props: { title: 'Edit Provider' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.providers.edit_title' },
       children: [
         {
           path: '',
@@ -496,11 +521,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/payment-gateways',
+      path: '/apps/payment-gateways',
       name: 'payment-gateways.index',
       component: AppLayout,
-      props: { title: 'Payment Gateways' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.gateways.title' },
       children: [
         {
           path: '',
@@ -510,11 +534,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/payment-gateways/create',
+      path: '/apps/payment-gateways/create',
       name: 'payment-gateways.create',
       component: AppLayout,
-      props: { title: 'Create Payment Gateway' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.gateways.create_title' },
       children: [
         {
           path: '',
@@ -524,11 +547,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/payment-gateways/:id/edit',
+      path: '/apps/payment-gateways/:id/edit',
       name: 'payment-gateways.edit',
       component: AppLayout,
-      props: { title: 'Edit Payment Gateway' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.gateways.edit_title' },
       children: [
         {
           path: '',
@@ -538,11 +560,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/subscriptions',
+      path: '/apps/subscriptions',
       name: 'subscriptions.index',
       component: AppLayout,
-      props: { title: 'Subscriptions' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.subscriptions.title' },
       children: [
         {
           path: '',
@@ -552,11 +573,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/subscriptions/create',
+      path: '/apps/subscriptions/create',
       name: 'subscriptions.create',
       component: AppLayout,
-      props: { title: 'Create Subscription' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.subscriptions.create_title' },
       children: [
         {
           path: '',
@@ -566,11 +586,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/subscriptions/:id/edit',
+      path: '/apps/subscriptions/:id/edit',
       name: 'subscriptions.edit',
       component: AppLayout,
-      props: { title: 'Edit Subscription' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.subscriptions.edit_title' },
       children: [
         {
           path: '',
@@ -580,11 +599,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/subscriptions/:id',
+      path: '/apps/subscriptions/:id',
       name: 'subscriptions.show',
       component: AppLayout,
-      props: { title: 'Subscription Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.subscriptions.show_title' },
       children: [
         {
           path: '',
@@ -594,11 +612,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/services',
+      path: '/apps/services',
       name: 'services.index',
       component: AppLayout,
-      props: { title: 'Services' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.services.title' },
       children: [
         {
           path: '',
@@ -608,11 +625,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/services/create',
+      path: '/apps/services/create',
       name: 'services.create',
       component: AppLayout,
-      props: { title: 'Create Service' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.services.create_title' },
       children: [
         {
           path: '',
@@ -622,11 +638,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/services/:id/edit',
+      path: '/apps/services/:id/edit',
       name: 'services.edit',
       component: AppLayout,
-      props: { title: 'Edit Service' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.services.edit_title' },
       children: [
         {
           path: '',
@@ -636,11 +651,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/services/:id',
+      path: '/apps/services/:id',
       name: 'services.show',
       component: AppLayout,
-      props: { title: 'Service Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.services.show_title' },
       children: [
         {
           path: '',
@@ -650,11 +664,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/invoices',
+      path: '/apps/invoices',
       name: 'invoices.index',
       component: AppLayout,
-      props: { title: 'Invoices' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.invoices.title' },
       children: [
         {
           path: '',
@@ -664,11 +677,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/invoices/:id',
+      path: '/apps/invoices/:id',
       name: 'invoices.show',
       component: AppLayout,
-      props: { title: 'Invoice Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.invoices.show_title' },
       children: [
         {
           path: '',
@@ -678,11 +690,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/profiles',
+      path: '/apps/vtual/profiles',
       name: 'vtual.profiles.index',
       component: AppLayout,
-      props: { title: 'My Creator Profiles' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-profiles.page_title' },
       children: [
         {
           path: '',
@@ -692,11 +703,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/vtuber',
+      path: '/apps/vtual/vtuber',
       name: 'vtual.vtuber.index',
       component: AppLayout,
-      props: { title: 'Vtuber Hub' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-vtuber.hub_title' },
       children: [
         {
           path: '',
@@ -706,11 +716,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/orphans',
+      path: '/apps/vtual/orphans',
       name: 'vtual.orphans.index',
       component: AppLayout,
-      props: { title: 'Orphan Creators' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-orphans.title' },
       children: [
         {
           path: '',
@@ -720,11 +729,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/orphans/create',
+      path: '/apps/vtual/orphans/create',
       name: 'vtual.orphans.create',
       component: AppLayout,
-      props: { title: 'Create Orphan Creator' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-orphans.create_title' },
       children: [
         {
           path: '',
@@ -734,11 +742,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/orphans/:id/edit',
+      path: '/apps/vtual/orphans/:id/edit',
       name: 'vtual.orphans.edit',
       component: AppLayout,
-      props: { title: 'Edit Orphan Creator' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-orphans.edit_title' },
       children: [
         {
           path: '',
@@ -748,11 +755,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/platform-credentials',
+      path: '/apps/vtual/platform-credentials',
       name: 'vtual.platform-credentials.index',
       component: AppLayout,
-      props: { title: 'Platform Credentials' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-platform-credentials.title' },
       children: [
         {
           path: '',
@@ -762,53 +768,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/platform-credentials/:platformId',
-      name: 'vtual.platform-credentials.platform',
-      component: AppLayout,
-      props: { title: 'Platform Credentials' },
-      meta: { requiresAuth: true },
-      children: [
-        {
-          path: '',
-          name: 'vtual.platform-credentials.platform.view',
-          component: () => import('@/views/VtualPlatformCredentialPlatformView.vue'),
-        },
-      ],
-    },
-    {
-      path: '/vtual/platform-credentials/:platformId/create',
-      name: 'vtual.platform-credentials.create',
-      component: AppLayout,
-      props: { title: 'Create Credential' },
-      meta: { requiresAuth: true },
-      children: [
-        {
-          path: '',
-          name: 'vtual.platform-credentials.create.view',
-          component: () => import('@/views/VtualPlatformCredentialCreateView.vue'),
-        },
-      ],
-    },
-    {
-      path: '/vtual/credentials/:id/edit',
-      name: 'vtual.platform-credentials.edit',
-      component: AppLayout,
-      props: { title: 'Edit Credential' },
-      meta: { requiresAuth: true },
-      children: [
-        {
-          path: '',
-          name: 'vtual.platform-credentials.edit.view',
-          component: () => import('@/views/VtualPlatformCredentialCreateView.vue'),
-        },
-      ],
-    },
-    {
-      path: '/vtual/platform-credentials/probe',
+      path: '/apps/vtual/platform-credentials/probe',
       name: 'vtual.platform-credentials.probe',
       component: AppLayout,
-      props: { title: 'Platform API Probe' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual.probe.title' },
       children: [
         {
           path: '',
@@ -818,11 +781,49 @@ const router = createRouter({
       ],
     },
     {
-      path: '/product-activations',
+      path: '/apps/vtual/platform-credentials/:platformId',
+      name: 'vtual.platform-credentials.platform',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'web.vtual.credentials.list' },
+      children: [
+        {
+          path: '',
+          name: 'vtual.platform-credentials.platform.view',
+          component: () => import('@/views/VtualPlatformCredentialPlatformView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/apps/vtual/platform-credentials/:platformId/create',
+      name: 'vtual.platform-credentials.create',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'web.vtual.admin.credentials.create_title' },
+      children: [
+        {
+          path: '',
+          name: 'vtual.platform-credentials.create.view',
+          component: () => import('@/views/VtualPlatformCredentialCreateView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/apps/vtual/credentials/:id/edit',
+      name: 'vtual.platform-credentials.edit',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'web.vtual.admin.credentials.edit_title' },
+      children: [
+        {
+          path: '',
+          name: 'vtual.platform-credentials.edit.view',
+          component: () => import('@/views/VtualPlatformCredentialCreateView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/apps/product-activations',
       name: 'product-activations.index',
       component: AppLayout,
-      props: { title: 'Product Activations' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'product-activations.products_title' },
       children: [
         {
           path: '',
@@ -832,11 +833,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/product-activations/:productKey',
+      path: '/apps/product-activations/:productKey',
       name: 'product-activations.show',
       component: AppLayout,
-      props: { title: 'Product Activation Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'product-activations.product_title' },
       children: [
         {
           path: '',
@@ -846,11 +846,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/inference/usage-events',
+      path: '/apps/inference/usage-events',
       name: 'inference.usage-events.index',
       component: AppLayout,
-      props: { title: 'Inference Usage Events' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.inference.usage.title' },
       children: [
         {
           path: '',
@@ -860,11 +859,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/payments/income',
+      path: '/apps/payments/income',
       name: 'payments.income.index',
       component: AppLayout,
-      props: { title: 'Payments Income' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.income.title' },
       children: [
         {
           path: '',
@@ -874,11 +872,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/file-hosting/microstock-usage',
+      path: '/apps/file-hosting/microstock-usage',
       name: 'file-hosting.microstock-usage',
       component: AppLayout,
-      props: { title: 'Microstock Usage' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.microstock.usage.title' },
       children: [
         {
           path: '',
@@ -888,11 +885,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/payment-channels',
+      path: '/apps/payment-channels',
       name: 'payment-channels.index',
       component: AppLayout,
-      props: { title: 'Payment Channels' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.channels.title' },
       children: [
         {
           path: '',
@@ -902,11 +898,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/service-purchases/:id',
+      path: '/apps/service-purchases/:id',
       name: 'service-purchases.show',
       component: AppLayout,
-      props: { title: 'Service Purchase' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.services.purchase_title' },
       children: [
         {
           path: '',
@@ -916,11 +911,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/file-hosting',
+      path: '/apps/file-hosting',
       name: 'file-hosting.index',
       component: AppLayout,
-      props: { title: 'File Hosting' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.file-hosting.title' },
       children: [
         {
           path: '',
@@ -935,11 +929,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/file-hosting/files/:id',
+      path: '/apps/file-hosting/files/:id',
       name: 'file-hosting.show',
       component: AppLayout,
-      props: { title: 'File Detail' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.file-hosting.show_title' },
       children: [
         {
           path: '',
@@ -949,11 +942,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/file-hosting/trash',
+      path: '/apps/file-hosting/trash',
       name: 'file-hosting.trash',
       component: AppLayout,
-      props: { title: 'Trash' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.file-hosting.trash_title' },
       children: [
         {
           path: '',
@@ -963,11 +955,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/file-hosting/blocklist',
+      path: '/apps/file-hosting/blocklist',
       name: 'file-hosting.blocklist',
       component: AppLayout,
-      props: { title: 'Hash Blocklist' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.file-hosting.blocklist_title' },
       children: [
         {
           path: '',
@@ -977,11 +968,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/file-hosting/workspaces',
+      path: '/apps/file-hosting/workspaces',
       name: 'file-hosting.workspaces',
       component: AppLayout,
-      props: { title: 'Workspaces' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.file-hosting.workspaces_title' },
       children: [
         {
           path: '',
@@ -1017,11 +1007,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/profiles/:id',
+      path: '/apps/vtual/profiles/:id',
       name: 'vtual.profiles.show',
       component: AppLayout,
-      props: { title: 'Creator Profile' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual.profiles.manage_title' },
       children: [
         {
           path: '',
@@ -1031,11 +1020,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/vtubers/:slug',
+      path: '/apps/vtual/vtubers/:slug',
       name: 'vtual.vtuber.show',
       component: AppLayout,
-      props: { title: 'Vtuber Profile' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-vtuber.title' },
       children: [
         {
           path: '',
@@ -1045,11 +1033,10 @@ const router = createRouter({
       ],
     },
     {
-      path: '/vtual/vtubers/:slug/claim',
+      path: '/apps/vtual/vtubers/:slug/claim',
       name: 'vtual.vtuber.claim',
       component: AppLayout,
-      props: { title: 'Claim Profile' },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.vtual-vtuber.claim_page_title' },
       children: [
         {
           path: '',
@@ -1062,15 +1049,32 @@ const router = createRouter({
       path: '/payment/return',
       name: 'payment.return',
       component: () => import('@/views/PaymentReturnView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.confirming_payment' },
     },
     {
       path: '/payment/cancel',
       name: 'payment.cancel',
       component: () => import('@/views/PaymentReturnView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, titleKey: 'web.payments.payment_cancelled' },
     },
-  ],
+    {
+      path: '/:legacyRoot/:pathMatch(.*)*',
+      redirect: legacyAppsRedirect,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'errors.not_found' },
+      children: [
+        {
+          path: '',
+          name: 'not-found.view',
+          component: () => import('@/views/NotFoundView.vue'),
+        },
+      ],
+    },
+  ] as RouteRecordRaw[],
 })
 
 let hydrated = false

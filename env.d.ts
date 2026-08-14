@@ -5,7 +5,6 @@ declare module 'select2'
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string
-  readonly VITE_MONOLITH_WEB_URL: string
   readonly VITE_PUSHER_APP_KEY: string
   readonly VITE_PUSHER_APP_CLUSTER: string
   readonly VITE_PUSHER_HOST: string
@@ -50,4 +49,5 @@ interface JQuery {
 interface Window {
   jQuery: typeof jQuery
   $: typeof $
+  onHcaptchaApiLoad?: () => void
 }

@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions from '@/components/RowActions.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useErrorLogs } from '@/composables/useErrorLogs'
+import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { ErrorLog } from '@/api/types'
+import { ERROR_LOG_LEVEL_BADGE, ERROR_LOG_STATUS_BADGE } from '@/utils/statusBadge'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList } = useErrorLogs()
+const { items, loading, fetchList, pagination } = useErrorLogs()
 
 const filters = ref({
   status: '',
@@ -17,6 +21,19 @@ const filters = ref({
   type: '',
   q: '',
 })
+
+const { load, onPage, onPerPage } = useServerDataTable(fetchList, pagination, () => ({
+  status: filters.value.status,
+  level: filters.value.level,
+  type: filters.value.type,
+  q: filters.value.q,
+}))
+
+let filterTimer: ReturnType<typeof setTimeout> | null = null
+watch(filters, () => {
+  if (filterTimer) clearTimeout(filterTimer)
+  filterTimer = setTimeout(() => { void load({ page: 1 }) }, 300)
+}, { deep: true })
 
 const columns: DataTableColumn[] = [
   { key: 'level', label: t('web.error-log.columns.level'), sortable: true },
@@ -26,37 +43,6 @@ const columns: DataTableColumn[] = [
   { key: 'last_seen_at', label: t('web.error-log.columns.last_seen'), sortable: true, align: 'end' },
 ]
 
-const filtered = computed<ErrorLog[]>(() => {
-  let result = items.value
-  if (filters.value.status) {
-    result = result.filter((e) => e.status === filters.value.status)
-  }
-  if (filters.value.level) {
-    result = result.filter((e) => e.level === filters.value.level)
-  }
-  if (filters.value.type) {
-    result = result.filter((e) => e.type === filters.value.type)
-  }
-  if (filters.value.q.trim()) {
-    const q = filters.value.q.toLowerCase().trim()
-    result = result.filter((e) =>
-      (e.message ?? '').toLowerCase().includes(q) ||
-      (e.exception_class ?? '').toLowerCase().includes(q),
-    )
-  }
-  return result
-})
-
-function levelClass(level: string | null): string {
-  return level === 'error' ? 'text-bg-danger' : 'text-bg-dark'
-}
-
-function statusClass(status: string): string {
-  if (status === 'resolved') return 'text-bg-success'
-  if (status === 'ignored') return 'text-bg-secondary'
-  return 'text-bg-warning'
-}
-
 function viewDetail(row: ErrorLog): void {
   router.push({ name: 'error-logs.show.view', params: { id: row.id } })
 }
@@ -64,8 +50,6 @@ function viewDetail(row: ErrorLog): void {
 function resetFilters(): void {
   filters.value = { status: '', level: '', type: '', q: '' }
 }
-
-onMounted(() => fetchList({ limit: 100 }))
 </script>
 
 <template>
@@ -113,15 +97,21 @@ onMounted(() => fetchList({ limit: 100 }))
 
     <DataTable
       :columns="columns"
-      :rows="filtered"
+      :rows="items"
       :loading="loading"
+      server
+      :total="pagination.total"
+      :page="pagination.current_page"
+      :per-page="pagination.per_page"
       :searchable="false"
       empty-icon="bi-bug"
       :empty-title="t('web.error-log.empty_title')"
       @row-click="viewDetail"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
     >
       <template #cell-level="{ row }: { row: ErrorLog }">
-        <span class="badge me-1" :class="levelClass(row.level)">{{ row.level ?? '—' }}</span>
+        <StatusBadge :status="row.level" :mapping="ERROR_LOG_LEVEL_BADGE" fallback="dark" extra-class="me-1" />
         <span v-if="row.type" class="badge text-bg-light border">{{ row.type }}</span>
       </template>
 
@@ -139,7 +129,7 @@ onMounted(() => fetchList({ limit: 100 }))
       </template>
 
       <template #cell-status="{ row }: { row: ErrorLog }">
-        <span class="badge" :class="statusClass(row.status)">{{ row.status_label ?? row.status }}</span>
+        <StatusBadge :status="row.status" :mapping="ERROR_LOG_STATUS_BADGE" fallback="warning" :label="row.status_label ?? row.status" />
       </template>
 
       <template #cell-last_seen_at="{ row }: { row: ErrorLog }">
@@ -147,9 +137,9 @@ onMounted(() => fetchList({ limit: 100 }))
       </template>
 
       <template #actions="{ row }: { row: ErrorLog }">
-        <button class="btn btn-outline-secondary btn-sm" @click.stop="viewDetail(row)">
-          {{ t('web.error-log.view_detail') }}
-        </button>
+        <RowActions
+          :actions="[{ key: 'view', icon: 'eye', label: t('web.error-log.view_detail'), variant: 'secondary', onClick: () => viewDetail(row) }]"
+        />
       </template>
     </DataTable>
   </Card>

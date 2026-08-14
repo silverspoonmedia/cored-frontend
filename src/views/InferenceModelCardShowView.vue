@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useInferenceUsage } from '@/composables/useInferenceUsage'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
@@ -81,8 +82,10 @@ onMounted(async () => {
           <div class="card-body">
             <div class="text-muted small">{{ t('web.inference.model_cards.status_label') }}</div>
             <div class="fw-semibold">
-              <span v-if="card.is_active" class="badge text-bg-success">{{ t('web.inference.model_cards.active_badge') }}</span>
-              <span v-else class="badge text-bg-secondary">{{ t('web.inference.model_cards.inactive_badge') }}</span>
+              <StatusBadge
+                :status="card.is_active ? 'active' : 'inactive'"
+                :label="card.is_active ? t('web.inference.model_cards.active_badge') : t('web.inference.model_cards.inactive_badge')"
+              />
             </div>
           </div>
         </div>

@@ -1,31 +1,66 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import { usePaymentGateways } from '@/composables/usePaymentGateways'
 import { useAuth } from '@/stores/auth'
+import { useServerDataTable } from '@/composables/useServerDataTable'
+import { useAlert } from '@/composables/useAlert'
 import type { PaymentGateway } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList } = usePaymentGateways()
+const { items, loading, fetchList, pagination, destroy } = usePaymentGateways()
 const { hasPermission } = useAuth()
+const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage payment gateway'))
+const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
+const deleteTarget = ref<PaymentGateway | null>(null)
+const showDeleteModal = ref(false)
 
 const columns: DataTableColumn[] = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'display_name', label: 'Display Name', sortable: true },
-  { key: 'priority', label: 'Priority', sortable: true, align: 'center' },
-  { key: 'is_active', label: 'Active', sortable: true, align: 'center' },
-  { key: 'updated_at', label: 'Updated', sortable: true, align: 'end' },
+  { key: 'name', label: t('web.payments.gateways.datatable.columns.name'), sortable: true },
+  { key: 'display_name', label: t('web.payments.gateways.datatable.columns.display_name'), sortable: true },
+  { key: 'priority', label: t('web.payments.gateways.datatable.columns.priority'), sortable: true, align: 'center' },
+  { key: 'is_active', label: t('web.payments.gateways.datatable.columns.is_active'), sortable: true, align: 'center' },
+  { key: 'updated_at', label: t('web.file-hosting.updated'), sortable: true, align: 'end' },
 ]
-
-onMounted(() => fetchList())
 
 function editGateway(row: PaymentGateway): void {
   router.push({ name: 'payment-gateways.edit.view', params: { id: row.id } })
+}
+
+function gatewayActions(row: PaymentGateway): RowAction[] {
+  return [
+    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editGateway(row) },
+    {
+      key: 'delete',
+      icon: 'trash3',
+      label: t('ui.actions.delete'),
+      variant: 'danger',
+      onClick: () => {
+        deleteTarget.value = row
+        showDeleteModal.value = true
+      },
+    },
+  ]
+}
+
+async function handleDelete(): Promise<void> {
+  if (!deleteTarget.value) return
+  try {
+    await destroy(deleteTarget.value.id)
+    showSuccess(t('api.payments.gateways.deleted'))
+    deleteTarget.value = null
+    await fetchList()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  }
 }
 </script>
 
@@ -33,7 +68,7 @@ function editGateway(row: PaymentGateway): void {
   <Card :title="t('web.payments.gateways.title')">
     <template #actions>
       <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'payment-gateways.create.view' })">
-        <i class="bi bi-plus-lg me-1"></i> Add Gateway
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.payments.gateways.create') }}
       </button>
     </template>
 
@@ -41,10 +76,17 @@ function editGateway(row: PaymentGateway): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      server
+      :total="pagination.total"
+      :page="pagination.current_page"
+      :per-page="pagination.per_page"
       :search-placeholder="t('web.payments.gateways.search_placeholder')"
       empty-icon="bi-credit-card"
       :empty-title="t('web.payments.gateways.empty_title')"
       @row-click="editGateway"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
+      @update:search="onSearch"
     >
       <template #cell-name="{ row }: { row: PaymentGateway }">
         <code>{{ row.name }}</code>
@@ -55,9 +97,10 @@ function editGateway(row: PaymentGateway): void {
       </template>
 
       <template #cell-is_active="{ row }: { row: PaymentGateway }">
-        <span class="badge" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
-          {{ row.is_active ? 'Active' : 'Inactive' }}
-        </span>
+        <StatusBadge
+          :status="row.is_active ? 'active' : 'inactive'"
+          :label="row.is_active ? 'Active' : 'Inactive'"
+        />
       </template>
 
       <template #cell-updated_at="{ row }: { row: PaymentGateway }">
@@ -65,10 +108,17 @@ function editGateway(row: PaymentGateway): void {
       </template>
 
       <template v-if="canManage" #actions="{ row }: { row: PaymentGateway }">
-        <button class="btn btn-outline-primary btn-sm" @click.stop="editGateway(row)">
-          <i class="bi bi-pencil" aria-hidden="true"></i>
-        </button>
+        <RowActions :actions="gatewayActions(row)" />
       </template>
     </DataTable>
+
+    <ConfirmModal
+      v-model="showDeleteModal"
+      :title="t('ui.datatable.delete')"
+      :message="t('web.payments.gateways.confirm_delete')"
+      :confirm-label="t('ui.actions.delete')"
+      confirm-variant="danger"
+      @confirm="handleDelete"
+    />
   </Card>
 </template>

@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
 
 interface BreadcrumbItem {
   label: string
@@ -113,6 +114,13 @@ export function useBreadcrumbs() {
     const items: BreadcrumbItem[] = []
     const routeName = route.name as string | null
     if (!routeName) return items
+
+    const settingsGroup = settingsGroupFromRoute(route)
+    if (settingsGroup && routeName.startsWith('settings.') && routeName !== 'settings.index.view') {
+      items.push({ label: t('web.settings.title'), routeName: 'settings.index.view' })
+      items.push({ label: t(settingsGroupLabelKey(settingsGroup)) })
+      return items
+    }
 
     const config = BREADCRUMB_MAP[routeName]
     if (!config) return items

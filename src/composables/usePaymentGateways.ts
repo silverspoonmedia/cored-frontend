@@ -5,6 +5,7 @@ export function usePaymentGateways() {
   const base = useResource<PaymentGateway>('payment-gateways')
   return {
     items: base.items,
+    pagination: base.pagination,
     loading: base.loading,
     error: base.error,
     fetchList: base.fetchList,

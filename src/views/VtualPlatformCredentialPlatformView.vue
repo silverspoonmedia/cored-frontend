@@ -3,10 +3,12 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { VtualPlatformCredential } from '@/api/types'
+import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
@@ -85,15 +87,6 @@ function updateCredentialInList(updated: VtualPlatformCredential): void {
 function setAction(id: string, on: boolean): void {
   actionLoading.value = { ...actionLoading.value, [id]: on }
 }
-
-function statusClass(status: string): string {
-  const map: Record<string, string> = {
-    active: 'text-bg-success',
-    pending: 'text-bg-warning',
-    revoked: 'text-bg-danger',
-  }
-  return map[status.toLowerCase()] ?? 'text-bg-secondary'
-}
 </script>
 
 <template>
@@ -136,7 +129,7 @@ function statusClass(status: string): string {
             <td>{{ cred.label }}</td>
             <td><code>{{ cred.type }}</code></td>
             <td class="text-center">
-              <span class="badge" :class="statusClass(cred.status)">{{ cred.status }}</span>
+              <StatusBadge :status="cred.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
             </td>
             <td class="text-center">{{ cred.priority ?? '—' }}</td>
             <td class="small text-muted">{{ cred.secret_hint ?? '—' }}</td>

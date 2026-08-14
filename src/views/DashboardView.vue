@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DashboardSessionCard from '@/components/DashboardSessionCard.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 
@@ -65,10 +66,10 @@ async function handleResend(): Promise<void> {
           <div class="mb-3">
             <strong>{{ t('ui.labels.status') }}:</strong>
             <template v-if="user?.email_verified_at">
-              <span class="badge text-bg-success">{{ t('ui.status.verified') }}</span>
+              <StatusBadge status="verified" :label="t('ui.status.verified')" />
             </template>
             <template v-else>
-              <span class="badge text-bg-warning">{{ t('ui.status.unverified') }}</span>
+              <StatusBadge status="unverified" :label="t('ui.status.unverified')" />
               <button
                 type="button"
                 class="btn btn-sm btn-outline-primary ms-2"
@@ -84,10 +85,10 @@ async function handleResend(): Promise<void> {
           <div class="mb-3">
             <strong>{{ t('menu.two_factor') }}:</strong>
             <template v-if="user?.two_factor_enabled">
-              <span class="badge text-bg-success">{{ t('web.auth.two_factor_enabled_short') }}</span>
+              <StatusBadge status="enabled" :label="t('web.auth.two_factor_enabled_short')" />
             </template>
             <template v-else>
-              <span class="badge text-bg-warning">{{ t('web.auth.two_factor_disabled_short') }}</span>
+              <StatusBadge status="disabled" :label="t('web.auth.two_factor_disabled_short')" />
               <router-link :to="{ name: 'profile.two-factor.edit.view' }" class="btn btn-sm btn-outline-primary ms-2">
                 {{ t('web.auth.two_factor_setup_button') }}
               </router-link>

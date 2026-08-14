@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions from '@/components/RowActions.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useServerDataTable } from '@/composables/useServerDataTable'
+import type { ListParams } from '@/composables/useResource'
 import type { VtualCreator } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { fetchOrphans } = useVtual()
+const { fetchOrphans, orphanPagination } = useVtual()
 const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
 
@@ -19,23 +22,28 @@ const items = ref<VtualCreator[]>([])
 const loading = ref(true)
 const canManage = computed(() => hasPermission('manage any vtual resource'))
 
+async function fetchList(params?: ListParams): Promise<VtualCreator[]> {
+  loading.value = true
+  try {
+    items.value = await fetchOrphans(params)
+    return items.value
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.load_failed'))
+    items.value = []
+    return []
+  } finally {
+    loading.value = false
+  }
+}
+
+const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, orphanPagination)
+
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'display_name', label: t('web.vtual-orphans.datatable.columns.display_name'), sortable: true },
   { key: 'slug', label: t('web.vtual-orphans.datatable.columns.slug'), sortable: true },
   { key: 'channels_count', label: t('web.vtual-orphans.datatable.columns.channels'), sortable: true, align: 'center' },
   { key: 'created_at', label: t('web.vtual-orphans.datatable.columns.created_at'), sortable: true, align: 'end' },
 ])
-
-onMounted(async () => {
-  loading.value = true
-  try {
-    items.value = await fetchOrphans()
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.load_failed'))
-  } finally {
-    loading.value = false
-  }
-})
 
 function editOrphan(row: VtualCreator): void {
   router.push({ name: 'vtual.orphans.edit.view', params: { id: row.id } })
@@ -58,10 +66,17 @@ function editOrphan(row: VtualCreator): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      server
+      :total="orphanPagination.total"
+      :page="orphanPagination.current_page"
+      :per-page="orphanPagination.per_page"
       :search-placeholder="t('web.vtual-orphans.datatable.search_placeholder')"
       empty-icon="bi-search"
       :empty-title="t('web.vtual-orphans.datatable.empty')"
       @row-click="editOrphan"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
+      @update:search="onSearch"
     >
       <template #cell-slug="{ row }: { row: VtualCreator }">
         <code>{{ row.slug }}</code>
@@ -76,9 +91,9 @@ function editOrphan(row: VtualCreator): void {
       </template>
 
       <template v-if="canManage" #actions="{ row }: { row: VtualCreator }">
-        <button class="btn btn-outline-primary btn-sm" @click.stop="editOrphan(row)">
-          <i class="bi bi-pencil" aria-hidden="true"></i>
-        </button>
+        <RowActions
+          :actions="[{ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editOrphan(row) }]"
+        />
       </template>
     </DataTable>
   </Card>

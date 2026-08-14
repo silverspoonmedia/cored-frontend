@@ -7,10 +7,12 @@ import FormInput from '@/components/FormInput.vue'
 import FormTextarea from '@/components/FormTextarea.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 import type { VtualChannel, VtualPlatform } from '@/api/types'
+import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
@@ -122,16 +124,6 @@ async function handleAddChannel(): Promise<void> {
   } finally {
     addingChannel.value = false
   }
-}
-
-function statusBadge(status: string): string {
-  const map: Record<string, string> = {
-    active: 'text-bg-success',
-    pending: 'text-bg-warning',
-    archived: 'text-bg-secondary',
-    disconnected: 'text-bg-danger',
-  }
-  return map[status] ?? 'text-bg-light'
 }
 
 onMounted(load)
@@ -256,7 +248,7 @@ onMounted(load)
                   <div v-if="ch.resolve_error" class="text-danger small">{{ ch.resolve_error }}</div>
                 </td>
                 <td>
-                  <span class="badge" :class="statusBadge(ch.status)">{{ ch.status }}</span>
+                  <StatusBadge :status="ch.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
                 </td>
               </tr>
             </tbody>

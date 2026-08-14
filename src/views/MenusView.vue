@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions, { type RowAction } from '@/components/RowActions.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useMenus } from '@/composables/useMenus'
 import { useAlert } from '@/composables/useAlert'
@@ -37,8 +38,23 @@ const columns: DataTableColumn[] = [
   { key: 'attributes', label: t('web.menus.columns.attributes'), sortable: false },
 ]
 
-async function load(): Promise<void> {
-  await fetchList(layout.value)
+function menuActions(row: MenuListItem): RowAction[] {
+  return [
+    {
+      key: 'edit',
+      icon: 'pencil',
+      label: t('ui.actions.edit'),
+      variant: 'primary',
+      onClick: () => router.push({ name: 'menus.edit.view', params: { id: row.id }, query: { layout: layout.value } }),
+    },
+    {
+      key: 'delete',
+      icon: 'trash3',
+      label: t('ui.actions.delete'),
+      variant: 'danger',
+      onClick: () => confirmDelete(row),
+    },
+  ]
 }
 
 function confirmDelete(row: MenuListItem): void {
@@ -60,6 +76,10 @@ async function handleDelete(): Promise<void> {
   } finally {
     deleting.value = false
   }
+}
+
+async function load(): Promise<void> {
+  await fetchList(layout.value)
 }
 
 onMounted(load)
@@ -120,12 +140,7 @@ onMounted(load)
       </template>
 
       <template v-if="canManage" #actions="{ row }: { row: MenuListItem }">
-        <button class="btn btn-outline-primary btn-sm" @click.stop="router.push({ name: 'menus.edit.view', params: { id: row.id }, query: { layout: layout } })">
-          <i class="bi bi-pencil" aria-hidden="true"></i>
-        </button>
-        <button class="btn btn-outline-danger btn-sm" @click.stop="confirmDelete(row)">
-          <i class="bi bi-trash3" aria-hidden="true"></i>
-        </button>
+        <RowActions :actions="menuActions(row)" />
       </template>
     </DataTable>
 

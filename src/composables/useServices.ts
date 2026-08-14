@@ -10,7 +10,7 @@ export function useServices() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    return { billing_intervals: [], plan_kinds: [], statuses: [] }
+    return { billing_intervals: [], plan_kinds: [], statuses: [], purchase_max_quantity: 99 }
   }
 
   async function checkout(serviceId: string, currency: string, quantity = 1): Promise<ServicePurchase> {
@@ -26,6 +26,7 @@ export function useServices() {
 
   return {
     items: base.items,
+    pagination: base.pagination,
     loading: base.loading,
     error: base.error,
     fetchList: base.fetchList,

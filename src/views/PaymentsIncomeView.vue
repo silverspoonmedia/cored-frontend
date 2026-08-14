@@ -2,15 +2,20 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import { usePaymentsIncome } from '@/composables/usePaymentsIncome'
+import { useInvoices } from '@/composables/useInvoices'
 import { useAlert } from '@/composables/useAlert'
 import type { PaymentIncomeOverview, Invoice } from '@/api/types'
+import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
 
 const { t } = useI18n()
 const { fetchOverview, fetchInvoices } = usePaymentsIncome()
+const { exportCsv } = useInvoices()
 const { error: showError } = useAlert()
+const exporting = ref(false)
 
 const overview = ref<PaymentIncomeOverview | null>(null)
 const invoices = ref<Invoice[]>([])
@@ -103,21 +108,33 @@ async function applyFilters(): Promise<void> {
   await loadInvoices(true)
 }
 
+async function handleExport(): Promise<void> {
+  if (exporting.value) return
+  exporting.value = true
+  try {
+    const query: Record<string, unknown> = { status: 'paid' }
+    if (filters.from) query.paid_from = filters.from
+    if (filters.to) query.paid_to = filters.to
+    await exportCsv(query)
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  } finally {
+    exporting.value = false
+  }
+}
+
 onMounted(applyFilters)
 
-function statusClass(status: string): string {
-  const map: Record<string, string> = {
-    paid: 'text-bg-success',
-    pending: 'text-bg-warning',
-    expired: 'text-bg-secondary',
-    failed: 'text-bg-danger',
-  }
-  return map[status.toLowerCase()] ?? 'text-bg-light'
-}
 </script>
 
 <template>
   <Card :title="t('web.payments.income.title')">
+    <template #actions>
+      <button type="button" class="btn btn-outline-secondary btn-sm" :disabled="exporting" @click="handleExport">
+        <span v-if="exporting" class="spinner-border spinner-border-sm me-1"></span>
+        <i v-else class="bi bi-download me-1"></i>{{ t('web.payments.invoices.export_csv') }}
+      </button>
+    </template>
     <form class="row g-2 mb-4" @submit.prevent="applyFilters">
       <div class="col-md-2">
         <FormInput name="from" :label="t('web.payments.income.filters.from')" type="date" v-model="filters.from" />
@@ -281,7 +298,7 @@ function statusClass(status: string): string {
                 <tr v-for="inv in invoices" :key="inv.id">
                   <td><code class="small">{{ inv.invoice_number }}</code></td>
                   <td class="text-center">
-                    <span class="badge" :class="statusClass(inv.status)">{{ inv.status }}</span>
+                    <StatusBadge :status="inv.status" :mapping="INVOICE_STATUS_BADGE" fallback="light" />
                   </td>
                   <td class="text-end small">{{ inv.subtotal_formatted ?? inv.subtotal ?? '—' }}</td>
                   <td class="text-end small">{{ inv.payment_channel_fee_formatted ?? inv.payment_channel_fee ?? '—' }}</td>

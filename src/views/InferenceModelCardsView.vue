@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useInferenceModelCards } from '@/composables/useInferenceModelCards'
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useServerDataTable } from '@/composables/useServerDataTable'
+import { useAlert } from '@/composables/useAlert'
 import type { AiModelCard } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, destroy } = useInferenceModelCards()
+const { items, loading, fetchList, pagination, destroy } = useInferenceModelCards()
 const { hasPermission } = useAuth()
+const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage inference catalog'))
+const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
+const deleteTarget = ref<AiModelCard | null>(null)
+const showDeleteModal = ref(false)
 
 const columns: DataTableColumn[] = [
   { key: 'slug', label: t('web.inference.model_cards.datatable.columns.slug'), sortable: true },
@@ -25,16 +34,44 @@ const columns: DataTableColumn[] = [
 
 useListingLiveUpdate('inference-model-cards-table', () => fetchList())
 
-onMounted(() => {
-  fetchList()
-})
-
 function showCard(row: AiModelCard): void {
   router.push({ name: 'inference.model-cards.show.view', params: { id: row.id } })
 }
 
 function editCard(row: AiModelCard): void {
   router.push({ name: 'inference.model-cards.edit.view', params: { id: row.id } })
+}
+
+function cardActions(row: AiModelCard): RowAction[] {
+  const actions: RowAction[] = [
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', onClick: () => showCard(row) },
+  ]
+  if (canManage.value) {
+    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editCard(row) })
+    actions.push({
+      key: 'delete',
+      icon: 'trash3',
+      label: t('ui.actions.delete'),
+      variant: 'danger',
+      onClick: () => {
+        deleteTarget.value = row
+        showDeleteModal.value = true
+      },
+    })
+  }
+  return actions
+}
+
+async function handleDelete(): Promise<void> {
+  if (!deleteTarget.value) return
+  try {
+    await destroy(deleteTarget.value.id)
+    showSuccess(t('api.inference.model_cards.deleted'))
+    deleteTarget.value = null
+    await fetchList()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  }
 }
 </script>
 
@@ -50,10 +87,17 @@ function editCard(row: AiModelCard): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      server
+      :total="pagination.total"
+      :page="pagination.current_page"
+      :per-page="pagination.per_page"
       :search-placeholder="t('web.inference.model_cards.search_placeholder')"
       empty-icon="bi-cpu"
       :empty-title="t('web.inference.model_cards.empty_title')"
       @row-click="showCard"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
+      @update:search="onSearch"
     >
       <template #cell-slug="{ row }: { row: AiModelCard }">
         <code>{{ row.slug }}</code>
@@ -64,9 +108,10 @@ function editCard(row: AiModelCard): void {
       </template>
 
       <template #cell-is_active="{ row }: { row: AiModelCard }">
-        <span class="badge" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
-          {{ row.is_active ? t('web.inference.model_cards.active_badge') : t('web.inference.model_cards.inactive_badge') }}
-        </span>
+        <StatusBadge
+          :status="row.is_active ? 'active' : 'inactive'"
+          :label="row.is_active ? t('web.inference.model_cards.active_badge') : t('web.inference.model_cards.inactive_badge')"
+        />
       </template>
 
       <template #cell-needs_rate_classification="{ row }: { row: AiModelCard }">
@@ -79,13 +124,17 @@ function editCard(row: AiModelCard): void {
       </template>
 
       <template #actions="{ row }: { row: AiModelCard }">
-        <button class="btn btn-outline-info btn-sm" @click.stop="showCard(row)">
-          <i class="bi bi-eye" aria-hidden="true"></i>
-        </button>
-        <button v-if="canManage" class="btn btn-outline-primary btn-sm ms-1" @click.stop="editCard(row)">
-          <i class="bi bi-pencil" aria-hidden="true"></i>
-        </button>
+        <RowActions :actions="cardActions(row)" />
       </template>
     </DataTable>
+
+    <ConfirmModal
+      v-model="showDeleteModal"
+      :title="t('ui.datatable.delete')"
+      :message="t('web.inference.confirm.delete')"
+      :confirm-label="t('ui.actions.delete')"
+      confirm-variant="danger"
+      @confirm="handleDelete"
+    />
   </Card>
 </template>

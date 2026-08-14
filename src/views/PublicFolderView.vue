@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import FhIcon from '@/components/FhIcon.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useAlert } from '@/composables/useAlert'
 import type { FhPublicBrowsePayload } from '@/api/types'
@@ -15,29 +16,40 @@ const { error: showError } = useAlert()
 const browse = ref<FhPublicBrowsePayload | null>(null)
 const loading = ref(true)
 
-onMounted(async () => {
+async function loadFolder(): Promise<void> {
   loading.value = true
   try {
     browse.value = await fh.fetchPublicFolder(route.params.id as string)
   } catch (e) {
+    browse.value = null
     showError(e instanceof Error ? e.message : t('web.file-hosting.public.folder_not_found'))
   } finally {
     loading.value = false
   }
-})
+}
 
-function fileIcon(mime: string): string {
-  if (mime.startsWith('image/')) return 'bi-file-image'
-  if (mime.startsWith('video/')) return 'bi-file-play'
-  if (mime.startsWith('audio/')) return 'bi-file-music'
-  if (mime.includes('pdf')) return 'bi-file-pdf'
-  if (mime.includes('zip') || mime.includes('compressed')) return 'bi-file-zip'
-  if (mime.includes('text')) return 'bi-file-text'
-  return 'bi-file-earmark'
+watch(
+  () => route.params.id,
+  () => {
+    void loadFolder()
+  },
+  { immediate: true },
+)
+
+function folderHref(id: string): string {
+  return router.resolve({ name: 'public.folder', params: { id } }).href
+}
+
+function fileHref(id: string): string {
+  return router.resolve({ name: 'public.file', params: { id } }).href
 }
 
 function openFolder(folderId: string): void {
   router.push({ name: 'public.folder', params: { id: folderId } })
+}
+
+function openFile(fileId: string): void {
+  router.push({ name: 'public.file', params: { id: fileId } })
 }
 </script>
 
@@ -53,13 +65,25 @@ function openFolder(folderId: string): void {
       <div class="fh-public__card-body card-body p-4">
         <div class="fh-public__label text-muted small mb-2">{{ t('web.file-hosting.public.shared_folder') }}</div>
         <h1 class="h4 mb-3">
-          <i class="bi bi-folder-fill text-warning me-1"></i>
+          <FhIcon is-folder />
           {{ browse.folder.name }}
         </h1>
 
         <nav v-if="browse.breadcrumb.length > 0" aria-label="breadcrumb" class="mb-3">
           <ol class="breadcrumb breadcrumb-sm mb-0">
-            <li class="breadcrumb-item active">{{ browse.folder.name }}</li>
+            <li
+              v-for="(crumb, i) in browse.breadcrumb"
+              :key="crumb.id"
+              class="breadcrumb-item"
+              :class="{ active: i === browse.breadcrumb.length - 1 }"
+            >
+              <span v-if="i === browse.breadcrumb.length - 1">{{ crumb.name }}</span>
+              <a
+                v-else
+                :href="folderHref(crumb.id)"
+                @click.prevent="openFolder(crumb.id)"
+              >{{ crumb.name }}</a>
+            </li>
           </ol>
         </nav>
 
@@ -69,7 +93,7 @@ function openFolder(folderId: string): void {
         </div>
 
         <div v-else class="table-responsive">
-          <table class="table table-sm table-hover align-middle mb-0">
+          <table class="table table-sm table-hover align-middle mb-0 fh-table">
             <tbody>
               <tr
                 v-for="folder in browse.folders"
@@ -78,16 +102,25 @@ function openFolder(folderId: string): void {
                 @click="openFolder(folder.id)"
               >
                 <td>
-                  <i class="bi bi-folder-fill text-warning me-1"></i>
-                  {{ folder.name }}
+                  <a :href="folderHref(folder.id)" class="text-reset text-decoration-none" @click.prevent="openFolder(folder.id)">
+                    <FhIcon is-folder />
+                    {{ folder.name }}
+                  </a>
                 </td>
                 <td class="text-muted small">{{ t('web.file-hosting.public.folder') }}</td>
                 <td class="text-end text-muted small">—</td>
               </tr>
-              <tr v-for="file in browse.files" :key="file.id">
+              <tr
+                v-for="file in browse.files"
+                :key="file.id"
+                style="cursor: pointer;"
+                @click="openFile(file.id)"
+              >
                 <td>
-                  <i class="bi me-1" :class="fileIcon(file.mime)"></i>
-                  {{ file.name }}
+                  <a :href="fileHref(file.id)" class="text-reset text-decoration-none" @click.prevent="openFile(file.id)">
+                    <FhIcon :mime="file.mime" />
+                    {{ file.name }}
+                  </a>
                 </td>
                 <td class="text-muted small">{{ file.mime }}</td>
                 <td class="text-end text-muted small">{{ file.size_human }}</td>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNavbar from '@/components/AppNavbar.vue'
@@ -9,17 +9,17 @@ import { useNavigation } from '@/composables/useNavigation'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTreeview } from '@/composables/useTreeview'
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs'
-
-defineProps<{
-  title?: string
-}>()
+import { usePageTitle } from '@/composables/usePageTitle'
+import { useTheme } from '@/composables/useTheme'
 
 const route = useRoute()
 const { t } = useI18n()
-const { init: initSidebar, closeMobile } = useSidebar()
+const { init: initSidebar, closeMobile, syncOverlayScrollbarTheme, destroyOverlayScrollbars } = useSidebar()
 const { openActiveAncestors } = useTreeview()
 const { tree, load } = useNavigation()
 const { breadcrumbs } = useBreadcrumbs()
+const { pageTitle } = usePageTitle()
+const { effective: themeEffective } = useTheme()
 
 function syncActiveAncestors(name: string | null): void {
   if (!tree.value.length) return
@@ -31,6 +31,10 @@ onMounted(() => {
   load().then(() => syncActiveAncestors(route.name as string | null))
 })
 
+onUnmounted(() => {
+  destroyOverlayScrollbars()
+})
+
 watch(
   () => route.name,
   (name) => {
@@ -40,6 +44,7 @@ watch(
 )
 
 watch(tree, () => syncActiveAncestors(route.name as string | null))
+watch(themeEffective, () => syncOverlayScrollbarTheme())
 </script>
 
 <template>
@@ -52,7 +57,7 @@ watch(tree, () => syncActiveAncestors(route.name as string | null))
         <div class="container-fluid">
           <div class="row align-items-center">
             <div class="col-sm-6">
-              <h3 class="mb-0">{{ title }}</h3>
+              <h3 class="mb-0">{{ pageTitle }}</h3>
             </div>
             <div class="col-sm-6">
               <nav aria-label="breadcrumb">

@@ -38,9 +38,9 @@ async function handleSubmit(): Promise<void> {
         showError(e.message)
       }
     } else if (e instanceof ApiError) {
-      showError(e.message || 'Failed to reset password')
+      showError(e.message || t('web.auth.reset_password_failed'))
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to reset password')
+      showError(e instanceof Error ? e.message : t('web.auth.reset_password_failed'))
     }
   } finally {
     loading.value = false
@@ -70,7 +70,7 @@ function fieldError(field: string): string | null {
     <!-- Email -->
     <div class="mb-3">
       <label for="email" class="form-label">
-        Email<span class="text-danger">*</span>
+        {{ t('ui.labels.email') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -95,7 +95,7 @@ function fieldError(field: string): string | null {
     <!-- Password -->
     <div class="mb-3">
       <label for="password" class="form-label">
-        New Password<span class="text-danger">*</span>
+        {{ t('web.auth.new_password_placeholder') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -129,7 +129,7 @@ function fieldError(field: string): string | null {
     <!-- Password Confirmation -->
     <div class="mb-3">
       <label for="password_confirmation" class="form-label">
-        Confirm Password<span class="text-danger">*</span>
+        {{ t('web.auth.password_confirm_label') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input

@@ -1,5 +1,6 @@
 import { useResource } from '@/composables/useResource'
-import { get, post } from '@/api/client'
+import { get, post, getBlob } from '@/api/client'
+import { saveBlob } from '@/utils/download'
 import type {
   ApiResponse,
   Invoice,
@@ -49,8 +50,14 @@ export function useInvoices() {
     throw new Error(res.message ?? 'Sync failed')
   }
 
+  async function exportCsv(query?: Record<string, unknown>): Promise<void> {
+    const { blob, filename } = await getBlob('invoices/export', query)
+    saveBlob(blob, filename ?? 'invoices.csv')
+  }
+
   return {
     items: base.items,
+    pagination: base.pagination,
     loading: base.loading,
     error: base.error,
     fetchList: base.fetchList,
@@ -58,5 +65,6 @@ export function useInvoices() {
     fetchCheckoutChannels,
     channelCheckout,
     syncStatus,
+    exportCsv,
   }
 }

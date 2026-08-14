@@ -8,6 +8,7 @@ import { useSettings } from '@/composables/useSettings'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { SettingEntry } from '@/api/types'
+import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,12 +19,9 @@ const { hasPermission } = useAuth()
 
 const canManage = computed(() => hasPermission('manage settings'))
 
-const group = computed(() => route.params.group as string)
+const group = computed(() => settingsGroupFromRoute(route))
 
-const groupLabel = computed(() => {
-  const slugKey = group.value.replace(/-/g, '_')
-  return t(`web.settings.groups.${slugKey}`)
-})
+const groupLabel = computed(() => t(settingsGroupLabelKey(group.value || 'platform')))
 
 const fieldLabels = computed<Record<string, string>>(() => {
   const obj = tm('web.settings.fields') as Record<string, string>
@@ -60,7 +58,7 @@ function optionLabel(key: string, opt: string): string {
     }
   }
   if (node && typeof node === 'object' && opt in (node as Record<string, string>)) {
-    return (node as Record<string, string>)[opt]
+    return (node as Record<string, string>)[opt] ?? opt
   }
   return opt
 }

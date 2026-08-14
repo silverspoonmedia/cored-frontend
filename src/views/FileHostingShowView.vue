@@ -2,8 +2,10 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import Card from '@/components/Card.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import FhIcon from '@/components/FhIcon.vue'
+import FhShareModal from '@/components/FhShareModal.vue'
+import FhMicrostockReviewModal from '@/components/FhMicrostockReviewModal.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useEcho } from '@/composables/useEcho'
@@ -11,22 +13,40 @@ import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { HostedFile } from '@/api/types'
 
+const VIS_LINK = 'anyone_with_link'
+
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
-const { token } = useAuth()
+const { token, hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
 const { connected: echoConnected } = useEcho(() => token.value)
 
 const file = ref<HostedFile | null>(null)
 const loading = ref(true)
+const isBusy = ref(false)
 
 const showRename = ref(false)
 const renameValue = ref('')
 const showDeleteConfirm = ref(false)
-const showVisibilityConfirm = ref(false)
+const showShare = ref(false)
+const shareVisibility = ref('private')
+const shareUrl = ref<string | null>(null)
+const showReview = ref(false)
+
+const canEdit = computed(() => hasPermission('edit file hosting file'))
+const canDelete = computed(() => hasPermission('delete file hosting file'))
+
+function ctxParams(): Record<string, unknown> {
+  const params: Record<string, unknown> = {}
+  const ws = route.query.workspace_id
+  const uid = route.query.user_id
+  if (ws) params.workspace_id = ws
+  if (uid) params.user_id = uid
+  return params
+}
 
 async function loadFile(): Promise<void> {
   loading.value = true
@@ -78,177 +98,185 @@ onUnmounted(() => {
   stopShowPolling()
 })
 
-function ctxParams(): Record<string, unknown> {
-  const params: Record<string, unknown> = {}
-  const ws = route.query.workspace_id
-  const uid = route.query.user_id
-  if (ws) params.workspace_id = ws
-  if (uid) params.user_id = uid
-  return params
+function visLabel(v: string): string {
+  if (v === VIS_LINK) return t('web.file-hosting.visibility.anyone_with_link')
+  if (v === 'workspace') return t('web.file-hosting.workspace_team')
+  return t('web.file-hosting.visibility.private')
 }
 
-function fileIcon(mime: string): string {
-  if (mime.startsWith('image/')) return 'bi-file-image'
-  if (mime.startsWith('video/')) return 'bi-file-play'
-  if (mime.startsWith('audio/')) return 'bi-file-music'
-  if (mime.includes('pdf')) return 'bi-file-pdf'
-  if (mime.includes('zip') || mime.includes('compressed')) return 'bi-file-zip'
-  if (mime.includes('text')) return 'bi-file-text'
-  return 'bi-file-earmark'
+function visBadgeClass(v: string): string {
+  return v === VIS_LINK ? 'fh-badge--link' : 'fh-badge--private'
 }
 
-function visibilityBadge(visibility: string): string {
-  if (visibility === 'anyone_with_link') return 'text-bg-success'
-  if (visibility === 'workspace') return 'text-bg-info'
-  return 'text-bg-secondary'
+function browseBack(): void {
+  const folderId = file.value?.folder_id
+  if (folderId) {
+    router.push({ name: 'file-hosting.index.folder', params: { folderId }, query: route.query })
+  } else {
+    router.push({ name: 'file-hosting.index.view', query: route.query })
+  }
 }
 
-function visibilityLabel(visibility: string): string {
-  if (visibility === 'anyone_with_link') return t('web.file-hosting.link')
-  if (visibility === 'workspace') return t('web.file-hosting.workspace_team')
-  return t('web.file-hosting.private')
+function openShare(): void {
+  if (!file.value) return
+  shareVisibility.value = file.value.visibility || 'private'
+  shareUrl.value = file.value.share_url
+  showShare.value = true
 }
 
-function copyShareUrl(): void {
-  if (file.value?.share_url) {
-    navigator.clipboard.writeText(file.value.share_url).then(() => showSuccess(t('web.file-hosting.share_url_copied')))
+async function saveShare(): Promise<void> {
+  if (!file.value) return
+  isBusy.value = true
+  try {
+    file.value = await fh.setFileVisibility(file.value.id, shareVisibility.value, ctxParams())
+    shareUrl.value = file.value.share_url
+    if (shareVisibility.value === VIS_LINK && file.value.share_url) {
+      await navigator.clipboard.writeText(file.value.share_url)
+      showSuccess(t('web.file-hosting.share_url_copied'))
+    } else {
+      showSuccess(t('web.file-hosting.visibility_updated'))
+    }
+    showShare.value = false
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_visibility'))
+  } finally {
+    isBusy.value = false
   }
 }
 
 async function handleRename(): Promise<void> {
   if (!file.value || !renameValue.value.trim()) return
+  isBusy.value = true
   try {
     file.value = await fh.renameFile(file.value.id, renameValue.value.trim(), ctxParams())
     showSuccess(t('web.file-hosting.renamed'))
     showRename.value = false
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.file-hosting.failed_rename'))
+  } finally {
+    isBusy.value = false
   }
 }
 
 async function handleDelete(): Promise<void> {
   if (!file.value) return
+  isBusy.value = true
   try {
     await fh.deleteFile(file.value.id, ctxParams())
     showSuccess(t('web.file-hosting.deleted'))
     router.push({ name: 'file-hosting.index.view', query: route.query })
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.file-hosting.failed_delete'))
+  } finally {
+    isBusy.value = false
   }
 }
 
-async function toggleVisibility(): Promise<void> {
+async function handleDownload(): Promise<void> {
   if (!file.value) return
-  const next = file.value.visibility === 'anyone_with_link' ? 'private' : 'anyone_with_link'
   try {
-    file.value = await fh.setFileVisibility(file.value.id, next, ctxParams())
-    if (next === 'anyone_with_link' && file.value.share_url) {
-      copyShareUrl()
-    } else {
-      showSuccess(t('web.file-hosting.visibility_updated'))
-    }
-    showVisibilityConfirm.value = false
+    const payload = await fh.fetchFileDownload(file.value.id, ctxParams())
+    window.location.href = payload.url
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_visibility'))
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_download_url'))
   }
 }
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
-    </div>
-  </div>
-
-  <div v-else-if="file" class="row g-3">
-    <div class="col-lg-8">
-      <Card :title="file.name">
-        <template #actions>
-          <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'file-hosting.index.view', query: route.query })">
-            <i class="bi bi-arrow-left me-1"></i> {{ t('web.file-hosting.back') }}
-          </button>
-        </template>
-
-        <div class="d-flex align-items-center gap-3 mb-3">
-          <i class="bi fs-1" :class="fileIcon(file.mime)"></i>
-          <div>
-            <h4 class="mb-0">{{ file.name }}</h4>
-            <div class="text-muted small">{{ file.mime }} · {{ file.size_human ?? file.size }}</div>
-          </div>
-          <span v-if="file.is_hash_blocked" class="badge text-bg-danger">{{ t('web.file-hosting.blocked_badge') }}</span>
-          <span class="badge" :class="visibilityBadge(file.visibility)">{{ visibilityLabel(file.visibility) }}</span>
-        </div>
-
-        <div v-if="file.share_url" class="mb-3">
-          <div class="input-group input-group-sm">
-            <input type="text" class="form-control" :value="file.share_url" readonly />
-            <button class="btn btn-outline-secondary" @click="copyShareUrl">{{ t('web.file-hosting.copy') }}</button>
-          </div>
-        </div>
-
-        <dl class="row mb-0">
-          <dt class="col-sm-3">{{ t('web.file-hosting.columns.size') }}</dt>
-          <dd class="col-sm-9">{{ file.size_human ?? file.size }}</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.type_file') }}</dt>
-          <dd class="col-sm-9">{{ file.mime }}</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.checksum') }}</dt>
-          <dd class="col-sm-9"><code class="small text-break">{{ file.checksum ?? '—' }}</code></dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.disk_region') }}</dt>
-          <dd class="col-sm-9">{{ file.disk }} ({{ file.region }})</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.stats.downloads') }}</dt>
-          <dd class="col-sm-9">{{ file.download_count }}</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.stats.views') }}</dt>
-          <dd class="col-sm-9">{{ file.view_count }}</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.last_downloaded') }}</dt>
-          <dd class="col-sm-9">{{ file.last_downloaded_at_formatted ?? file.last_downloaded_at ?? '—' }}</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.last_viewed') }}</dt>
-          <dd class="col-sm-9">{{ file.last_viewed_at_formatted ?? file.last_viewed_at ?? '—' }}</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.created') }}</dt>
-          <dd class="col-sm-9">{{ file.created_at_formatted ?? file.created_at ?? '—' }}</dd>
-
-          <dt class="col-sm-3">{{ t('web.file-hosting.updated') }}</dt>
-          <dd class="col-sm-9">{{ file.updated_at_formatted ?? file.updated_at ?? '—' }}</dd>
-        </dl>
-
-        <div class="mt-3 d-flex gap-2">
-          <button class="btn btn-outline-primary btn-sm" @click="showRename = true; renameValue = file.name">
-            <i class="bi bi-pencil me-1"></i> {{ t('web.file-hosting.rename') }}
-          </button>
-          <button class="btn btn-outline-secondary btn-sm" @click="showVisibilityConfirm = true">
-            <i class="bi me-1" :class="file.visibility === 'anyone_with_link' ? 'bi-unlock' : 'bi-lock'"></i>
-            {{ file.visibility === 'anyone_with_link' ? t('web.file-hosting.make_private') : t('web.file-hosting.share') }}
-          </button>
-          <button class="btn btn-outline-danger btn-sm" @click="showDeleteConfirm = true">
-            <i class="bi bi-trash me-1"></i> {{ t('web.file-hosting.delete') }}
-          </button>
-        </div>
-      </Card>
+  <div
+    class="fh-manager"
+    data-file-manager
+    data-fh-spa
+    :class="{ 'is-fh-loading': loading, 'is-fh-busy': isBusy }"
+  >
+    <div v-if="isBusy" class="fh-busy-overlay" data-fh-busy-overlay>
+      <div class="fh-busy-overlay__inner" role="status">
+        <div class="spinner-border spinner-border-sm"></div>
+      </div>
     </div>
 
-    <div class="col-lg-4">
-      <Card :title="t('web.file-hosting.microstock_title')">
-        <div v-if="file.microstock" class="small">
-          <p class="mb-1"><strong>{{ t('web.file-hosting.title_label') }}</strong> {{ file.microstock.title ?? '—' }}</p>
-          <p class="mb-1"><strong>{{ t('web.file-hosting.status_label') }}</strong> {{ file.microstock.status ?? '—' }}</p>
-          <p class="mb-1"><strong>{{ t('web.file-hosting.phase_label') }}</strong> {{ file.microstock.phase ?? '—' }}</p>
-          <div v-if="file.microstock.keywords.length > 0">
-            <strong>{{ t('web.file-hosting.keywords_label') }}</strong>
-            <div class="d-flex flex-wrap gap-1 mt-1">
-              <span v-for="kw in file.microstock.keywords" :key="kw" class="badge text-bg-light">{{ kw }}</span>
+    <div v-if="loading" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+      </div>
+    </div>
+
+    <div v-else-if="file" data-fh-panel="show">
+      <div class="row g-3">
+        <div class="col-lg-8">
+          <div class="card card-outline card-primary">
+            <div class="card-body">
+              <div class="fh-detail__hero">
+                <div class="fh-detail__hero-icon"><FhIcon :mime="file.mime" /></div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="fh-detail__hero-name">{{ file.name }}</div>
+                  <div class="fh-detail__hero-meta">{{ file.mime }} · {{ file.size_human }}</div>
+                </div>
+              </div>
+              <div class="fh-stats mt-3">
+                <div class="fh-stat">
+                  <div class="fh-stat__value">{{ file.view_count || 0 }}</div>
+                  <div class="fh-stat__label">{{ t('web.file-hosting.stats.views') }}</div>
+                </div>
+                <div class="fh-stat">
+                  <div class="fh-stat__value">{{ file.download_count || 0 }}</div>
+                  <div class="fh-stat__label">{{ t('web.file-hosting.stats.downloads') }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div v-else class="text-muted small">{{ t('web.file-hosting.microstock.no_metadata') }}</div>
-      </Card>
+        <div class="col-lg-4">
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm" @click="browseBack">
+              <i class="bi bi-arrow-left me-1"></i>{{ t('web.file-hosting.back') }}
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" @click="handleDownload">
+              <i class="bi bi-download me-1"></i>{{ t('web.file-hosting.download') }}
+            </button>
+            <button v-if="canEdit" type="button" class="btn btn-outline-secondary btn-sm" @click="showRename = true; renameValue = file.name">
+              {{ t('web.file-hosting.rename') }}
+            </button>
+            <button v-if="canEdit" type="button" class="btn btn-outline-secondary btn-sm" @click="openShare">
+              {{ t('web.file-hosting.share') }}
+            </button>
+            <button v-if="canDelete" type="button" class="btn btn-outline-danger btn-sm" @click="showDeleteConfirm = true">
+              {{ t('web.file-hosting.delete') }}
+            </button>
+          </div>
+          <div class="small text-muted mb-1">{{ t('web.file-hosting.visibility.label') }}</div>
+          <span class="fh-badge" :class="visBadgeClass(file.visibility)">{{ visLabel(file.visibility) }}</span>
+
+          <div class="card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <span>{{ t('web.file-hosting.microstock_title') }}</span>
+              <button
+                v-if="'microstock' in file"
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                @click="showReview = true"
+              >
+                <i class="bi bi-pencil-square me-1"></i>{{ t('web.file-hosting.microstock.review') }}
+              </button>
+            </div>
+            <div class="card-body">
+              <div v-if="file.microstock" class="small">
+                <p class="mb-1"><strong>{{ t('web.file-hosting.title_label') }}</strong> {{ file.microstock.title ?? '—' }}</p>
+                <p class="mb-1"><strong>{{ t('web.file-hosting.status_label') }}</strong> {{ file.microstock.status ?? '—' }}</p>
+                <p class="mb-1"><strong>{{ t('web.file-hosting.phase_label') }}</strong> {{ file.microstock.phase ?? '—' }}</p>
+                <div v-if="file.microstock.keywords.length > 0">
+                  <strong>{{ t('web.file-hosting.keywords_label') }}</strong>
+                  <div class="d-flex flex-wrap gap-1 mt-1">
+                    <span v-for="kw in file.microstock.keywords" :key="kw" class="badge text-bg-light">{{ kw }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="text-muted small">{{ t('web.file-hosting.microstock.no_metadata') }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <ConfirmModal
@@ -273,15 +301,20 @@ async function toggleVisibility(): Promise<void> {
       <p class="text-muted small">{{ t('web.file-hosting.trash_hint') }}</p>
     </ConfirmModal>
 
-    <ConfirmModal
-      v-model="showVisibilityConfirm"
-      :title="t('web.file-hosting.visibility.label')"
-      :confirm-label="file.visibility === 'anyone_with_link' ? t('web.file-hosting.make_private') : t('web.file-hosting.share_publicly')"
-      @confirm="toggleVisibility"
-      @cancel="showVisibilityConfirm = false"
-    >
-      <p v-if="file.visibility === 'anyone_with_link'">{{ t('web.file-hosting.make_private_confirm') }}</p>
-      <p v-else>{{ t('web.file-hosting.share_file_confirm') }}</p>
-    </ConfirmModal>
+    <FhShareModal
+      v-model="showShare"
+      v-model:visibility="shareVisibility"
+      :share-url="shareUrl"
+      @save="saveShare"
+    />
+
+    <FhMicrostockReviewModal
+      v-if="file"
+      v-model="showReview"
+      :file-id="file.id"
+      :file-ids="[file.id]"
+      :download-ctx="ctxParams()"
+      @saved="loadFile"
+    />
   </div>
 </template>

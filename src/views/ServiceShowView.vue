@@ -11,7 +11,7 @@ import type { Service } from '@/api/types'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const { fetchOne, checkout } = useServices()
+const { fetchOne, checkout, fetchOptions } = useServices()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -25,19 +25,28 @@ const checkoutQuantity = ref(1)
 const canInitiatePayment = computed(() => hasPermission('purchase service') || hasPermission('initiate payment'))
 const isAddonPlan = computed(() => service.value?.plan_kind === 'addon')
 const canCheckout = computed(() => canInitiatePayment.value && service.value?.status === 'active' && (service.value?.prices?.length ?? 0) > 0)
-const maxPurchaseQuantity = 99
+const maxPurchaseQuantity = ref(99)
 
 onMounted(async () => {
   loading.value = true
   try {
     service.value = await fetchOne(route.params.id as string)
-    if (service.value?.prices?.length) {
-      checkoutCurrency.value = service.value.prices[0].currency
+    const firstPrice = service.value?.prices?.[0]
+    if (firstPrice) {
+      checkoutCurrency.value = firstPrice.currency
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.services.load_failed'))
   } finally {
     loading.value = false
+  }
+  try {
+    const opts = await fetchOptions()
+    if (opts.purchase_max_quantity >= 1) {
+      maxPurchaseQuantity.value = opts.purchase_max_quantity
+    }
+  } catch {
+    // last-resort 99 — SPA cannot read system_settings
   }
 })
 

@@ -8,7 +8,9 @@ import FormTextarea from '@/components/FormTextarea.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
+import { useConnections } from '@/composables/useConnections'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type {
@@ -17,12 +19,15 @@ import type {
   VtualChannelClaim,
   VtualExternalLink,
   VtualPlatform,
+  ProfileConnections,
 } from '@/api/types'
+import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const vtual = useVtual()
+const connections = useConnections()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -32,6 +37,7 @@ const archivedChannels = ref<VtualChannel[]>([])
 const channelClaims = ref<VtualChannelClaim[]>([])
 const links = ref<VtualExternalLink[]>([])
 const platforms = ref<VtualPlatform[]>([])
+const discordSnapshot = ref<ProfileConnections | null>(null)
 const loading = ref(true)
 
 const canMutate = computed(() => hasPermission('edit vtual creator') || creator.value?.my_role === 'owner' || creator.value?.my_role === 'editor')
@@ -80,13 +86,14 @@ async function loadAll(): Promise<void> {
   loading.value = true
   const id = route.params.id as string
   try {
-    const [c, ch, arch, claims, lks, plats] = await Promise.all([
+    const [c, ch, arch, claims, lks, plats, discord] = await Promise.all([
       vtual.fetchCreator(id),
       vtual.fetchChannels(id),
       vtual.fetchArchivedChannels(id),
       vtual.fetchChannelClaims(id),
       vtual.fetchLinks(id),
       vtual.fetchPlatforms(),
+      connections.fetchConnections().catch(() => null),
     ])
     creator.value = c
     channels.value = ch
@@ -94,6 +101,7 @@ async function loadAll(): Promise<void> {
     channelClaims.value = claims
     links.value = lks
     platforms.value = plats
+    discordSnapshot.value = discord
     metaForm.display_name = c.display_name
     metaForm.slug = c.slug
     metaForm.bio = c.bio ?? ''
@@ -105,7 +113,23 @@ async function loadAll(): Promise<void> {
   }
 }
 
-onMounted(loadAll)
+onMounted(() => {
+  const params = new URLSearchParams(window.location.search)
+  const status = params.get('discord')
+  if (status === 'connected') {
+    showSuccess(t('web.identity-connections.discord_connected_flash'))
+  } else if (status === 'denied') {
+    showError(t('web.identity-connections.discord_denied'))
+  } else if (status === 'error') {
+    showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
+  }
+  if (status) {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('discord')
+    window.history.replaceState({}, '', url.toString())
+  }
+  void loadAll()
+})
 
 async function handleSaveMeta(): Promise<void> {
   if (!creator.value || savingMeta.value) return
@@ -286,6 +310,43 @@ async function handleVerifyChannelClaim(claimId: string): Promise<void> {
   }
 }
 
+function showDiscordVerify(claim: VtualChannelClaim): boolean {
+  const key = claim.platform?.key ?? ''
+  return key !== '' && key !== 'kick'
+}
+
+async function handleVerifyDiscordChannelClaim(claim: VtualChannelClaim): Promise<void> {
+  if (!creator.value) return
+  try {
+    const updated = await vtual.verifyDiscordChannelClaim(claim.id)
+    const idx = channelClaims.value.findIndex((c) => c.id === claim.id)
+    if (idx >= 0) channelClaims.value[idx] = updated
+    if (updated.status === 'verified') {
+      channelClaims.value = channelClaims.value.filter((c) => c.id !== claim.id)
+      showSuccess(t('web.vtual-vtuber.claim_discord_verified'))
+    } else {
+      showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
+    }
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.verify_failed'))
+  }
+}
+
+async function connectDiscordForChannelClaim(claim: VtualChannelClaim): Promise<void> {
+  if (!creator.value) return
+  try {
+    const url = await connections.authorizeUrl({
+      intent: 'channel_claim_verify',
+      slug: creator.value.slug,
+      claim_id: claim.id,
+      return_path: `/apps/vtual/profiles/${creator.value.id}`,
+    })
+    window.location.href = url
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
+  }
+}
+
 async function handleCancelChannelClaim(claimId: string): Promise<void> {
   try {
     await vtual.cancelChannelClaim(claimId)
@@ -306,16 +367,6 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.accept_failed'))
   }
-}
-
-function statusBadge(status: string): string {
-  const map: Record<string, string> = {
-    active: 'text-bg-success',
-    pending: 'text-bg-warning',
-    archived: 'text-bg-secondary',
-    disconnected: 'text-bg-danger',
-  }
-  return map[status] ?? 'text-bg-light'
 }
 </script>
 
@@ -422,7 +473,7 @@ function statusBadge(status: string): string {
         <div v-for="claim in channelClaims" :key="claim.id" class="border rounded p-2 mb-2">
           <div class="d-flex justify-content-between align-items-start">
             <div>
-              <span class="badge text-bg-warning">{{ claim.status }}</span>
+              <StatusBadge :status="claim.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
               <code class="small ms-1">{{ claim.handle ?? claim.external_id }}</code>
             </div>
             <small class="text-muted">{{ claim.platform?.name }}</small>
@@ -433,6 +484,18 @@ function statusBadge(status: string): string {
           </div>
           <div class="mt-2 d-flex flex-wrap gap-1" v-if="canMutate">
             <button class="btn btn-primary btn-sm" @click="handleVerifyChannelClaim(claim.id)">{{ t('web.vtual.actions.verify') }}</button>
+            <template v-if="showDiscordVerify(claim)">
+              <button
+                v-if="discordSnapshot?.discord_connected"
+                class="btn btn-outline-primary btn-sm"
+                @click="handleVerifyDiscordChannelClaim(claim)"
+              >{{ t('web.vtual-vtuber.claim_discord_verify_button') }}</button>
+              <button
+                v-else
+                class="btn btn-outline-secondary btn-sm"
+                @click="connectDiscordForChannelClaim(claim)"
+              >{{ t('web.vtual-vtuber.claim_discord_connect_cta') }}</button>
+            </template>
             <button class="btn btn-outline-secondary btn-sm" @click="handleCancelChannelClaim(claim.id)">{{ t('web.vtual.actions.cancel') }}</button>
             <button v-if="canAcceptAnyway" class="btn btn-outline-warning btn-sm" @click="openConfirm(t('web.vtual.confirm.accept_anyway_title'), t('web.vtual.confirm.accept_anyway_body'), () => handleAcceptAnywayChannelClaim(claim.id), t('web.vtual.actions.accept'), 'warning')">{{ t('web.vtual.actions.accept_anyway') }}</button>
           </div>
@@ -459,7 +522,7 @@ function statusBadge(status: string): string {
               <div class="small fw-semibold">{{ ch.display_name ?? ch.handle ?? '—' }}</div>
               <div class="text-muted small">{{ ch.platform?.name }} · {{ ch.subscriber_count_formatted ?? ch.subscriber_count ?? '—' }}</div>
             </div>
-            <span class="badge" :class="statusBadge(ch.status)">{{ ch.status }}</span>
+            <StatusBadge :status="ch.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
           </div>
           <div v-if="canMutate" class="mt-2 d-flex flex-wrap gap-1">
             <button v-if="ch.visibility === 'private' && ch.discovery_source === 'discord_connection'" class="btn btn-outline-primary btn-sm" @click="handlePromoteChannel(ch.id)">{{ t('web.vtual.actions.promote') }}</button>
@@ -478,7 +541,7 @@ function statusBadge(status: string): string {
               <div class="small">{{ ch.display_name ?? ch.handle ?? '—' }}</div>
               <div class="text-muted small">{{ ch.platform?.name }}</div>
             </div>
-            <span class="badge text-bg-secondary">{{ ch.status }}</span>
+            <StatusBadge :status="ch.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
           </div>
           <button v-if="canMutate" class="btn btn-outline-success btn-sm mt-1" @click="handleRestoreChannel(ch.id)">{{ t('web.vtual.actions.restore') }}</button>
         </div>

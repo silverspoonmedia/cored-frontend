@@ -52,11 +52,11 @@ async function startSetup(): Promise<void> {
       status.value = 'setup'
       code.value = ''
     } else {
-      error.value = res.message ?? 'Failed to start setup'
+      error.value = res.message ?? t('web.auth.two_factor_setup_failed')
       showError(error.value)
     }
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to start setup'
+    error.value = e instanceof Error ? e.message : t('web.auth.two_factor_setup_failed')
     showError(error.value)
   } finally {
     loading.value = false
@@ -79,15 +79,15 @@ async function confirmSetup(): Promise<void> {
       code.value = ''
       showSuccess(t('web.auth.two_factor_enabled'))
     } else {
-      error.value = res.message ?? 'Failed to confirm setup'
+      error.value = res.message ?? t('web.auth.two_factor_confirm_failed')
     }
   } catch (e) {
     if (e instanceof ApiError && e.isAuth) {
-      error.value = e.message || 'Invalid authentication code'
+      error.value = e.message || t('web.auth.two_factor_invalid_code')
     } else if (e instanceof ApiError) {
       error.value = e.message
     } else {
-      error.value = e instanceof Error ? e.message : 'Failed to confirm setup'
+      error.value = e instanceof Error ? e.message : t('web.auth.two_factor_confirm_failed')
     }
   } finally {
     loading.value = false
@@ -109,15 +109,15 @@ async function disableTwoFactor(): Promise<void> {
       code.value = ''
       showSuccess(t('web.auth.two_factor_disabled'))
     } else {
-      error.value = res.message ?? 'Failed to disable'
+      error.value = res.message ?? t('web.auth.two_factor_disable_failed')
     }
   } catch (e) {
     if (e instanceof ApiError && e.isAuth) {
-      error.value = e.message || 'Invalid authentication code'
+      error.value = e.message || t('web.auth.two_factor_invalid_code')
     } else if (e instanceof ApiError) {
       error.value = e.message
     } else {
-      error.value = e instanceof Error ? e.message : 'Failed to disable'
+      error.value = e instanceof Error ? e.message : t('web.auth.two_factor_disable_failed')
     }
   } finally {
     loading.value = false
@@ -230,7 +230,7 @@ function handleCancel(): void {
           </div>
 
           <p class="text-muted small mb-3">
-            Enter your current authentication code to disable two-factor authentication.
+            {{ t('web.auth.two_factor_challenge_help') }}
           </p>
 
           <form @submit.prevent="disableTwoFactor">

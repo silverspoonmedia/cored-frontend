@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useHcaptcha } from '@/composables/useHcaptcha'
+import HcaptchaWidget from '@/components/HcaptchaWidget.vue'
 import { ApiError } from '@/api/types'
 
-const router = useRouter()
 const { t } = useI18n()
 const { forgotPassword } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
 const email = ref('')
 const loading = ref(false)
@@ -23,19 +24,23 @@ async function handleSubmit(): Promise<void> {
   errors.value = {}
 
   try {
-    await forgotPassword(email.value)
+    const captcha = await captchaToken()
+    await forgotPassword(email.value, captcha)
     sent.value = true
     showSuccess(t('passwords.sent'))
   } catch (e) {
+    resetCaptcha()
     if (e instanceof ApiError && e.isValidation) {
       errors.value = e.errors ?? {}
       if (e.errors === null) {
         showError(e.message)
       }
     } else if (e instanceof ApiError) {
-      showError(e.message || 'Failed to send reset link')
+      showError(e.message || t('web.auth.forgot_password_failed'))
+    } else if (e instanceof Error && e.message.toLowerCase().includes('hcaptcha')) {
+      showError(t('validation.hcaptcha'))
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to send reset link')
+      showError(e instanceof Error ? e.message : t('web.auth.forgot_password_failed'))
     }
   } finally {
     loading.value = false
@@ -62,10 +67,9 @@ function fieldError(field: string): string | null {
   </div>
 
   <form v-else @submit.prevent="handleSubmit">
-    <!-- Email -->
     <div class="mb-3">
       <label for="email" class="form-label">
-        Email<span class="text-danger">*</span>
+        {{ t('ui.labels.email') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -86,6 +90,11 @@ function fieldError(field: string): string | null {
           {{ fieldError('email') }}
         </div>
       </div>
+    </div>
+
+    <HcaptchaWidget ref="widget" />
+    <div v-if="fieldError('h-captcha-response')" class="invalid-feedback d-block mb-3">
+      {{ fieldError('h-captcha-response') }}
     </div>
 
     <div class="d-grid">

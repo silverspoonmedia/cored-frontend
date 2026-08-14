@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions from '@/components/RowActions.vue'
 import { useActivityLogs } from '@/composables/useActivityLogs'
+import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { ActivityLog } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList } = useActivityLogs()
+const { items, loading, fetchList, pagination } = useActivityLogs()
+const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 
 const columns: DataTableColumn[] = [
   { key: 'event', label: t('web.activity-log.columns.event'), sortable: true },
@@ -17,8 +19,6 @@ const columns: DataTableColumn[] = [
   { key: 'causer', label: t('web.activity-log.columns.causer'), sortable: false },
   { key: 'created_at', label: t('web.activity-log.columns.time'), sortable: true, align: 'end' },
 ]
-
-onMounted(() => fetchList({ limit: 100 }))
 
 function viewDetail(row: ActivityLog): void {
   router.push({ name: 'activity-logs.show.view', params: { id: row.id } })
@@ -35,10 +35,17 @@ function timeLabel(row: ActivityLog): string {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      server
+      :total="pagination.total"
+      :page="pagination.current_page"
+      :per-page="pagination.per_page"
       :search-placeholder="t('web.activity-log.search_placeholder')"
       empty-icon="bi-clock-history"
       :empty-title="t('web.activity-log.empty_title')"
       @row-click="viewDetail"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
+      @update:search="onSearch"
     >
       <template #cell-event="{ row }: { row: ActivityLog }">
         <div>
@@ -61,12 +68,9 @@ function timeLabel(row: ActivityLog): string {
       </template>
 
       <template #actions="{ row }: { row: ActivityLog }">
-        <button
-          class="btn btn-outline-secondary btn-sm"
-          @click.stop="viewDetail(row)"
-        >
-          {{ t('web.activity-log.view_detail') }}
-        </button>
+        <RowActions
+          :actions="[{ key: 'view', icon: 'eye', label: t('web.activity-log.view_detail'), variant: 'secondary', onClick: () => viewDetail(row) }]"
+        />
       </template>
     </DataTable>
   </Card>

@@ -1293,6 +1293,26 @@
     }
 }
 
+.fh-admin-page {
+    --fh-radius: var(--monolith-radius);
+    --fh-text: var(--monolith-text-body);
+    --fh-muted: var(--monolith-text-muted);
+}
+
+.fh-admin-page__intro {
+    margin-bottom: 1.25rem;
+}
+
+.fh-admin-page__intro h1 {
+    color: var(--monolith-text-strong, inherit);
+}
+
+.fh-ms-kw .btn-close {
+    width: 0.5em;
+    height: 0.5em;
+    font-size: 0.55rem;
+}
+
 /* ---- Reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
     .fh-file-card,

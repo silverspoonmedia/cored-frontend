@@ -11,6 +11,7 @@ import { useAlert } from '@/composables/useAlert'
 import { useNotifications } from '@/composables/useNotifications'
 import { useEcho } from '@/composables/useEcho'
 import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
+import { isNavNodeActive } from '@/utils/navActive'
 
 const route = useRoute()
 const router = useRouter()
@@ -38,10 +39,7 @@ function resolveHref(nodeRoute: string | null | undefined): string {
 }
 
 function isActive(node: NavNode): boolean {
-  if (node.route && route.name) {
-    if (route.name === node.route || route.name === `${node.route}.view`) return true
-  }
-  return node.children.some((c) => isActive(c))
+  return isNavNodeActive(node, route)
 }
 
 function navigate(node: NavNode): void {

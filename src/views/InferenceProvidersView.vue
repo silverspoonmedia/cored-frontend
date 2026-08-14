@@ -1,18 +1,27 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useInferenceProviders } from '@/composables/useInferenceProviders'
 import { useAuth } from '@/stores/auth'
+import { useServerDataTable } from '@/composables/useServerDataTable'
+import { useAlert } from '@/composables/useAlert'
 import type { InferenceProvider } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList } = useInferenceProviders()
+const { items, loading, fetchList, pagination, destroy } = useInferenceProviders()
 const { hasPermission } = useAuth()
+const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage inference catalog'))
+const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
+const deleteTarget = ref<InferenceProvider | null>(null)
+const showDeleteModal = ref(false)
 
 const columns: DataTableColumn[] = [
   { key: 'slug', label: t('web.inference.providers.datatable.columns.slug'), sortable: true },
@@ -22,14 +31,44 @@ const columns: DataTableColumn[] = [
   { key: 'updated_at', label: t('web.inference.providers.datatable.columns.updated_at'), sortable: true, align: 'end' },
 ]
 
-onMounted(() => fetchList())
-
 function editProvider(row: InferenceProvider): void {
   router.push({ name: 'inference.providers.edit.view', params: { id: row.id } })
 }
 
 function viewProvider(row: InferenceProvider): void {
   router.push({ name: 'inference.providers.show.view', params: { id: row.id } })
+}
+
+function providerActions(row: InferenceProvider): RowAction[] {
+  const actions: RowAction[] = [
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'secondary', onClick: () => viewProvider(row) },
+  ]
+  if (canManage.value) {
+    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editProvider(row) })
+    actions.push({
+      key: 'delete',
+      icon: 'trash3',
+      label: t('ui.actions.delete'),
+      variant: 'danger',
+      onClick: () => {
+        deleteTarget.value = row
+        showDeleteModal.value = true
+      },
+    })
+  }
+  return actions
+}
+
+async function handleDelete(): Promise<void> {
+  if (!deleteTarget.value) return
+  try {
+    await destroy(deleteTarget.value.id)
+    showSuccess(t('api.inference.providers.deleted'))
+    deleteTarget.value = null
+    await fetchList()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  }
 }
 </script>
 
@@ -45,19 +84,27 @@ function viewProvider(row: InferenceProvider): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      server
+      :total="pagination.total"
+      :page="pagination.current_page"
+      :per-page="pagination.per_page"
       :search-placeholder="t('web.inference.providers.search_placeholder')"
       empty-icon="bi-hdd-network"
       :empty-title="t('web.inference.providers.empty_title')"
       @row-click="editProvider"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
+      @update:search="onSearch"
     >
       <template #cell-slug="{ row }: { row: InferenceProvider }">
         <code>{{ row.slug }}</code>
       </template>
 
       <template #cell-is_active="{ row }: { row: InferenceProvider }">
-        <span class="badge" :class="row.is_active ? 'text-bg-success' : 'text-bg-secondary'">
-          {{ row.is_active ? t('web.inference.providers.active') : t('web.inference.providers.inactive') }}
-        </span>
+        <StatusBadge
+          :status="row.is_active ? 'active' : 'inactive'"
+          :label="row.is_active ? t('web.inference.providers.active') : t('web.inference.providers.inactive')"
+        />
       </template>
 
       <template #cell-model_rates_count="{ row }: { row: InferenceProvider }">
@@ -69,13 +116,17 @@ function viewProvider(row: InferenceProvider): void {
       </template>
 
       <template #actions="{ row }: { row: InferenceProvider }">
-        <button class="btn btn-outline-secondary btn-sm" @click.stop="viewProvider(row)">
-          <i class="bi bi-eye" aria-hidden="true"></i>
-        </button>
-        <button v-if="canManage" class="btn btn-outline-primary btn-sm ms-1" @click.stop="editProvider(row)">
-          <i class="bi bi-pencil" aria-hidden="true"></i>
-        </button>
+        <RowActions :actions="providerActions(row)" />
       </template>
     </DataTable>
+
+    <ConfirmModal
+      v-model="showDeleteModal"
+      :title="t('ui.datatable.delete')"
+      :message="t('web.inference.confirm.delete')"
+      :confirm-label="t('ui.actions.delete')"
+      confirm-variant="danger"
+      @confirm="handleDelete"
+    />
   </Card>
 </template>

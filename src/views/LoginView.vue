@@ -4,6 +4,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useHcaptcha } from '@/composables/useHcaptcha'
+import HcaptchaWidget from '@/components/HcaptchaWidget.vue'
 import { ApiError } from '@/api/types'
 
 const router = useRouter()
@@ -11,6 +13,7 @@ const route = useRoute()
 const { t } = useI18n()
 const { login } = useAuth()
 const { error: showError } = useAlert()
+const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
 const email = ref('')
 const password = ref('')
@@ -31,7 +34,8 @@ async function handleSubmit(): Promise<void> {
   errors.value = {}
 
   try {
-    const result = await login(email.value, password.value, rememberMe.value)
+    const captcha = await captchaToken()
+    const result = await login(email.value, password.value, rememberMe.value, captcha)
     if (result.type === 'two_factor_challenge') {
       router.push({
         name: 'two-factor.challenge.view',
@@ -41,15 +45,18 @@ async function handleSubmit(): Promise<void> {
       router.push(getRedirectTarget())
     }
   } catch (e) {
+    resetCaptcha()
     if (e instanceof ApiError && e.isValidation) {
       errors.value = e.errors ?? {}
       if (e.errors === null) {
         showError(e.message)
       }
     } else if (e instanceof ApiError && e.isAuth) {
-      showError(e.message || 'Invalid credentials')
+      showError(e.message || t('api.auth.invalid_credentials'))
+    } else if (e instanceof Error && e.message.toLowerCase().includes('hcaptcha')) {
+      showError(t('validation.hcaptcha'))
     } else {
-      showError(e instanceof Error ? e.message : 'Login failed')
+      showError(e instanceof Error ? e.message : t('web.auth.login_failed'))
     }
   } finally {
     loading.value = false
@@ -68,10 +75,9 @@ function fieldError(field: string): string | null {
 
 <template>
   <form @submit.prevent="handleSubmit">
-    <!-- Email -->
     <div class="mb-3">
       <label for="email" class="form-label">
-        Email<span class="text-danger">*</span>
+        {{ t('ui.labels.email') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -94,10 +100,9 @@ function fieldError(field: string): string | null {
       </div>
     </div>
 
-    <!-- Password -->
     <div class="mb-3">
       <label for="password" class="form-label">
-        Password<span class="text-danger">*</span>
+        {{ t('ui.labels.password') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -126,6 +131,11 @@ function fieldError(field: string): string | null {
           {{ fieldError('password') }}
         </div>
       </div>
+    </div>
+
+    <HcaptchaWidget ref="widget" />
+    <div v-if="fieldError('h-captcha-response')" class="invalid-feedback d-block mb-3">
+      {{ fieldError('h-captcha-response') }}
     </div>
 
     <div class="row align-items-center g-2">

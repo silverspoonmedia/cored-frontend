@@ -69,11 +69,9 @@ onMounted(() => {
             </td>
             <td>
               <StatusBadge
-                v-if="currency.is_settlement"
-                status="active"
-                :label="t('web.currencies.yes')"
+                :status="currency.is_settlement ? 'active' : 'inactive'"
+                :label="currency.is_settlement ? t('web.currencies.yes') : t('web.currencies.no')"
               />
-              <span v-else class="badge text-bg-secondary">{{ t('web.currencies.no') }}</span>
             </td>
             <td v-if="canManage" class="text-end">
               <button

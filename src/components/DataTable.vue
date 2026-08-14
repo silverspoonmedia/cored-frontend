@@ -1,5 +1,6 @@
 <script lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import EmptyState from '@/components/EmptyState.vue'
 
 export interface DataTableColumn {
@@ -14,6 +15,7 @@ export interface DataTableColumn {
 type SortDirection = 'asc' | 'desc'
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100]
+const SEARCH_DEBOUNCE_MS = 300
 </script>
 
 <script setup lang="ts" generic="T">
@@ -27,29 +29,44 @@ const props = withDefaults(defineProps<{
   emptyIcon?: string
   emptyTitle?: string
   emptyMessage?: string
+  server?: boolean
+  total?: number
+  page?: number
 }>(), {
   loading: false,
   searchable: true,
-  searchPlaceholder: 'Search…',
-  perPage: 25,
+  perPage: 10,
   emptyIcon: 'bi-inbox',
-  emptyTitle: 'No records found',
   emptyMessage: '',
+  server: false,
+  total: 0,
+  page: 1,
 })
+
+const { t } = useI18n()
+
+const resolvedSearchPlaceholder = computed(() => props.searchPlaceholder || t('ui.datatable.search_placeholder'))
+const resolvedEmptyTitle = computed(() => props.emptyTitle || t('ui.datatable.empty_title'))
 
 const emit = defineEmits<{
   (e: 'row-click', row: T): void
+  (e: 'update:page', page: number): void
+  (e: 'update:perPage', perPage: number): void
+  (e: 'update:search', search: string): void
 }>()
 
 const search = ref('')
 const sortKey = ref<string | null>(null)
 const sortDir = ref<SortDirection>('asc')
-const page = ref(1)
+const page = ref(props.page)
 const perPage = ref(props.perPage)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(() => props.perPage, (v) => { perPage.value = v })
+watch(() => props.page, (v) => { page.value = v })
 
 const filtered = computed<T[]>(() => {
+  if (props.server) return props.rows
   if (!search.value.trim()) return props.rows
   const q = search.value.toLowerCase().trim()
   return props.rows.filter((row) =>
@@ -76,11 +93,12 @@ const sorted = computed<T[]>(() => {
   })
 })
 
-const total = computed(() => filtered.value.length)
+const total = computed(() => props.server ? props.total : filtered.value.length)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage.value)))
 
 const paged = computed<T[]>(() => {
+  if (props.server) return sorted.value
   const start = (page.value - 1) * perPage.value
   return sorted.value.slice(start, start + perPage.value)
 })
@@ -88,8 +106,19 @@ const paged = computed<T[]>(() => {
 const from = computed(() => total.value === 0 ? 0 : (page.value - 1) * perPage.value + 1)
 const to = computed(() => Math.min(page.value * perPage.value, total.value))
 
-watch([search, sortKey, sortDir, perPage], () => {
-  page.value = 1
+watch([sortKey, sortDir, perPage], () => {
+  if (!props.server) page.value = 1
+})
+
+watch(search, (value) => {
+  if (!props.server) {
+    page.value = 1
+    return
+  }
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    emit('update:search', value)
+  }, SEARCH_DEBOUNCE_MS)
 })
 
 function toggleSort(col: DataTableColumn): void {
@@ -108,7 +137,18 @@ function toggleSort(col: DataTableColumn): void {
 
 function changePage(p: number): void {
   if (p < 1 || p > totalPages.value) return
+  if (props.server) {
+    emit('update:page', p)
+    return
+  }
   page.value = p
+}
+
+function changePerPage(n: number): void {
+  perPage.value = n
+  if (props.server) {
+    emit('update:perPage', n)
+  }
 }
 
 const pageNumbers = computed<number[]>(() => {
@@ -143,7 +183,7 @@ function getVal(row: T, key: string): unknown {
           v-model="search"
           type="text"
           class="form-control"
-          :placeholder="searchPlaceholder"
+          :placeholder="resolvedSearchPlaceholder"
           :disabled="loading"
         >
         <button v-if="search" class="btn btn-outline-secondary" type="button" @click="search = ''">
@@ -175,7 +215,7 @@ function getVal(row: T, key: string): unknown {
                 </template>
               </span>
             </th>
-            <th v-if="$slots.actions" class="text-end" style="width: 1%;">Actions</th>
+            <th v-if="$slots.actions" class="text-end" style="width: 1%;">{{ t('ui.labels.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -191,7 +231,7 @@ function getVal(row: T, key: string): unknown {
           <!-- Empty -->
           <tr v-else-if="paged.length === 0">
             <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="p-0">
-              <EmptyState :icon="emptyIcon" :title="emptyTitle" :message="emptyMessage" />
+              <EmptyState :icon="emptyIcon" :title="resolvedEmptyTitle" :message="emptyMessage" />
             </td>
           </tr>
           <!-- Rows -->
@@ -207,9 +247,7 @@ function getVal(row: T, key: string): unknown {
                 </slot>
               </td>
               <td v-if="$slots.actions" class="text-end text-nowrap">
-                <div class="btn-group btn-group-sm">
-                  <slot name="actions" :row="row" />
-                </div>
+                <slot name="actions" :row="row" />
               </td>
             </tr>
           </template>
@@ -220,11 +258,11 @@ function getVal(row: T, key: string): unknown {
     <!-- Footer -->
     <div v-if="!loading && total > 0" class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
       <div class="text-muted small">
-        Showing {{ from }} to {{ to }} of {{ total }} entries
+        {{ t('ui.datatable.info', { from, to, total }) }}
       </div>
       <div class="d-flex align-items-center gap-2">
-        <select v-model="perPage" class="form-select form-select-sm" style="width: auto;">
-          <option v-for="opt in PER_PAGE_OPTIONS" :key="opt" :value="opt">{{ opt }} / page</option>
+        <select :value="perPage" class="form-select form-select-sm" style="width: auto;" @change="changePerPage(Number(($event.target as HTMLSelectElement).value))">
+          <option v-for="opt in PER_PAGE_OPTIONS" :key="opt" :value="opt">{{ t('ui.datatable.per_page', { n: opt }) }}</option>
         </select>
         <nav>
           <ul class="pagination pagination-sm mb-0">

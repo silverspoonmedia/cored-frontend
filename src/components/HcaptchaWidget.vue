@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = defineProps<{
   siteKey?: string
@@ -12,17 +12,67 @@ const emit = defineEmits<{
 
 const widgetContainer = ref<HTMLElement | null>(null)
 const widgetId = ref<string | null>(null)
-const token = ref<string>('')
+const token = ref('')
 const errored = ref(false)
 
 const resolvedSiteKey = props.siteKey ?? import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ''
 
-let scriptLoaded = false
+let pendingResolve: ((value: string) => void) | null = null
+let pendingReject: ((error: Error) => void) | null = null
+let pollTimer: ReturnType<typeof setInterval> | null = null
+let pollTimeout: ReturnType<typeof setTimeout> | null = null
+
+function clearPending(): void {
+  pendingResolve = null
+  pendingReject = null
+}
+
+function resolvePending(value: string): void {
+  pendingResolve?.(value)
+  clearPending()
+}
+
+function failPending(error: Error): void {
+  pendingReject?.(error)
+  clearPending()
+}
+
+function renderWidget(): void {
+  if (!widgetContainer.value || !resolvedSiteKey || widgetId.value) return
+  const hcaptcha = (window as unknown as { hcaptcha?: { render: Function; execute: Function; reset: Function } }).hcaptcha
+  if (typeof hcaptcha === 'undefined') return
+
+  widgetId.value = hcaptcha.render(widgetContainer.value, {
+    sitekey: resolvedSiteKey,
+    size: 'invisible',
+    callback: (value: string) => {
+      token.value = value
+      errored.value = false
+      emit('verified', value)
+      resolvePending(value)
+    },
+    'error-callback': () => {
+      errored.value = true
+      const error = new Error('hCaptcha challenge failed')
+      emit('error', error)
+      failPending(error)
+    },
+    'close-callback': () => {
+      failPending(new Error('hCaptcha challenge closed'))
+    },
+    'chalexpired-callback': () => {
+      failPending(new Error('hCaptcha challenge expired'))
+    },
+  }) as string
+}
 
 function loadScript(): void {
-  if (scriptLoaded || typeof window === 'undefined') return
+  if (typeof window === 'undefined') return
+  window.onHcaptchaApiLoad = () => {
+    renderWidget()
+  }
   if (document.querySelector('script[src*="js.hcaptcha.com"]')) {
-    scriptLoaded = true
+    renderWidget()
     return
   }
   const script = document.createElement('script')
@@ -30,27 +80,6 @@ function loadScript(): void {
   script.async = true
   script.defer = true
   document.head.appendChild(script)
-  scriptLoaded = true
-}
-
-function renderWidget(): void {
-  if (!widgetContainer.value || !resolvedSiteKey) return
-  const hcaptcha = (window as any).hcaptcha
-  if (typeof hcaptcha === 'undefined') return
-
-  widgetId.value = hcaptcha.render(widgetContainer.value, {
-    sitekey: resolvedSiteKey,
-    size: 'invisible',
-    callback: (t: string) => {
-      token.value = t
-      errored.value = false
-      emit('verified', t)
-    },
-    'error-callback': () => {
-      errored.value = true
-      emit('error', new Error('hCaptcha challenge failed'))
-    },
-  })
 }
 
 function execute(): Promise<string> {
@@ -59,32 +88,25 @@ function execute(): Promise<string> {
       resolve(token.value)
       return
     }
-    const hcaptcha = (window as any).hcaptcha
+    const hcaptcha = (window as unknown as { hcaptcha?: { execute: (id: string) => void } }).hcaptcha
     if (!widgetId.value || typeof hcaptcha === 'undefined') {
       reject(new Error('hCaptcha not ready'))
       return
     }
-    const handler = {
-      resolve: (t: string) => {
-        resolve(t)
-      },
-      reject: (e: Error) => {
-        reject(e)
-      },
+    pendingResolve = resolve
+    pendingReject = reject
+    try {
+      hcaptcha.execute(widgetId.value)
+    } catch (e) {
+      failPending(e instanceof Error ? e : new Error('hCaptcha execute failed'))
     }
-    pendingResolve = handler.resolve
-    pendingReject = handler.reject
-    hcaptcha.execute(widgetId.value)
   })
 }
-
-let pendingResolve: ((t: string) => void) | null = null
-let pendingReject: ((e: Error) => void) | null = null
 
 function reset(): void {
   token.value = ''
   errored.value = false
-  const hcaptcha = (window as any).hcaptcha
+  const hcaptcha = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha
   if (widgetId.value && typeof hcaptcha !== 'undefined') {
     hcaptcha.reset(widgetId.value)
   }
@@ -95,20 +117,29 @@ defineExpose({ execute, reset, token })
 onMounted(() => {
   if (!resolvedSiteKey) return
   loadScript()
-  const check = setInterval(() => {
-    const hcaptcha = (window as any).hcaptcha
-    if (typeof hcaptcha !== 'undefined') {
-      clearInterval(check)
+  pollTimer = setInterval(() => {
+    if (typeof (window as unknown as { hcaptcha?: unknown }).hcaptcha !== 'undefined') {
+      if (pollTimer) clearInterval(pollTimer)
+      pollTimer = null
       renderWidget()
     }
   }, 200)
-  setTimeout(() => clearInterval(check), 10000)
+  pollTimeout = setTimeout(() => {
+    if (pollTimer) clearInterval(pollTimer)
+    pollTimer = null
+  }, 10_000)
 })
 
 onBeforeUnmount(() => {
-  const hcaptcha = (window as any).hcaptcha
+  if (pollTimer) clearInterval(pollTimer)
+  if (pollTimeout) clearTimeout(pollTimeout)
+  const hcaptcha = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha
   if (widgetId.value && typeof hcaptcha !== 'undefined') {
-    try { hcaptcha.reset(widgetId.value) } catch { /* noop */ }
+    try {
+      hcaptcha.reset(widgetId.value)
+    } catch {
+      /* noop */
+    }
   }
 })
 </script>

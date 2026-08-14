@@ -4,10 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormSelect from '@/components/FormSelect.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useProductActivations } from '@/composables/useProductActivations'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { ProductActivationShowPayload, ProductActivation } from '@/api/types'
+import { PRODUCT_ACTIVATION_STATE_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,16 +51,6 @@ async function load(): Promise<void> {
 
 watch(stateFilter, () => load())
 onMounted(load)
-
-function stateClass(state: string): string {
-  const map: Record<string, string> = {
-    active: 'text-bg-success',
-    pending: 'text-bg-warning',
-    suspended: 'text-bg-secondary',
-    expired: 'text-bg-danger',
-  }
-  return map[state.toLowerCase()] ?? 'text-bg-light'
-}
 
 async function handleApprove(act: ProductActivation): Promise<void> {
   actionLoading.value = act.id
@@ -219,7 +211,7 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
                 <code v-else>{{ act.user_id }}</code>
               </td>
               <td class="text-center">
-                <span class="badge" :class="stateClass(act.state)">{{ act.state }}</span>
+                <StatusBadge :status="act.state" :mapping="PRODUCT_ACTIVATION_STATE_BADGE" fallback="light" />
               </td>
               <td class="small">{{ act.source ?? '—' }}</td>
               <td class="small">{{ act.activated_at_human ?? act.activated_at_formatted ?? act.activated_at ?? '—' }}</td>

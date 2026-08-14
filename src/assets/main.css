@@ -3,6 +3,8 @@
 @import './vendor.css';
 @import './monolith-overrides.css';
 @import './order-invoice-show.css';
+@import './file-hosting.css';
+@import './channels-admin.css';
 
 /* Source Sans 3 + Bootstrap Icons are loaded via CDN in index.html (same as Monolith). */
 

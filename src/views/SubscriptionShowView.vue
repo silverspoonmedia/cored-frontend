@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useSubscriptions } from '@/composables/useSubscriptions'
 import { useAlert } from '@/composables/useAlert'
 import type { Subscription } from '@/api/types'
+import { SUBSCRIPTION_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
@@ -37,7 +39,7 @@ onMounted(async () => {
 
   <Card
     v-else-if="subscription"
-    :title="`Subscription #${subscription.subscription_number ?? subscription.id}`"
+    :title="t('web.payments.subscriptions.show_card_title', { number: subscription.subscription_number ?? subscription.id })"
   >
     <template #actions>
       <button
@@ -78,7 +80,7 @@ onMounted(async () => {
 
       <dt class="col-sm-3">{{ t('web.payments.subscriptions.status') }}</dt>
       <dd class="col-sm-9">
-        <span class="badge text-bg-light border">{{ subscription.status }}</span>
+        <StatusBadge :status="subscription.status" :mapping="SUBSCRIPTION_STATUS_BADGE" fallback="warning" />
       </dd>
 
       <dt class="col-sm-3">{{ t('web.payments.subscriptions.auto_renew') }}</dt>

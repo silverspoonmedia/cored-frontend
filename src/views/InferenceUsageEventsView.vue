@@ -95,7 +95,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Card :title="t('web.inference.usage.list_title')">
+  <div class="inf-usage-admin">
+    <header class="inf-usage-admin__intro mb-3">
+      <h1 class="h4 mb-1">{{ t('web.inference.usage.list_title') }}</h1>
+      <p class="text-muted small mb-0">{{ t('web.inference.usage.subtitle') }}</p>
+    </header>
+    <Card>
     <form class="row g-2 mb-4" @submit.prevent="applyFilters">
       <div class="col-md-2">
         <FormInput name="from" :label="t('web.inference.usage.filters.from')" type="date" v-model="filters.from" />
@@ -283,4 +288,5 @@ onMounted(async () => {
       </div>
     </Card>
   </Card>
+  </div>
 </template>

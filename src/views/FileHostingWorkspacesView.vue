@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import Modal from '@/components/Modal.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useEcho } from '@/composables/useEcho'
@@ -239,7 +240,13 @@ function roleBadgeClass(role: string): string {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
+  <div class="fh-manager fh-admin-page">
+    <header class="fh-admin-page__intro">
+      <h1 class="h4 mb-1">{{ t('web.file-hosting.workspaces_title') }}</h1>
+      <p class="text-muted small mb-0">{{ t('web.file-hosting.collab.subtitle') }}</p>
+    </header>
+
+    <div v-if="loading" class="text-center py-4">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">{{ t('ui.loading') }}</span>
     </div>
@@ -273,9 +280,7 @@ function roleBadgeClass(role: string): string {
           >
             <div class="d-flex w-100 justify-content-between align-items-center">
               <span class="fw-semibold">{{ ws.name }}</span>
-              <span class="badge" :class="ws.status === 'active' ? 'text-bg-success' : 'text-bg-secondary'">
-                {{ ws.status }}
-              </span>
+              <StatusBadge :status="ws.status" />
             </div>
             <div class="small d-flex gap-2 mt-1">
               <span class="badge text-bg-light">{{ ws.kind }}</span>
@@ -302,7 +307,7 @@ function roleBadgeClass(role: string): string {
             @click="handleAcceptInvite"
           >
             <span v-if="accepting" class="spinner-border spinner-border-sm"></span>
-            Accept
+            {{ t('actions.accept') }}
           </button>
         </div>
       </Card>
@@ -311,7 +316,7 @@ function roleBadgeClass(role: string): string {
     <!-- Workspace detail -->
     <div class="col-lg-8">
       <div v-if="!selected" class="text-muted text-center py-5">
-        Select a workspace to view details.
+        {{ t('web.file-hosting.select_workspace_hint') }}
       </div>
 
       <template v-else>
@@ -322,26 +327,24 @@ function roleBadgeClass(role: string): string {
               class="btn btn-outline-danger btn-sm"
               @click="showArchive = true"
             >
-              <i class="bi bi-archive me-1"></i> Archive
+              <i class="bi bi-archive me-1"></i> {{ t('actions.archive') }}
             </button>
           </template>
 
           <div class="d-flex align-items-center gap-2 mb-3">
             <h3 class="card-title mb-0">{{ selected.name }}</h3>
             <span class="badge text-bg-light">{{ selected.kind }}</span>
-            <span class="badge" :class="selected.status === 'active' ? 'text-bg-success' : 'text-bg-secondary'">
-              {{ selected.status }}
-            </span>
+            <StatusBadge :status="selected.status" />
           </div>
 
           <dl class="row mb-0 small">
-            <dt class="col-sm-3">Owner</dt>
+            <dt class="col-sm-3">{{ t('web.file-hosting.owner') }}</dt>
             <dd class="col-sm-9">{{ selected.owner?.name ?? '—' }} <span class="text-muted">&lt;{{ selected.owner?.email ?? '—' }}&gt;</span></dd>
 
-            <dt class="col-sm-3">My role</dt>
+            <dt class="col-sm-3">{{ t('web.file-hosting.my_role') }}</dt>
             <dd class="col-sm-9"><span class="badge" :class="roleBadgeClass(selected.my_role ?? '')">{{ selected.my_role ?? '—' }}</span></dd>
 
-            <dt class="col-sm-3">Created</dt>
+            <dt class="col-sm-3">{{ t('web.file-hosting.created') }}</dt>
             <dd class="col-sm-9">{{ selected.created_at_formatted ?? selected.created_at ?? '—' }}</dd>
           </dl>
         </Card>
@@ -355,11 +358,11 @@ function roleBadgeClass(role: string): string {
             <!-- Invite form -->
             <div v-if="selected.is_owner && canManage" class="row g-2 mb-3 align-items-end">
               <div class="col">
-                <label class="form-label small">Email</label>
+                <label class="form-label small">{{ t('web.file-hosting.email_label') }}</label>
                 <input v-model="inviteEmail" type="email" class="form-control form-control-sm" placeholder="user@example.com" />
               </div>
               <div class="col-auto">
-                <label class="form-label small">Role</label>
+                <label class="form-label small">{{ t('web.file-hosting.role_label') }}</label>
                 <select v-model="inviteRole" class="form-select form-select-sm">
                   <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
                 </select>
@@ -372,23 +375,23 @@ function roleBadgeClass(role: string): string {
                   @click="handleInvite"
                 >
                   <span v-if="inviting" class="spinner-border spinner-border-sm me-1"></span>
-                  Invite
+                  {{ t('web.file-hosting.invite_button') }}
                 </button>
               </div>
             </div>
 
             <div v-if="!members.length" class="text-muted text-center py-3">
-              No active members.
+              {{ t('web.file-hosting.no_active_members') }}
             </div>
             <div v-else class="table-responsive">
               <table class="table table-sm align-middle mb-0">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Joined</th>
-                    <th v-if="selected.is_owner && canManage" class="text-end">Actions</th>
+                    <th>{{ t('web.file-hosting.member_name_col') }}</th>
+                    <th>{{ t('web.file-hosting.member_email_col') }}</th>
+                    <th>{{ t('web.file-hosting.member_role_col') }}</th>
+                    <th>{{ t('web.file-hosting.member_joined_col') }}</th>
+                    <th v-if="selected.is_owner && canManage" class="text-end">{{ t('actions.actions') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -496,4 +499,5 @@ function roleBadgeClass(role: string): string {
     confirm-variant="danger"
     @confirm="handleRemoveMember"
   />
+  </div>
 </template>

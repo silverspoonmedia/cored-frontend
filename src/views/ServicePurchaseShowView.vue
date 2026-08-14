@@ -7,6 +7,7 @@ import CheckoutPanel from '@/components/CheckoutPanel.vue'
 import PaymentStatusHero from '@/components/PaymentStatusHero.vue'
 import PaymentSteps from '@/components/PaymentSteps.vue'
 import { useServicePurchases } from '@/composables/useServicePurchases'
+import { useServices } from '@/composables/useServices'
 import { useAlert } from '@/composables/useAlert'
 import type { ServicePurchase, InvoiceStatusPayload } from '@/api/types'
 
@@ -14,13 +15,14 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const { fetchOne, updateQuantity } = useServicePurchases()
+const { fetchOptions } = useServices()
 const { success: showSuccess, error: showError } = useAlert()
 
 const purchase = ref<ServicePurchase | null>(null)
 const loading = ref(true)
 const updatingQty = ref(false)
 const quantity = ref(1)
-const maxPurchaseQuantity = 99
+const maxPurchaseQuantity = ref(99)
 
 const invoice = computed(() => purchase.value?.invoice ?? null)
 const invoiceStatus = computed(() => invoice.value?.status ?? '')
@@ -91,6 +93,14 @@ onMounted(async () => {
     showError(e instanceof Error ? e.message : t('web.services.purchases.load_failed'))
   } finally {
     loading.value = false
+  }
+  try {
+    const opts = await fetchOptions()
+    if (opts.purchase_max_quantity >= 1) {
+      maxPurchaseQuantity.value = opts.purchase_max_quantity
+    }
+  } catch {
+    // last-resort 99 — SPA cannot read system_settings; options requires view service
   }
 })
 

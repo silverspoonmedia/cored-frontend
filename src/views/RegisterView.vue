@@ -4,12 +4,15 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useHcaptcha } from '@/composables/useHcaptcha'
+import HcaptchaWidget from '@/components/HcaptchaWidget.vue'
 import { ApiError } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
 const { register } = useAuth()
 const { error: showError } = useAlert()
+const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
 const name = ref('')
 const email = ref('')
@@ -26,18 +29,22 @@ async function handleSubmit(): Promise<void> {
   errors.value = {}
 
   try {
-    await register(name.value, email.value, password.value, passwordConfirmation.value)
+    const captcha = await captchaToken()
+    await register(name.value, email.value, password.value, passwordConfirmation.value, captcha)
     router.push({ name: 'dashboard.view' })
   } catch (e) {
+    resetCaptcha()
     if (e instanceof ApiError && e.isValidation) {
       errors.value = e.errors ?? {}
       if (e.errors === null) {
         showError(e.message)
       }
     } else if (e instanceof ApiError) {
-      showError(e.message || 'Registration failed')
+      showError(e.message || t('web.auth.register_failed'))
+    } else if (e instanceof Error && e.message.toLowerCase().includes('hcaptcha')) {
+      showError(t('validation.hcaptcha'))
     } else {
-      showError(e instanceof Error ? e.message : 'Registration failed')
+      showError(e instanceof Error ? e.message : t('web.auth.register_failed'))
     }
   } finally {
     loading.value = false
@@ -56,10 +63,9 @@ function fieldError(field: string): string | null {
 
 <template>
   <form @submit.prevent="handleSubmit">
-    <!-- Name -->
     <div class="mb-3">
       <label for="name" class="form-label">
-        Name<span class="text-danger">*</span>
+        {{ t('ui.labels.name') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -82,10 +88,9 @@ function fieldError(field: string): string | null {
       </div>
     </div>
 
-    <!-- Email -->
     <div class="mb-3">
       <label for="email" class="form-label">
-        Email<span class="text-danger">*</span>
+        {{ t('ui.labels.email') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -107,10 +112,9 @@ function fieldError(field: string): string | null {
       </div>
     </div>
 
-    <!-- Password -->
     <div class="mb-3">
       <label for="password" class="form-label">
-        Password<span class="text-danger">*</span>
+        {{ t('ui.labels.password') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -141,10 +145,9 @@ function fieldError(field: string): string | null {
       </div>
     </div>
 
-    <!-- Password Confirmation -->
     <div class="mb-3">
       <label for="password_confirmation" class="form-label">
-        Confirm Password<span class="text-danger">*</span>
+        {{ t('web.auth.password_confirm_label') }}<span class="text-danger">*</span>
       </label>
       <div class="input-group">
         <input
@@ -164,6 +167,11 @@ function fieldError(field: string): string | null {
           {{ fieldError('password_confirmation') }}
         </div>
       </div>
+    </div>
+
+    <HcaptchaWidget ref="widget" />
+    <div v-if="fieldError('h-captcha-response')" class="invalid-feedback d-block mb-3">
+      {{ fieldError('h-captcha-response') }}
     </div>
 
     <div class="d-grid">

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { NavNode } from '@/types'
 import { useTreeview } from '@/composables/useTreeview'
+import { isNavNodeActive } from '@/utils/navActive'
 
 const props = withDefaults(defineProps<{
   items: NavNode[]
@@ -15,10 +15,7 @@ const router = useRouter()
 const { isOpen, toggle } = useTreeview()
 
 function isActive(node: NavNode): boolean {
-  if (node.route && node.route !== '#') {
-    if (route.name === node.route || route.name === `${node.route}.view`) return true
-  }
-  return node.children.some((c) => isActive(c))
+  return isNavNodeActive(node, route)
 }
 
 function resolveHref(node: NavNode): string {

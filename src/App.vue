@@ -2,9 +2,11 @@
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { usePageTitle } from '@/composables/usePageTitle'
 
 const route = useRoute()
 const { t } = useI18n()
+const { documentTitle, applyDocumentTitle } = usePageTitle()
 
 function applyBodyClass(): void {
   const body = document.body
@@ -18,8 +20,12 @@ function applyBodyClass(): void {
   }
 }
 
-onMounted(applyBodyClass)
+onMounted(() => {
+  applyBodyClass()
+  applyDocumentTitle()
+})
 watch(() => route.path, applyBodyClass)
+watch(documentTitle, applyDocumentTitle)
 </script>
 
 <template>

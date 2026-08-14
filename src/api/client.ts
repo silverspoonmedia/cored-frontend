@@ -173,3 +173,58 @@ export function patch<T>(uri: string, data?: Record<string, unknown>): Promise<T
 export function del<T>(uri: string, data?: Record<string, unknown>): Promise<T> {
   return request<T>('DELETE', uri, data ?? null)
 }
+
+function filenameFromDisposition(header: string | null): string | null {
+  if (!header) return null
+  const utf = header.match(/filename\*=UTF-8''([^;]+)/i)
+  if (utf?.[1]) return decodeURIComponent(utf[1])
+  const ascii = header.match(/filename="?([^";]+)"?/i)
+  return ascii?.[1] ?? null
+}
+
+/** GET a non-JSON payload (CSV export, file download). Same Bearer + 401 refresh as `get()`. */
+export async function getBlob(
+  uri: string,
+  query?: Record<string, unknown>,
+): Promise<{ blob: Blob; filename: string | null }> {
+  const url = new URL(`${BASE_URL}/${uri.replace(/^\//, '')}`)
+  if (query) {
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined && value !== null) {
+        url.searchParams.set(key, String(value))
+      }
+    }
+  }
+
+  const headers = (): Headers => {
+    const h = new Headers()
+    h.set('Accept', '*/*')
+    const token = tokenGetter?.()
+    if (token) h.set('Authorization', `Bearer ${token}`)
+    return h
+  }
+
+  const doFetch = (): Promise<Response> => fetch(url.toString(), { method: 'GET', headers: headers() })
+
+  let response = await doFetch()
+
+  if (response.status === 401 && refreshHandler) {
+    const newToken = await ensureRefresh()
+    if (newToken) {
+      response = await doFetch()
+    } else {
+      unauthorizedHandler?.()
+      throw new ApiError('Session expired', 401)
+    }
+  }
+
+  if (!response.ok) {
+    const json = await readJson(response)
+    throwForStatus(response, json)
+  }
+
+  return {
+    blob: await response.blob(),
+    filename: filenameFromDisposition(response.headers.get('Content-Disposition')),
+  }
+}

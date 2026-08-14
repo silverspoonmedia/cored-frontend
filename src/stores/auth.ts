@@ -310,11 +310,22 @@ export function useAuth() {
   }
 }
 
-async function login(email: string, password: string, rememberMe: boolean): Promise<LoginResult> {
+function captchaBody(captcha?: string | null): Record<string, string> {
+  if (!captcha) return {}
+  return { 'h-captcha-response': captcha }
+}
+
+async function login(
+  email: string,
+  password: string,
+  rememberMe: boolean,
+  captcha?: string | null,
+): Promise<LoginResult> {
   const res = await post<ApiResponse<AuthPayload | TwoFactorChallengePayload>>('auth/login', {
     email,
     password,
     remember_me: rememberMe,
+    ...captchaBody(captcha),
   })
 
   if (res.status === 'success' && res.data) {
@@ -333,10 +344,15 @@ async function login(email: string, password: string, rememberMe: boolean): Prom
   throw new Error(res.message ?? 'Login failed')
 }
 
-async function verifyTwoFactor(twoFactorToken: string, code: string): Promise<User> {
+async function verifyTwoFactor(
+  twoFactorToken: string,
+  code: string,
+  captcha?: string | null,
+): Promise<User> {
   const res = await post<ApiResponse<AuthPayload>>('auth/two-factor/login', {
     two_factor_token: twoFactorToken,
     code,
+    ...captchaBody(captcha),
   })
 
   if (res.status === 'success' && res.data) {
@@ -347,12 +363,19 @@ async function verifyTwoFactor(twoFactorToken: string, code: string): Promise<Us
   throw new Error(res.message ?? 'Two-factor verification failed')
 }
 
-async function register(name: string, email: string, password: string, passwordConfirmation: string): Promise<User> {
+async function register(
+  name: string,
+  email: string,
+  password: string,
+  passwordConfirmation: string,
+  captcha?: string | null,
+): Promise<User> {
   const res = await post<ApiResponse<AuthPayload>>('auth/register', {
     name,
     email,
     password,
     password_confirmation: passwordConfirmation,
+    ...captchaBody(captcha),
   })
 
   if (res.status === 'success' && res.data) {
@@ -363,8 +386,11 @@ async function register(name: string, email: string, password: string, passwordC
   throw new Error(res.message ?? 'Registration failed')
 }
 
-async function forgotPassword(email: string): Promise<void> {
-  const res = await post<ApiResponse<null>>('auth/forgot-password', { email })
+async function forgotPassword(email: string, captcha?: string | null): Promise<void> {
+  const res = await post<ApiResponse<null>>('auth/forgot-password', {
+    email,
+    ...captchaBody(captcha),
+  })
 
   if (res.status !== 'success') {
     throw new Error(res.message ?? 'Failed to send reset link')

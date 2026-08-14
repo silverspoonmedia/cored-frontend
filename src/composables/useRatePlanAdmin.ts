@@ -13,29 +13,18 @@ export interface RateEntry {
     is_active: boolean
   } | null
   _isNew?: boolean
-  _removed?: boolean
 }
 
 export interface ModelCardOption {
   id: string
   slug: string
+  display_name?: string | null
 }
 
 export function useRatePlanAdmin(providerId: Ref<string>) {
   const entries = ref<RateEntry[]>([])
   const modelCards = ref<ModelCardOption[]>([])
   const saving = ref(false)
-  const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
-
-  let toastTimer: ReturnType<typeof setTimeout> | null = null
-
-  function showToast(message: string, type: 'success' | 'error' = 'success'): void {
-    toast.value = { message, type }
-    if (toastTimer) clearTimeout(toastTimer)
-    toastTimer = setTimeout(() => {
-      toast.value = null
-    }, 4000)
-  }
 
   function initRates(rates: ProviderModelRate[]): void {
     entries.value = rates.map((r) => ({
@@ -69,7 +58,6 @@ export function useRatePlanAdmin(providerId: Ref<string>) {
   async function saveRates(): Promise<boolean> {
     if (saving.value) return false
     saving.value = true
-    toast.value = null
 
     try {
       const rates = entries.value.map((e) => ({
@@ -84,16 +72,11 @@ export function useRatePlanAdmin(providerId: Ref<string>) {
       )
 
       if (res.status === 'success') {
-        showToast(res.message ?? 'Saved', 'success')
         entries.value.forEach((e) => { e._isNew = false })
         return true
-      } else {
-        showToast(res.message ?? 'Save failed', 'error')
-        return false
       }
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : 'Save failed', 'error')
-      return false
+
+      throw new Error(res.message ?? 'Save failed')
     } finally {
       saving.value = false
     }
@@ -103,12 +86,10 @@ export function useRatePlanAdmin(providerId: Ref<string>) {
     entries,
     modelCards,
     saving,
-    toast,
     initRates,
     setModelCards,
     addEntry,
     removeEntry,
     saveRates,
-    showToast,
   }
 }

@@ -62,6 +62,18 @@ export function useFileHosting() {
     throw new Error(res.message ?? 'Failed to fetch file')
   }
 
+  async function fetchFileDownload(
+    id: string,
+    params: Record<string, unknown> = {},
+  ): Promise<{ url: string; expires_at: string }> {
+    const res = await get<ApiResponse<{ url: string; expires_at: string }>>(
+      `file-hosting/files/${id}/download`,
+      params,
+    )
+    if (res.status === 'success' && res.data) return res.data
+    throw new Error(res.message ?? 'Failed to get download URL')
+  }
+
   // Folder mutations
   async function createFolder(
     name: string,
@@ -268,6 +280,7 @@ export function useFileHosting() {
     fetchQuota,
     searchFiles,
     fetchFile,
+    fetchFileDownload,
     createFolder,
     renameFolder,
     moveFolder,

@@ -307,7 +307,14 @@
         "token_refresh_failed": "Discordセッションの有効期限が切れました。連携アカウントからDiscordを再接続してください。",
         "connections_failed": "Discordのリンクアカウントを読み込めませんでした。",
         "discord_not_connected": "先に連携アカウントからDiscordを連携してください。",
-        "discord_user_missing": "DiscordからユーザーIDが返されませんでした。"
+        "discord_user_missing": "DiscordからユーザーIDが返されませんでした。",
+        "authorize_url": "Discord認可URLを発行しました。",
+        "spa_url_missing": "このサーバーではSPAのオリジンが設定されていません。",
+        "return_path_invalid": "OAuthの戻り先パスは許可されていません。"
+      },
+      "connections": {
+        "show": "連携アカウントを読み込みました。",
+        "discord_disconnected": "Discord連携を解除しました。"
       }
     },
     "inference": {
@@ -1036,6 +1043,10 @@
       "edit": "編集"
     },
     "datatable": {
+      "search_placeholder": "検索…",
+      "empty_title": "レコードがありません",
+      "info": "{total} 件中 {from} から {to} を表示",
+      "per_page": "{n} / ページ",
       "detail": "詳細",
       "view": "表示",
       "edit": "編集",
@@ -1672,6 +1683,8 @@
         "activate_cta": "Microstockを有効化",
         "create_workspace": "新しいMicrostockワークスペース",
         "slots_full": "Microstockスロットが満杯",
+        "slots_counter": "Microstockスロット: {used} / {limit}",
+        "buy_slot_cta": "Microstockスロットを追加",
         "create_title": "新しいMicrostockワークスペース",
         "create_hint": "Microstockワークスペースに名前を付けます。空のままだとデフォルト名を使用します。",
         "name_label": "ワークスペース名",
@@ -2489,7 +2502,8 @@
         "load_failed": "Failed to load gateway",
         "created": "Gateway created.",
         "updated": "Gateway updated.",
-        "save_failed": "Failed to save"
+        "save_failed": "Failed to save",
+        "confirm_delete": "この決済ゲートウェイを削除しますか？"
       },
       "show": {
         "payment_not_started": "Payment method not chosen yet",

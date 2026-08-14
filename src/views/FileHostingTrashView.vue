@@ -2,8 +2,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import Card from '@/components/Card.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import FhIcon from '@/components/FhIcon.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useEcho } from '@/composables/useEcho'
@@ -22,6 +22,7 @@ const { connected: echoConnected } = useEcho(() => token.value)
 
 const trash = ref<FhTrashPayload | null>(null)
 const loading = ref(true)
+const isBusy = ref(false)
 const actionTarget = ref<{ type: 'folder' | 'file'; id: string; action: 'restore' | 'force-delete' } | null>(null)
 const showConfirm = ref(false)
 
@@ -92,6 +93,7 @@ function openConfirm(type: 'folder' | 'file', id: string, action: 'restore' | 'f
 async function handleAction(): Promise<void> {
   if (!actionTarget.value) return
   const { type, id, action } = actionTarget.value
+  isBusy.value = true
   try {
     if (type === 'folder') {
       if (action === 'restore') await fh.restoreFolder(id, ctxParams())
@@ -106,108 +108,79 @@ async function handleAction(): Promise<void> {
     await loadTrash()
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.file-hosting.trash_action_failed'))
+  } finally {
+    isBusy.value = false
   }
-}
-
-function fileIcon(mime: string): string {
-  if (mime.startsWith('image/')) return 'bi-file-image'
-  if (mime.startsWith('video/')) return 'bi-file-play'
-  if (mime.startsWith('audio/')) return 'bi-file-music'
-  if (mime.includes('pdf')) return 'bi-file-pdf'
-  if (mime.includes('zip') || mime.includes('compressed')) return 'bi-file-zip'
-  if (mime.includes('text')) return 'bi-file-text'
-  return 'bi-file-earmark'
 }
 </script>
 
 <template>
-  <Card :title="t('web.file-hosting.trash_title')">
-    <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'file-hosting.index.view', query: route.query })">
-        <i class="bi bi-arrow-left me-1"></i> {{ t('web.file-hosting.trash_back_to_files') }}
+  <div
+    class="fh-manager"
+    data-file-manager
+    data-fh-spa
+    :class="{ 'is-fh-loading': loading, 'is-fh-busy': isBusy }"
+  >
+    <div v-if="isBusy" class="fh-busy-overlay" data-fh-busy-overlay>
+      <div class="fh-busy-overlay__inner" role="status">
+        <div class="spinner-border spinner-border-sm"></div>
+      </div>
+    </div>
+
+    <div class="fh-toolbar">
+      <button class="btn btn-outline-secondary btn-sm" type="button" @click="router.push({ name: 'file-hosting.index.view', query: route.query })">
+        <i class="bi bi-arrow-left me-1"></i>{{ t('web.file-hosting.trash_back_to_files') }}
       </button>
-    </template>
-
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
-      </div>
     </div>
 
-    <div v-else-if="!trash || (trash.folders.length === 0 && trash.files.length === 0)" class="text-muted text-center py-4">
-      <i class="bi bi-trash fs-2 d-block mb-2"></i>
-      {{ t('web.file-hosting.trash_empty') }}
-    </div>
-
-    <div v-else>
-      <div v-if="trash.folders.length > 0" class="mb-4">
-        <h6 class="text-muted">{{ t('web.file-hosting.type_folder') }} ({{ trash.folders.length }})</h6>
-        <div class="table-responsive">
-          <table class="table table-sm table-hover align-middle mb-0">
-            <thead>
-              <tr>
-                <th>{{ t('web.file-hosting.columns.name') }}</th>
-                <th>{{ t('web.file-hosting.columns.deleted_at') }}</th>
-                <th class="text-end">{{ t('web.file-hosting.columns.actions') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="folder in trash.folders" :key="folder.id">
-                <td>
-                  <i class="bi bi-folder-fill text-warning me-1"></i>
-                  {{ folder.name }}
-                </td>
-                <td class="small">{{ folder.deleted_at_formatted ?? folder.deleted_at ?? '—' }}</td>
-                <td class="text-end">
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-success" @click="openConfirm('folder', folder.id, 'restore')" :title="t('web.file-hosting.restore')">
-                      <i class="bi bi-arrow-counterclockwise"></i>
-                    </button>
-                    <button class="btn btn-outline-danger" @click="openConfirm('folder', folder.id, 'force-delete')" :title="t('web.file-hosting.trash_delete_permanently_title')">
-                      <i class="bi bi-x-circle"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+    <div data-fh-panel="trash">
+      <div v-if="loading" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">{{ t('ui.loading') }}</span>
         </div>
       </div>
 
-      <div v-if="trash.files.length > 0">
-        <h6 class="text-muted">{{ t('web.file-hosting.type_file') }} ({{ trash.files.length }})</h6>
-        <div class="table-responsive">
-          <table class="table table-sm table-hover align-middle mb-0">
-            <thead>
-              <tr>
-                <th>{{ t('web.file-hosting.columns.name') }}</th>
-                <th>{{ t('web.file-hosting.columns.size') }}</th>
-                <th>{{ t('web.file-hosting.columns.deleted_at') }}</th>
-                <th class="text-end">{{ t('web.file-hosting.columns.actions') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="file in trash.files" :key="file.id">
-                <td>
-                  <i class="bi me-1" :class="fileIcon(file.mime)"></i>
-                  {{ file.name }}
-                </td>
-                <td class="small">{{ file.size_human ?? file.size ?? '—' }}</td>
-                <td class="small">{{ file.deleted_at_formatted ?? file.deleted_at ?? '—' }}</td>
-                <td class="text-end">
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-success" @click="openConfirm('file', file.id, 'restore')" :title="t('web.file-hosting.restore')">
-                      <i class="bi bi-arrow-counterclockwise"></i>
-                    </button>
-                    <button class="btn btn-outline-danger" @click="openConfirm('file', file.id, 'force-delete')" :title="t('web.file-hosting.trash_delete_permanently_title')">
-                      <i class="bi bi-x-circle"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div v-else class="table-responsive">
+        <table class="table fh-table">
+          <tbody data-fh-trash-body>
+            <tr v-for="folder in (trash?.folders ?? [])" :key="'tf:' + folder.id">
+              <td class="fh-table__icon-cell"><FhIcon is-folder /></td>
+              <td><span class="fh-table__name-text">{{ folder.name }}</span></td>
+              <td class="fh-table__type">{{ t('web.file-hosting.type_folder') }}</td>
+              <td class="fh-table__size">{{ folder.deleted_at_formatted ?? folder.deleted_at ?? '' }}</td>
+              <td class="fh-table__actions">
+                <button type="button" class="fh-table__action-btn" :title="t('web.file-hosting.restore')" @click="openConfirm('folder', folder.id, 'restore')">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+                <button type="button" class="fh-table__action-btn is-danger" :title="t('web.file-hosting.trash_delete_permanently_title')" @click="openConfirm('folder', folder.id, 'force-delete')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            <tr v-for="file in (trash?.files ?? [])" :key="'tfile:' + file.id">
+              <td class="fh-table__icon-cell"><FhIcon :mime="file.mime" /></td>
+              <td><span class="fh-table__name-text">{{ file.name }}</span></td>
+              <td class="fh-table__type">{{ file.mime || t('web.file-hosting.type_file') }}</td>
+              <td class="fh-table__size">{{ file.deleted_at_formatted ?? file.deleted_at ?? '' }}</td>
+              <td class="fh-table__actions">
+                <button type="button" class="fh-table__action-btn" :title="t('web.file-hosting.restore')" @click="openConfirm('file', file.id, 'restore')">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+                <button type="button" class="fh-table__action-btn is-danger" :title="t('web.file-hosting.trash_delete_permanently_title')" @click="openConfirm('file', file.id, 'force-delete')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            <tr v-if="!trash || (trash.folders.length === 0 && trash.files.length === 0)">
+              <td colspan="5">
+                <div class="fh-empty">
+                  <i class="bi bi-trash fh-empty__icon"></i>
+                  <div class="fh-empty__text">{{ t('web.file-hosting.trash_empty') }}</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -225,5 +198,5 @@ function fileIcon(mime: string): string {
         <p class="text-danger small">{{ t('web.file-hosting.trash_cannot_be_undone') }}</p>
       </div>
     </ConfirmModal>
-  </Card>
+  </div>
 </template>

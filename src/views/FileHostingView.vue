@@ -1,24 +1,44 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import Card from '@/components/Card.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import Modal from '@/components/Modal.vue'
 import FhDropzone from '@/components/FhDropzone.vue'
+import FhIcon from '@/components/FhIcon.vue'
+import FhShareModal from '@/components/FhShareModal.vue'
+import FhCollectionDescribeModal from '@/components/FhCollectionDescribeModal.vue'
+import FhMicrostockReviewModal from '@/components/FhMicrostockReviewModal.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useMicrostock } from '@/composables/useMicrostock'
+import { useMicrostockBilling } from '@/composables/useMicrostockBilling'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useFhDragMove } from '@/composables/useFhDragMove'
+import { applyBrowseClick, listingKeys, idsByEntity } from '@/composables/useFhSelection'
+import { formatCollectionProgress, resolveMicrostockBadge, type FhMicrostockBadgeLabels } from '@/utils/fhMicrostockBadge'
 import { useAuth } from '@/stores/auth'
-import type { HostedFile, FhFolder, FhBrowsePayload, FhQuota, FhWorkspace } from '@/api/types'
+import type {
+  HostedFile,
+  FhFolder,
+  FhBrowsePayload,
+  FhQuota,
+  FhWorkspace,
+  MicrostockBillingSummary,
+  MicrostockSlotStatus,
+  MicrostockCollectionStatusPayload,
+} from '@/api/types'
+
+const VIS_LINK = 'anyone_with_link'
+const VIEW_MODE_KEY = 'fh-view-mode'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
 const ms = useMicrostock()
+const { fetchBilling } = useMicrostockBilling()
 const { hasPermission, token } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe: subscribeFhRealtime, unsubscribe: unsubscribeFhRealtime } = useFileHostingRealtime()
@@ -27,42 +47,261 @@ const { connected: echoConnected } = useEcho(() => token.value)
 const browse = ref<FhBrowsePayload | null>(null)
 const quota = ref<FhQuota | null>(null)
 const loading = ref(true)
-const viewMode = ref<'table' | 'grid'>('table')
-const search = ref('')
-const searchResults = ref<HostedFile[]>([])
-const searchLoading = ref(false)
+const isBusy = ref(false)
 const workspaces = ref<FhWorkspace[]>([])
-
+const slots = ref<MicrostockSlotStatus | null>(null)
+const billing = ref<MicrostockBillingSummary | null>(null)
+const collectionStatusPayload = ref<MicrostockCollectionStatusPayload | null>(null)
 const selected = ref<Set<string>>(new Set())
+const selectionAnchor = ref<string | null>(null)
 
-// Modals
-const showCreateFolder = ref(false)
-const newFolderName = ref('')
-const creatingFolder = ref(false)
-const renameTarget = ref<{ type: 'folder' | 'file'; id: string; name: string } | null>(null)
-const renameValue = ref('')
-const showRename = ref(false)
+function readViewMode(): 'table' | 'grid' {
+  try {
+    const stored = localStorage.getItem(VIEW_MODE_KEY)
+    return stored === 'grid' ? 'grid' : 'table'
+  } catch {
+    return 'table'
+  }
+}
+
+const viewMode = ref<'table' | 'grid'>(readViewMode())
+
+function setViewMode(mode: 'table' | 'grid'): void {
+  viewMode.value = mode
+  try {
+    localStorage.setItem(VIEW_MODE_KEY, mode)
+  } catch {
+    /* ignore */
+  }
+}
+
+const searchQ = ref('')
+const searchResults = ref<HostedFile[]>([])
+const searchOpen = ref(false)
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+type FhModal =
+  | { type: 'folder'; name: string }
+  | { type: 'rename'; entity: 'folder' | 'file'; id: string; name: string }
+  | { type: 'move'; keys: string[]; target: string }
+
+const modal = ref<FhModal | null>(null)
+const showShare = ref(false)
+const shareVisibility = ref('private')
+const shareUrl = ref<string | null>(null)
+const shareTarget = ref<{ entity: 'folder' | 'file'; id: string } | null>(null)
 const showDeleteConfirm = ref(false)
-const deleteTarget = ref<{ type: 'folder' | 'file'; id: string; force: boolean } | null>(null)
+const deleteTarget = ref<{ type: 'folder' | 'file'; id: string } | null>(null)
 
-const currentFolderId = computed(() => (route.params.folderId as string) ?? null)
+type ContextMenuState = {
+  x: number
+  y: number
+  entity: 'folder' | 'file'
+  item: FhFolder | HostedFile
+}
+
+const contextMenu = ref<ContextMenuState | null>(null)
+
+const currentFolderId = computed(() => {
+  const id = route.params.folderId
+  return typeof id === 'string' && id.length > 0 ? id : null
+})
 
 function ctxParams(): Record<string, unknown> {
   const params: Record<string, unknown> = {}
   const ws = route.query.workspace_id
   const uid = route.query.user_id
-  if (ws) params.workspace_id = ws
-  if (uid) params.user_id = uid
+  if (typeof ws === 'string' && ws) params.workspace_id = ws
+  if (typeof uid === 'string' && uid) params.user_id = uid
   return params
 }
 
-async function loadBrowse(): Promise<void> {
+function keepQuery(): Record<string, string | string[]> {
+  const q: Record<string, string | string[]> = {}
+  for (const [k, v] of Object.entries(route.query)) {
+    if (typeof v === 'string') q[k] = v
+    else if (Array.isArray(v)) q[k] = v.filter((x): x is string => typeof x === 'string')
+  }
+  return q
+}
+
+function folderHref(folderId: string | null): string {
+  if (!folderId) {
+    return router.resolve({ name: 'file-hosting.index.view', query: route.query }).href
+  }
+  return router.resolve({
+    name: 'file-hosting.index.folder',
+    params: { folderId },
+    query: route.query,
+  }).href
+}
+
+function fileHref(id: string): string {
+  return router.resolve({
+    name: 'file-hosting.show.view',
+    params: { id },
+    query: route.query,
+  }).href
+}
+
+const folders = computed(() => browse.value?.folders ?? [])
+const files = computed(() => browse.value?.files ?? [])
+const crumbs = computed(() => browse.value?.breadcrumb ?? [])
+const allKeys = computed(() => listingKeys(folders.value, files.value))
+const isEmpty = computed(() => folders.value.length === 0 && files.value.length === 0)
+const selectedCount = computed(() => selected.value.size)
+const allSelected = computed(() => allKeys.value.length > 0 && allKeys.value.every((k) => selected.value.has(k)))
+
+const canCreateFile = computed(() => hasPermission('create file hosting file'))
+const canCreateFolder = computed(() => hasPermission('create file hosting folder'))
+const canEditFolder = computed(() => hasPermission('edit file hosting folder'))
+const canEditFile = computed(() => hasPermission('edit file hosting file'))
+const canDeleteFolder = computed(() => hasPermission('delete file hosting folder'))
+const canDeleteFile = computed(() => hasPermission('delete file hosting file'))
+
+function canEdit(entity: 'folder' | 'file'): boolean {
+  return entity === 'folder' ? canEditFolder.value : canEditFile.value
+}
+
+function canDelete(entity: 'folder' | 'file'): boolean {
+  return entity === 'folder' ? canDeleteFolder.value : canDeleteFile.value
+}
+
+const isMicrostock = computed(() => browse.value?.workspace?.kind === 'microstock')
+const collectionLocked = computed(() => !!browse.value?.folder?.collection_locked)
+const requireFolder = computed(() => isMicrostock.value && !currentFolderId.value)
+const collectionStatus = computed(() => browse.value?.folder?.collection_status ?? collectionStatusPayload.value?.status ?? null)
+
+const showLockBtn = computed(() => {
+  if (!isMicrostock.value || !currentFolderId.value) return false
+  const status = collectionStatus.value
+  return status === 'draft' || status === 'failed' || !status
+})
+const showAnalyzeBtn = computed(() => isMicrostock.value && collectionStatus.value === 'locked')
+const showReviewBtn = computed(() => {
+  if (!isMicrostock.value || !currentFolderId.value) return false
+  return ['processing', 'review', 'exported'].includes(collectionStatus.value ?? '')
+})
+const showExportBtn = computed(() => isMicrostock.value && collectionStatus.value === 'review')
+const showDownloadBtn = computed(() => isMicrostock.value && collectionStatus.value === 'exported')
+
+function canLockCollection(folder: FhFolder): boolean {
+  if (!folder.collection_status) return false
+  if (folder.collection_locked) return false
+  return folder.collection_status === 'draft' || folder.collection_status === 'failed'
+}
+
+const collectionProgressText = computed(() => {
+  const payload = collectionStatusPayload.value
+  if (!isMicrostock.value || !payload || payload.total <= 0) return ''
+  if (!['processing', 'review', 'exported'].includes(payload.status) && collectionStatus.value !== 'processing') {
+    return ''
+  }
+  return formatCollectionProgress(
+    payload.processed,
+    payload.total,
+    payload.failed,
+    t('web.file-hosting.microstock.progress', { processed: payload.processed, total: payload.total }),
+    t('web.file-hosting.microstock.progress_failed', { failed: payload.failed }),
+  )
+})
+
+const collectionStatusHint = computed(() => {
+  const status = collectionStatus.value
+  if (!isMicrostock.value || !status) return ''
+  if (status === 'locked') return t('web.file-hosting.microstock.status_locked')
+  if (status === 'processing') {
+    const extra = collectionStatusPayload.value?.billing_tier === 'free'
+      ? ` ${t('web.file-hosting.microstock.status_processing_free_tier')}`
+      : ''
+    return t('web.file-hosting.microstock.status_processing') + extra
+  }
+  if (status === 'review') return t('web.file-hosting.microstock.status_review')
+  if (status === 'exported') return t('web.file-hosting.microstock.status_exported')
+  if (status === 'failed') return t('web.file-hosting.microstock.status_failed')
+  return ''
+})
+
+const parentMeta = computed(() => {
+  if (!currentFolderId.value) return null
+  const c = crumbs.value
+  const id = c.length >= 2 ? (c[c.length - 2]?.id ?? null) : null
+  return { id, href: folderHref(id) }
+})
+
+const rootLabel = computed(() => {
+  if (route.query.workspace_id) {
+    return browse.value?.workspace?.name
+      ?? workspaces.value.find((w) => w.id === route.query.workspace_id)?.name
+      ?? t('web.file-hosting.workspace_team')
+  }
+  return t('web.file-hosting.personal')
+})
+
+const quotaPct = computed(() => {
+  const q = quota.value
+  if (!q) return 0
+  const lim = Number(q.quota_bytes || 0)
+  return lim > 0 ? Math.min(100, (Number(q.used_bytes || 0) / lim) * 100) : 0
+})
+
+const badgeLabels = computed<FhMicrostockBadgeLabels>(() => ({
+  noMetadata: t('web.file-hosting.microstock.no_metadata'),
+  statusPending: t('web.file-hosting.microstock.status_pending'),
+  statusGenerated: t('web.file-hosting.microstock.status_generated'),
+  statusFinalized: t('web.file-hosting.microstock.status_finalized'),
+  statusFailed: t('web.file-hosting.microstock.status_failed_item'),
+  stageVision: t('web.file-hosting.microstock.stage_vision'),
+  stageThinking: t('web.file-hosting.microstock.stage_thinking'),
+  stageQueuedThinking: t('web.file-hosting.microstock.stage_queued_thinking'),
+  stageDegraded: t('web.file-hosting.microstock.stage_degraded'),
+}))
+
+function msBadge(file: HostedFile) {
+  return resolveMicrostockBadge(file.microstock, badgeLabels.value)
+}
+
+const moveTargets = computed(() => {
+  const keys = modal.value?.type === 'move' ? modal.value.keys : []
+  return folders.value.filter((f) => !keys.includes(`folder:${f.id}`))
+})
+
+const uploadCtx = computed(() => ({
+  folderId: currentFolderId.value,
+  userId: typeof route.query.user_id === 'string' ? route.query.user_id : null,
+  workspaceId: typeof route.query.workspace_id === 'string' ? route.query.workspace_id : null,
+}))
+
+function clearSelection(): void {
+  selected.value = new Set()
+  selectionAnchor.value = null
+}
+
+function toggleSelect(key: string, on?: boolean): void {
+  const next = new Set(selected.value)
+  const enable = on === undefined ? !next.has(key) : on
+  if (enable) next.add(key)
+  else next.delete(key)
+  selected.value = next
+}
+
+function setSelection(next: Set<string>, anchorKey: string | null): void {
+  selected.value = next
+  selectionAnchor.value = anchorKey
+}
+
+function selectAllKeys(keys: string[], on: boolean): void {
+  selected.value = on ? new Set(keys) : new Set()
+  if (!on) selectionAnchor.value = null
+}
+
+async function loadBrowse(opts?: { keepSelection?: boolean }): Promise<void> {
   loading.value = true
   try {
     const params: Record<string, unknown> = { ...ctxParams() }
     if (currentFolderId.value) params.folder_id = currentFolderId.value
     browse.value = await fh.fetchBrowse(params)
-    selected.value.clear()
+    if (!opts?.keepSelection) clearSelection()
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.file-hosting.load_failed'))
   } finally {
@@ -74,12 +313,8 @@ async function loadQuota(): Promise<void> {
   try {
     quota.value = await fh.fetchQuota(ctxParams())
   } catch {
-    // non-critical
+    /* non-critical */
   }
-}
-
-async function loadAll(): Promise<void> {
-  await Promise.all([loadBrowse(), loadQuota(), loadWorkspaces()])
 }
 
 async function loadWorkspaces(): Promise<void> {
@@ -90,25 +325,291 @@ async function loadWorkspaces(): Promise<void> {
   }
 }
 
+async function loadSlots(): Promise<void> {
+  try {
+    slots.value = await ms.fetchSlots()
+  } catch {
+    slots.value = null
+  }
+}
+
+async function loadBilling(): Promise<void> {
+  if (browse.value?.workspace?.kind !== 'microstock') {
+    billing.value = null
+    return
+  }
+  try {
+    billing.value = await fetchBilling()
+  } catch {
+    billing.value = null
+  }
+}
+
+async function loadCollectionStatus(): Promise<void> {
+  if (browse.value?.workspace?.kind !== 'microstock' || !currentFolderId.value) {
+    collectionStatusPayload.value = null
+    return
+  }
+  try {
+    collectionStatusPayload.value = await ms.fetchCollectionStatus(currentFolderId.value)
+  } catch {
+    collectionStatusPayload.value = null
+  }
+}
+
+async function loadAll(): Promise<void> {
+  await Promise.all([loadBrowse(), loadQuota(), loadWorkspaces(), loadSlots()])
+  await Promise.all([loadBilling(), loadCollectionStatus()])
+}
+
 function switchWorkspace(id: string | null): void {
   const query: Record<string, string> = {}
   if (id) query.workspace_id = id
+  const uid = route.query.user_id
+  if (typeof uid === 'string' && uid) query.user_id = uid
   router.push({ name: 'file-hosting.index.view', query })
 }
 
-const currentWorkspaceName = computed(() => {
-  const id = route.query.workspace_id as string | undefined
-  if (!id) return t('web.file-hosting.personal')
-  return workspaces.value.find((w) => w.id === id)?.name ?? t('web.file-hosting.personal')
+function navigateToFolder(folderId: string): void {
+  router.push({
+    name: 'file-hosting.index.folder',
+    params: { folderId },
+    query: keepQuery(),
+  })
+}
+
+function navigateToRoot(): void {
+  router.push({ name: 'file-hosting.index.view', query: keepQuery() })
+}
+
+function openFile(file: HostedFile): void {
+  router.push({
+    name: 'file-hosting.show.view',
+    params: { id: file.id },
+    query: keepQuery(),
+  })
+}
+
+function openItem(entity: 'folder' | 'file', item: { id: string }): void {
+  if (entity === 'folder') navigateToFolder(item.id)
+  else openFile(item as HostedFile)
+}
+
+function onBrowseSelect(e: MouseEvent, entity: 'folder' | 'file', item: { id: string }): void {
+  const target = e.target
+  if (target instanceof Element && target.closest('input, button, .fh-table__action-btn, .fh-action-group, a.fh-table__action-btn')) {
+    return
+  }
+  e.preventDefault()
+  const key = `${entity}:${item.id}`
+  const { next, anchorKey } = applyBrowseClick({
+    key,
+    event: e,
+    selected: selected.value,
+    anchorKey: selectionAnchor.value,
+    orderedKeys: allKeys.value,
+  })
+  setSelection(next, anchorKey)
+}
+
+function onBrowseOpen(e: MouseEvent, entity: 'folder' | 'file', item: { id: string }): void {
+  e.preventDefault()
+  openItem(entity, item)
+}
+
+function onContext(e: MouseEvent, entity: 'folder' | 'file', item: FhFolder | HostedFile): void {
+  e.preventDefault()
+  const key = `${entity}:${item.id}`
+  if (!selected.value.has(key)) {
+    clearSelection()
+    toggleSelect(key, true)
+    selectionAnchor.value = key
+  }
+  contextMenu.value = { x: e.clientX, y: e.clientY, entity, item }
+}
+
+function visLabel(v: string): string {
+  if (v === VIS_LINK) return t('web.file-hosting.visibility.anyone_with_link')
+  if (v === 'workspace') return t('web.file-hosting.workspace_team')
+  return t('web.file-hosting.visibility.private')
+}
+
+function visBadgeClass(v: string): string {
+  return v === VIS_LINK ? 'fh-badge--link' : 'fh-badge--private'
+}
+
+async function withBusy(fn: () => Promise<void>): Promise<boolean> {
+  isBusy.value = true
+  try {
+    await fn()
+    return true
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    return false
+  } finally {
+    isBusy.value = false
+  }
+}
+
+async function moveItems(keys: string[], targetFolderId: string | null): Promise<boolean> {
+  if (!keys.length) return false
+  return withBusy(async () => {
+    for (const key of keys) {
+      const [entity, id] = key.split(':')
+      if (!id) continue
+      if (entity === 'folder') await fh.moveFolder(id, targetFolderId, ctxParams())
+      else if (entity === 'file') await fh.moveFile(id, targetFolderId, ctxParams())
+    }
+    showSuccess(t('web.file-hosting.items_moved', { count: keys.length }))
+    clearSelection()
+    await loadAll()
+  })
+}
+
+const drag = useFhDragMove({
+  selected,
+  clearSelection,
+  toggleSelect,
+  moveItems,
 })
 
-const canCreateFile = computed(() => hasPermission('create file hosting file'))
+function openModal(type: 'folder'): void
+function openModal(type: 'rename', payload: { entity: 'folder' | 'file'; id: string; name: string }): void
+function openModal(type: 'move', payload: { keys: string[] }): void
+function openModal(
+  type: 'folder' | 'rename' | 'move',
+  payload?: { entity?: 'folder' | 'file'; id?: string; name?: string; keys?: string[] },
+): void {
+  contextMenu.value = null
+  if (type === 'folder') {
+    modal.value = { type: 'folder', name: '' }
+  } else if (type === 'rename' && payload?.entity && payload.id) {
+    modal.value = { type: 'rename', entity: payload.entity, id: payload.id, name: payload.name ?? '' }
+  } else if (type === 'move') {
+    modal.value = { type: 'move', keys: payload?.keys ?? [], target: '' }
+  }
+}
 
-const uploadCtx = computed(() => ({
-  folderId: currentFolderId.value,
-  userId: (route.query.user_id as string) ?? null,
-  workspaceId: (route.query.workspace_id as string) ?? null,
-}))
+function openShare(entity: 'folder' | 'file', item: { id: string; visibility?: string; share_url?: string | null }): void {
+  contextMenu.value = null
+  shareTarget.value = { entity, id: item.id }
+  shareVisibility.value = item.visibility || 'private'
+  shareUrl.value = item.share_url ?? null
+  showShare.value = true
+}
+
+async function submitModal(): Promise<void> {
+  const m = modal.value
+  if (!m) return
+  let ok = false
+  if (m.type === 'folder') {
+    const name = m.name.trim()
+    if (!name) return
+    ok = await withBusy(async () => {
+      await fh.createFolder(name, {
+        parent_id: currentFolderId.value ?? undefined,
+        user_id: typeof route.query.user_id === 'string' ? route.query.user_id : undefined,
+        workspace_id: typeof route.query.workspace_id === 'string' ? route.query.workspace_id : undefined,
+      })
+      showSuccess(t('web.file-hosting.folder_created'))
+      await loadAll()
+    })
+  } else if (m.type === 'rename') {
+    const name = m.name.trim()
+    if (!name) return
+    ok = await withBusy(async () => {
+      if (m.entity === 'folder') await fh.renameFolder(m.id, name, ctxParams())
+      else await fh.renameFile(m.id, name, ctxParams())
+      showSuccess(t('web.file-hosting.renamed'))
+      await loadBrowse({ keepSelection: true })
+    })
+  } else if (m.type === 'move') {
+    ok = await moveItems(m.keys, m.target || null)
+  }
+  if (ok) modal.value = null
+}
+
+async function saveShare(): Promise<void> {
+  if (!shareTarget.value) return
+  const { entity, id } = shareTarget.value
+  const ok = await withBusy(async () => {
+    let updated: { share_url: string | null }
+    if (entity === 'folder') {
+      updated = await fh.setFolderVisibility(id, shareVisibility.value, ctxParams())
+    } else {
+      updated = await fh.setFileVisibility(id, shareVisibility.value, ctxParams())
+    }
+    shareUrl.value = updated.share_url
+    if (shareVisibility.value === VIS_LINK && updated.share_url) {
+      await navigator.clipboard.writeText(updated.share_url)
+      showSuccess(t('web.file-hosting.share_url_copied'))
+    } else {
+      showSuccess(t('web.file-hosting.visibility_updated'))
+    }
+    await loadBrowse({ keepSelection: true })
+  })
+  if (ok) showShare.value = false
+}
+
+function openDelete(entity: 'folder' | 'file', id: string): void {
+  contextMenu.value = null
+  deleteTarget.value = { type: entity, id }
+  showDeleteConfirm.value = true
+}
+
+async function handleDelete(): Promise<void> {
+  if (!deleteTarget.value) return
+  const { type, id } = deleteTarget.value
+  const ok = await withBusy(async () => {
+    if (type === 'folder') await fh.deleteFolder(id, ctxParams())
+    else await fh.deleteFile(id, ctxParams())
+    showSuccess(t('web.file-hosting.deleted'))
+    await loadAll()
+  })
+  if (ok) {
+    showDeleteConfirm.value = false
+    deleteTarget.value = null
+  }
+}
+
+async function handleBulkVisibility(visibility: string): Promise<void> {
+  const ids = idsByEntity(selected.value)
+  if (!ids.file.length && !ids.folder.length) return
+  await withBusy(async () => {
+    let total = 0
+    if (ids.folder.length) total += await fh.bulkSetFolderVisibility(ids.folder, visibility, ctxParams())
+    if (ids.file.length) total += await fh.bulkSetFileVisibility(ids.file, visibility, ctxParams())
+    showSuccess(t('web.file-hosting.items_updated', { count: total }))
+    clearSelection()
+    await loadAll()
+  })
+}
+
+async function handleBulkDelete(): Promise<void> {
+  const ids = idsByEntity(selected.value)
+  if (!ids.file.length && !ids.folder.length) return
+  await withBusy(async () => {
+    let total = 0
+    if (ids.folder.length) total += await fh.bulkDeleteFolders(ids.folder, ctxParams())
+    if (ids.file.length) total += await fh.bulkDeleteFiles(ids.file, ctxParams())
+    showSuccess(t('web.file-hosting.items_deleted', { count: total }))
+    clearSelection()
+    await loadAll()
+  })
+}
+
+function ctxAction(action: 'open' | 'rename' | 'move' | 'share' | 'delete' | 'review'): void {
+  const cm = contextMenu.value
+  if (!cm) return
+  const item = cm.item
+  contextMenu.value = null
+  if (action === 'open') openItem(cm.entity, item)
+  else if (action === 'rename') openModal('rename', { entity: cm.entity, id: item.id, name: item.name })
+  else if (action === 'move') openModal('move', { keys: [`${cm.entity}:${item.id}`] })
+  else if (action === 'share') openShare(cm.entity, item)
+  else if (action === 'delete') openDelete(cm.entity, item.id)
+  else if (action === 'review') openReview(item.id)
+}
 
 function onFileUploaded(file: HostedFile): void {
   if (browse.value) {
@@ -116,44 +617,42 @@ function onFileUploaded(file: HostedFile): void {
   }
 }
 
-function onUploadRefresh(): void {
-  loadAll()
-}
-
-// Collection describe modal
 const showCollectionModal = ref(false)
 const collectionFolder = ref<FhFolder | null>(null)
-const collectionPrimary = ref('')
-const collectionNotes = ref('')
-const collectionBillingMode = ref<'free' | 'paid' | ''>('')
 const lockingCollection = ref(false)
+const analyzingCollection = ref(false)
+const exportingCollection = ref(false)
+const showReview = ref(false)
+const reviewFileId = ref<string | null>(null)
+const showCreateMs = ref(false)
+const createMsName = ref('')
+const creatingMs = ref(false)
+
+const reviewFileIds = computed(() => files.value.map((f) => f.id))
 
 function openCollectionModal(folder: FhFolder): void {
   collectionFolder.value = folder
-  collectionPrimary.value = ''
-  collectionNotes.value = ''
-  collectionBillingMode.value = ''
   showCollectionModal.value = true
 }
 
-function composeHint(): string {
-  const parts: string[] = []
-  if (collectionPrimary.value.trim()) {
-    parts.push(`PRIMARY CONCEPT:\n${collectionPrimary.value.trim()}`)
+function openReview(fileId?: string): void {
+  const selectedFile = [...selected.value]
+    .filter((k) => k.startsWith('file:'))
+    .map((k) => k.slice(5))[0]
+  const id = fileId ?? selectedFile ?? files.value[0]?.id ?? null
+  if (!id) {
+    showError(t('web.file-hosting.empty'))
+    return
   }
-  if (collectionNotes.value.trim()) {
-    parts.push(`ADDITIONAL NOTES:\n${collectionNotes.value.trim()}`)
-  }
-  return parts.join('\n\n')
+  reviewFileId.value = id
+  showReview.value = true
 }
 
-async function handleLockCollection(): Promise<void> {
+async function handleLockCollection(payload: { hint: string | null; billingMode: string | null }): Promise<void> {
   if (!collectionFolder.value || lockingCollection.value) return
   lockingCollection.value = true
   try {
-    const hint = composeHint()
-    const billing = collectionBillingMode.value || null
-    await ms.lockCollection(collectionFolder.value.id, hint || null, billing)
+    await ms.lockCollection(collectionFolder.value.id, payload.hint, payload.billingMode)
     showSuccess(t('web.file-hosting.collection_locked'))
     showCollectionModal.value = false
     await loadAll()
@@ -164,17 +663,72 @@ async function handleLockCollection(): Promise<void> {
   }
 }
 
-function canLockCollection(folder: FhFolder): boolean {
-  if (!folder.collection_status) return false
-  if (folder.collection_locked) return false
-  return folder.collection_status === 'draft' || folder.collection_status === 'failed'
+async function handleAnalyzeCollection(): Promise<void> {
+  const folder = browse.value?.folder
+  if (!folder || analyzingCollection.value) return
+  analyzingCollection.value = true
+  try {
+    await ms.analyzeCollection(folder.id)
+    showSuccess(t('web.file-hosting.microstock.status_processing'))
+    await loadAll()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  } finally {
+    analyzingCollection.value = false
+  }
+}
+
+async function handleExportCollection(): Promise<void> {
+  const folder = browse.value?.folder
+  if (!folder || exportingCollection.value) return
+  exportingCollection.value = true
+  try {
+    await ms.exportCollection(folder.id)
+    showSuccess(t('web.file-hosting.microstock.status_exported'))
+    await loadAll()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  } finally {
+    exportingCollection.value = false
+  }
+}
+
+async function handleDownloadCsv(): Promise<void> {
+  const folder = browse.value?.folder
+  if (!folder) return
+  try {
+    await ms.downloadCollectionCsv(folder.id)
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  }
+}
+
+async function handleCreateMicrostock(): Promise<void> {
+  if (creatingMs.value) return
+  creatingMs.value = true
+  try {
+    const ws = await ms.createWorkspace(createMsName.value.trim() || null)
+    showSuccess(t('web.file-hosting.workspace_created', { name: ws.name }))
+    showCreateMs.value = false
+    createMsName.value = ''
+    await loadWorkspaces()
+    await loadSlots()
+    switchWorkspace(ws.id)
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_create_workspace'))
+  } finally {
+    creatingMs.value = false
+  }
 }
 
 const fhRealtimeHandlers = {
-  onListingChanged: () => loadBrowse(),
+  onListingChanged: () => loadBrowse({ keepSelection: true }),
   onQuotaChanged: () => loadQuota(),
-  onCollectionAnalysisProgress: () => loadBrowse(),
-  onAssetMetadataProgress: () => loadBrowse(),
+  onCollectionAnalysisProgress: () => {
+    loadBrowse({ keepSelection: true })
+    loadCollectionStatus()
+  },
+  onAssetMetadataProgress: () => loadBrowse({ keepSelection: true }),
 }
 
 let fhPollTimer: ReturnType<typeof setInterval> | null = null
@@ -199,542 +753,753 @@ function stopFhPolling(): void {
   }
 }
 
-onMounted(() => {
-  loadAll()
-  subscribeFhRealtime(fhRealtimeHandlers)
-  if (!echoConnected.value) {
-    startFhPolling()
+function closeCtx(): void {
+  contextMenu.value = null
+}
+
+function onEsc(e: KeyboardEvent): void {
+  if (e.key === 'Escape') {
+    clearSelection()
+    contextMenu.value = null
+    searchOpen.value = false
   }
+}
+
+onMounted(() => {
+  subscribeFhRealtime(fhRealtimeHandlers)
+  if (!echoConnected.value) startFhPolling()
+  document.addEventListener('click', closeCtx)
+  document.addEventListener('keydown', onEsc)
 })
 
 onUnmounted(() => {
   unsubscribeFhRealtime(fhRealtimeHandlers)
   stopFhPolling()
-})
-
-watch(() => route.params.folderId, () => {
-  if (route.name === 'file-hosting.index.view') {
-    loadAll()
-  }
-})
-
-let searchTimer: ReturnType<typeof setTimeout> | null = null
-watch(search, (q) => {
+  document.removeEventListener('click', closeCtx)
+  document.removeEventListener('keydown', onEsc)
   if (searchTimer) clearTimeout(searchTimer)
-  if (!q.trim()) {
-    searchResults.value = []
-    return
-  }
+})
+
+watch(
+  () => `${String(route.params.folderId ?? '')}|${String(route.query.workspace_id ?? '')}|${String(route.query.user_id ?? '')}`,
+  () => {
+    loadAll()
+  },
+  { immediate: true },
+)
+
+watch(searchQ, (q) => {
+  if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(async () => {
-    searchLoading.value = true
+    const trimmed = q.trim()
+    if (!trimmed) {
+      searchResults.value = []
+      searchOpen.value = false
+      return
+    }
     try {
-      searchResults.value = await fh.searchFiles(q, ctxParams())
+      searchResults.value = await fh.searchFiles(trimmed, ctxParams())
     } catch {
       searchResults.value = []
-    } finally {
-      searchLoading.value = false
     }
-  }, 300)
+    searchOpen.value = true
+  }, 250)
 })
-
-const displayFiles = computed(() => {
-  if (search.value.trim() && searchResults.value.length > 0) {
-    return searchResults.value
-  }
-  return browse.value?.files ?? []
-})
-
-const displayFolders = computed(() => {
-  if (search.value.trim()) return []
-  return browse.value?.folders ?? []
-})
-
-const selectedArray = computed(() => Array.from(selected.value))
-
-function toggleSelect(key: string): void {
-  if (selected.value.has(key)) {
-    selected.value.delete(key)
-  } else {
-    selected.value.add(key)
-  }
-}
-
-function selectAll(): void {
-  const all = [...displayFolders.value.map((f) => `folder:${f.id}`), ...displayFiles.value.map((f) => `file:${f.id}`)]
-  all.forEach((k) => selected.value.add(k))
-}
-
-function clearSelection(): void {
-  selected.value.clear()
-}
-
-function navigateToFolder(folderId: string): void {
-  router.push({
-    name: 'file-hosting.index.view',
-    params: { folderId },
-    query: route.query,
-  })
-}
-
-function navigateToBreadcrumb(item: { id: string }): void {
-  if (item.id === currentFolderId.value) return
-  router.push({
-    name: 'file-hosting.index.view',
-    params: { folderId: item.id },
-    query: route.query,
-  })
-}
-
-function navigateToRoot(): void {
-  router.push({
-    name: 'file-hosting.index.view',
-    query: route.query,
-  })
-}
-
-function openFile(file: HostedFile): void {
-  router.push({
-    name: 'file-hosting.show.view',
-    params: { id: file.id },
-    query: route.query,
-  })
-}
-
-function visibilityBadge(visibility: string): string {
-  if (visibility === 'anyone_with_link') return 'text-bg-success'
-  if (visibility === 'workspace') return 'text-bg-info'
-  return 'text-bg-secondary'
-}
-
-function visibilityLabel(visibility: string): string {
-  if (visibility === 'anyone_with_link') return t('web.file-hosting.link')
-  if (visibility === 'workspace') return t('web.file-hosting.workspace_team')
-  return t('web.file-hosting.private')
-}
-
-function copyShareUrl(url: string): void {
-  navigator.clipboard.writeText(url).then(() => showSuccess(t('web.file-hosting.share_url_copied')))
-}
-
-// Create folder
-async function handleCreateFolder(): Promise<void> {
-  if (!newFolderName.value.trim() || creatingFolder.value) return
-  creatingFolder.value = true
-  try {
-    const params: Record<string, unknown> = { ...ctxParams() }
-    if (currentFolderId.value) params.parent_id = currentFolderId.value
-    await fh.createFolder(newFolderName.value.trim(), params)
-    showSuccess(t('web.file-hosting.folder_created'))
-    newFolderName.value = ''
-    showCreateFolder.value = false
-    await loadAll()
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
-  } finally {
-    creatingFolder.value = false
-  }
-}
-
-// Rename
-function openRename(type: 'folder' | 'file', id: string, name: string): void {
-  renameTarget.value = { type, id, name }
-  renameValue.value = name
-  showRename.value = true
-}
-
-async function handleRename(): Promise<void> {
-  if (!renameTarget.value || !renameValue.value.trim()) return
-  const { type, id } = renameTarget.value
-  try {
-    if (type === 'folder') {
-      await fh.renameFolder(id, renameValue.value.trim(), ctxParams())
-    } else {
-      await fh.renameFile(id, renameValue.value.trim(), ctxParams())
-    }
-    showSuccess(t('web.file-hosting.renamed'))
-    renameTarget.value = null
-    showRename.value = false
-    await loadAll()
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_rename'))
-  }
-}
-
-// Delete
-function openDelete(type: 'folder' | 'file', id: string, force = false): void {
-  deleteTarget.value = { type, id, force }
-  showDeleteConfirm.value = true
-}
-
-async function handleDelete(): Promise<void> {
-  if (!deleteTarget.value) return
-  const { type, id, force } = deleteTarget.value
-  try {
-    if (type === 'folder') {
-      if (force) await fh.forceDeleteFolder(id, ctxParams())
-      else await fh.deleteFolder(id, ctxParams())
-    } else {
-      if (force) await fh.forceDeleteFile(id, ctxParams())
-      else await fh.deleteFile(id, ctxParams())
-    }
-    showSuccess(t('web.file-hosting.deleted'))
-    showDeleteConfirm.value = false
-    deleteTarget.value = null
-    await loadAll()
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_delete'))
-  }
-}
-
-// Visibility
-async function toggleVisibility(entity: 'folder' | 'file', id: string, current: string): Promise<void> {
-  const next = current === 'anyone_with_link' ? 'private' : 'anyone_with_link'
-  try {
-    let updated: { share_url: string | null }
-    if (entity === 'folder') {
-      updated = await fh.setFolderVisibility(id, next, ctxParams())
-    } else {
-      updated = await fh.setFileVisibility(id, next, ctxParams())
-    }
-    if (next === 'anyone_with_link' && updated.share_url) {
-      copyShareUrl(updated.share_url)
-    } else {
-      showSuccess(t('web.file-hosting.visibility_updated'))
-    }
-    await loadAll()
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_visibility'))
-  }
-}
-
-// Bulk delete
-async function handleBulkDelete(): Promise<void> {
-  const folderIds = selectedArray.value.filter((k) => k.startsWith('folder:')).map((k) => k.split(':')[1]!)
-  const fileIds = selectedArray.value.filter((k) => k.startsWith('file:')).map((k) => k.split(':')[1]!)
-  if (folderIds.length === 0 && fileIds.length === 0) return
-
-  try {
-    let total = 0
-    if (folderIds.length > 0) total += await fh.bulkDeleteFolders(folderIds, ctxParams())
-    if (fileIds.length > 0) total += await fh.bulkDeleteFiles(fileIds, ctxParams())
-    showSuccess(t('web.file-hosting.items_deleted', { count: total }))
-    clearSelection()
-    await loadAll()
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.bulk_delete_failed'))
-  }
-}
-
-const quotaPercent = computed(() => {
-  if (!quota.value || quota.value.quota_bytes === 0) return 0
-  return Math.min(100, (quota.value.used_bytes / quota.value.quota_bytes) * 100)
-})
-
-function fileIcon(mime: string): string {
-  if (mime.startsWith('image/')) return 'bi-file-image'
-  if (mime.startsWith('video/')) return 'bi-file-play'
-  if (mime.startsWith('audio/')) return 'bi-file-music'
-  if (mime.includes('pdf')) return 'bi-file-pdf'
-  if (mime.includes('zip') || mime.includes('compressed')) return 'bi-file-zip'
-  if (mime.includes('text')) return 'bi-file-text'
-  return 'bi-file-earmark'
-}
 </script>
 
 <template>
-  <Card :title="t('web.file-hosting.title')">
-    <template #actions>
-      <div class="dropdown d-inline-block">
-        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-people me-1"></i> {{ currentWorkspaceName }}
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li>
-            <button class="dropdown-item" :class="{ active: !route.query.workspace_id }" type="button" @click="switchWorkspace(null)">
-              <i class="bi bi-person me-2"></i> {{ t('web.file-hosting.personal') }}
-            </button>
-          </li>
-          <li v-for="ws in workspaces" :key="ws.id">
-            <button class="dropdown-item" :class="{ active: route.query.workspace_id === ws.id }" type="button" @click="switchWorkspace(ws.id)">
-              <i class="bi bi-people me-2"></i> {{ ws.name }}
-            </button>
-          </li>
-          <li><hr class="dropdown-divider" /></li>
-          <li>
-            <router-link class="dropdown-item" :to="{ name: 'file-hosting.workspaces.view' }">
-              <i class="bi bi-gear me-2"></i> {{ t('web.file-hosting.manage_workspaces') }}
-            </router-link>
-          </li>
-        </ul>
-      </div>
-      <div class="btn-group btn-group-sm ms-2">
-        <button class="btn btn-outline-secondary" :class="{ active: viewMode === 'table' }" @click="viewMode = 'table'">
-          <i class="bi bi-list"></i>
-        </button>
-        <button class="btn btn-outline-secondary" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'">
-          <i class="bi bi-grid"></i>
-        </button>
-      </div>
-      <button class="btn btn-primary btn-sm ms-2" @click="showCreateFolder = true">
-        <i class="bi bi-folder-plus me-1"></i> {{ t('web.file-hosting.new_folder') }}
-      </button>
-    </template>
-
-    <!-- Quota bar -->
-    <div v-if="quota" class="mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-1">
-        <span class="small text-muted">{{ t('web.file-hosting.quota_used') }}: {{ quota.used_bytes_human }} / {{ quota.quota_bytes_human }}</span>
-        <span class="small text-muted">{{ quota.remaining_bytes_human ?? '∞' }} {{ t('web.file-hosting.quota_remaining') }}</span>
-      </div>
-      <div class="progress" style="height: 6px;">
-        <div class="progress-bar" :class="{ 'bg-warning': quotaPercent > 80, 'bg-danger': quotaPercent > 95 }" :style="{ width: `${quotaPercent}%` }"></div>
+  <div
+    class="fh-manager"
+    data-file-manager
+    data-fh-spa
+    :class="{ 'is-fh-loading': loading, 'is-fh-busy': isBusy }"
+  >
+    <div v-if="isBusy" class="fh-busy-overlay" data-fh-busy-overlay>
+      <div class="fh-busy-overlay__inner" role="status">
+        <div class="spinner-border spinner-border-sm"></div>
       </div>
     </div>
 
-    <!-- Upload dropzone -->
+    <div class="fh-toolbar">
+      <div class="fh-toolbar__search">
+        <i class="bi bi-search fh-toolbar__search-icon"></i>
+        <input
+          v-model="searchQ"
+          type="text"
+          class="form-control form-control-sm fh-toolbar__search-input"
+          :placeholder="t('web.file-hosting.search_placeholder')"
+          autocomplete="off"
+          @focus="searchOpen = searchResults.length > 0"
+        />
+        <div class="fh-toolbar__search-results" :class="{ 'is-open': searchOpen }">
+          <a
+            v-for="r in searchResults"
+            :key="r.id"
+            class="fh-search-result"
+            :href="fileHref(r.id)"
+            @click.prevent="openFile(r); searchOpen = false"
+          >
+            <FhIcon :mime="r.mime" />
+            <div class="fh-search-result__name">{{ r.name }}</div>
+            <span class="fh-search-result__meta">{{ r.size_human || '' }}</span>
+          </a>
+          <div v-if="!searchResults.length && searchQ.trim()" class="fh-search-result__empty">
+            {{ t('web.file-hosting.search_no_results') }}
+          </div>
+        </div>
+      </div>
+      <div class="fh-toolbar__view-toggle btn-group btn-group-sm" role="group" :aria-label="t('web.file-hosting.view_toggle')">
+        <button
+          type="button"
+          class="fh-toolbar__view-btn btn btn-outline-secondary"
+          :class="{ 'is-active': viewMode === 'table' }"
+          :title="t('web.file-hosting.view_list')"
+          @click="setViewMode('table')"
+        >
+          <i class="bi bi-list"></i>
+        </button>
+        <button
+          type="button"
+          class="fh-toolbar__view-btn btn btn-outline-secondary"
+          :class="{ 'is-active': viewMode === 'grid' }"
+          :title="t('web.file-hosting.view_grid')"
+          @click="setViewMode('grid')"
+        >
+          <i class="bi bi-grid"></i>
+        </button>
+      </div>
+      <router-link
+        class="btn btn-outline-secondary btn-sm"
+        :to="{ name: 'file-hosting.trash.view', query: route.query }"
+      >
+        <i class="bi bi-trash3 me-1"></i>{{ t('web.file-hosting.trash') }}
+      </router-link>
+      <router-link
+        v-if="isMicrostock"
+        class="btn btn-outline-secondary btn-sm"
+        :to="{ name: 'file-hosting.microstock-usage.view', query: route.query }"
+      >
+        <i class="bi bi-wallet2 me-1"></i>{{ t('web.services.microstock.usage_balance') }}
+      </router-link>
+      <button v-if="canCreateFolder" type="button" class="btn btn-primary btn-sm" @click="openModal('folder')">
+        <i class="bi bi-folder-plus me-1"></i>{{ t('web.file-hosting.new_folder') }}
+      </button>
+      <button
+        v-if="showLockBtn && browse?.folder"
+        type="button"
+        class="btn btn-outline-primary btn-sm"
+        @click="openCollectionModal(browse.folder)"
+      >
+        <i class="bi bi-lock me-1"></i>{{ t('web.file-hosting.microstock.lock_describe') }}
+      </button>
+      <button
+        v-if="showAnalyzeBtn"
+        type="button"
+        class="btn btn-outline-primary btn-sm"
+        :disabled="analyzingCollection"
+        @click="handleAnalyzeCollection"
+      >
+        <span v-if="analyzingCollection" class="spinner-border spinner-border-sm me-1"></span>
+        <i v-else class="bi bi-stars me-1"></i>{{ t('web.file-hosting.microstock.analyze') }}
+      </button>
+      <button
+        v-if="showReviewBtn"
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        @click="openReview()"
+      >
+        <i class="bi bi-pencil-square me-1"></i>{{ t('web.file-hosting.microstock.review') }}
+      </button>
+      <button
+        v-if="showExportBtn"
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        :disabled="exportingCollection"
+        @click="handleExportCollection"
+      >
+        <span v-if="exportingCollection" class="spinner-border spinner-border-sm me-1"></span>
+        <i v-else class="bi bi-file-earmark-spreadsheet me-1"></i>{{ t('web.file-hosting.microstock.export_csv') }}
+      </button>
+      <button
+        v-if="showDownloadBtn"
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        @click="handleDownloadCsv"
+      >
+        <i class="bi bi-download me-1"></i>{{ t('web.file-hosting.microstock.download_csv') }}
+      </button>
+      <div class="dropdown fh-workspace-switcher">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="bi me-1" :class="route.query.workspace_id ? 'bi-people' : 'bi-person'"></i>
+          <span>{{ rootLabel }}</span>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end shadow">
+          <button class="dropdown-item" :class="{ active: !route.query.workspace_id }" type="button" @click="switchWorkspace(null)">
+            <i class="bi bi-person me-2"></i>{{ t('web.file-hosting.personal') }}
+          </button>
+          <button
+            v-for="ws in workspaces"
+            :key="ws.id"
+            class="dropdown-item"
+            :class="{ active: route.query.workspace_id === ws.id }"
+            type="button"
+            @click="switchWorkspace(ws.id)"
+          >
+            <i class="bi me-2" :class="ws.kind === 'microstock' ? 'bi-stars' : 'bi-people'"></i>{{ ws.name }}
+          </button>
+          <div class="dropdown-divider"></div>
+          <div v-if="quota" class="px-3 py-1 small text-muted">
+            {{ t('web.file-hosting.collab.slots_counter', { used: quota.owned_workspace_used, limit: quota.owned_workspace_limit }) }}
+          </div>
+          <router-link
+            v-if="quota?.can_create_workspace"
+            class="dropdown-item"
+            :to="{ name: 'file-hosting.workspaces.view' }"
+          >
+            <i class="bi bi-plus-lg me-2"></i>{{ t('web.file-hosting.collab.create_workspace') }}
+          </router-link>
+          <template v-else-if="quota && !quota.can_create_workspace">
+            <span class="dropdown-item disabled text-muted small">
+              <i class="bi bi-lock me-2"></i>{{ t('web.file-hosting.collab.slots_full') }}
+            </span>
+            <router-link class="dropdown-item small" :to="{ name: 'services.index.view' }">
+              <i class="bi bi-stars me-2"></i>{{ t('web.file-hosting.collab.buy_slot_cta') }}
+            </router-link>
+          </template>
+          <template v-if="slots">
+            <div class="px-3 py-1 small text-muted">
+              {{ t('web.file-hosting.microstock.slots_counter', { used: slots.used, limit: slots.limit }) }}
+            </div>
+            <button
+              v-if="slots.can_create"
+              class="dropdown-item"
+              type="button"
+              @click="showCreateMs = true"
+            >
+              <i class="bi bi-images me-2"></i>{{ t('web.file-hosting.microstock.create_workspace') }}
+            </button>
+            <template v-else-if="slots.activated">
+              <span class="dropdown-item disabled text-muted small">
+                <i class="bi bi-lock me-2"></i>{{ t('web.file-hosting.microstock.slots_full') }}
+              </span>
+              <router-link class="dropdown-item small" :to="{ name: 'services.index.view' }">
+                <i class="bi bi-stars me-2"></i>{{ t('web.file-hosting.microstock.buy_slot_cta') }}
+              </router-link>
+            </template>
+            <router-link
+              v-else
+              class="dropdown-item small"
+              :to="{ name: 'services.index.view' }"
+            >
+              <i class="bi bi-stars me-2"></i>{{ t('web.file-hosting.microstock.activate_cta') }}
+            </router-link>
+          </template>
+          <div class="dropdown-divider"></div>
+          <router-link class="dropdown-item" :to="{ name: 'file-hosting.workspaces.view' }">
+            <i class="bi bi-gear me-2"></i>{{ t('web.file-hosting.manage_workspaces') }}
+          </router-link>
+        </div>
+      </div>
+    </div>
+
+    <nav class="fh-breadcrumb" data-fh-breadcrumb aria-label="breadcrumb">
+      <template v-if="!crumbs.length">
+        <span class="fh-breadcrumb__item is-active">
+          <i class="bi bi-folder2-open fh-breadcrumb__root-icon me-1"></i>{{ rootLabel }}
+        </span>
+      </template>
+      <template v-else>
+        <a
+          class="fh-breadcrumb__item"
+          :class="{ 'is-drop-target': drag.isDropTarget('root') }"
+          :href="folderHref(null)"
+          @click.prevent="navigateToRoot"
+          @dragover="drag.onDropOver($event, 'root')"
+          @dragleave="drag.onDropLeave($event, 'root')"
+          @drop="drag.onDrop($event, 'root')"
+        >
+          <i class="bi bi-folder2-open fh-breadcrumb__root-icon me-1"></i>{{ rootLabel }}
+        </a>
+        <template v-for="(crumb, i) in crumbs" :key="crumb.id">
+          <i class="bi bi-chevron-right fh-breadcrumb__sep"></i>
+          <span v-if="i === crumbs.length - 1" class="fh-breadcrumb__item is-active">{{ crumb.name }}</span>
+          <a
+            v-else
+            class="fh-breadcrumb__item"
+            :class="{ 'is-drop-target': drag.isDropTarget(crumb.id) }"
+            :href="folderHref(crumb.id)"
+            @click.prevent="navigateToFolder(crumb.id)"
+            @dragover="drag.onDropOver($event, crumb.id)"
+            @dragleave="drag.onDropLeave($event, crumb.id)"
+            @drop="drag.onDrop($event, crumb.id)"
+          >{{ crumb.name }}</a>
+        </template>
+      </template>
+    </nav>
+
+    <div v-if="quota" data-fh-quota>
+      <div class="fh-quota">
+        <div class="fh-quota__header">
+          <span class="fh-quota__label">{{ t('web.file-hosting.quota_used') }}</span>
+          <span class="fh-quota__value">
+            {{ quota.used_bytes_human || '0 B' }} /
+            {{ Number(quota.quota_bytes) > 0 ? (quota.quota_bytes_human || '0 B') : t('web.file-hosting.quota_unlimited') }}
+          </span>
+        </div>
+        <div class="fh-quota__track">
+          <div
+          class="fh-quota__fill"
+          :class="{ 'is-warn': quotaPct >= 75 && quotaPct < 90, 'is-danger': quotaPct >= 90 }"
+          :style="{ width: (Number(quota.quota_bytes) > 0 ? quotaPct : 3) + '%' }"
+        ></div>
+        </div>
+        <div v-if="collectionProgressText || collectionStatusHint" class="small text-muted mt-1">
+          <span v-if="collectionStatusHint">{{ collectionStatusHint }}</span>
+          <span v-if="collectionProgressText">{{ collectionStatusHint ? ' — ' : '' }}{{ collectionProgressText }}</span>
+        </div>
+      </div>
+    </div>
+
     <FhDropzone
       v-if="canCreateFile"
       :folder-id="uploadCtx.folderId"
       :user-id="uploadCtx.userId"
       :workspace-id="uploadCtx.workspaceId"
+      :collection-locked="collectionLocked"
+      :require-folder="requireFolder"
       @uploaded="onFileUploaded"
-      @refresh="onUploadRefresh"
+      @refresh="loadAll"
     />
 
-    <!-- Search -->
-    <div class="mb-3">
-      <div class="input-group input-group-sm">
-        <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input type="text" class="form-control" :placeholder="t('web.file-hosting.search_placeholder')" v-model="search" />
-        <button v-if="search" class="btn btn-outline-secondary" @click="search = ''"><i class="bi bi-x"></i></button>
+    <div v-show="selectedCount > 0" class="fh-bulk-bar">
+      <span class="fh-bulk-bar__count"><strong>{{ selectedCount }}</strong> {{ t('web.file-hosting.bulk.selected') }}</span>
+      <div class="fh-bulk-bar__actions">
+        <button
+          v-if="canEditFile || canEditFolder"
+          type="button"
+          class="btn btn-outline-primary btn-sm"
+          @click="openModal('move', { keys: [...selected] })"
+        >
+          <i class="bi bi-folder-symlink me-1"></i>{{ t('web.file-hosting.bulk.move') }}
+        </button>
+        <button
+          v-if="canEditFile || canEditFolder"
+          type="button"
+          class="btn btn-outline-success btn-sm"
+          @click="handleBulkVisibility(VIS_LINK)"
+        >
+          <i class="bi bi-share me-1"></i>{{ t('web.file-hosting.bulk.share') }}
+        </button>
+        <button
+          v-if="canEditFile || canEditFolder"
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          @click="handleBulkVisibility('private')"
+        >
+          <i class="bi bi-shield-lock me-1"></i>{{ t('web.file-hosting.bulk.unshare') }}
+        </button>
+        <button
+          v-if="canDeleteFile || canDeleteFolder"
+          type="button"
+          class="btn btn-outline-danger btn-sm"
+          @click="handleBulkDelete"
+        >
+          <i class="bi bi-trash me-1"></i>{{ t('web.file-hosting.bulk.delete') }}
+        </button>
       </div>
     </div>
 
-    <!-- Breadcrumb -->
-    <nav v-if="!search && browse?.breadcrumb && browse.breadcrumb.length > 0" aria-label="breadcrumb" class="mb-2">
-      <ol class="breadcrumb breadcrumb-sm mb-0">
-        <li class="breadcrumb-item">
-          <a href="#" @click.prevent="navigateToRoot">{{ t('web.file-hosting.root') }}</a>
-        </li>
-        <li v-for="(crumb, i) in browse.breadcrumb" :key="crumb.id" class="breadcrumb-item" :class="{ active: i === browse.breadcrumb!.length - 1 }">
-          <a v-if="i < browse.breadcrumb!.length - 1" href="#" @click.prevent="navigateToBreadcrumb(crumb)">{{ crumb.name }}</a>
-          <span v-else>{{ crumb.name }}</span>
-        </li>
-      </ol>
-    </nav>
+    <div data-fh-panel="browse">
+      <div v-show="viewMode === 'table'" class="table-responsive">
+        <table class="table fh-table">
+          <thead>
+            <tr>
+              <th class="fh-table__select-cell">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  :checked="allSelected"
+                  @change="selectAllKeys(allKeys, ($event.target as HTMLInputElement).checked)"
+                />
+              </th>
+              <th class="fh-table__icon-cell"></th>
+              <th>{{ t('web.file-hosting.columns.name') }}</th>
+              <th>{{ t('web.file-hosting.columns.type') }}</th>
+              <th>{{ t('web.file-hosting.columns.size') }}</th>
+              <th>{{ t('web.file-hosting.columns.visibility') }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-if="parentMeta"
+              class="fh-parent-row"
+              data-fh-row
+              data-fh-entity="parent"
+              :class="{ 'is-drop-target': drag.isDropTarget(parentMeta.id || 'root') }"
+              @dragover="drag.onDropOver($event, parentMeta.id || 'root')"
+              @dragleave="drag.onDropLeave($event, parentMeta.id || 'root')"
+              @drop="drag.onDrop($event, parentMeta.id || 'root')"
+            >
+              <td class="fh-table__select-cell"></td>
+              <td class="fh-table__icon-cell">
+                <a :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
+                  <i class="bi bi-folder2 fh-parent-row__icon"></i>
+                </a>
+              </td>
+              <td>
+                <a class="fh-table__name" :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
+                  <span class="fh-table__name-text">...</span>
+                </a>
+              </td>
+              <td class="fh-table__type text-muted">{{ t('web.file-hosting.parent') }}</td>
+              <td class="fh-table__size">—</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr
+              v-for="folder in folders"
+              :key="'f:' + folder.id"
+              data-fh-row
+              data-fh-entity="folder"
+              :data-fh-id="folder.id"
+              draggable="true"
+              :class="{
+                'is-dragging-source': drag.isDraggingSource('folder', folder.id),
+                'is-drop-target': drag.isDropTarget(folder.id),
+                'is-selected': selected.has('folder:' + folder.id),
+              }"
+              @click="onBrowseSelect($event, 'folder', folder)"
+              @dblclick="onBrowseOpen($event, 'folder', folder)"
+              @contextmenu="onContext($event, 'folder', folder)"
+              @dragstart="drag.onRowDragStart($event, 'folder', folder.id)"
+              @dragend="drag.onDragEnd"
+              @dragover="drag.onDropOver($event, folder.id)"
+              @dragleave="drag.onDropLeave($event, folder.id)"
+              @drop="drag.onDrop($event, folder.id)"
+            >
+              <td class="fh-table__select-cell">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  :checked="selected.has('folder:' + folder.id)"
+                  @click.stop
+                  @change="toggleSelect('folder:' + folder.id, ($event.target as HTMLInputElement).checked)"
+                />
+              </td>
+              <td class="fh-table__icon-cell">
+                <a :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">
+                  <FhIcon is-folder />
+                </a>
+              </td>
+              <td>
+                <a class="fh-table__name" :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">
+                  <span class="fh-table__name-text">{{ folder.name }}</span>
+                </a>
+              </td>
+              <td class="fh-table__type">{{ t('web.file-hosting.type_folder') }}</td>
+              <td class="fh-table__size">—</td>
+              <td>
+                <span class="fh-badge" :class="visBadgeClass(folder.visibility)">{{ visLabel(folder.visibility) }}</span>
+              </td>
+              <td class="fh-table__actions">
+                <div class="fh-action-group">
+                  <button
+                    v-if="canLockCollection(folder)"
+                    type="button"
+                    class="fh-table__action-btn"
+                    :title="t('web.file-hosting.microstock.lock_describe')"
+                    @click="openCollectionModal(folder)"
+                  ><i class="bi bi-lock-fill"></i></button>
+                  <button v-if="canEdit('folder')" type="button" class="fh-table__action-btn" @click="openModal('rename', { entity: 'folder', id: folder.id, name: folder.name })"><i class="bi bi-pencil"></i></button>
+                  <button v-if="canEdit('folder')" type="button" class="fh-table__action-btn" @click="openModal('move', { keys: ['folder:' + folder.id] })"><i class="bi bi-folder-symlink"></i></button>
+                  <button v-if="canEdit('folder')" type="button" class="fh-table__action-btn" @click="openShare('folder', folder)"><i class="bi bi-share"></i></button>
+                  <button v-if="canDelete('folder')" type="button" class="fh-table__action-btn is-danger" @click="openDelete('folder', folder.id)"><i class="bi bi-trash"></i></button>
+                </div>
+              </td>
+            </tr>
+            <tr
+              v-for="file in files"
+              :key="'file:' + file.id"
+              data-fh-row
+              data-fh-entity="file"
+              :data-fh-id="file.id"
+              draggable="true"
+              :class="{
+                'is-dragging-source': drag.isDraggingSource('file', file.id),
+                'is-selected': selected.has('file:' + file.id),
+              }"
+              @click="onBrowseSelect($event, 'file', file)"
+              @dblclick="onBrowseOpen($event, 'file', file)"
+              @contextmenu="onContext($event, 'file', file)"
+              @dragstart="drag.onRowDragStart($event, 'file', file.id)"
+              @dragend="drag.onDragEnd"
+            >
+              <td class="fh-table__select-cell">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  :checked="selected.has('file:' + file.id)"
+                  @click.stop
+                  @change="toggleSelect('file:' + file.id, ($event.target as HTMLInputElement).checked)"
+                />
+              </td>
+              <td class="fh-table__icon-cell">
+                <a :href="fileHref(file.id)" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">
+                  <FhIcon :mime="file.mime" />
+                </a>
+              </td>
+              <td>
+                <a class="fh-table__name" :href="fileHref(file.id)" :title="file.name" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">
+                  <span class="fh-table__name-text">{{ file.name }}</span>
+                </a>
+                <span v-if="isMicrostock" class="badge fh-ms-badge ms-1" :class="msBadge(file).cls">{{ msBadge(file).label }}</span>
+                <span v-if="file.is_hash_blocked" class="badge text-bg-danger ms-1">{{ t('web.file-hosting.blocked_badge') }}</span>
+              </td>
+              <td class="fh-table__type">{{ file.mime || t('web.file-hosting.type_file') }}</td>
+              <td class="fh-table__size">{{ file.size_human || '—' }}</td>
+              <td>
+                <span class="fh-badge" :class="visBadgeClass(file.visibility)">{{ visLabel(file.visibility) }}</span>
+              </td>
+              <td class="fh-table__actions">
+                <div class="fh-action-group">
+                  <a class="fh-table__action-btn" :href="fileHref(file.id)" draggable="false" @click.prevent="openItem('file', file)"><i class="bi bi-eye"></i></a>
+                  <button v-if="canEdit('file')" type="button" class="fh-table__action-btn" @click="openModal('rename', { entity: 'file', id: file.id, name: file.name })"><i class="bi bi-pencil"></i></button>
+                  <button v-if="canEdit('file')" type="button" class="fh-table__action-btn" @click="openModal('move', { keys: ['file:' + file.id] })"><i class="bi bi-folder-symlink"></i></button>
+                  <button v-if="canEdit('file')" type="button" class="fh-table__action-btn" @click="openShare('file', file)"><i class="bi bi-share"></i></button>
+                  <button v-if="canDelete('file')" type="button" class="fh-table__action-btn is-danger" @click="openDelete('file', file.id)"><i class="bi bi-trash"></i></button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="isEmpty && !parentMeta">
+              <td colspan="7">
+                <div class="fh-empty">
+                  <i class="bi bi-folder2-open fh-empty__icon"></i>
+                  <div class="fh-empty__text">{{ t('web.file-hosting.empty') }}</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <!-- Bulk bar -->
-    <div v-if="selectedArray.length > 0" class="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded">
-      <span class="small">{{ selectedArray.length }} {{ t('web.file-hosting.bulk.selected') }}</span>
-      <button class="btn btn-danger btn-sm" @click="handleBulkDelete">
-        <i class="bi bi-trash me-1"></i> {{ t('web.file-hosting.delete') }}
+      <div v-show="viewMode === 'grid'" class="fh-grid">
+        <div
+          v-if="parentMeta"
+          class="fh-file-card is-parent"
+          data-fh-row
+          data-fh-entity="parent"
+          :class="{ 'is-drop-target': drag.isDropTarget(parentMeta.id || 'root') }"
+          @dragover="drag.onDropOver($event, parentMeta.id || 'root')"
+          @dragleave="drag.onDropLeave($event, parentMeta.id || 'root')"
+          @drop="drag.onDrop($event, parentMeta.id || 'root')"
+        >
+          <div class="fh-file-card__icon">
+            <a :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
+              <i class="bi bi-folder2 fh-parent-row__icon"></i>
+            </a>
+          </div>
+          <a class="fh-file-card__name" :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">...</a>
+          <div class="fh-file-card__meta">{{ t('web.file-hosting.parent') }}</div>
+        </div>
+        <div
+          v-for="folder in folders"
+          :key="'gf:' + folder.id"
+          class="fh-file-card"
+          data-fh-row
+          data-fh-entity="folder"
+          :data-fh-id="folder.id"
+          draggable="true"
+          :class="{
+            'is-dragging-source': drag.isDraggingSource('folder', folder.id),
+            'is-drop-target': drag.isDropTarget(folder.id),
+            'is-selected': selected.has('folder:' + folder.id),
+          }"
+          @click="onBrowseSelect($event, 'folder', folder)"
+          @dblclick="onBrowseOpen($event, 'folder', folder)"
+          @contextmenu="onContext($event, 'folder', folder)"
+          @dragstart="drag.onRowDragStart($event, 'folder', folder.id)"
+          @dragend="drag.onDragEnd"
+          @dragover="drag.onDropOver($event, folder.id)"
+          @dragleave="drag.onDropLeave($event, folder.id)"
+          @drop="drag.onDrop($event, folder.id)"
+        >
+          <input
+            type="checkbox"
+            class="form-check-input fh-file-card__select"
+            :checked="selected.has('folder:' + folder.id)"
+            @click.stop
+            @change="toggleSelect('folder:' + folder.id, ($event.target as HTMLInputElement).checked)"
+          />
+          <div class="fh-file-card__icon">
+            <a :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">
+              <FhIcon is-folder />
+            </a>
+          </div>
+          <a class="fh-file-card__name" :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">{{ folder.name }}</a>
+          <div class="fh-file-card__meta">{{ t('web.file-hosting.type_folder') }}</div>
+        </div>
+        <div
+          v-for="file in files"
+          :key="'gfile:' + file.id"
+          class="fh-file-card"
+          data-fh-row
+          data-fh-entity="file"
+          :data-fh-id="file.id"
+          draggable="true"
+          :class="{
+            'is-dragging-source': drag.isDraggingSource('file', file.id),
+            'is-selected': selected.has('file:' + file.id),
+          }"
+          @click="onBrowseSelect($event, 'file', file)"
+          @dblclick="onBrowseOpen($event, 'file', file)"
+          @contextmenu="onContext($event, 'file', file)"
+          @dragstart="drag.onRowDragStart($event, 'file', file.id)"
+          @dragend="drag.onDragEnd"
+        >
+          <input
+            type="checkbox"
+            class="form-check-input fh-file-card__select"
+            :checked="selected.has('file:' + file.id)"
+            @click.stop
+            @change="toggleSelect('file:' + file.id, ($event.target as HTMLInputElement).checked)"
+          />
+          <div class="fh-file-card__badge">
+            <span v-if="isMicrostock" class="badge fh-ms-badge" :class="msBadge(file).cls">{{ msBadge(file).label }}</span>
+          </div>
+          <div class="fh-file-card__icon">
+            <a :href="fileHref(file.id)" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">
+              <FhIcon :mime="file.mime" />
+            </a>
+          </div>
+          <a class="fh-file-card__name" :href="fileHref(file.id)" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">{{ file.name }}</a>
+          <div class="fh-file-card__meta">{{ file.size_human || t('web.file-hosting.type_file') }}</div>
+        </div>
+        <div v-if="isEmpty && !parentMeta" class="fh-empty">
+          <i class="bi bi-folder2-open fh-empty__icon"></i>
+          <div class="fh-empty__text">{{ t('web.file-hosting.empty') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="contextMenu"
+      class="fh-context-menu"
+      role="menu"
+      :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+      @click.stop
+    >
+      <button type="button" class="fh-context-menu__item" @click="ctxAction('open')"><i class="bi bi-folder2-open"></i>{{ t('web.file-hosting.open') }}</button>
+      <button v-if="canEdit(contextMenu.entity)" type="button" class="fh-context-menu__item" @click="ctxAction('rename')"><i class="bi bi-pencil"></i>{{ t('web.file-hosting.rename') }}</button>
+      <button v-if="canEdit(contextMenu.entity)" type="button" class="fh-context-menu__item" @click="ctxAction('move')"><i class="bi bi-folder-symlink"></i>{{ t('web.file-hosting.move') }}</button>
+      <button v-if="canEdit(contextMenu.entity)" type="button" class="fh-context-menu__item" @click="ctxAction('share')"><i class="bi bi-share"></i>{{ t('web.file-hosting.share') }}</button>
+      <button
+        v-if="isMicrostock && contextMenu.entity === 'file'"
+        type="button"
+        class="fh-context-menu__item"
+        @click="ctxAction('review')"
+      >
+        <i class="bi bi-stars"></i>{{ t('web.file-hosting.microstock.review') }}
       </button>
-      <button class="btn btn-outline-secondary btn-sm" @click="clearSelection">{{ t('actions.cancel') }}</button>
+      <button v-if="canDelete(contextMenu.entity)" type="button" class="fh-context-menu__item is-danger" @click="ctxAction('delete')"><i class="bi bi-trash"></i>{{ t('web.file-hosting.delete') }}</button>
     </div>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
-      </div>
-    </div>
-
-    <div v-else-if="displayFolders.length === 0 && displayFiles.length === 0" class="text-muted text-center py-4">
-      <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
-      <span v-if="search">{{ t('web.file-hosting.search_no_results') }}</span>
-      <span v-else>{{ t('web.file-hosting.empty') }}</span>
-    </div>
-
-    <!-- Table view -->
-    <div v-else-if="viewMode === 'table'" class="table-responsive">
-      <table class="table table-sm table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th style="width: 30px;">
-              <input type="checkbox" class="form-check-input" @change="($event.target as HTMLInputElement).checked ? selectAll() : clearSelection()" />
-            </th>
-            <th>{{ t('web.file-hosting.columns.name') }}</th>
-            <th class="text-center">{{ t('web.file-hosting.columns.visibility') }}</th>
-            <th>{{ t('web.file-hosting.columns.size') }}</th>
-            <th>{{ t('web.file-hosting.columns.modified') }}</th>
-            <th class="text-end">{{ t('web.file-hosting.columns.actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="folder in displayFolders" :key="`folder:${folder.id}`">
-            <td>
-              <input type="checkbox" class="form-check-input" :checked="selected.has(`folder:${folder.id}`)" @change="toggleSelect(`folder:${folder.id}`)" />
-            </td>
-            <td>
-              <a href="#" @click.prevent="navigateToFolder(folder.id)" class="text-decoration-none">
-                <i class="bi bi-folder-fill text-warning me-1"></i>
-                {{ folder.name }}
-              </a>
-            </td>
-            <td class="text-center">
-              <span class="badge" :class="visibilityBadge(folder.visibility)">{{ visibilityLabel(folder.visibility) }}</span>
-            </td>
-            <td class="text-muted small">—</td>
-            <td class="small">{{ folder.updated_at_formatted ?? folder.updated_at ?? '—' }}</td>
-            <td class="text-end">
-              <div class="btn-group btn-group-sm">
+    <div v-if="modal" class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.4)" @click.self="modal = null">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <template v-if="modal.type === 'folder'">{{ t('web.file-hosting.new_folder') }}</template>
+              <template v-else-if="modal.type === 'rename'">{{ t('web.file-hosting.rename') }}</template>
+              <template v-else>{{ t('web.file-hosting.modal_move') }}</template>
+            </h5>
+            <button type="button" class="btn-close" @click="modal = null"></button>
+          </div>
+          <div class="modal-body">
+            <div v-if="modal.type === 'folder' || modal.type === 'rename'">
+              <label class="form-label">{{ t('web.file-hosting.name_label') }}</label>
+              <input v-model="modal.name" type="text" class="form-control" autofocus @keyup.enter="submitModal" />
+            </div>
+            <div v-else-if="modal.type === 'move'">
+              <label class="form-label">{{ t('web.file-hosting.target_folder_label') }}</label>
+              <input v-model="modal.target" type="text" class="form-control mb-2" :placeholder="t('web.file-hosting.target_folder_placeholder')" />
+              <div class="list-group list-group-flush">
+                <button type="button" class="list-group-item list-group-item-action" @click="modal.target = ''">{{ t('web.file-hosting.root') }}</button>
                 <button
-                  v-if="canLockCollection(folder)"
-                  class="btn btn-outline-success"
-                  :title="t('web.file-hosting.microstock.lock_describe')"
-                  @click.stop="openCollectionModal(folder)"
+                  v-for="f in moveTargets"
+                  :key="'mv:' + f.id"
+                  type="button"
+                  class="list-group-item list-group-item-action"
+                  @click="modal.target = f.id"
                 >
-                  <i class="bi bi-lock-fill"></i>
-                </button>
-                <button class="btn btn-outline-secondary" @click="toggleVisibility('folder', folder.id, folder.visibility)" :title="t('web.file-hosting.visibility.label')">
-                  <i class="bi" :class="folder.visibility === 'anyone_with_link' ? 'bi-unlock' : 'bi-lock'"></i>
-                </button>
-                <button class="btn btn-outline-secondary" @click="openRename('folder', folder.id, folder.name)" :title="t('web.file-hosting.rename')">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-outline-danger" @click="openDelete('folder', folder.id)" :title="t('web.file-hosting.delete')">
-                  <i class="bi bi-trash"></i>
+                  <i class="bi bi-folder-fill me-1"></i>{{ f.name }}
                 </button>
               </div>
-            </td>
-          </tr>
-          <tr v-for="file in displayFiles" :key="`file:${file.id}`">
-            <td>
-              <input type="checkbox" class="form-check-input" :checked="selected.has(`file:${file.id}`)" @change="toggleSelect(`file:${file.id}`)" />
-            </td>
-            <td>
-              <a href="#" @click.prevent="openFile(file)" class="text-decoration-none">
-                <i class="bi me-1" :class="fileIcon(file.mime)"></i>
-                {{ file.name }}
-              </a>
-              <span v-if="file.is_hash_blocked" class="badge text-bg-danger ms-1">{{ t('web.file-hosting.blocked_badge') }}</span>
-            </td>
-            <td class="text-center">
-              <span class="badge" :class="visibilityBadge(file.visibility)">{{ visibilityLabel(file.visibility) }}</span>
-            </td>
-            <td class="small">{{ file.size_human ?? file.size ?? '—' }}</td>
-            <td class="small">{{ file.updated_at_formatted ?? file.updated_at ?? '—' }}</td>
-            <td class="text-end">
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-secondary" @click="toggleVisibility('file', file.id, file.visibility)" :title="t('web.file-hosting.visibility.label')">
-                  <i class="bi" :class="file.visibility === 'anyone_with_link' ? 'bi-unlock' : 'bi-lock'"></i>
-                </button>
-                <button class="btn btn-outline-secondary" @click="openRename('file', file.id, file.name)" :title="t('web.file-hosting.rename')">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-outline-danger" @click="openDelete('file', file.id)" :title="t('web.file-hosting.delete')">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Grid view -->
-    <div v-else class="row g-2">
-      <div v-for="folder in displayFolders" :key="folder.id" class="col-6 col-md-2">
-        <div class="card h-100" :class="{ 'border-primary': selected.has(`folder:${folder.id}`) }" @click="navigateToFolder(folder.id)">
-          <div class="card-body text-center p-2">
-            <i class="bi bi-folder-fill text-warning fs-2"></i>
-            <div class="small text-truncate mt-1">{{ folder.name }}</div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div v-for="file in displayFiles" :key="file.id" class="col-6 col-md-2">
-        <div class="card h-100" :class="{ 'border-primary': selected.has(`file:${file.id}`) }" @click="openFile(file)">
-          <div class="card-body text-center p-2">
-            <i class="bi fs-2" :class="fileIcon(file.mime)"></i>
-            <div class="small text-truncate mt-1">{{ file.name }}</div>
-            <div class="text-muted small">{{ file.size_human }}</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" @click="modal = null">{{ t('web.file-hosting.cancel') }}</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="submitModal">{{ t('web.file-hosting.save') }}</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Create folder modal -->
-    <ConfirmModal
-      v-model="showCreateFolder"
-      :title="t('web.file-hosting.new_folder')"
-      :confirm-label="t('web.file-hosting.create')"
-      @confirm="handleCreateFolder"
-    >
-      <div class="mb-3">
-        <label class="form-label">{{ t('web.file-hosting.folder_name') }}</label>
-        <input type="text" class="form-control" v-model="newFolderName" @keyup.enter="handleCreateFolder" autofocus />
-      </div>
-    </ConfirmModal>
+    <FhShareModal
+      v-model="showShare"
+      v-model:visibility="shareVisibility"
+      :share-url="shareUrl"
+      @save="saveShare"
+    />
 
-    <!-- Rename modal -->
-    <ConfirmModal
-      v-model="showRename"
-      :title="t('web.file-hosting.rename')"
-      :confirm-label="t('web.file-hosting.save')"
-      @confirm="handleRename"
-    >
-      <div class="mb-3">
-        <label class="form-label">{{ t('web.file-hosting.name_label') }}</label>
-        <input type="text" class="form-control" v-model="renameValue" @keyup.enter="handleRename" autofocus />
-      </div>
-    </ConfirmModal>
-
-    <!-- Delete confirm modal -->
     <ConfirmModal
       v-model="showDeleteConfirm"
       :title="t('web.file-hosting.modal_delete')"
-      :confirm-label="deleteTarget?.force ? t('web.file-hosting.force_delete') : t('web.file-hosting.delete')"
+      :confirm-label="t('web.file-hosting.delete')"
       confirm-variant="danger"
       @confirm="handleDelete"
       @cancel="deleteTarget = null"
     >
       <p>{{ t('web.file-hosting.confirm_delete_item') }}</p>
-      <p v-if="!deleteTarget?.force" class="text-muted small">{{ t('web.file-hosting.trash_hint') }}</p>
-      <p v-else class="text-danger small">{{ t('web.file-hosting.trash_cannot_be_undone') }}</p>
+      <p class="text-muted small">{{ t('web.file-hosting.trash_hint') }}</p>
     </ConfirmModal>
 
-    <!-- Collection describe modal -->
-    <Modal v-model="showCollectionModal" :title="t('web.file-hosting.lock_describe_title')" size="lg">
-      <div v-if="collectionFolder" class="mb-3">
-        <p class="text-muted small">{{ t('web.file-hosting.parent_folder') }}: <strong>{{ collectionFolder.name }}</strong></p>
+    <FhCollectionDescribeModal
+      v-model="showCollectionModal"
+      :folder="collectionFolder"
+      :file-count="files.length"
+      :billing="billing"
+      :locking="lockingCollection"
+      @lock="handleLockCollection"
+    />
 
-        <div class="mb-3">
-          <label class="form-label">{{ t('web.file-hosting.primary_concept') }}</label>
-          <textarea v-model="collectionPrimary" class="form-control" rows="3" maxlength="2000" :placeholder="t('web.file-hosting.primary_concept_placeholder')"></textarea>
-          <div class="form-text">{{ t('web.file-hosting.char_count', { count: collectionPrimary.length }) }}</div>
-        </div>
+    <FhMicrostockReviewModal
+      v-model="showReview"
+      v-model:file-id="reviewFileId"
+      :file-ids="reviewFileIds"
+      :download-ctx="ctxParams()"
+      @saved="loadBrowse({ keepSelection: true })"
+    />
 
-        <div class="mb-3">
-          <label class="form-label">{{ t('web.file-hosting.additional_notes') }}</label>
-          <textarea v-model="collectionNotes" class="form-control" rows="2" maxlength="2000" :placeholder="t('web.file-hosting.additional_notes_placeholder')"></textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">{{ t('web.file-hosting.billing_mode') }}</label>
-          <div class="d-flex gap-3">
-            <div class="form-check">
-              <input v-model="collectionBillingMode" class="form-check-input" type="radio" value="free" id="billing-free" />
-              <label class="form-check-label" for="billing-free">{{ t('web.file-hosting.billing_mode_free') }}</label>
-            </div>
-            <div class="form-check">
-              <input v-model="collectionBillingMode" class="form-check-input" type="radio" value="paid" id="billing-paid" />
-              <label class="form-check-label" for="billing-paid">{{ t('web.file-hosting.billing_mode_paid') }}</label>
-            </div>
-          </div>
-        </div>
-      </div>
+    <Modal v-model="showCreateMs" :title="t('web.file-hosting.microstock.create_title')">
+      <p class="small text-muted">{{ t('web.file-hosting.microstock.create_hint') }}</p>
+      <label class="form-label" for="fh-ms-ws-name">{{ t('web.file-hosting.microstock.name_label') }}</label>
+      <input
+        id="fh-ms-ws-name"
+        v-model="createMsName"
+        type="text"
+        class="form-control"
+        maxlength="120"
+        :placeholder="t('web.file-hosting.microstock.name_placeholder')"
+        @keyup.enter="handleCreateMicrostock"
+      />
       <template #footer>
-        <button type="button" class="btn btn-outline-secondary" @click="showCollectionModal = false">{{ t('web.file-hosting.cancel') }}</button>
-        <button
-          type="button"
-          class="btn btn-success"
-          :disabled="lockingCollection"
-          @click="handleLockCollection"
-        >
-          <span v-if="lockingCollection" class="spinner-border spinner-border-sm me-1"></span>
-          <i v-else class="bi bi-lock-fill me-1"></i>
-          {{ t('web.file-hosting.lock_collection_button') }}
+        <button type="button" class="btn btn-outline-secondary" @click="showCreateMs = false">{{ t('web.file-hosting.cancel') }}</button>
+        <button type="button" class="btn btn-primary" :disabled="creatingMs" @click="handleCreateMicrostock">
+          <span v-if="creatingMs" class="spinner-border spinner-border-sm me-1"></span>
+          {{ t('web.file-hosting.create') }}
         </button>
       </template>
     </Modal>
-  </Card>
+  </div>
 </template>

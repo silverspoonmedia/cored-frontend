@@ -4,9 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import CheckoutPanel from '@/components/CheckoutPanel.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useInvoices } from '@/composables/useInvoices'
 import { useAlert } from '@/composables/useAlert'
 import type { Invoice, InvoiceStatusPayload } from '@/api/types'
+import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,19 +29,6 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
-function statusClass(status: string): string {
-  const map: Record<string, string> = {
-    paid: 'text-bg-success',
-    pending: 'text-bg-warning',
-    challenge: 'text-bg-info',
-    expired: 'text-bg-secondary',
-    failed: 'text-bg-danger',
-    cancelled: 'text-bg-dark',
-    refunded: 'text-bg-info',
-  }
-  return map[status.toLowerCase()] ?? 'text-bg-light'
-}
 
 function onStatusUpdated(status: string): void {
   if (invoice.value) {
@@ -79,7 +68,7 @@ function onInvoiceUpdated(payload: InvoiceStatusPayload): void {
         </template>
 
         <div class="mb-3">
-          <span class="badge fs-6" :class="statusClass(invoice.status)">{{ invoice.status }}</span>
+          <StatusBadge :status="invoice.status" :mapping="INVOICE_STATUS_BADGE" fallback="light" extra-class="fs-6" />
         </div>
 
         <dl class="row mb-0">

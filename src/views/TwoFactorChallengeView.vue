@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useHcaptcha } from '@/composables/useHcaptcha'
+import HcaptchaWidget from '@/components/HcaptchaWidget.vue'
 import { ApiError } from '@/api/types'
 
 const router = useRouter()
@@ -11,10 +13,12 @@ const route = useRoute()
 const { t } = useI18n()
 const { verifyTwoFactor } = useAuth()
 const { error: showError } = useAlert()
+const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
 const code = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
+const errors = ref<Record<string, string[]>>({})
 
 const token = computed(() => {
   const tokenQuery = route.query.token
@@ -26,22 +30,39 @@ async function handleSubmit(): Promise<void> {
 
   loading.value = true
   error.value = null
+  errors.value = {}
 
   try {
-    await verifyTwoFactor(token.value, code.value)
+    const captcha = await captchaToken()
+    await verifyTwoFactor(token.value, code.value, captcha)
     router.push({ name: 'dashboard.view' })
   } catch (e) {
-    if (e instanceof ApiError && e.isAuth) {
-      error.value = e.message || 'Invalid authentication code'
+    resetCaptcha()
+    if (e instanceof ApiError && e.isValidation) {
+      errors.value = e.errors ?? {}
+      error.value = e.message
+    } else if (e instanceof ApiError && e.isAuth) {
+      error.value = e.message || t('web.auth.two_factor_invalid_code')
     } else if (e instanceof ApiError) {
       error.value = e.message
+    } else if (e instanceof Error && e.message.toLowerCase().includes('hcaptcha')) {
+      error.value = t('validation.hcaptcha')
     } else {
-      error.value = e instanceof Error ? e.message : 'Verification failed'
+      error.value = e instanceof Error ? e.message : t('web.auth.two_factor_verification_failed')
     }
     showError(error.value)
   } finally {
     loading.value = false
   }
+}
+
+function fieldError(field: string): string | null {
+  const list = errors.value[field]
+  if (list && list.length > 0) {
+    const first: string | undefined = list[0]
+    return first ?? null
+  }
+  return null
 }
 
 function backToLogin(): void {
@@ -79,8 +100,8 @@ function backToLogin(): void {
             name="code"
             id="code"
             class="form-control"
-            :class="{ 'is-invalid': error }"
-            placeholder="123456"
+            :class="{ 'is-invalid': !!error }"
+            :placeholder="t('web.auth.two_factor_code_placeholder')"
             required
             autofocus
             autocomplete="one-time-code"
@@ -92,6 +113,11 @@ function backToLogin(): void {
           />
           <span class="input-group-text"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
         </div>
+      </div>
+
+      <HcaptchaWidget ref="widget" />
+      <div v-if="fieldError('h-captcha-response')" class="invalid-feedback d-block mb-3">
+        {{ fieldError('h-captcha-response') }}
       </div>
 
       <div class="d-grid">

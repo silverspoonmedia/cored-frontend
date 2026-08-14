@@ -14,6 +14,7 @@ export function useActivityLogs() {
 
   return {
     items: base.items,
+    pagination: base.pagination,
     loading: base.loading,
     error: base.error,
     fetchList: base.fetchList,

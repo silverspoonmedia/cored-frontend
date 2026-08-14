@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import AppAlert from '@/components/AppAlert.vue'
-
-defineProps<{
-  title?: string
-  heading?: string
-}>()
+import { usePageTitle } from '@/composables/usePageTitle'
 
 const router = useRouter()
+const { heading } = usePageTitle()
 </script>
 
 <template>

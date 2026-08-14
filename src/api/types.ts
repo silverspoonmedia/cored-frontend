@@ -6,6 +6,19 @@ export interface ApiResponse<T = unknown> {
   data?: T
 }
 
+export interface ListPagination {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  has_more: boolean
+}
+
+export interface PagedList<T> {
+  items: T[]
+  pagination: ListPagination
+}
+
 export interface ValidationErrors {
   [field: string]: string[]
 }
@@ -246,6 +259,27 @@ export interface UserManagement {
   updated_at: string | null
   updated_at_formatted: string | null
   updated_at_human: string | null
+}
+
+export interface DiscordConnection {
+  type: string
+  id: string | null
+  name: string | null
+  verified: boolean
+  revoked: boolean
+}
+
+export interface ProfileConnections {
+  discord_connected: boolean
+  discord_oauth_configured: boolean
+  discord_synced_at: string | null
+  discord_synced_at_formatted: string | null
+  discord_synced_at_human: string | null
+  connections: DiscordConnection[]
+}
+
+export interface DiscordAuthorizeUrl {
+  url: string
 }
 
 // --- Navigation/Menus ---
@@ -1072,6 +1106,7 @@ export interface ServiceOptions {
   billing_intervals: string[]
   plan_kinds: string[]
   statuses: string[]
+  purchase_max_quantity: number
 }
 
 // --- File Hosting ---
@@ -1485,4 +1520,32 @@ export interface MicrostockCollectionStatusPayload {
 export interface MicrostockCollectionExportPayload {
   path: string
   count: number
+}
+
+export interface MicrostockSlotStatus {
+  activated: boolean
+  used: number
+  limit: number
+  can_create: boolean
+}
+
+export interface MicrostockAssetStages {
+  vision: string
+  thinking: string
+  result: string
+}
+
+export interface MicrostockAssetMetadata {
+  id: string
+  file_id: string
+  filename?: string | null
+  title: string | null
+  keywords: string[]
+  description: string | null
+  category: string | null
+  status: string | null
+  stages: MicrostockAssetStages
+  error: string | null
+  created_at: string | null
+  updated_at: string | null
 }

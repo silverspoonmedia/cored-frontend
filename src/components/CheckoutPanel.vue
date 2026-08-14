@@ -144,7 +144,8 @@ async function handleCheckout(): Promise<void> {
 async function handleSyncStatus(): Promise<void> {
   if (syncing.value) return
 
-  const provider = checkoutResult.value?.gateway ?? 'midtrans'
+  const provider = (checkoutResult.value?.gateway || props.invoice.payment_gateway?.name || '').trim()
+  if (!provider) return
 
   syncing.value = true
   try {

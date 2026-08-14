@@ -1,28 +1,36 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useServices } from '@/composables/useServices'
 import { useAuth } from '@/stores/auth'
+import { useServerDataTable } from '@/composables/useServerDataTable'
+import { useAlert } from '@/composables/useAlert'
 import type { Service } from '@/api/types'
+import { SERVICE_STATUS_BADGE } from '@/utils/statusBadge'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList } = useServices()
+const { items, loading, fetchList, pagination, destroy } = useServices()
 const { hasPermission } = useAuth()
+const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage service'))
+const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
+const deleteTarget = ref<Service | null>(null)
+const showDeleteModal = ref(false)
 
 const columns: DataTableColumn[] = [
-  { key: 'code', label: 'Code', sortable: true },
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'billing_interval', label: 'Interval', sortable: true, align: 'center' },
-  { key: 'status', label: 'Status', sortable: true, align: 'center' },
-  { key: 'updated_at', label: 'Updated', sortable: true, align: 'end' },
+  { key: 'code', label: t('web.services.columns.code'), sortable: true },
+  { key: 'name', label: t('web.services.columns.name'), sortable: true },
+  { key: 'billing_interval', label: t('web.services.columns.interval'), sortable: true, align: 'center' },
+  { key: 'status', label: t('web.services.columns.status'), sortable: true, align: 'center' },
+  { key: 'updated_at', label: t('web.file-hosting.updated'), sortable: true, align: 'end' },
 ]
-
-onMounted(() => fetchList())
 
 function showService(row: Service): void {
   router.push({ name: 'services.show.view', params: { id: row.id } })
@@ -32,11 +40,36 @@ function editService(row: Service): void {
   router.push({ name: 'services.edit.view', params: { id: row.id } })
 }
 
-function statusClass(status: string): string {
-  if (status === 'active') return 'text-bg-success'
-  if (status === 'inactive') return 'text-bg-secondary'
-  if (status === 'draft') return 'text-bg-warning'
-  return 'text-bg-info'
+function serviceActions(row: Service): RowAction[] {
+  const actions: RowAction[] = [
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', onClick: () => showService(row) },
+  ]
+  if (canManage.value) {
+    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editService(row) })
+    actions.push({
+      key: 'delete',
+      icon: 'trash3',
+      label: t('ui.actions.delete'),
+      variant: 'danger',
+      onClick: () => {
+        deleteTarget.value = row
+        showDeleteModal.value = true
+      },
+    })
+  }
+  return actions
+}
+
+async function handleDelete(): Promise<void> {
+  if (!deleteTarget.value) return
+  try {
+    await destroy(deleteTarget.value.id)
+    showSuccess(t('web.services.deleted'))
+    deleteTarget.value = null
+    await fetchList()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+  }
 }
 </script>
 
@@ -44,7 +77,7 @@ function statusClass(status: string): string {
   <Card :title="t('web.services.title')">
     <template #actions>
       <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'services.create.view' })">
-        <i class="bi bi-plus-lg me-1"></i> Add Service
+        <i class="bi bi-plus-lg me-1"></i> {{ t('web.services.add_button') }}
       </button>
     </template>
 
@@ -52,10 +85,17 @@ function statusClass(status: string): string {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      server
+      :total="pagination.total"
+      :page="pagination.current_page"
+      :per-page="pagination.per_page"
       :search-placeholder="t('web.services.search_placeholder')"
       empty-icon="bi-box-seam"
       :empty-title="t('web.services.empty_title')"
       @row-click="showService"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
+      @update:search="onSearch"
     >
       <template #cell-code="{ row }: { row: Service }">
         <code>{{ row.code }}</code>
@@ -66,7 +106,7 @@ function statusClass(status: string): string {
       </template>
 
       <template #cell-status="{ row }: { row: Service }">
-        <span class="badge" :class="statusClass(row.status)">{{ row.status }}</span>
+        <StatusBadge :status="row.status" :mapping="SERVICE_STATUS_BADGE" fallback="info" />
       </template>
 
       <template #cell-updated_at="{ row }: { row: Service }">
@@ -74,13 +114,17 @@ function statusClass(status: string): string {
       </template>
 
       <template #actions="{ row }: { row: Service }">
-        <button class="btn btn-outline-info btn-sm" @click.stop="showService(row)">
-          <i class="bi bi-eye" aria-hidden="true"></i>
-        </button>
-        <button v-if="canManage" class="btn btn-outline-primary btn-sm ms-1" @click.stop="editService(row)">
-          <i class="bi bi-pencil" aria-hidden="true"></i>
-        </button>
+        <RowActions :actions="serviceActions(row)" />
       </template>
     </DataTable>
+
+    <ConfirmModal
+      v-model="showDeleteModal"
+      :title="t('ui.datatable.delete')"
+      :message="t('web.services.confirm_delete')"
+      :confirm-label="t('ui.actions.delete')"
+      confirm-variant="danger"
+      @confirm="handleDelete"
+    />
   </Card>
 </template>

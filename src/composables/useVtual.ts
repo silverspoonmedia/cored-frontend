@@ -1,6 +1,7 @@
 import { get, post, patch, del } from '@/api/client'
 import type {
   ApiResponse,
+  PagedList,
   VtualCreator,
   VtualPlatform,
   VtualPlatformCredential,
@@ -10,8 +11,13 @@ import type {
   VtualVtuberProfile,
   VtualExternalLink,
 } from '@/api/types'
+import { ref } from 'vue'
+import type { ListParams } from '@/composables/useResource'
+import { emptyListPagination, unwrapListPayload } from '@/composables/useResource'
 
 export function useVtual() {
+  const orphanPagination = ref(emptyListPagination())
+
   async function fetchOwned(): Promise<VtualCreator[]> {
     const res = await get<ApiResponse<VtualCreator[]>>('vtual/creators/owned')
     if (res.status === 'success' && res.data) {
@@ -20,13 +26,15 @@ export function useVtual() {
     return []
   }
 
-  async function fetchOrphans(): Promise<VtualCreator[]> {
-    const res = await get<ApiResponse<VtualCreator[]>>('vtual/creators/orphans', {
-      display_mode: 'query',
-    })
+  async function fetchOrphans(params?: ListParams): Promise<VtualCreator[]> {
+    const query: Record<string, unknown> = { display_mode: 'query', ...params }
+    const res = await get<ApiResponse<VtualCreator[] | PagedList<VtualCreator>>>('vtual/creators/orphans', query)
     if (res.status === 'success' && res.data) {
-      return res.data
+      const parsed = unwrapListPayload<VtualCreator>(res.data)
+      orphanPagination.value = parsed.pagination
+      return parsed.items
     }
+    orphanPagination.value = emptyListPagination()
     return []
   }
 
@@ -313,6 +321,7 @@ export function useVtual() {
   return {
     fetchOwned,
     fetchOrphans,
+    orphanPagination,
     fetchOrphan,
     createOrphan,
     updateCreator,

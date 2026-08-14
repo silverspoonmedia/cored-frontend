@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useSettings } from '@/composables/useSettings'
+import { isSettingsMenuGroup } from '@/utils/settingsGroup'
 
 interface SettingsCard {
   label: string
   icon: string
   group?: string
-  route: string
+  to: { name: string; params?: { group: string } }
 }
 
 const { t } = useI18n()
@@ -32,12 +33,14 @@ const cards = computed<SettingsCard[]>(() => {
     label: groupLabel(slug),
     icon: iconMap[slug] ?? 'bi-gear',
     group: slug,
-    route: 'settings.group.view',
+    to: isSettingsMenuGroup(slug)
+      ? { name: `settings.${slug}.view` }
+      : { name: 'settings.group.view', params: { group: slug } },
   }))
 
   const extras: SettingsCard[] = [
-    { label: t('web.settings.groups.notification_audiences'), icon: 'bi-bell', route: 'notification-audiences.index.view' },
-    { label: t('web.settings.groups.currencies'), icon: 'bi-currency-exchange', route: 'currencies.index.view' },
+    { label: t('web.settings.groups.notification_audiences'), icon: 'bi-bell', to: { name: 'notification-audiences.index.view' } },
+    { label: t('web.settings.groups.currencies'), icon: 'bi-currency-exchange', to: { name: 'currencies.index.view' } },
   ]
 
   return [...dynamic, ...extras]
@@ -61,18 +64,7 @@ onMounted(fetchGroups)
         class="col-12 col-md-6 col-xl-4"
       >
         <router-link
-          v-if="card.group"
-          :to="{ name: card.route, params: { group: card.group } }"
-          class="card h-100 shadow-sm text-decoration-none text-body"
-        >
-          <div class="card-body d-flex align-items-center gap-3">
-            <i class="bi" :class="card.icon" style="font-size: 1.5rem;" aria-hidden="true"></i>
-            <span class="fw-semibold">{{ card.label }}</span>
-          </div>
-        </router-link>
-        <router-link
-          v-else
-          :to="{ name: card.route }"
+          :to="card.to"
           class="card h-100 shadow-sm text-decoration-none text-body"
         >
           <div class="card-body d-flex align-items-center gap-3">

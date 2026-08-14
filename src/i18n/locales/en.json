@@ -307,7 +307,14 @@
         "token_refresh_failed": "Discord session expired. Reconnect Discord from Connected accounts.",
         "connections_failed": "Could not load Discord linked accounts.",
         "discord_not_connected": "Connect Discord from Connected accounts first.",
-        "discord_user_missing": "Discord did not return a user id."
+        "discord_user_missing": "Discord did not return a user id.",
+        "authorize_url": "Discord authorization URL issued.",
+        "spa_url_missing": "SPA origin is not configured on this server.",
+        "return_path_invalid": "OAuth return path is not allowed."
+      },
+      "connections": {
+        "show": "Connected accounts loaded.",
+        "discord_disconnected": "Discord disconnected."
       }
     },
     "inference": {
@@ -1036,6 +1043,10 @@
       "edit": "Edit"
     },
     "datatable": {
+      "search_placeholder": "Search…",
+      "empty_title": "No records found",
+      "info": "Showing {from} to {to} of {total} entries",
+      "per_page": "{n} / page",
       "detail": "Detail",
       "view": "View",
       "edit": "Edit",
@@ -1672,6 +1683,8 @@
         "activate_cta": "Activate Microstock",
         "create_workspace": "New Microstock workspace",
         "slots_full": "Microstock slots full",
+        "slots_counter": "Microstock slots: {used} / {limit}",
+        "buy_slot_cta": "Get more Microstock slots",
         "create_title": "New Microstock workspace",
         "create_hint": "Give your Microstock workspace a name. Leave empty to use the default.",
         "name_label": "Workspace name",
@@ -2489,7 +2502,8 @@
         "load_failed": "Failed to load gateway",
         "created": "Gateway created.",
         "updated": "Gateway updated.",
-        "save_failed": "Failed to save"
+        "save_failed": "Failed to save",
+        "confirm_delete": "Delete this payment gateway?"
       },
       "show": {
         "payment_not_started": "Payment method not chosen yet",

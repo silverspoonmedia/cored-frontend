@@ -1,42 +1,40 @@
-<script lang="ts">
-const DEFAULT_MAPPING: Record<string, string> = {
-  active: 'success',
-  pending: 'warning',
-  archived: 'secondary',
-  revoked: 'dark',
-  inactive: 'secondary',
-  verified: 'success',
-  unverified: 'warning',
-  enabled: 'success',
-  disabled: 'danger',
-  draft: 'secondary',
-  published: 'success',
-  suspended: 'danger',
-  expired: 'dark',
-}
-</script>
-
 <script setup lang="ts">
 import { computed } from 'vue'
+import {
+  resolveBadgeColor,
+  type BadgeColor,
+} from '@/utils/statusBadge'
 
 const props = withDefaults(defineProps<{
-  status?: string
-  mapping?: Record<string, string>
+  status?: string | null
+  mapping?: Record<string, BadgeColor>
   label?: string | null
+  extraClass?: string
+  fallback?: BadgeColor
 }>(), {
-  status: 'active',
-  mapping: () => ({ ...DEFAULT_MAPPING }),
+  status: '',
+  mapping: () => ({}),
   label: null,
+  extraClass: '',
+  fallback: 'secondary',
 })
 
-const color = computed<string>(() => {
-  const key = props.status.toLowerCase()
-  return props.mapping[key] ?? 'secondary'
+const color = computed(() => resolveBadgeColor(props.status, props.mapping, props.fallback))
+
+const displayLabel = computed(() => {
+  if (props.label != null && props.label !== '') return props.label
+  const raw = (props.status ?? '').trim()
+  return raw || '—'
 })
 
-const displayLabel = computed(() => props.label ?? props.status)
+const badgeClass = computed(() => {
+  const classes = ['badge', `text-bg-${color.value}`]
+  if (color.value === 'light') classes.push('border')
+  if (props.extraClass) classes.push(props.extraClass)
+  return classes
+})
 </script>
 
 <template>
-  <span class="badge" :class="`text-bg-${color}`">{{ displayLabel }}</span>
+  <span :class="badgeClass">{{ displayLabel }}</span>
 </template>

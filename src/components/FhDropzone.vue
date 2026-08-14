@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatBytes, formatTransferRate, uploadFile, type UploadRow } from '@/composables/useFhUpload'
+import { FH_ITEMS_MIME } from '@/composables/useFhDragMove'
+import { useAlert } from '@/composables/useAlert'
 import type { HostedFile } from '@/api/types'
 
 const props = withDefaults(defineProps<{
@@ -9,12 +11,14 @@ const props = withDefaults(defineProps<{
   userId?: string | null
   workspaceId?: string | null
   collectionLocked?: boolean
+  requireFolder?: boolean
   maxFiles?: number
 }>(), {
   folderId: null,
   userId: null,
   workspaceId: null,
   collectionLocked: false,
+  requireFolder: false,
   maxFiles: 20,
 })
 
@@ -24,6 +28,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { error: showError } = useAlert()
 
 const MAX_CONCURRENT = 2
 const rows = ref<UploadRow[]>([])
@@ -43,6 +48,11 @@ const canStart = computed(() => {
 
 const pendingCount = computed(() => rows.value.filter((r) => r.status === 'pending').length)
 
+function isFhItemDrag(dt: DataTransfer | null): boolean {
+  if (!dt?.types) return false
+  return Array.from(dt.types).includes(FH_ITEMS_MIME)
+}
+
 function openFilePicker(): void {
   fileInputEl.value?.click()
 }
@@ -55,10 +65,22 @@ function onFileInputChange(e: Event): void {
   }
 }
 
-function addFiles(fileList: FileList): void {
-  const files = Array.from(fileList)
-  if (props.collectionLocked) return
+function gateAdd(): boolean {
+  if (props.requireFolder) {
+    showError(t('web.file-hosting.microstock.error_requires_folder'))
+    return false
+  }
+  if (props.collectionLocked) {
+    showError(t('web.file-hosting.microstock.error_collection_locked'))
+    return false
+  }
+  return true
+}
 
+function addFiles(fileList: FileList): void {
+  if (!gateAdd()) return
+
+  const files = Array.from(fileList)
   if (pendingCount.value + files.length > props.maxFiles) {
     trimToMax(files)
   }
@@ -76,7 +98,6 @@ function addFiles(fileList: FileList): void {
     })
   }
 }
-
 
 function trimToMax(files: File[]): void {
   const room = props.maxFiles - pendingCount.value
@@ -103,16 +124,19 @@ function statusLabel(status: string): string {
 }
 
 function onDragOver(e: DragEvent): void {
+  if (isFhItemDrag(e.dataTransfer)) return
   e.preventDefault()
   isDragging.value = true
 }
 
 function onDragLeave(e: DragEvent): void {
+  if (isFhItemDrag(e.dataTransfer)) return
   e.preventDefault()
   isDragging.value = false
 }
 
 function onDrop(e: DragEvent): void {
+  if (isFhItemDrag(e.dataTransfer)) return
   e.preventDefault()
   isDragging.value = false
   if (e.dataTransfer?.files?.length) {
@@ -203,10 +227,11 @@ function scheduleDismiss(id: string): void {
 </script>
 
 <template>
-  <div class="fh-dropzone mb-3">
+  <div>
     <div
-      class="border rounded p-3 text-center cursor-pointer"
-      :class="{ 'border-primary bg-primary-subtle': isDragging, 'border-secondary': !isDragging }"
+      class="fh-dropzone"
+      data-fh-dropzone
+      :class="{ 'is-dragging': isDragging }"
       role="button"
       tabindex="0"
       :aria-label="t('web.file-hosting.dropzone_aria_label')"
@@ -216,20 +241,21 @@ function scheduleDismiss(id: string): void {
       @click="openFilePicker"
       @keydown="onDropzoneKeydown"
     >
-      <i class="bi bi-cloud-arrow-up fs-2 d-block"></i>
-      <span class="fw-semibold">{{ t('web.file-hosting.dropzone_hint') }}</span>
-      <div class="small text-muted mt-1">{{ t('web.file-hosting.dropzone_max_files', { count: maxFiles }) }}</div>
+      <div class="fh-dropzone__icon">
+        <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+      </div>
+      <div class="fh-dropzone__text">{{ t('web.file-hosting.upload_here') }}</div>
+      <div class="fh-dropzone__hint">{{ t('web.file-hosting.dropzone_max_files', { count: maxFiles }) }}</div>
+      <input
+        ref="fileInputEl"
+        type="file"
+        class="d-none"
+        multiple
+        @change="onFileInputChange"
+      />
     </div>
 
-    <input
-      ref="fileInputEl"
-      type="file"
-      class="d-none"
-      multiple
-      @change="onFileInputChange"
-    />
-
-    <div v-if="canStart || batchRunning" class="d-flex justify-content-end mt-2">
+    <div v-if="canStart || batchRunning" class="fh-dropzone__actions">
       <button
         class="btn btn-primary btn-sm"
         type="button"
@@ -240,17 +266,15 @@ function scheduleDismiss(id: string): void {
       </button>
     </div>
 
-    <div v-if="rows.length" class="mt-2">
+    <div v-if="rows.length" class="fh-upload-queue">
       <div
         v-for="row in rows"
         :key="row.id"
-        class="border rounded p-2 mb-1"
+        class="fh-upload-row"
       >
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-file-earmark text-muted"></i>
-          <span class="flex-grow-1 text-truncate">{{ row.name }}</span>
-          <span class="text-muted small">({{ row.sizeLabel }})</span>
-          <span class="small" :class="row.status === 'error' ? 'text-danger' : row.status === 'done' ? 'text-success' : 'text-muted'">
+        <div class="fh-upload-row__header">
+          <span class="fh-upload-row__name">{{ row.name }} <span class="text-muted">({{ row.sizeLabel }})</span></span>
+          <span class="fh-upload-row__status" :class="row.status === 'error' ? 'text-danger' : row.status === 'done' ? 'text-success' : ''">
             {{ row.error || statusLabel(row.status) }}
           </span>
           <button
@@ -262,11 +286,8 @@ function scheduleDismiss(id: string): void {
             <i class="bi bi-x"></i>
           </button>
         </div>
-        <div v-if="row.status === 'uploading' || row.status === 'completing'" class="progress mt-1" style="height: 6px;">
-          <div
-            class="progress-bar"
-            :style="{ width: row.percent + '%' }"
-          ></div>
+        <div v-if="row.status === 'uploading' || row.status === 'completing'" class="progress" style="height: 6px;">
+          <div class="progress-bar" :style="{ width: row.percent + '%' }"></div>
         </div>
         <div v-if="row.speed" class="small text-muted mt-1 text-end">{{ row.percent }}% — {{ row.speed }}</div>
       </div>

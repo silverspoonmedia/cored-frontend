@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import { useSubscriptions } from '@/composables/useSubscriptions'
 import { useAuth } from '@/stores/auth'
+import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { Subscription } from '@/api/types'
+import { SUBSCRIPTION_STATUS_BADGE } from '@/utils/statusBadge'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList } = useSubscriptions()
+const { items, loading, fetchList, pagination } = useSubscriptions()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage subscription'))
+const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'subscription_number', label: t('web.payments.subscriptions.datatable.columns.subscription_number'), sortable: true },
@@ -23,8 +28,6 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'expires_at', label: t('web.payments.subscriptions.datatable.columns.expires_at'), sortable: true, align: 'end' },
 ])
 
-onMounted(() => fetchList())
-
 function showSub(row: Subscription): void {
   router.push({ name: 'subscriptions.show.view', params: { id: row.id } })
 }
@@ -33,12 +36,11 @@ function editSub(row: Subscription): void {
   router.push({ name: 'subscriptions.edit.view', params: { id: row.id } })
 }
 
-function statusClass(status: string): string {
-  if (status === 'active') return 'text-bg-success'
-  if (status === 'cancelled') return 'text-bg-danger'
-  if (status === 'expired') return 'text-bg-secondary'
-  if (status === 'trialing') return 'text-bg-info'
-  return 'text-bg-warning'
+function subscriptionActions(row: Subscription): RowAction[] {
+  return [
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', onClick: () => showSub(row) },
+    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editSub(row) },
+  ]
 }
 </script>
 
@@ -54,10 +56,17 @@ function statusClass(status: string): string {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      server
+      :total="pagination.total"
+      :page="pagination.current_page"
+      :per-page="pagination.per_page"
       :search-placeholder="t('web.payments.subscriptions.datatable.search_placeholder')"
       empty-icon="bi-receipt"
       :empty-title="t('web.payments.subscriptions.datatable.empty')"
       @row-click="showSub"
+      @update:page="onPage"
+      @update:per-page="onPerPage"
+      @update:search="onSearch"
     >
       <template #cell-subscription_number="{ row }: { row: Subscription }">
         <code>{{ row.subscription_number }}</code>
@@ -78,7 +87,7 @@ function statusClass(status: string): string {
       </template>
 
       <template #cell-status="{ row }: { row: Subscription }">
-        <span class="badge" :class="statusClass(row.status)">{{ row.status }}</span>
+        <StatusBadge :status="row.status" :mapping="SUBSCRIPTION_STATUS_BADGE" fallback="warning" />
       </template>
 
       <template #cell-expires_at="{ row }: { row: Subscription }">
@@ -86,12 +95,7 @@ function statusClass(status: string): string {
       </template>
 
       <template v-if="canManage" #actions="{ row }: { row: Subscription }">
-        <button class="btn btn-outline-info btn-sm" @click.stop="showSub(row)">
-          <i class="bi bi-eye" aria-hidden="true"></i>
-        </button>
-        <button class="btn btn-outline-primary btn-sm ms-1" @click.stop="editSub(row)">
-          <i class="bi bi-pencil" aria-hidden="true"></i>
-        </button>
+        <RowActions :actions="subscriptionActions(row)" />
       </template>
     </DataTable>
   </Card>
