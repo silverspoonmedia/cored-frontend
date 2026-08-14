@@ -18,10 +18,10 @@ import type {
 const { t } = useI18n()
 const { fetchBilling, fetchLedger, fetchUsageEvents, fetchAdminOverview, fetchAdminUsageEvents } =
   useMicrostockBilling()
-const { hasPermission, token } = useAuth()
+const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
-const { connected: echoConnected } = useEcho(() => token.value)
+const { connected: echoConnected } = useEcho()
 
 const canViewPlatform = computed(() => hasPermission('view platform billing'))
 

@@ -1,7 +1,6 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useListingReload } from '@/composables/useListingReload'
 import { useEcho } from '@/composables/useEcho'
-import { useAuth } from '@/stores/auth'
 
 export function useListingLiveUpdate(
   tableId: string,
@@ -9,8 +8,7 @@ export function useListingLiveUpdate(
   options: { pollMs?: number } = {},
 ): void {
   const { registerListing, unregisterListing } = useListingReload()
-  const { token } = useAuth()
-  const { connected: echoConnected } = useEcho(() => token.value)
+  const { connected: echoConnected } = useEcho()
 
   const pollMs = options.pollMs ?? 60_000
 

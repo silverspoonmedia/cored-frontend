@@ -42,21 +42,17 @@ function readConfig(): BroadcastConfig | null {
   }
 }
 
-function createEcho(config: BroadcastConfig, tokenProvider: () => string | null): PusherEcho {
+function createEcho(config: BroadcastConfig): PusherEcho {
   const authorizer: ChannelAuthorizerGenerator = (channel) => ({
     authorize: (socketId, callback) => {
-      const token = tokenProvider()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      }
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
-      }
-
       fetch(config.authEndpoint, {
         method: 'POST',
-        headers,
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
         body: JSON.stringify({
           socket_id: socketId,
           channel_name: channel.name,
@@ -116,7 +112,7 @@ function createEcho(config: BroadcastConfig, tokenProvider: () => string | null)
   return new Echo(options)
 }
 
-export function useEcho(tokenProvider: () => string | null): {
+export function useEcho(): {
   connected: Ref<boolean>
   init: () => boolean
   disconnect: () => void
@@ -128,7 +124,7 @@ export function useEcho(tokenProvider: () => string | null): {
     if (!config) return false
 
     try {
-      echoInstance = createEcho(config, tokenProvider)
+      echoInstance = createEcho(config)
       stopConnectionWatch = echoInstance.connector.onConnectionChange((status) => {
         connected.value = status === 'connected'
       })

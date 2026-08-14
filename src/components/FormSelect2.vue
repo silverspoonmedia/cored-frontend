@@ -2,7 +2,6 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import $ from '@/utils/jquery-setup'
 import FormField from './FormField.vue'
-import { useAuth } from '@/stores/auth'
 import { resolveApiUrl } from '@/api/baseUrl'
 import { processLookupResults, type Select2Result } from '@/utils/select2-lookup'
 
@@ -48,7 +47,6 @@ const emit = defineEmits<{
 }>()
 
 const selectRef = ref<HTMLSelectElement | null>(null)
-const { token } = useAuth()
 
 const normalizedOptions = computed<SelectOption[]>(() => {
   if (Array.isArray(props.options)) return props.options
@@ -77,12 +75,12 @@ function buildAjaxConfig() {
     dataType: 'json' as const,
     delay: 300,
     cache: false,
+    xhrFields: {
+      withCredentials: true,
+    },
     headers: {
       Accept: 'application/json',
-    },
-    beforeSend(xhr: JQuery.jqXHR) {
-      const t = token.value
-      if (t) xhr.setRequestHeader('Authorization', `Bearer ${t}`)
+      'X-Requested-With': 'XMLHttpRequest',
     },
     data(params: { term?: string; page?: number }) {
       const query: Record<string, unknown> = {

@@ -1,66 +1,30 @@
 import { ref, computed } from 'vue'
-import { post, get, setTokenGetter, setRefreshHandler, setUnauthorizedHandler } from '@/api/client'
+import { post, get, setRefreshHandler, setUnauthorizedHandler } from '@/api/client'
 import type { ApiResponse, AuthPayload, LoginResult, TwoFactorChallengePayload, User } from '@/api/types'
 
 const STORAGE_KEY = 'mw_auth'
 
-interface StoredAuth {
-  token: string
-  user: User
-  expiresAt: number
-  remember: boolean
-}
-
 type AuthChannelMessage =
   | { type: 'refresh-request'; id: string }
   | { type: 'refresh-response' }
-  | { type: 'refresh-done'; token: string | null; user?: User; expiresAt?: number; remember?: boolean }
+  | { type: 'refresh-done'; ok: boolean; user?: User; expiresAt?: number; remember?: boolean }
   | { type: 'logout' }
 
-const token = ref<string | null>(null)
 const user = ref<User | null>(null)
 const expiresAt = ref<number | null>(null)
 const remember = ref(false)
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
 
-const isAuthenticated = computed(() => !!token.value)
+const isAuthenticated = computed(() => !!user.value)
 
-// B1: Always use localStorage. Remember flag only affects TTL, not storage location.
-function storage(): Storage | null {
+function clearLeftoverTokenStorage(): void {
   try {
-    return localStorage
-  } catch {
-    return null
-  }
-}
-
-function persist(): void {
-  if (!token.value || !user.value || !expiresAt.value) return
-  const store = storage()
-  if (!store) return
-  const payload: StoredAuth = {
-    token: token.value,
-    user: user.value,
-    expiresAt: expiresAt.value,
-    remember: remember.value,
-  }
-  try {
-    store.setItem(STORAGE_KEY, JSON.stringify(payload))
-  } catch {
-    // ignore quota errors
-  }
-}
-
-function clearStorage(): void {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY) // backward compat: clean up old per-tab sessions
+    sessionStorage.removeItem(STORAGE_KEY)
     localStorage.removeItem(STORAGE_KEY)
   } catch {
     // ignore
   }
 }
-
-// --- Cross-tab coordination (B2 + B3 + B4) ---
 
 const authChannel: BroadcastChannel | null =
   typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('monolith-auth') : null
@@ -68,8 +32,8 @@ const authChannel: BroadcastChannel | null =
 let isRefreshing = false
 let pendingRequestId: string | null = null
 let shouldYield = false
-let waitingResolvers: Array<(token: string | null) => void> = []
-let authRefreshPromise: Promise<string | null> | null = null
+let waitingResolvers: Array<(ok: boolean) => void> = []
+let authRefreshPromise: Promise<boolean> | null = null
 
 function broadcast(msg: AuthChannelMessage): void {
   try {
@@ -105,19 +69,17 @@ if (authChannel) {
         break
 
       case 'refresh-done':
-        if (data.token && data.user && data.expiresAt) {
-          token.value = data.token
+        if (data.ok && data.user && data.expiresAt) {
           user.value = data.user
           expiresAt.value = data.expiresAt
           remember.value = data.remember ?? false
           scheduleRefresh()
         }
-        waitingResolvers.forEach((resolve) => resolve(data.token ?? null))
+        waitingResolvers.forEach((resolve) => resolve(data.ok))
         waitingResolvers = []
         break
 
       case 'logout':
-        token.value = null
         user.value = null
         expiresAt.value = null
         remember.value = false
@@ -130,54 +92,18 @@ if (authChannel) {
   }
 }
 
-// B2: storage event listener for cross-tab token sync
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (e: StorageEvent) => {
-    if (e.key !== STORAGE_KEY) return
-
-    if (e.newValue === null) {
-      token.value = null
-      user.value = null
-      expiresAt.value = null
-      remember.value = false
-      if (refreshTimer) {
-        clearTimeout(refreshTimer)
-        refreshTimer = null
-      }
-      return
-    }
-
-    try {
-      const stored = JSON.parse(e.newValue) as StoredAuth
-      token.value = stored.token
-      user.value = stored.user
-      expiresAt.value = stored.expiresAt
-      remember.value = stored.remember
-      scheduleRefresh()
-    } catch {
-      // ignore malformed
-    }
-  })
-}
-
-// --- Core auth functions ---
-
 function applyAuth(payload: AuthPayload): void {
-  token.value = payload.token
   user.value = payload.user
   expiresAt.value = Date.now() + payload.expires_in * 1000
   remember.value = payload.remember
-  persist()
   scheduleRefresh()
 }
 
-// B4: clearAuth broadcasts logout so other tabs also clear
 function clearAuth(): void {
-  token.value = null
   user.value = null
   expiresAt.value = null
   remember.value = false
-  clearStorage()
+  clearLeftoverTokenStorage()
   if (refreshTimer) {
     clearTimeout(refreshTimer)
     refreshTimer = null
@@ -190,15 +116,15 @@ function scheduleRefresh(): void {
     clearTimeout(refreshTimer)
     refreshTimer = null
   }
-  if (!expiresAt.value || !token.value) return
+  if (!expiresAt.value || !user.value) return
 
   const msUntilRefresh = expiresAt.value - Date.now() - 60_000
   if (msUntilRefresh <= 0) return
 
   refreshTimer = setTimeout(() => {
-    refreshToken()
-      .then((newToken) => {
-        if (!newToken) clearAuth()
+    refreshSession()
+      .then((ok) => {
+        if (!ok) clearAuth()
       })
       .catch(() => {
         clearAuth()
@@ -206,10 +132,7 @@ function scheduleRefresh(): void {
   }, msUntilRefresh)
 }
 
-// B3: Coordinated refresh via BroadcastChannel — only one tab refreshes; others wait
-async function refreshToken(): Promise<string | null> {
-  if (!token.value) return null
-
+async function refreshSession(): Promise<boolean> {
   if (authRefreshPromise) {
     return authRefreshPromise
   }
@@ -222,7 +145,7 @@ async function refreshToken(): Promise<string | null> {
   }
 }
 
-async function doRefresh(): Promise<string | null> {
+async function doRefresh(): Promise<boolean> {
   if (authChannel) {
     pendingRequestId = generateId()
     shouldYield = false
@@ -231,9 +154,9 @@ async function doRefresh(): Promise<string | null> {
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     if (shouldYield) {
-      const result = await new Promise<string | null>((resolve) => {
+      const result = await new Promise<boolean>((resolve) => {
         waitingResolvers.push(resolve)
-        setTimeout(() => resolve(null), 10_000)
+        setTimeout(() => resolve(false), 10_000)
       })
       pendingRequestId = null
       return result
@@ -244,23 +167,23 @@ async function doRefresh(): Promise<string | null> {
       const res = await post<ApiResponse<AuthPayload>>('auth/refresh', {
         remember: remember.value,
       })
-      if (res.status === 'success' && res.data) {
+      if (res.status === 'success' && res.data?.user && typeof res.data.expires_in === 'number') {
         applyAuth(res.data)
         const expiresAtMs = Date.now() + res.data.expires_in * 1000
         broadcast({
           type: 'refresh-done',
-          token: res.data.token,
+          ok: true,
           user: res.data.user,
           expiresAt: expiresAtMs,
           remember: res.data.remember,
         })
-        return res.data.token
+        return true
       }
-      broadcast({ type: 'refresh-done', token: null })
-      return null
+      broadcast({ type: 'refresh-done', ok: false })
+      return false
     } catch {
-      broadcast({ type: 'refresh-done', token: null })
-      return null
+      broadcast({ type: 'refresh-done', ok: false })
+      return false
     } finally {
       isRefreshing = false
       pendingRequestId = null
@@ -271,22 +194,21 @@ async function doRefresh(): Promise<string | null> {
     const res = await post<ApiResponse<AuthPayload>>('auth/refresh', {
       remember: remember.value,
     })
-    if (res.status === 'success' && res.data) {
+    if (res.status === 'success' && res.data?.user && typeof res.data.expires_in === 'number') {
       applyAuth(res.data)
-      return res.data.token
+      return true
     }
-    return null
+    return false
   } catch {
-    return null
+    return false
   }
 }
 
-// Wire auth state into the API client's interceptors.
-setTokenGetter(() => token.value)
-setRefreshHandler(refreshToken)
+setRefreshHandler(refreshSession)
 setUnauthorizedHandler(() => {
+  const wasAuth = !!user.value
   clearAuth()
-  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+  if (wasAuth && typeof window !== 'undefined' && window.location.pathname !== '/login') {
     window.location.assign('/login')
   }
 })
@@ -294,7 +216,6 @@ setUnauthorizedHandler(() => {
 export function useAuth() {
   return {
     user,
-    token,
     isAuthenticated,
     login,
     register,
@@ -419,7 +340,7 @@ async function logout(): Promise<void> {
   try {
     await post<ApiResponse<null>>('auth/logout')
   } catch {
-    // Even if logout API fails, clear local state.
+    // Cookie expire is Worker-side; still clear local state.
   }
   clearAuth()
 }
@@ -429,7 +350,6 @@ async function fetchMe(): Promise<User> {
 
   if (res.status === 'success' && res.data) {
     user.value = res.data
-    persist()
     return res.data
   }
 
@@ -441,34 +361,16 @@ let hydrated = false
 async function hydrate(): Promise<void> {
   if (hydrated) return
   hydrated = true
-
-  let stored: StoredAuth | null = null
+  clearLeftoverTokenStorage()
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY)
-    if (raw) stored = JSON.parse(raw) as StoredAuth
-  } catch {
-    stored = null
-  }
-
-  if (!stored) return
-
-  const now = Date.now()
-  if (stored.expiresAt <= now) {
-    token.value = stored.token
-    remember.value = stored.remember
-    const newToken = await refreshToken()
-    if (!newToken) {
-      clearAuth()
+    const res = await get<ApiResponse<User>>('auth/me')
+    if (res.status === 'success' && res.data) {
+      user.value = res.data
     }
-    return
+  } catch {
+    user.value = null
   }
-
-  token.value = stored.token
-  user.value = stored.user
-  expiresAt.value = stored.expiresAt
-  remember.value = stored.remember
-  scheduleRefresh()
 }
 
 function hasPermission(permission: string): boolean {

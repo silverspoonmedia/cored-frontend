@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import { useInvoices } from '@/composables/useInvoices'
 import { usePaymentRealtime } from '@/composables/usePaymentRealtime'
 import { useEcho } from '@/composables/useEcho'
-import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { Invoice, PaymentChannel, CheckoutResult, InvoiceStatusPayload } from '@/api/types'
 
@@ -21,8 +20,7 @@ const emit = defineEmits<{
 const { fetchCheckoutChannels, channelCheckout, syncStatus } = useInvoices()
 const { error: showError, success: showSuccess } = useAlert()
 const { subscribeInvoice, unsubscribeInvoice, subscribeRoutingCatalog, unsubscribeRoutingCatalog } = usePaymentRealtime()
-const { token } = useAuth()
-const { connected: echoConnected } = useEcho(() => token.value)
+const { connected: echoConnected } = useEcho()
 const { t } = useI18n()
 
 const channels = ref<PaymentChannel[]>(props.channels ?? [])

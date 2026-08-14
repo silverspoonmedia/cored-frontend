@@ -8,17 +8,15 @@ import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
-import { useAuth } from '@/stores/auth'
 import type { FhTrashPayload } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
-const { token } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
-const { connected: echoConnected } = useEcho(() => token.value)
+const { connected: echoConnected } = useEcho()
 
 const trash = ref<FhTrashPayload | null>(null)
 const loading = ref(true)

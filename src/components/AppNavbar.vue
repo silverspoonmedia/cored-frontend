@@ -18,11 +18,11 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const { toggle: toggleSidebar } = useSidebar()
 const { mode, setMode } = useTheme()
-const { user, logout, switchLocale: switchLocaleApi, token } = useAuth()
+const { user, logout, switchLocale: switchLocaleApi } = useAuth()
 const { success: showSuccess } = useAlert()
 const { unreadCount, items: recentNotifications, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
 const { navbarTree, load: loadNavigation } = useNavigation()
-const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho(() => token.value)
+const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho()
 
 const currentLocale = computed<AppLocale>(() => locale.value as AppLocale)
 const supportedLocales = SUPPORTED_LOCALES

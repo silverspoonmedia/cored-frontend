@@ -1,18 +1,12 @@
 import { apiUrl } from './baseUrl'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
 
-type TokenGetter = () => string | null
-type RefreshHandler = () => Promise<string | null>
+type RefreshHandler = () => Promise<boolean>
 type UnauthorizedHandler = () => void
 
-let tokenGetter: TokenGetter | null = null
 let refreshHandler: RefreshHandler | null = null
 let unauthorizedHandler: UnauthorizedHandler | null = null
-let refreshPromise: Promise<string | null> | null = null
-
-export function setTokenGetter(getter: TokenGetter): void {
-  tokenGetter = getter
-}
+let refreshPromise: Promise<boolean> | null = null
 
 export function setRefreshHandler(handler: RefreshHandler): void {
   refreshHandler = handler
@@ -25,14 +19,10 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
 function buildHeaders(hasBody: boolean, isFormData: boolean): Headers {
   const headers = new Headers()
   headers.set('Accept', 'application/json')
+  headers.set('X-Requested-With', 'XMLHttpRequest')
 
   if (hasBody && !isFormData) {
     headers.set('Content-Type', 'application/json')
-  }
-
-  const token = tokenGetter?.()
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`)
   }
 
   return headers
@@ -90,9 +80,9 @@ function throwForStatus(res: Response, json: unknown): never {
   throw new ApiError(extractMessage(json, `HTTP ${res.status}`), res.status)
 }
 
-function ensureRefresh(): Promise<string | null> {
+function ensureRefresh(): Promise<boolean> {
   if (!refreshHandler) {
-    return Promise.resolve(null)
+    return Promise.resolve(false)
   }
   if (!refreshPromise) {
     refreshPromise = refreshHandler().finally(() => {
@@ -100,6 +90,10 @@ function ensureRefresh(): Promise<string | null> {
     })
   }
   return refreshPromise
+}
+
+function skipAuthRefresh(uri: string): boolean {
+  return uri === 'auth/refresh' || uri === 'auth/logout'
 }
 
 async function request<T>(
@@ -118,6 +112,7 @@ async function request<T>(
       method,
       headers: buildHeaders(body !== null, isFormData),
       body: bodyStr,
+      credentials: 'same-origin',
     })
 
   const response = await doFetch()
@@ -127,10 +122,9 @@ async function request<T>(
     return json as T
   }
 
-  // 401: try one refresh + retry, then bail to unauthorized handler.
-  if (response.status === 401 && refreshHandler) {
-    const newToken = await ensureRefresh()
-    if (newToken) {
+  if (response.status === 401 && refreshHandler && !skipAuthRefresh(uri)) {
+    const refreshed = await ensureRefresh()
+    if (refreshed) {
       const retryRes = await doFetch()
       const retryJson = await readJson(retryRes)
       if (retryRes.ok) {
@@ -174,7 +168,7 @@ function filenameFromDisposition(header: string | null): string | null {
   return ascii?.[1] ?? null
 }
 
-/** GET a non-JSON payload (CSV export, file download). Same Bearer + 401 refresh as `get()`. */
+/** GET a non-JSON payload (CSV export, file download). Same cookie session + 401 refresh as `get()`. */
 export async function getBlob(
   uri: string,
   query?: Record<string, unknown>,
@@ -184,18 +178,18 @@ export async function getBlob(
   const headers = (): Headers => {
     const h = new Headers()
     h.set('Accept', '*/*')
-    const token = tokenGetter?.()
-    if (token) h.set('Authorization', `Bearer ${token}`)
+    h.set('X-Requested-With', 'XMLHttpRequest')
     return h
   }
 
-  const doFetch = (): Promise<Response> => fetch(url.toString(), { method: 'GET', headers: headers() })
+  const doFetch = (): Promise<Response> =>
+    fetch(url.toString(), { method: 'GET', headers: headers(), credentials: 'same-origin' })
 
   let response = await doFetch()
 
   if (response.status === 401 && refreshHandler) {
-    const newToken = await ensureRefresh()
-    if (newToken) {
+    const refreshed = await ensureRefresh()
+    if (refreshed) {
       response = await doFetch()
     } else {
       unauthorizedHandler?.()

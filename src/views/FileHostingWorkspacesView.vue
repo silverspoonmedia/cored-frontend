@@ -23,10 +23,10 @@ const {
   removeMember,
   fetchActivity,
 } = useFileHosting()
-const { hasPermission, token } = useAuth()
+const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe: subscribeFh, unsubscribe: unsubscribeFh } = useFileHostingRealtime()
-const { connected: echoConnected } = useEcho(() => token.value)
+const { connected: echoConnected } = useEcho()
 const { t } = useI18n()
 
 const workspaces = ref<FhWorkspace[]>([])

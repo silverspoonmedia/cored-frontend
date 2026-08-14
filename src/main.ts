@@ -22,7 +22,7 @@ app.use(router)
 app.use(i18n)
 
 // router.isReady() resolves after the first navigation completes, which
-// includes the beforeEach guard that hydrates auth state from storage.
+// includes the beforeEach guard that hydrates auth via GET auth/me (cookie).
 // This ensures components mount with auth already populated.
 router.isReady().then(() => {
   app.mount('#app')

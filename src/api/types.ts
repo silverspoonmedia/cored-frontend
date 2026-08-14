@@ -61,7 +61,7 @@ export interface User {
 
 export interface AuthPayload {
   user: User
-  token: string
+  token?: string
   token_type: string
   expires_in: number
   remember: boolean
