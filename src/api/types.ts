@@ -1116,6 +1116,7 @@ export interface HostedFile {
   visibility: string
   share_url: string | null
   microstock?: FhMicrostock | null
+  workspace?: { id: string; kind: string; name: string } | null
   download_count: number
   view_count: number
   last_downloaded_at: string | null

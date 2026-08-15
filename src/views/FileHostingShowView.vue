@@ -38,6 +38,7 @@ const showReview = ref(false)
 
 const canEdit = computed(() => hasPermission('edit file hosting file'))
 const canDelete = computed(() => hasPermission('delete file hosting file'))
+const isMicrostock = computed(() => file.value?.workspace?.kind === 'microstock')
 
 function ctxParams(): Record<string, unknown> {
   const params: Record<string, unknown> = {}
@@ -248,7 +249,7 @@ async function handleDownload(): Promise<void> {
           <div class="small text-muted mb-1">{{ t('web.file-hosting.visibility.label') }}</div>
           <span class="fh-badge" :class="visBadgeClass(file.visibility)">{{ visLabel(file.visibility) }}</span>
 
-          <div class="card mt-3">
+          <div v-if="isMicrostock" class="card mt-3">
             <div class="card-header d-flex align-items-center justify-content-between">
               <span>{{ t('web.file-hosting.microstock_title') }}</span>
               <button
@@ -309,7 +310,7 @@ async function handleDownload(): Promise<void> {
     />
 
     <FhMicrostockReviewModal
-      v-if="file"
+      v-if="file && isMicrostock"
       v-model="showReview"
       :file-id="file.id"
       :file-ids="[file.id]"
