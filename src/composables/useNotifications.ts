@@ -9,6 +9,7 @@ const items = ref<AppNotification[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 const unreadCount = ref(0)
+const hasSeededUnread = ref(false)
 let echoListener: (() => void) | null = null
 let notifChannel: BroadcastChannel | null = null
 
@@ -36,6 +37,7 @@ export function useNotifications() {
     try {
       const res = await get<ApiResponse<UnreadCountPayload>>('notifications/unread-count')
       unreadCount.value = res.data?.unread ?? 0
+      hasSeededUnread.value = true
       return unreadCount.value
     } catch {
       return unreadCount.value
@@ -120,16 +122,24 @@ export function useNotifications() {
     }
   }
 
+  /** Seed the bell count from a shell-hydrate batch payload without a fetch. */
+  function seedUnreadCount(n: number): void {
+    unreadCount.value = n
+    hasSeededUnread.value = true
+  }
+
   return {
     items,
     loading,
     error,
     unreadCount,
+    hasSeededUnread,
     fetchList,
     fetchUnreadCount,
     markAllRead,
     markAsRead,
     startRealtime,
     stopRealtime,
+    seedUnreadCount,
   }
 }

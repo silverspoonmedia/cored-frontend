@@ -10,6 +10,7 @@ import FhShareModal from '@/components/FhShareModal.vue'
 import FhCollectionDescribeModal from '@/components/FhCollectionDescribeModal.vue'
 import FhMicrostockReviewModal from '@/components/FhMicrostockReviewModal.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
+import { useFhHydrate } from '@/composables/useFhHydrate'
 import { useMicrostock } from '@/composables/useMicrostock'
 import { useMicrostockBilling } from '@/composables/useMicrostockBilling'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
@@ -37,6 +38,7 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
+const { hydrateFileHosting } = useFhHydrate()
 const ms = useMicrostock()
 const { fetchBilling } = useMicrostockBilling()
 const { hasPermission } = useAuth()
@@ -358,8 +360,38 @@ async function loadCollectionStatus(): Promise<void> {
 }
 
 async function loadAll(): Promise<void> {
-  await Promise.all([loadBrowse(), loadQuota(), loadWorkspaces(), loadSlots()])
-  await Promise.all([loadBilling(), loadCollectionStatus()])
+  // loadAll owns the hydrate lifecycle: release the loading veil here, not
+  // only inside loadBrowse (which a successful batch skips entirely).
+  loading.value = true
+  try {
+    // One batch replaces the four independent reads; any sub that failed comes
+    // back null and falls through to its own loader (keeping that loader's
+    // error handling — browse toasts, the rest stay silent).
+    const { browse: b, quota: q, workspaces: ws, slots: sl } = await hydrateFileHosting({
+      folderId: currentFolderId.value,
+      ctx: ctxParams(),
+    })
+
+    if (b) {
+      browse.value = b
+      clearSelection()
+    }
+    if (q) quota.value = q
+    if (ws) workspaces.value = ws
+    if (sl) slots.value = sl
+
+    const fallbacks: Promise<void>[] = []
+    if (!b) fallbacks.push(loadBrowse())
+    if (!q) fallbacks.push(loadQuota())
+    if (!ws) fallbacks.push(loadWorkspaces())
+    if (!sl) fallbacks.push(loadSlots())
+    if (fallbacks.length) await Promise.all(fallbacks)
+
+    // Dependent stage: gated on browse.workspace.kind === 'microstock'.
+    await Promise.all([loadBilling(), loadCollectionStatus()])
+  } finally {
+    loading.value = false
+  }
 }
 
 function switchWorkspace(id: string | null): void {

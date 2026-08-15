@@ -47,6 +47,18 @@ async function refetch(layout: Layout = 'sidebar'): Promise<void> {
   return load(layout)
 }
 
+/** Seed a layout tree from a shell-hydrate batch payload, marking it loaded so load() will not refetch. */
+function seedTree(layout: Layout, nodes: NavigationTreeNode[]): void {
+  trees[layout] = nodes
+  loadedMap[layout] = true
+  if (layout === 'sidebar') sidebarTree.value = nodes
+  else navbarTree.value = nodes
+}
+
+function isTreeLoaded(layout: Layout): boolean {
+  return loadedMap[layout]
+}
+
 export function useNavigation() {
   return {
     tree: sidebarTree,
@@ -56,5 +68,7 @@ export function useNavigation() {
     error,
     load,
     refetch,
+    seedTree,
+    isTreeLoaded,
   }
 }

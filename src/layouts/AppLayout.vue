@@ -6,6 +6,7 @@ import AppNavbar from '@/components/AppNavbar.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import AppAlert from '@/components/AppAlert.vue'
 import { useNavigation } from '@/composables/useNavigation'
+import { useShellHydrate } from '@/composables/useShellHydrate'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTreeview } from '@/composables/useTreeview'
 import { useBreadcrumbs } from '@/composables/useBreadcrumbs'
@@ -17,6 +18,7 @@ const { t } = useI18n()
 const { init: initSidebar, closeMobile, syncOverlayScrollbarTheme, destroyOverlayScrollbars } = useSidebar()
 const { openActiveAncestors } = useTreeview()
 const { tree, load } = useNavigation()
+const { hydrateShell } = useShellHydrate()
 const { breadcrumbs } = useBreadcrumbs()
 const { pageTitle } = usePageTitle()
 const { effective: themeEffective } = useTheme()
@@ -28,7 +30,10 @@ function syncActiveAncestors(name: string | null): void {
 
 onMounted(() => {
   initSidebar()
-  load().then(() => syncActiveAncestors(route.name as string | null))
+  // One batch seeds auth + sidebar/navbar trees + unread count; the
+  // individual loaders below (and in AppNavbar) stay as no-op fallbacks for
+  // whatever the batch did not seed.
+  hydrateShell().then(() => load()).then(() => syncActiveAncestors(route.name as string | null))
 })
 
 onUnmounted(() => {

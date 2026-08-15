@@ -160,6 +160,36 @@ export function del<T>(uri: string, data?: Record<string, unknown>): Promise<T> 
   return request<T>('DELETE', uri, data ?? null)
 }
 
+export interface BatchSubRequest {
+  method?: 'GET' | 'HEAD'
+  path: string
+  query?: Record<string, unknown>
+}
+
+export interface BatchSubResponse<T = unknown> {
+  status: number
+  body: T
+}
+
+/**
+ * Fan several read-only calls into one HTTP request so the Worker BFF spends
+ * a single invocation per view hydrate. Each entry keeps its own API envelope
+ * inside `body`; `status` mirrors what the direct call would have returned.
+ * Paths are API-relative (`auth/me`), matching the other helpers.
+ */
+export async function batch<T = unknown>(
+  requests: ReadonlyArray<BatchSubRequest>,
+): Promise<Array<BatchSubResponse<T>>> {
+  const payload = requests.map((entry) => {
+    const url = apiUrl(entry.path, entry.query ?? null)
+    const path = `${url.pathname}${url.search}`
+    return { method: entry.method ?? 'GET', path }
+  })
+
+  const res = await post<ApiResponse<Array<BatchSubResponse<T>>>>('batch', { requests: payload })
+  return res.data ?? []
+}
+
 function filenameFromDisposition(header: string | null): string | null {
   if (!header) return null
   const utf = header.match(/filename\*=UTF-8''([^;]+)/i)

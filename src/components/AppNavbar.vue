@@ -20,8 +20,8 @@ const { toggle: toggleSidebar } = useSidebar()
 const { mode, setMode } = useTheme()
 const { user, logout, switchLocale: switchLocaleApi } = useAuth()
 const { success: showSuccess } = useAlert()
-const { unreadCount, items: recentNotifications, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
-const { navbarTree, load: loadNavigation } = useNavigation()
+const { unreadCount, items: recentNotifications, hasSeededUnread, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
+const { navbarTree, load: loadNavigation, isTreeLoaded } = useNavigation()
 const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho()
 
 const currentLocale = computed<AppLocale>(() => locale.value as AppLocale)
@@ -101,28 +101,59 @@ function notificationTime(n: { created_at_human: string | null; created_at_forma
   return n.created_at_human ?? n.created_at_formatted ?? n.created_at ?? '—'
 }
 
-const POLL_INTERVAL_MS = 60_000
+const POLL_INTERVAL_MS = 120_000
+const POLL_MAX_MS = 300_000
+const IDLE_POLLS_BEFORE_BACKOFF = 5
 const REALTIME_GRACE_MS = 30_000
-let pollTimer: ReturnType<typeof setInterval> | null = null
+let pollTimer: ReturnType<typeof setTimeout> | null = null
 let graceTimer: ReturnType<typeof setTimeout> | null = null
+let idlePolls = 0
+let lastUnread: number | null = null
+
+// Idle bells poll slower over time (2x per idle streak, capped) so an open tab
+// left overnight does not burn the Worker quota on an empty inbox. Any unread
+// change — or an Echo event — snaps the interval back to the base.
+async function pollTick(): Promise<void> {
+  if (pollTimer === null) return
+  const before = lastUnread
+  await fetchUnreadCount()
+  if (before !== null && unreadCount.value === before) {
+    idlePolls += 1
+  } else {
+    idlePolls = 0
+    lastUnread = unreadCount.value
+  }
+  const delay = idlePolls >= IDLE_POLLS_BEFORE_BACKOFF
+    ? Math.min(POLL_INTERVAL_MS * 2 ** (idlePolls - IDLE_POLLS_BEFORE_BACKOFF + 1), POLL_MAX_MS)
+    : POLL_INTERVAL_MS
+  pollTimer = setTimeout(pollTick, delay)
+}
 
 function startPolling(): void {
   if (pollTimer) return
-  pollTimer = setInterval(() => {
-    fetchUnreadCount()
-  }, POLL_INTERVAL_MS)
+  idlePolls = 0
+  lastUnread = null
+  pollTimer = setTimeout(pollTick, POLL_INTERVAL_MS)
 }
 
 function stopPolling(): void {
   if (pollTimer) {
-    clearInterval(pollTimer)
+    clearTimeout(pollTimer)
     pollTimer = null
   }
 }
 
 onMounted(() => {
-  loadBellData()
-  loadNavigation('navbar')
+  // The shell-hydrate batch (AppLayout) may already have seeded the unread
+  // count and navbar tree; only fetch what is still missing.
+  if (hasSeededUnread.value) {
+    fetchList(5)
+  } else {
+    loadBellData()
+  }
+  if (!isTreeLoaded('navbar')) {
+    loadNavigation('navbar')
+  }
 
   const echoStarted = initEcho()
   if (echoStarted) {

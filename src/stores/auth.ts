@@ -228,6 +228,7 @@ export function useAuth() {
     hasPermission,
     resendVerification,
     switchLocale,
+    setUser,
   }
 }
 
@@ -376,6 +377,16 @@ async function hydrate(): Promise<void> {
 function hasPermission(permission: string): boolean {
   if (!user.value) return false
   return user.value.permissions.includes(permission)
+}
+
+/**
+ * Seed the in-memory user from a shell-hydrate batch payload. Unlike
+ * applyAuth() this does not touch expiresAt/remember or reschedule refresh —
+ * the session lifecycle stays owned by login/refresh; this only fills the
+ * profile the batch already fetched.
+ */
+function setUser(u: User | null): void {
+  user.value = u
 }
 
 async function resendVerification(): Promise<void> {

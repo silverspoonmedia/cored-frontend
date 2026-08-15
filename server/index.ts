@@ -13,6 +13,29 @@ const TOKEN_ISSUE_PATHS = new Set([
 const FORWARD_REQUEST = ['authorization', 'content-type', 'accept', 'accept-language'] as const
 const FORWARD_RESPONSE = ['content-type', 'content-disposition', 'cache-control'] as const
 
+// Reference-data GET responses are shared across users only when they carry no
+// session. Authed requests stay private so a cached admin payload never leaks.
+const CACHEABLE_GET_EXACT = new Map<string, string>([
+	[`${API_PREFIX}/navigation/menus`, 'private, max-age=60'],
+	[`${API_PREFIX}/services/options`, 'private, max-age=60'],
+])
+const CACHEABLE_GET_PREFIX: ReadonlyArray<readonly [string, string]> = [
+	[`${API_PREFIX}/currencies`, 'private, max-age=300'],
+]
+
+function cacheControlFor(method: string, pathname: string, authed: boolean): string | null {
+	if (method !== 'GET') {
+		return null
+	}
+	const directive = CACHEABLE_GET_EXACT.get(pathname)
+		?? CACHEABLE_GET_PREFIX.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.[1]
+		?? null
+	if (directive === null) {
+		return null
+	}
+	return authed ? directive : directive.replace('private', 'public')
+}
+
 function envelope(status: number, message: string): Response {
 	return Response.json({ status: 'error', message }, { status })
 }
@@ -94,6 +117,7 @@ async function attachSession(
 	upstreamRes: Response,
 	pathname: string,
 	method: string,
+	spaJwt: string | null,
 ): Promise<Response> {
 	const isLogout = method === 'POST' && pathname === `${API_PREFIX}/auth/logout`
 	const isIssue = method === 'POST' && TOKEN_ISSUE_PATHS.has(pathname)
@@ -101,6 +125,12 @@ async function attachSession(
 
 	if (!isLogout && !isIssue) {
 		const out = copyHeaders(upstreamRes.headers, FORWARD_RESPONSE)
+		if (upstreamRes.ok) {
+			const cacheable = cacheControlFor(method, pathname, spaJwt !== null && spaJwt !== '')
+			if (cacheable !== null && !out.has('set-cookie')) {
+				out.set('cache-control', cacheable)
+			}
+		}
 		return new Response(upstreamRes.body, {
 			status: upstreamRes.status,
 			statusText: upstreamRes.statusText,
@@ -184,6 +214,13 @@ async function proxyToMonolith(request: Request, origin: string): Promise<Respon
 	}
 	headers.set('X-Forwarded-Proto', incoming.protocol.replace(':', ''))
 
+	// Marks the request as brokered by this BFF so Monolith can audit the
+	// direct hits that bypass the Worker. Not an auth control by itself.
+	headers.set('X-SPA-Origin', '1')
+	if (clientIp) {
+		headers.set('X-SPA-Client-IP', clientIp)
+	}
+
 	const init: RequestInit = {
 		method,
 		headers,
@@ -201,7 +238,7 @@ async function proxyToMonolith(request: Request, origin: string): Promise<Respon
 		return envelope(502, 'Upstream API is unreachable.')
 	}
 
-	return attachSession(request, upstreamRes, incoming.pathname, method)
+	return attachSession(request, upstreamRes, incoming.pathname, method, spaJwt)
 }
 
 export default {
