@@ -10,6 +10,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const unreadCount = ref(0)
 const hasSeededUnread = ref(false)
+const hasSeededList = ref(false)
 let echoListener: (() => void) | null = null
 let notifChannel: BroadcastChannel | null = null
 
@@ -23,6 +24,7 @@ export function useNotifications() {
         limit,
       })
       items.value = res.data ?? []
+      hasSeededList.value = true
       return items.value
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch notifications'
@@ -128,12 +130,18 @@ export function useNotifications() {
     hasSeededUnread.value = true
   }
 
+  function seedList(list: AppNotification[]): void {
+    items.value = list
+    hasSeededList.value = true
+  }
+
   return {
     items,
     loading,
     error,
     unreadCount,
     hasSeededUnread,
+    hasSeededList,
     fetchList,
     fetchUnreadCount,
     markAllRead,
@@ -141,5 +149,6 @@ export function useNotifications() {
     startRealtime,
     stopRealtime,
     seedUnreadCount,
+    seedList,
   }
 }

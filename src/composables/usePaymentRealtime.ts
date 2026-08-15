@@ -3,6 +3,7 @@ import type { InvoiceStatusPayload } from '@/api/types'
 
 let invoiceChannel: string | null = null
 let routingBound = false
+let adminListBound = false
 
 export function usePaymentRealtime() {
   function subscribeInvoice(
@@ -70,10 +71,41 @@ export function usePaymentRealtime() {
     routingBound = false
   }
 
+  function subscribeAdminList(onListChanged: () => void): boolean {
+    if (adminListBound) return true
+    const echo = getEcho()
+    if (!echo) return false
+
+    try {
+      echo.private('payments.admin').listen('.invoice.list.changed', () => {
+        onListChanged()
+      })
+      adminListBound = true
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  function unsubscribeAdminList(): void {
+    if (!adminListBound) return
+    const echo = getEcho()
+    if (echo) {
+      try {
+        echo.leave('payments.admin')
+      } catch {
+        // ignore
+      }
+    }
+    adminListBound = false
+  }
+
   return {
     subscribeInvoice,
     unsubscribeInvoice,
     subscribeRoutingCatalog,
     unsubscribeRoutingCatalog,
+    subscribeAdminList,
+    unsubscribeAdminList,
   }
 }

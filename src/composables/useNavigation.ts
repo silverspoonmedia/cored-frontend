@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { get } from '@/api/client'
+import { getEcho } from '@/composables/useEcho'
 import type { ApiResponse, NavigationTreeNode } from '@/api/types'
 
 type Layout = 'sidebar' | 'navbar'
@@ -12,6 +13,7 @@ const sidebarTree = ref<NavigationTreeNode[]>([])
 const navbarTree = ref<NavigationTreeNode[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
+let echoListener: (() => void) | null = null
 
 async function load(layout: Layout = 'sidebar'): Promise<void> {
   if (loadedMap[layout] || fetchPromises[layout]) return fetchPromises[layout] ?? Promise.resolve()
@@ -59,6 +61,35 @@ function isTreeLoaded(layout: Layout): boolean {
   return loadedMap[layout]
 }
 
+function startRealtime(): void {
+  if (echoListener) return
+  const echo = getEcho()
+  if (!echo) return
+
+  try {
+    const channel = echo.private('navigation.menus')
+    channel.listen('.menu.tree.changed', (e: { layout?: string }) => {
+      const layout = e.layout as Layout | undefined
+      if (layout === 'sidebar' || layout === 'navbar') {
+        refetch(layout)
+      } else {
+        refetch('sidebar')
+        refetch('navbar')
+      }
+    })
+    echoListener = () => echo.leave('navigation.menus')
+  } catch {
+    // Echo unavailable — polling fallback covers it
+  }
+}
+
+function stopRealtime(): void {
+  if (echoListener) {
+    echoListener()
+    echoListener = null
+  }
+}
+
 export function useNavigation() {
   return {
     tree: sidebarTree,
@@ -70,5 +101,7 @@ export function useNavigation() {
     refetch,
     seedTree,
     isTreeLoaded,
+    startRealtime,
+    stopRealtime,
   }
 }

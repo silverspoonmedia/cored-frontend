@@ -4,11 +4,13 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
+import { useVtualHydrate } from '@/composables/useVtualHydrate'
 import { useAlert } from '@/composables/useAlert'
 import type { VtualPlatform, VtualPlatformCredential } from '@/api/types'
 
 const router = useRouter()
 const { fetchPlatforms, fetchCredentials } = useVtual()
+const { hydrateCredentials } = useVtualHydrate()
 const { error: showError } = useAlert()
 const { t } = useI18n()
 
@@ -20,20 +22,41 @@ onMounted(async () => {
   loading.value = true
   try {
     platforms.value = await fetchPlatforms()
-    await Promise.all(
-      platforms.value.map(async (p) => {
-        try {
-          const creds = await fetchCredentials(p.id)
-          credentialCounts.value[p.id] = {
+
+    const platformIds = platforms.value.map((p) => p.id)
+    const batchResult = await hydrateCredentials(platformIds).catch(() => null)
+
+    if (batchResult) {
+      platformIds.forEach((id) => {
+        const creds = batchResult.credentials[id]
+        if (creds !== null && creds !== undefined) {
+          credentialCounts.value[id] = {
             total: creds.length,
             active: creds.filter((c) => c.status === 'active').length,
             pending: creds.filter((c) => c.status === 'pending').length,
           }
-        } catch {
-          credentialCounts.value[p.id] = { active: 0, pending: 0, total: 0 }
         }
-      }),
-    )
+      })
+    }
+
+    // Fallback for platforms the batch missed
+    const missing = platformIds.filter((id) => !(id in credentialCounts.value))
+    if (missing.length > 0) {
+      await Promise.all(
+        missing.map(async (id) => {
+          try {
+            const creds = await fetchCredentials(id)
+            credentialCounts.value[id] = {
+              total: creds.length,
+              active: creds.filter((c) => c.status === 'active').length,
+              pending: creds.filter((c) => c.status === 'pending').length,
+            }
+          } catch {
+            credentialCounts.value[id] = { active: 0, pending: 0, total: 0 }
+          }
+        }),
+      )
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual.failed_load_platforms'))
   } finally {

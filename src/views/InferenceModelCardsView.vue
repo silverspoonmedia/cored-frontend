@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -10,6 +10,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useInferenceModelCards } from '@/composables/useInferenceModelCards'
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useInferenceRealtime } from '@/composables/useInferenceRealtime'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import type { AiModelCard } from '@/api/types'
@@ -33,6 +34,9 @@ const columns: DataTableColumn[] = [
 ]
 
 useListingLiveUpdate('inference-model-cards-table', () => fetchList())
+
+const { subscribe, unsubscribe } = useInferenceRealtime()
+const realtimeHandlers = { onCatalogChanged: () => fetchList() }
 
 function showCard(row: AiModelCard): void {
   router.push({ name: 'inference.model-cards.show.view', params: { id: row.id } })
@@ -73,6 +77,14 @@ async function handleDelete(): Promise<void> {
     showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
   }
 }
+
+onMounted(() => {
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 </script>
 
 <template>

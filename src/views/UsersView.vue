@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -9,6 +9,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import { useUsers } from '@/composables/useUsers'
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useAdminRealtime } from '@/composables/useAdminRealtime'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import type { UserManagement } from '@/api/types'
@@ -35,6 +36,9 @@ const columns: DataTableColumn[] = [
 
 useListingLiveUpdate('users-table', () => fetchList())
 
+const { subscribe: subscribeAdmin, unsubscribe: unsubscribeAdmin } = useAdminRealtime()
+const adminHandlers = { onRbacChanged: () => fetchList() }
+
 function editUser(row: UserManagement): void {
   router.push({ name: 'users.edit.view', params: { id: row.id } })
 }
@@ -57,6 +61,14 @@ function userActions(row: UserManagement): RowAction[] {
   }
   return actions
 }
+
+onMounted(() => {
+  subscribeAdmin(adminHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeAdmin(adminHandlers)
+})
 
 async function handleDelete(): Promise<void> {
   if (!deleteTarget.value) return

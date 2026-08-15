@@ -6,11 +6,13 @@ import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import { useInferenceUsage } from '@/composables/useInferenceUsage'
 import { useInferenceModelCards } from '@/composables/useInferenceModelCards'
+import { useInferenceHydrate } from '@/composables/useInferenceHydrate'
 import { useAlert } from '@/composables/useAlert'
 import type { InferenceUsageOverview, InferenceUsageEvent } from '@/api/types'
 
 const { fetchOverview, fetchUsageEvents } = useInferenceUsage()
 const { items: modelCards, fetchList: fetchModelCards } = useInferenceModelCards()
+const { hydrateUsageEvents } = useInferenceHydrate()
 const { error: showError } = useAlert()
 const { t } = useI18n()
 
@@ -89,8 +91,18 @@ async function applyFilters(): Promise<void> {
 }
 
 onMounted(async () => {
-  await fetchModelCards()
-  await applyFilters()
+  const batchResult = await hydrateUsageEvents(buildParams()).catch(() => null)
+  if (batchResult) {
+    if (batchResult.overview) overview.value = batchResult.overview
+    if (batchResult.events) {
+      events.value = batchResult.events.items
+      hasMore.value = batchResult.events.pagination.has_more
+    }
+    if (batchResult.modelCards) modelCards.value = batchResult.modelCards
+  }
+  if (!overview.value) await loadOverview()
+  if (events.value.length === 0) await loadEvents(true)
+  if (modelCards.value.length === 0) await fetchModelCards()
 })
 </script>
 

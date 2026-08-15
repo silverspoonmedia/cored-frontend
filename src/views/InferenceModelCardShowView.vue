@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useInferenceUsage } from '@/composables/useInferenceUsage'
+import { useInferenceHydrate } from '@/composables/useInferenceHydrate'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { AiModelCardDetail, InferenceUsageEvent } from '@/api/types'
@@ -13,6 +14,7 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const { fetchModelCardDetail, fetchUsageEvents } = useInferenceUsage()
+const { hydrateModelCardShow } = useInferenceHydrate()
 const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
 
@@ -49,8 +51,16 @@ async function loadEvents(): Promise<void> {
 }
 
 onMounted(async () => {
-  await loadCard()
-  await loadEvents()
+  const id = route.params.id as string
+  const batchResult = await hydrateModelCardShow(id).catch(() => null)
+  if (batchResult?.card) {
+    card.value = batchResult.card
+    if (batchResult.events) {
+      events.value = batchResult.events.items
+    }
+  }
+  if (!card.value) await loadCard()
+  if (events.value.length === 0) await loadEvents()
 })
 </script>
 

@@ -17,7 +17,7 @@ const route = useRoute()
 const { t } = useI18n()
 const { init: initSidebar, closeMobile, syncOverlayScrollbarTheme, destroyOverlayScrollbars } = useSidebar()
 const { openActiveAncestors } = useTreeview()
-const { tree, load } = useNavigation()
+const { tree, load, startRealtime: startNavRealtime, stopRealtime: stopNavRealtime } = useNavigation()
 const { hydrateShell } = useShellHydrate()
 const { breadcrumbs } = useBreadcrumbs()
 const { pageTitle } = usePageTitle()
@@ -34,10 +34,12 @@ onMounted(() => {
   // individual loaders below (and in AppNavbar) stay as no-op fallbacks for
   // whatever the batch did not seed.
   hydrateShell().then(() => load()).then(() => syncActiveAncestors(route.name as string | null))
+  startNavRealtime()
 })
 
 onUnmounted(() => {
   destroyOverlayScrollbars()
+  stopNavRealtime()
 })
 
 watch(

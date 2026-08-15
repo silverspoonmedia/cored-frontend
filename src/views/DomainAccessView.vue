@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useDomainAccess } from '@/composables/useDomainAccess'
+import { useAdminRealtime } from '@/composables/useAdminRealtime'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
-import { computed } from 'vue'
 import type { DomainAccess } from '@/api/types'
 
 const { items, loading, updatingKey, fetchList, toggleVisibility } = useDomainAccess()
@@ -25,7 +25,21 @@ async function handleToggle(d: DomainAccess, checked: boolean): Promise<void> {
   }
 }
 
-onMounted(fetchList)
+const { subscribe, unsubscribe } = useAdminRealtime()
+const realtimeHandlers = {
+  onDomainVisibilityChanged: () => {
+    void fetchList()
+  },
+}
+
+onMounted(() => {
+  fetchList()
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 </script>
 
 <template>

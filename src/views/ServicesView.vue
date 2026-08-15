@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -11,6 +11,8 @@ import { useServices } from '@/composables/useServices'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
+import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useServicesRealtime } from '@/composables/useServicesRealtime'
 import type { Service } from '@/api/types'
 import { SERVICE_STATUS_BADGE } from '@/utils/statusBadge'
 
@@ -23,6 +25,11 @@ const canManage = computed(() => hasPermission('manage service'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 const deleteTarget = ref<Service | null>(null)
 const showDeleteModal = ref(false)
+
+useListingLiveUpdate('services', fetchList)
+
+const { subscribeCatalog, unsubscribeCatalog } = useServicesRealtime()
+const catalogHandlers = { onCatalogChanged: () => fetchList() }
 
 const columns: DataTableColumn[] = [
   { key: 'code', label: t('web.services.columns.code'), sortable: true },
@@ -71,6 +78,14 @@ async function handleDelete(): Promise<void> {
     showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
   }
 }
+
+onMounted(() => {
+  subscribeCatalog(catalogHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeCatalog(catalogHandlers)
+})
 </script>
 
 <template>

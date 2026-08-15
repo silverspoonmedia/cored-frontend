@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -7,6 +7,8 @@ import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import { usePaymentsIncome } from '@/composables/usePaymentsIncome'
 import { useInvoices } from '@/composables/useInvoices'
+import { usePaymentsHydrate } from '@/composables/usePaymentsHydrate'
+import { usePaymentRealtime } from '@/composables/usePaymentRealtime'
 import { useAlert } from '@/composables/useAlert'
 import type { PaymentIncomeOverview, Invoice } from '@/api/types'
 import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
@@ -14,6 +16,7 @@ import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
 const { t } = useI18n()
 const { fetchOverview, fetchInvoices } = usePaymentsIncome()
 const { exportCsv } = useInvoices()
+const { hydrateIncome } = usePaymentsHydrate()
 const { error: showError } = useAlert()
 const exporting = ref(false)
 
@@ -104,8 +107,17 @@ async function loadInvoices(reset = true): Promise<void> {
 }
 
 async function applyFilters(): Promise<void> {
-  await loadOverview()
-  await loadInvoices(true)
+  const batchResult = await hydrateIncome(buildParams()).catch(() => null)
+  if (batchResult?.overview) {
+    overview.value = batchResult.overview
+    if (batchResult.invoices) {
+      invoices.value = batchResult.invoices.items
+      hasMorePages.value = batchResult.invoices.pagination.current_page < batchResult.invoices.pagination.last_page
+    }
+  } else {
+    await loadOverview()
+    await loadInvoices(true)
+  }
 }
 
 async function handleExport(): Promise<void> {
@@ -123,7 +135,16 @@ async function handleExport(): Promise<void> {
   }
 }
 
-onMounted(applyFilters)
+const { subscribeAdminList, unsubscribeAdminList } = usePaymentRealtime()
+
+onMounted(() => {
+  void applyFilters()
+  subscribeAdminList(() => { void applyFilters() })
+})
+
+onUnmounted(() => {
+  unsubscribeAdminList()
+})
 
 </script>
 

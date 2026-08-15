@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,6 +7,7 @@ import SubmitButton from '@/components/SubmitButton.vue'
 import { useSettings } from '@/composables/useSettings'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
+import { useSettingsRealtime } from '@/composables/useSettingsRealtime'
 import type { SettingEntry } from '@/api/types'
 import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
 
@@ -163,7 +164,23 @@ async function handleSubmit(): Promise<void> {
 
 watch(group, loadGroup)
 
-onMounted(loadGroup)
+const { subscribe, unsubscribe } = useSettingsRealtime()
+const realtimeHandlers = {
+  onGroupChanged: (payload: { group: string; action: string }) => {
+    if (payload.group === group.value && payload.action === 'updated') {
+      void fetchGroup(group.value).then(syncForm)
+    }
+  },
+}
+
+onMounted(() => {
+  loadGroup()
+  subscribe(group.value, realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 </script>
 
 <template>

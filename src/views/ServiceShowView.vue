@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useServices } from '@/composables/useServices'
+import { useServicesHydrate } from '@/composables/useServicesHydrate'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { Service } from '@/api/types'
@@ -12,6 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const { fetchOne, checkout, fetchOptions } = useServices()
+const { hydrateServiceShow } = useServicesHydrate()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -30,7 +32,23 @@ const maxPurchaseQuantity = ref(99)
 onMounted(async () => {
   loading.value = true
   try {
-    service.value = await fetchOne(route.params.id as string)
+    const batchResult = await hydrateServiceShow(route.params.id as string).catch(() => null)
+    if (batchResult?.service) {
+      service.value = batchResult.service
+      if (batchResult.options && batchResult.options.purchase_max_quantity >= 1) {
+        maxPurchaseQuantity.value = batchResult.options.purchase_max_quantity
+      }
+    } else {
+      service.value = await fetchOne(route.params.id as string)
+      try {
+        const opts = await fetchOptions()
+        if (opts.purchase_max_quantity >= 1) {
+          maxPurchaseQuantity.value = opts.purchase_max_quantity
+        }
+      } catch {
+        // last-resort 99
+      }
+    }
     const firstPrice = service.value?.prices?.[0]
     if (firstPrice) {
       checkoutCurrency.value = firstPrice.currency
@@ -39,14 +57,6 @@ onMounted(async () => {
     showError(e instanceof Error ? e.message : t('web.services.load_failed'))
   } finally {
     loading.value = false
-  }
-  try {
-    const opts = await fetchOptions()
-    if (opts.purchase_max_quantity >= 1) {
-      maxPurchaseQuantity.value = opts.purchase_max_quantity
-    }
-  } catch {
-    // last-resort 99 — SPA cannot read system_settings
   }
 })
 

@@ -10,6 +10,7 @@ import FormTranslatableInput from '@/components/FormTranslatableInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useMenus } from '@/composables/useMenus'
 import { useLookups } from '@/composables/useLookups'
+import { useNavigationHydrate } from '@/composables/useNavigationHydrate'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 import type { SelectOption } from '@/components/FormSelect2.vue'
@@ -19,6 +20,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { fetchOne, createMenu, updateMenu } = useMenus()
 const { fetchMenus, fetchRoles, fetchUsers } = useLookups()
+const { hydrateMenuEdit } = useNavigationHydrate()
 const { success: showSuccess, error: showError } = useAlert()
 
 const isEdit = computed(() => !!route.params.id)
@@ -95,7 +97,9 @@ async function load(): Promise<void> {
   loading.value = true
   try {
     if (isEdit.value && menuId.value) {
-      const menu = await fetchOne(menuId.value)
+      const batchResult = await hydrateMenuEdit(menuId.value).catch(() => null)
+
+      const menu = batchResult?.menu ?? await fetchOne(menuId.value)
       form.name = { ...(menu.name_translations ?? {}) }
       form.description = { ...(menu.description_translations ?? {}) }
       form.type = menu.type
@@ -110,19 +114,26 @@ async function load(): Promise<void> {
       form.user_excludes = [...(menu.user_exclude_ids ?? [])]
       menuName.value = menu.name
 
-      const [parent, roles, includes, excludes] = await Promise.all([
-        menu.parent_id
-          ? fetchMenus([menu.parent_id], form.layout, menuId.value)
-          : Promise.resolve([]),
-        fetchRoles(form.roles),
-        fetchUsers(form.user_includes),
-        fetchUsers(form.user_excludes),
-      ])
+      if (batchResult) {
+        selectedParent.value = batchResult.parentOptions.map((r) => ({ value: r.id, label: r.text }))
+        selectedRoles.value = batchResult.roleOptions.map((r) => ({ value: r.id, label: r.text }))
+        selectedUserIncludes.value = batchResult.userIncludeOptions.map((r) => ({ value: r.id, label: r.text }))
+        selectedUserExcludes.value = batchResult.userExcludeOptions.map((r) => ({ value: r.id, label: r.text }))
+      } else {
+        const [parent, roles, includes, excludes] = await Promise.all([
+          menu.parent_id
+            ? fetchMenus([menu.parent_id], form.layout, menuId.value)
+            : Promise.resolve([]),
+          fetchRoles(form.roles),
+          fetchUsers(form.user_includes),
+          fetchUsers(form.user_excludes),
+        ])
 
-      selectedParent.value = parent.map((r) => ({ value: r.id, label: r.text }))
-      selectedRoles.value = roles.map((r) => ({ value: r.id, label: r.text }))
-      selectedUserIncludes.value = includes.map((r) => ({ value: r.id, label: r.text }))
-      selectedUserExcludes.value = excludes.map((r) => ({ value: r.id, label: r.text }))
+        selectedParent.value = parent.map((r) => ({ value: r.id, label: r.text }))
+        selectedRoles.value = roles.map((r) => ({ value: r.id, label: r.text }))
+        selectedUserIncludes.value = includes.map((r) => ({ value: r.id, label: r.text }))
+        selectedUserExcludes.value = excludes.map((r) => ({ value: r.id, label: r.text }))
+      }
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.menus.load_failed'))

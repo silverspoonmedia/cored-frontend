@@ -11,6 +11,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useConnections } from '@/composables/useConnections'
+import { useVtualHydrate } from '@/composables/useVtualHydrate'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type {
@@ -82,30 +83,47 @@ const linkKindOptions = computed(() => [
   { value: 'other', label: t('web.vtual.profiles.link_kinds.other') },
 ])
 
+const { hydrateProfileShow } = useVtualHydrate()
+
 async function loadAll(): Promise<void> {
   loading.value = true
   const id = route.params.id as string
   try {
-    const [c, ch, arch, claims, lks, plats, discord] = await Promise.all([
-      vtual.fetchCreator(id),
-      vtual.fetchChannels(id),
-      vtual.fetchArchivedChannels(id),
-      vtual.fetchChannelClaims(id),
-      vtual.fetchLinks(id),
-      vtual.fetchPlatforms(),
-      connections.fetchConnections().catch(() => null),
-    ])
-    creator.value = c
-    channels.value = ch
-    archivedChannels.value = arch
-    channelClaims.value = claims
-    links.value = lks
-    platforms.value = plats
-    discordSnapshot.value = discord
-    metaForm.display_name = c.display_name
-    metaForm.slug = c.slug
-    metaForm.bio = c.bio ?? ''
-    metaForm.avatar_url = c.avatar_url ?? ''
+    const batchResult = await hydrateProfileShow(id).catch(() => null)
+
+    if (batchResult && batchResult.creator) {
+      creator.value = batchResult.creator
+      channels.value = batchResult.channels ?? await vtual.fetchChannels(id)
+      archivedChannels.value = batchResult.archivedChannels ?? await vtual.fetchArchivedChannels(id)
+      channelClaims.value = batchResult.channelClaims ?? await vtual.fetchChannelClaims(id)
+      links.value = batchResult.links ?? await vtual.fetchLinks(id)
+      platforms.value = batchResult.platforms ?? await vtual.fetchPlatforms()
+      discordSnapshot.value = batchResult.connections
+    } else {
+      const [c, ch, arch, claims, lks, plats, discord] = await Promise.all([
+        vtual.fetchCreator(id),
+        vtual.fetchChannels(id),
+        vtual.fetchArchivedChannels(id),
+        vtual.fetchChannelClaims(id),
+        vtual.fetchLinks(id),
+        vtual.fetchPlatforms(),
+        connections.fetchConnections().catch(() => null),
+      ])
+      creator.value = c
+      channels.value = ch
+      archivedChannels.value = arch
+      channelClaims.value = claims
+      links.value = lks
+      platforms.value = plats
+      discordSnapshot.value = discord
+    }
+
+    if (creator.value) {
+      metaForm.display_name = creator.value.display_name
+      metaForm.slug = creator.value.slug
+      metaForm.bio = creator.value.bio ?? ''
+      metaForm.avatar_url = creator.value.avatar_url ?? ''
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.load_failed'))
   } finally {

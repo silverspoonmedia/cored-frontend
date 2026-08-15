@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useMicrostockBilling } from '@/composables/useMicrostockBilling'
+import { useMicrostockHydrate } from '@/composables/useMicrostockHydrate'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
@@ -18,6 +19,7 @@ import type {
 const { t } = useI18n()
 const { fetchBilling, fetchLedger, fetchUsageEvents, fetchAdminOverview, fetchAdminUsageEvents } =
   useMicrostockBilling()
+const { hydrateUsage, hydratePlatform } = useMicrostockHydrate()
 const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
@@ -50,7 +52,16 @@ const platformEventsPage = ref(1)
 async function loadBilling(): Promise<void> {
   loading.value = true
   try {
-    billing.value = await fetchBilling()
+    const batchResult = await hydrateUsage({ per_page: 20 }).catch(() => null)
+    if (batchResult?.billing) {
+      billing.value = batchResult.billing
+      if (batchResult.ledger) {
+        ledger.value = batchResult.ledger.items
+        ledgerHasMore.value = batchResult.ledger.pagination.has_more
+      }
+    } else {
+      billing.value = await fetchBilling()
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_billing'))
   } finally {
@@ -109,7 +120,16 @@ async function loadUsage(reset = true): Promise<void> {
 async function loadPlatform(): Promise<void> {
   platformLoading.value = true
   try {
-    platformOverview.value = await fetchAdminOverview()
+    const batchResult = await hydratePlatform({ per_page: 20 }).catch(() => null)
+    if (batchResult?.overview) {
+      platformOverview.value = batchResult.overview
+      if (batchResult.usageEvents) {
+        platformEvents.value = batchResult.usageEvents.items
+        platformEventsHasMore.value = batchResult.usageEvents.pagination.has_more
+      }
+    } else {
+      platformOverview.value = await fetchAdminOverview()
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform'))
   } finally {
@@ -150,6 +170,10 @@ const msHandlers = {
     loadBilling()
     loadLedger(true)
   },
+  onMicrostockBillingChanged: () => {
+    loadBilling()
+    loadLedger(true)
+  },
 }
 
 let msPollTimer: ReturnType<typeof setInterval> | null = null
@@ -177,7 +201,9 @@ function stopMsPolling(): void {
 
 onMounted(async () => {
   await loadBilling()
-  await loadLedger(true)
+  if (ledger.value.length === 0 && !ledgerHasMore.value) {
+    await loadLedger(true)
+  }
   subscribe(msHandlers)
   if (!echoConnected.value) {
     startMsPolling()
@@ -195,7 +221,9 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
     await loadUsage(true)
   } else if (tab === 'platform' && canViewPlatform.value && !platformOverview.value) {
     await loadPlatform()
-    await loadPlatformEvents(true)
+    if (platformEvents.value.length === 0 && !platformEventsHasMore.value) {
+      await loadPlatformEvents(true)
+    }
   }
 }
 </script>

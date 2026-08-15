@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useConnections } from '@/composables/useConnections'
+import { useVtualHydrate } from '@/composables/useVtualHydrate'
 import { useAlert } from '@/composables/useAlert'
 import { getEcho } from '@/composables/useEcho'
 import type { VtualVtuberProfile, VtualCreatorClaim } from '@/api/types'
@@ -16,6 +17,7 @@ const router = useRouter()
 const { t } = useI18n()
 const vtual = useVtual()
 const connections = useConnections()
+const { hydrateVtuberClaim } = useVtualHydrate()
 const { success: showSuccess, error: showError } = useAlert()
 
 const profile = ref<VtualVtuberProfile | null>(null)
@@ -51,15 +53,26 @@ onMounted(async () => {
   loading.value = true
   try {
     const slug = route.params.slug as string
-    profile.value = await vtual.fetchVtuberProfile(slug)
+    const batchResult = await hydrateVtuberClaim(slug).catch(() => null)
 
-    // Check for existing active claim
-    const myClaims = await vtual.fetchMyClaims()
-    const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
-    if (existing) {
-      activeClaim.value = existing
-      subscribeClaimRealtime(existing.id)
-      startPolling()
+    if (batchResult?.profile) {
+      profile.value = batchResult.profile
+      const myClaims = batchResult.myClaims ?? await vtual.fetchMyClaims()
+      const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
+      if (existing) {
+        activeClaim.value = existing
+        subscribeClaimRealtime(existing.id)
+        startPolling()
+      }
+    } else {
+      profile.value = await vtual.fetchVtuberProfile(slug)
+      const myClaims = await vtual.fetchMyClaims()
+      const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
+      if (existing) {
+        activeClaim.value = existing
+        subscribeClaimRealtime(existing.id)
+        startPolling()
+      }
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.load_failed'))

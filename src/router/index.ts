@@ -1081,8 +1081,8 @@ let hydrated = false
 
 router.beforeEach(async (to) => {
   if (!hydrated) {
-    const { hydrate } = useAuth()
-    await hydrate()
+    const { hydrateShell } = useAuth()
+    await hydrateShell()
     hydrated = true
   }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -11,6 +11,8 @@ import { useInferenceProviders } from '@/composables/useInferenceProviders'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
+import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useInferenceRealtime } from '@/composables/useInferenceRealtime'
 import type { InferenceProvider } from '@/api/types'
 
 const router = useRouter()
@@ -22,6 +24,11 @@ const canManage = computed(() => hasPermission('manage inference catalog'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 const deleteTarget = ref<InferenceProvider | null>(null)
 const showDeleteModal = ref(false)
+
+useListingLiveUpdate('inference-providers', fetchList)
+
+const { subscribe, unsubscribe } = useInferenceRealtime()
+const realtimeHandlers = { onCatalogChanged: () => fetchList() }
 
 const columns: DataTableColumn[] = [
   { key: 'slug', label: t('web.inference.providers.datatable.columns.slug'), sortable: true },
@@ -70,6 +77,14 @@ async function handleDelete(): Promise<void> {
     showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
   }
 }
+
+onMounted(() => {
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 </script>
 
 <template>

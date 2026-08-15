@@ -8,6 +8,7 @@ import FormSelect2 from '@/components/FormSelect2.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useUsers } from '@/composables/useUsers'
 import { useActivityLogs } from '@/composables/useActivityLogs'
+import { useUsersHydrate } from '@/composables/useUsersHydrate'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError, type ApiResponse, type UserManagement, type ActivityLog } from '@/api/types'
 
@@ -16,6 +17,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { fetchOne, fetchAssignableRoles, assignableRoles, createUser, updateUser } = useUsers()
 const { forUser } = useActivityLogs()
+const { hydrateUserEdit } = useUsersHydrate()
 const { success: showSuccess, error: showError } = useAlert()
 
 const isEdit = computed(() => !!route.params.id)
@@ -55,17 +57,40 @@ function fieldError(field: string): string | null {
 async function load(): Promise<void> {
   loading.value = true
   try {
-    await fetchAssignableRoles()
     if (isEdit.value && userId.value) {
-      user.value = await fetchOne(userId.value)
-      form.name = user.value.name
-      form.email = user.value.email
-      form.role = user.value.roles[0]?.name ?? ''
-      try {
-        activityLogs.value = await forUser(userId.value)
-      } catch {
-        // non-critical
+      const batchResult = await hydrateUserEdit(userId.value).catch(() => null)
+      if (batchResult) {
+        if (batchResult.user) {
+          user.value = batchResult.user
+          form.name = batchResult.user.name
+          form.email = batchResult.user.email
+          form.role = batchResult.user.roles[0]?.name ?? ''
+        }
+        if (batchResult.assignableRoles) {
+          assignableRoles.value = batchResult.assignableRoles
+        }
+        if (batchResult.activityLogs) {
+          activityLogs.value = batchResult.activityLogs
+        }
       }
+      if (!user.value) {
+        user.value = await fetchOne(userId.value)
+        form.name = user.value.name
+        form.email = user.value.email
+        form.role = user.value.roles[0]?.name ?? ''
+      }
+      if (assignableRoles.value.length === 0) {
+        await fetchAssignableRoles()
+      }
+      if (activityLogs.value.length === 0) {
+        try {
+          activityLogs.value = await forUser(userId.value)
+        } catch {
+          // non-critical
+        }
+      }
+    } else {
+      await fetchAssignableRoles()
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.users.load_failed'))

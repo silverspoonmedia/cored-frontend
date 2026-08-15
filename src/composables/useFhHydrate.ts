@@ -1,9 +1,11 @@
 import { batch } from '@/api/client'
+import { bodyOf } from '@/api/batch'
 import type {
-  ApiResponse,
   FhBrowsePayload,
   FhQuota,
   FhWorkspace,
+  FhWorkspaceMember,
+  FhWorkspaceActivity,
   MicrostockSlotStatus,
 } from '@/api/types'
 
@@ -19,14 +21,6 @@ export interface FhHydrateResult {
   quota: FhQuota | null
   workspaces: FhWorkspace[] | null
   slots: MicrostockSlotStatus | null
-}
-
-/** Unwrap a batch entry into its envelope only on a 200 success. */
-function bodyOf<T>(entry: { status: number; body: unknown } | undefined): ApiResponse<T> | null {
-  if (!entry || entry.status !== 200) return null
-  const body = entry.body as ApiResponse<T> | null
-  if (!body || body.status !== 'success') return null
-  return body
 }
 
 /**
@@ -69,6 +63,47 @@ export async function hydrateFileHosting(params: FhHydrateParams = {}): Promise<
   }
 }
 
+export interface FhWorkspaceDetailResult {
+  workspaces: FhWorkspace[] | null
+  members: FhWorkspaceMember[] | null
+  activity: FhWorkspaceActivity[] | null
+}
+
+/**
+ * Fan the workspace list + first-workspace detail into one invocation.
+ * Members/activity are null when the batch missed or there is no workspace.
+ */
+export async function hydrateWorkspaceDetail(workspaceId: string | null): Promise<FhWorkspaceDetailResult> {
+  const requests: Array<{ path: string; query?: Record<string, string> }> = [
+    { path: 'file-hosting/workspaces' },
+  ]
+  if (workspaceId) {
+    requests.push({ path: `file-hosting/workspaces/${workspaceId}/members` })
+    requests.push({ path: `file-hosting/workspaces/${workspaceId}/activity`, query: { limit: '50' } })
+  }
+
+  const empty: FhWorkspaceDetailResult = { workspaces: null, members: null, activity: null }
+
+  let entries
+  try {
+    entries = await batch<unknown>(requests)
+  } catch {
+    return empty
+  }
+
+  const [workspacesRes, membersRes, activityRes] = entries
+
+  const workspacesBody = bodyOf<FhWorkspace[]>(workspacesRes)
+  const membersBody = workspaceId ? bodyOf<FhWorkspaceMember[]>(membersRes) : null
+  const activityBody = workspaceId ? bodyOf<FhWorkspaceActivity[]>(activityRes) : null
+
+  return {
+    workspaces: Array.isArray(workspacesBody?.data) ? workspacesBody.data : null,
+    members: membersBody && Array.isArray(membersBody.data) ? membersBody.data : null,
+    activity: activityBody && Array.isArray(activityBody.data) ? activityBody.data : null,
+  }
+}
+
 export function useFhHydrate() {
-  return { hydrateFileHosting }
+  return { hydrateFileHosting, hydrateWorkspaceDetail }
 }

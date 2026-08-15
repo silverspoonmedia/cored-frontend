@@ -9,6 +9,7 @@ import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
+import { useVtualHydrate } from '@/composables/useVtualHydrate'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 import type { VtualChannel, VtualPlatform } from '@/api/types'
@@ -44,6 +45,8 @@ function fieldError(field: string): string | null {
   return null
 }
 
+const { hydrateOrphanEdit } = useVtualHydrate()
+
 async function load(): Promise<void> {
   if (!isEdit.value) {
     loading.value = false
@@ -51,17 +54,29 @@ async function load(): Promise<void> {
   }
   loading.value = true
   try {
-    const [creator, chs, plats] = await Promise.all([
-      vtual.fetchOrphan(route.params.id as string),
-      vtual.fetchChannels(route.params.id as string),
-      vtual.fetchPlatforms(),
-    ])
-    form.display_name = creator.display_name
-    form.slug = creator.slug
-    form.bio = creator.bio ?? ''
-    form.avatar_url = creator.avatar_url ?? ''
-    channels.value = chs
-    platforms.value = plats
+    const id = route.params.id as string
+    const batchResult = await hydrateOrphanEdit(id).catch(() => null)
+
+    if (batchResult?.orphan) {
+      form.display_name = batchResult.orphan.display_name
+      form.slug = batchResult.orphan.slug
+      form.bio = batchResult.orphan.bio ?? ''
+      form.avatar_url = batchResult.orphan.avatar_url ?? ''
+      channels.value = batchResult.channels ?? await vtual.fetchChannels(id)
+      platforms.value = batchResult.platforms ?? await vtual.fetchPlatforms()
+    } else {
+      const [creator, chs, plats] = await Promise.all([
+        vtual.fetchOrphan(id),
+        vtual.fetchChannels(id),
+        vtual.fetchPlatforms(),
+      ])
+      form.display_name = creator.display_name
+      form.slug = creator.slug
+      form.bio = creator.bio ?? ''
+      form.avatar_url = creator.avatar_url ?? ''
+      channels.value = chs
+      platforms.value = plats
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.load_failed'))
   } finally {

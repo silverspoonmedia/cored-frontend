@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -8,6 +8,8 @@ import PaymentStatusHero from '@/components/PaymentStatusHero.vue'
 import PaymentSteps from '@/components/PaymentSteps.vue'
 import { useServicePurchases } from '@/composables/useServicePurchases'
 import { useServices } from '@/composables/useServices'
+import { useServicesHydrate } from '@/composables/useServicesHydrate'
+import { useServicesRealtime } from '@/composables/useServicesRealtime'
 import { useAlert } from '@/composables/useAlert'
 import type { ServicePurchase, InvoiceStatusPayload } from '@/api/types'
 
@@ -16,6 +18,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { fetchOne, updateQuantity } = useServicePurchases()
 const { fetchOptions } = useServices()
+const { hydratePurchaseShow } = useServicesHydrate()
 const { success: showSuccess, error: showError } = useAlert()
 
 const purchase = ref<ServicePurchase | null>(null)
@@ -84,24 +87,47 @@ const projectedStackQuantity = computed(() => {
 const entitlementStatus = computed(() => purchase.value?.entitlement?.status ?? null)
 const showGraceBanner = computed(() => entitlementStatus.value === 'grace')
 
+const { subscribePurchase, unsubscribePurchase } = useServicesRealtime()
+const purchaseId = route.params.id as string
+const purchaseHandlers = {
+  onPurchaseChanged: (payload: { purchase_id: string; action: string }) => {
+    if (payload.action === 'paid' && purchase.value) {
+      void fetchOne(purchaseId).then((p) => { purchase.value = p })
+    }
+  },
+}
+
 onMounted(async () => {
   loading.value = true
   try {
-    purchase.value = await fetchOne(route.params.id as string)
+    const batchResult = await hydratePurchaseShow(purchaseId).catch(() => null)
+    if (batchResult?.purchase) {
+      purchase.value = batchResult.purchase
+      if (batchResult.options && batchResult.options.purchase_max_quantity >= 1) {
+        maxPurchaseQuantity.value = batchResult.options.purchase_max_quantity
+      }
+    } else {
+      purchase.value = await fetchOne(purchaseId)
+      try {
+        const opts = await fetchOptions()
+        if (opts.purchase_max_quantity >= 1) {
+          maxPurchaseQuantity.value = opts.purchase_max_quantity
+        }
+      } catch {
+        // last-resort 99
+      }
+    }
     quantity.value = purchase.value.quantity
+    subscribePurchase(purchaseId, purchaseHandlers)
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.services.purchases.load_failed'))
   } finally {
     loading.value = false
   }
-  try {
-    const opts = await fetchOptions()
-    if (opts.purchase_max_quantity >= 1) {
-      maxPurchaseQuantity.value = opts.purchase_max_quantity
-    }
-  } catch {
-    // last-resort 99 — SPA cannot read system_settings; options requires view service
-  }
+})
+
+onUnmounted(() => {
+  unsubscribePurchase(purchaseHandlers)
 })
 
 async function handleUpdateQty(): Promise<void> {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useProductActivations } from '@/composables/useProductActivations'
+import { useAdminRealtime } from '@/composables/useAdminRealtime'
 import { useAlert } from '@/composables/useAlert'
 import type { ProductActivationSummary } from '@/api/types'
 
@@ -15,6 +16,13 @@ const { t } = useI18n()
 const products = ref<ProductActivationSummary[]>([])
 const loading = ref(true)
 
+const { subscribe, unsubscribe } = useAdminRealtime()
+const realtimeHandlers = {
+  onProductActivationChanged: () => {
+    void fetchProducts().then((p) => { products.value = p }).catch(() => {})
+  },
+}
+
 onMounted(async () => {
   loading.value = true
   try {
@@ -24,6 +32,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
 })
 
 function formatBytes(bytes: unknown): string {

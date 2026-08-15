@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useNotificationAudiences } from '@/composables/useNotificationAudiences'
+import { useNotificationsHydrate } from '@/composables/useNotificationsHydrate'
 import { useAlert } from '@/composables/useAlert'
 import { put } from '@/api/client'
 import type { ApiResponse, NotificationAudience } from '@/api/types'
@@ -13,6 +14,7 @@ import type { ApiResponse, NotificationAudience } from '@/api/types'
 const route = useRoute()
 const router = useRouter()
 const { assignableRoles, loading, load, fetchOne } = useNotificationAudiences()
+const { hydrateAudienceEdit } = useNotificationsHydrate()
 const { success: showSuccess, error: showError } = useAlert()
 const { t } = useI18n()
 
@@ -40,11 +42,32 @@ async function loadAudience(): Promise<void> {
 }
 
 onMounted(async () => {
-  await Promise.all([load(), loadAudience()])
+  const batchResult = await hydrateAudienceEdit(audienceType.value).catch(() => null)
+  if (batchResult) {
+    if (batchResult.audience) {
+      audience.value = batchResult.audience
+      selectedRoles.value = [...batchResult.audience.roles]
+      notifySubjectUser.value = batchResult.audience.notify_subject_user
+    }
+    if (batchResult.assignableRoles) {
+      assignableRoles.value = batchResult.assignableRoles
+    }
+  }
+  if (!audience.value) await loadAudience()
+  if (assignableRoles.value.length === 0) await load()
+  fetching.value = false
 })
 
-watch(audienceType, () => {
-  if (audienceType.value) loadAudience()
+watch(audienceType, async () => {
+  if (!audienceType.value) return
+  const batchResult = await hydrateAudienceEdit(audienceType.value).catch(() => null)
+  if (batchResult?.audience) {
+    audience.value = batchResult.audience
+    selectedRoles.value = [...batchResult.audience.roles]
+    notifySubjectUser.value = batchResult.audience.notify_subject_user
+  } else {
+    await loadAudience()
+  }
 })
 
 function toggleRole(roleName: string, checked: boolean): void {

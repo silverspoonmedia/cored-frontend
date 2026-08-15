@@ -6,6 +6,7 @@ import Modal from '@/components/Modal.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
+import { useFhHydrate } from '@/composables/useFhHydrate'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
@@ -26,6 +27,7 @@ const {
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe: subscribeFh, unsubscribe: unsubscribeFh } = useFileHostingRealtime()
+const { hydrateWorkspaceDetail } = useFhHydrate()
 const { connected: echoConnected } = useEcho()
 const { t } = useI18n()
 
@@ -112,7 +114,12 @@ onUnmounted(() => {
 async function loadWorkspaces(): Promise<void> {
   loading.value = true
   try {
-    workspaces.value = await fetchWorkspaces()
+    const batchResult = await hydrateWorkspaceDetail(null).catch(() => null)
+    if (batchResult?.workspaces) {
+      workspaces.value = batchResult.workspaces
+    } else {
+      workspaces.value = await fetchWorkspaces()
+    }
     if (workspaces.value.length && !selected.value) {
       const first = workspaces.value[0]
       if (first) await selectWorkspace(first)
@@ -128,12 +135,18 @@ async function selectWorkspace(ws: FhWorkspace): Promise<void> {
   selected.value = ws
   detailLoading.value = true
   try {
-    const [m, a] = await Promise.all([
-      fetchMembers(ws.id),
-      fetchActivity(ws.id, 50),
-    ])
-    members.value = m
-    activity.value = a
+    const batchResult = await hydrateWorkspaceDetail(ws.id).catch(() => null)
+    if (batchResult && batchResult.members !== null && batchResult.activity !== null) {
+      members.value = batchResult.members
+      activity.value = batchResult.activity
+    } else {
+      const [m, a] = await Promise.all([
+        fetchMembers(ws.id),
+        fetchActivity(ws.id, 50),
+      ])
+      members.value = m
+      activity.value = a
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.file-hosting.failed_load_workspace_detail'))
     members.value = []

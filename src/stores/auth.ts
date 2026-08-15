@@ -225,6 +225,7 @@ export function useAuth() {
     logout,
     fetchMe,
     hydrate,
+    hydrateShell,
     hasPermission,
     resendVerification,
     switchLocale,
@@ -372,6 +373,19 @@ async function hydrate(): Promise<void> {
   } catch {
     user.value = null
   }
+}
+
+/**
+ * Cold-boot hydrate via the shell batch — one Worker invocation covers
+ * auth/me + nav trees + notification bell. Falls back to the legacy
+ * single-fetch hydrate when the batch itself fails.
+ */
+async function hydrateShell(): Promise<void> {
+  if (hydrated) return
+  const { hydrateShell: shellHydrate } = await import('@/composables/useShellHydrate')
+  await shellHydrate()
+  hydrated = true
+  clearLeftoverTokenStorage()
 }
 
 function hasPermission(permission: string): boolean {

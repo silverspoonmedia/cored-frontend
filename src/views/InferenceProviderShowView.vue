@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useInferenceProviders } from '@/composables/useInferenceProviders'
 import { useInferenceModelCards } from '@/composables/useInferenceModelCards'
+import { useInferenceHydrate } from '@/composables/useInferenceHydrate'
 import { useRatePlanAdmin } from '@/composables/useRatePlanAdmin'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
@@ -16,6 +17,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { fetchOne } = useInferenceProviders()
 const { fetchList: fetchModelCards } = useInferenceModelCards()
+const { hydrateProviderShow } = useInferenceHydrate()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -38,17 +40,31 @@ const canManage = computed(() => hasPermission('manage inference catalog'))
 async function load(): Promise<void> {
   loading.value = true
   try {
-    const [p, cards] = await Promise.all([
-      fetchOne(providerId.value),
-      fetchModelCards(),
-    ])
-    provider.value = p
-    initRates(p.model_rates ?? [])
-    setModelCards(cards.map((c) => ({
-      id: c.id,
-      slug: c.slug,
-      display_name: c.display_name,
-    })))
+    const batchResult = await hydrateProviderShow(providerId.value).catch(() => null)
+
+    if (batchResult?.provider) {
+      provider.value = batchResult.provider
+      initRates(batchResult.provider.model_rates ?? [])
+      if (batchResult.modelCards) {
+        setModelCards(batchResult.modelCards.map((c) => ({
+          id: c.id,
+          slug: c.slug,
+          display_name: c.display_name,
+        })))
+      }
+    } else {
+      const [p, cards] = await Promise.all([
+        fetchOne(providerId.value),
+        fetchModelCards(),
+      ])
+      provider.value = p
+      initRates(p.model_rates ?? [])
+      setModelCards(cards.map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        display_name: c.display_name,
+      })))
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.inference.providers.load_failed'))
   } finally {

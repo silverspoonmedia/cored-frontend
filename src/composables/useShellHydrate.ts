@@ -1,8 +1,9 @@
 import { batch } from '@/api/client'
+import { bodyOf } from '@/api/batch'
 import { useAuth } from '@/stores/auth'
 import { useNavigation } from '@/composables/useNavigation'
 import { useNotifications } from '@/composables/useNotifications'
-import type { ApiResponse, NavigationTreeNode, UnreadCountPayload, User } from '@/api/types'
+import type { ApiResponse, NavigationTreeNode, UnreadCountPayload, User, AppNotification } from '@/api/types'
 
 let hydrated = false
 let inflight: Promise<void> | null = null
@@ -22,14 +23,15 @@ export async function hydrateShell(): Promise<void> {
   inflight = (async () => {
     const { setUser } = useAuth()
     const { seedTree } = useNavigation()
-    const { seedUnreadCount } = useNotifications()
+    const { seedUnreadCount, seedList } = useNotifications()
 
     try {
-      const [me, sidebar, navbar, unread] = await batch<unknown>([
+      const [me, sidebar, navbar, unread, notifList] = await batch<unknown>([
         { path: 'auth/me' },
         { path: 'navigation/menus', query: { layout: 'sidebar' } },
         { path: 'navigation/menus', query: { layout: 'navbar' } },
         { path: 'notifications/unread-count' },
+        { path: 'notifications', query: { display_mode: 'query', limit: '5' } },
       ])
 
       const meBody = bodyOf<User>(me)
@@ -44,6 +46,9 @@ export async function hydrateShell(): Promise<void> {
       const unreadBody = bodyOf<UnreadCountPayload>(unread)
       if (typeof unreadBody?.data?.unread === 'number') seedUnreadCount(unreadBody.data.unread)
 
+      const notifListBody = bodyOf<AppNotification[]>(notifList)
+      if (Array.isArray(notifListBody?.data)) seedList(notifListBody.data)
+
       hydrated = true
     } catch {
       // Batch itself failed (401 handled by the client's refresh path, or a
@@ -55,14 +60,6 @@ export async function hydrateShell(): Promise<void> {
   })()
 
   return inflight
-}
-
-/** Unwrap a batch entry into its API envelope only when it is a 200 success. */
-function bodyOf<T>(entry: { status: number; body: unknown } | undefined): ApiResponse<T> | null {
-  if (!entry || entry.status !== 200) return null
-  const body = entry.body as ApiResponse<T> | null
-  if (!body || body.status !== 'success') return null
-  return body
 }
 
 /** Test/diagnostic hook: allow re-hydration after logout. Not used by views. */

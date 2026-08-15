@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -8,6 +8,7 @@ import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useErrorLogs } from '@/composables/useErrorLogs'
 import { useServerDataTable } from '@/composables/useServerDataTable'
+import { useLogsRealtime } from '@/composables/useLogsRealtime'
 import type { ErrorLog } from '@/api/types'
 import { ERROR_LOG_LEVEL_BADGE, ERROR_LOG_STATUS_BADGE } from '@/utils/statusBadge'
 
@@ -50,6 +51,17 @@ function viewDetail(row: ErrorLog): void {
 function resetFilters(): void {
   filters.value = { status: '', level: '', type: '', q: '' }
 }
+
+const { subscribeErrors, unsubscribeErrors } = useLogsRealtime()
+const realtimeHandlers = { onErrorRecorded: () => fetchList() }
+
+onMounted(() => {
+  subscribeErrors(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeErrors(realtimeHandlers)
+})
 </script>
 
 <template>

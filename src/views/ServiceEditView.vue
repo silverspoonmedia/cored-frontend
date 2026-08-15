@@ -62,7 +62,7 @@ function removePrice(index: number): void {
 async function load(): Promise<void> {
   loading.value = true
   try {
-    const [opts] = await Promise.all([
+    const [opts, s] = await Promise.all([
       fetchOptions(),
       isEdit.value ? fetchOne(route.params.id as string) : Promise.resolve(null),
     ])
@@ -70,8 +70,7 @@ async function load(): Promise<void> {
     planKinds.value = { '': t('web.services.form.none_option'), ...Object.fromEntries(opts.plan_kinds.map((v) => [v, humanize(v)])) }
     statuses.value = Object.fromEntries(opts.statuses.map((v) => [v, humanize(v)]))
 
-    if (isEdit.value) {
-      const s = await fetchOne(route.params.id as string)
+    if (isEdit.value && s) {
       form.code = s.code
       form.name = s.name
       form.description = s.description ?? ''

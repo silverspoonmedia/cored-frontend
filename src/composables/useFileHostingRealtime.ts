@@ -8,6 +8,7 @@ export type FileHostingRealtimeHandlers = {
   onActivityAppended?: () => void
   onCollectionAnalysisProgress?: (payload: unknown) => void
   onAssetMetadataProgress?: (payload: unknown) => void
+  onMicrostockBillingChanged?: (payload: { owner_user_id: string; action: string }) => void
 }
 
 const handlerSet = new Set<FileHostingRealtimeHandlers>()
@@ -48,6 +49,9 @@ function ensureChannel(): boolean {
     })
     ch.listen('.asset.metadata.progress', (e: unknown) => {
       for (const h of handlerSet) h.onAssetMetadataProgress?.(e)
+    })
+    ch.listen('.microstock.billing.changed', (e: { owner_user_id: string; action: string }) => {
+      for (const h of handlerSet) h.onMicrostockBillingChanged?.(e)
     })
     activeChannel = channel
     return true

@@ -20,7 +20,7 @@ const { toggle: toggleSidebar } = useSidebar()
 const { mode, setMode } = useTheme()
 const { user, logout, switchLocale: switchLocaleApi } = useAuth()
 const { success: showSuccess } = useAlert()
-const { unreadCount, items: recentNotifications, hasSeededUnread, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
+const { unreadCount, items: recentNotifications, hasSeededUnread, hasSeededList, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
 const { navbarTree, load: loadNavigation, isTreeLoaded } = useNavigation()
 const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho()
 
@@ -71,7 +71,11 @@ async function handleLogout(): Promise<void> {
 }
 
 async function loadBellData(): Promise<void> {
-  await Promise.all([fetchUnreadCount(), fetchList(5)])
+  const tasks: Promise<unknown>[] = [fetchList(5)]
+  if (!hasSeededUnread.value) {
+    tasks.push(fetchUnreadCount())
+  }
+  await Promise.all(tasks)
 }
 
 async function handleMarkAllRead(): Promise<void> {
@@ -146,10 +150,11 @@ function stopPolling(): void {
 onMounted(() => {
   // The shell-hydrate batch (AppLayout) may already have seeded the unread
   // count and navbar tree; only fetch what is still missing.
-  if (hasSeededUnread.value) {
+  if (!hasSeededList.value) {
     fetchList(5)
-  } else {
-    loadBellData()
+  }
+  if (!hasSeededUnread.value) {
+    fetchUnreadCount()
   }
   if (!isTreeLoaded('navbar')) {
     loadNavigation('navbar')
