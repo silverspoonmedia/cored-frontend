@@ -126,7 +126,7 @@ async function handleAddChannel(): Promise<void> {
   addingChannel.value = true
   try {
     const result = await vtual.addChannel(route.params.id as string, channelForm.platform_key, channelForm.profile)
-    if ('token' in result) {
+    if ('attempt_count' in result) {
       showError(t('web.vtual-orphans.ajax.channel_claim_started'))
     } else {
       channels.value.push(result)

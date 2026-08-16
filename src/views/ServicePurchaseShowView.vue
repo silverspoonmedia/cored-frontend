@@ -265,11 +265,15 @@ function entitlementLabel(): string {
               <dd class="col-7">{{ purchase.surplus_days }}</dd>
             </template>
 
-            <dt class="col-5">{{ t('web.services.show.settlement_amount') }}</dt>
-            <dd class="col-7">{{ purchase.settlement_amount_formatted ?? '—' }}</dd>
+            <template v-if="purchase.settlement_amount_formatted != null || purchase.settlement_amount != null">
+              <dt class="col-5">{{ t('web.services.show.settlement_amount') }}</dt>
+              <dd class="col-7">{{ purchase.settlement_amount_formatted ?? '—' }}</dd>
+            </template>
 
-            <dt class="col-5">{{ t('web.services.show.fx_rate') }}</dt>
-            <dd class="col-7">{{ purchase.fx_rate_label ?? purchase.fx_rate_formatted ?? purchase.fx_rate ?? '—' }}</dd>
+            <template v-if="purchase.fx_rate_label || purchase.fx_rate_formatted || purchase.fx_rate">
+              <dt class="col-5">{{ t('web.services.show.fx_rate') }}</dt>
+              <dd class="col-7">{{ purchase.fx_rate_label ?? purchase.fx_rate_formatted ?? purchase.fx_rate ?? '—' }}</dd>
+            </template>
 
             <dt class="col-5">{{ t('web.services.show.status') }}</dt>
             <dd class="col-7">{{ purchase.status }}</dd>

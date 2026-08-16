@@ -392,7 +392,7 @@ export interface InferenceUsageEvent {
   analysis_run_id: string | null
   billed_at: string | null
   user_id: string | null
-  user?: { id: string; name: string; email: string } | null
+  user?: { id: string; name: string; email?: string } | null
   inference_provider?: { id: string; slug: string; name: string } | null
 }
 
@@ -739,16 +739,17 @@ export interface InvoicePaymentGateway {
 export interface Invoice {
   id: string
   invoiceable_id: string | null
-  invoiceable_type: string | null
+  invoiceable_type?: string | null
   invoiceable_status: string | null
-  payment_gateway_id: string | null
+  payment_gateway_id?: string | null
   payment_gateway?: InvoicePaymentGateway | null
   invoice_number: string
-  external_transaction_id: string | null
+  external_transaction_id?: string | null
   payment_method: string | null
   payment_channel_code: string | null
-  payment_channel_route_id: string | null
-  payment_channel_route_snapshot_id: string | null
+  payment_channel_route_id?: string | null
+  payment_channel_route_snapshot_id?: string | null
+  payment_channel_route?: Record<string, unknown> | null
   subtotal: number
   subtotal_formatted?: string
   payment_channel_fee: number
@@ -766,13 +767,13 @@ export interface Invoice {
   expired_at: string | null
   expired_at_formatted: string | null
   expired_at_human: string | null
-  withdrawable_at: string | null
-  withdrawable_at_formatted: string | null
-  withdrawable_at_human: string | null
-  disbursement_status: string | null
-  disbursed_at: string | null
-  disbursed_at_formatted: string | null
-  disbursed_at_human: string | null
+  withdrawable_at?: string | null
+  withdrawable_at_formatted?: string | null
+  withdrawable_at_human?: string | null
+  disbursement_status?: string | null
+  disbursed_at?: string | null
+  disbursed_at_formatted?: string | null
+  disbursed_at_human?: string | null
   created_at: string | null
   created_at_formatted: string | null
   created_at_human: string | null
@@ -839,17 +840,17 @@ export interface ServicePurchase {
   surplus_days: number
   change_type: string | null
   previous_entitlement_id: string | null
-  settlement_currency: string
-  settlement_amount: number
+  settlement_currency?: string
+  settlement_amount?: number
   settlement_amount_formatted?: string
-  fx_rate: number | null
-  fx_rate_formatted: string | null
-  fx_rate_label: string | null
-  fx_provider: string | null
-  fx_fetched_at: string | null
-  fx_fetched_at_formatted: string | null
-  fx_fetched_at_human: string | null
-  fx_rate_snapshot_id: string | null
+  fx_rate?: number | null
+  fx_rate_formatted?: string | null
+  fx_rate_label?: string | null
+  fx_provider?: string | null
+  fx_fetched_at?: string | null
+  fx_fetched_at_formatted?: string | null
+  fx_fetched_at_human?: string | null
+  fx_rate_snapshot_id?: string | null
   period_start: string | null
   period_start_formatted: string | null
   period_start_human: string | null
@@ -928,11 +929,12 @@ export interface ProductActivationShowPayload {
 }
 
 // --- Vtual ---
-export interface VtualCreatorMember {  id: string
+export interface VtualCreatorMember {
+  id: string
   creator_id: string
   user_id: string
   role: string
-  user?: { id: string; name: string; email: string } | null
+  user?: { id: string; name: string; email?: string } | null
 }
 
 export interface VtualExternalLink {
@@ -1105,13 +1107,13 @@ export interface HostedFile {
   created_by: string | null
   folder_id: string | null
   name: string
-  disk: string
-  region: string
-  path: string
+  disk?: string
+  region?: string
+  path?: string
   size: number
   size_human?: string
   mime: string
-  checksum: string | null
+  checksum?: string | null
   is_hash_blocked: boolean
   visibility: string
   share_url: string | null
@@ -1228,7 +1230,7 @@ export interface FhPublicFolder {
 }
 
 export interface FhPublicBrowsePayload {
-  owner_id: string
+  owner_id?: string
   folder: FhPublicFolder
   breadcrumb: FhBreadcrumbItem[]
   folders: FhPublicFolder[]
@@ -1320,7 +1322,7 @@ export interface VtualCreatorClaim {
   user_id: string
   creator_id: string
   channel_id: string
-  token: string
+  token?: string
   status: string
   closed_reason: string | null
   attempt_count: number
@@ -1344,7 +1346,7 @@ export interface VtualCreatorClaim {
   verified_by_user_id: string | null
   creator?: VtualCreator | null
   channel?: VtualChannel | null
-  user?: { id: string; name: string; email: string } | null
+  user?: { id: string; name: string; email?: string } | null
   created_at: string | null
   created_at_formatted?: string | null
   created_at_human?: string | null
@@ -1363,7 +1365,7 @@ export interface VtualChannelClaim {
   handle: string | null
   display_name: string | null
   url: string | null
-  token: string
+  token?: string
   status: string
   closed_reason: string | null
   attempt_count: number
@@ -1379,7 +1381,7 @@ export interface VtualChannelClaim {
   platform?: VtualPlatform | null
   creator?: VtualCreator | null
   channel?: VtualChannel | null
-  user?: { id: string; name: string; email: string } | null
+  user?: { id: string; name: string; email?: string } | null
   created_at: string | null
   created_at_formatted?: string | null
   created_at_human?: string | null
@@ -1391,7 +1393,7 @@ export interface VtualChannelClaim {
 export interface FhWorkspaceOwner {
   id: string
   name: string
-  email: string
+  email?: string
 }
 
 export interface FhWorkspace {
@@ -1421,7 +1423,7 @@ export interface FhWorkspaceMember {
   joined_at: string | null
   joined_at_formatted?: string | null
   joined_at_human?: string | null
-  user?: { id: string; name: string; email: string } | null
+  user?: { id: string; name: string; email?: string } | null
 }
 
 export interface FhWorkspaceInvite {
