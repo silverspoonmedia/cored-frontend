@@ -7,7 +7,7 @@ import FormInput from '@/components/FormInput.vue'
 import FormTextarea from '@/components/FormTextarea.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useConnections } from '@/composables/useConnections'
@@ -67,14 +67,9 @@ const channelForm = reactive({ platform_key: '', profile: '' })
 const addingChannel = ref(false)
 
 // Modals
-const confirmState = ref<{ show: boolean; title: string; message: string; confirmText: string; confirmClass: string; action: (() => Promise<void>) | null }>({
-  show: false,
-  title: '',
-  message: '',
-  confirmText: '',
-  confirmClass: 'primary',
-  action: null,
-})
+function escapeHtml(value: unknown): string {
+  return String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch] ?? ch)
+}
 
 const linkKindOptions = computed(() => [
   { value: 'social', label: t('web.vtual.profiles.link_kinds.social') },
@@ -258,18 +253,14 @@ async function handleAddChannel(): Promise<void> {
   }
 }
 
-function openConfirm(title: string, message: string, action: () => Promise<void>, confirmText = t('ui.actions.confirm'), confirmClass = 'primary'): void {
-  confirmState.value = { show: true, title, message, confirmText, confirmClass, action }
-}
-
-async function executeConfirm(): Promise<void> {
-  if (!confirmState.value.action) return
-  try {
-    await confirmState.value.action()
-    confirmState.value.show = false
-  } catch {
-    confirmState.value.show = false
-  }
+async function openConfirm(title: string, message: string, action: () => Promise<void>, confirmText = t('ui.actions.confirm'), confirmClass = 'primary'): Promise<void> {
+  const confirmed = await confirmDialog({
+    title,
+    html: `<p>${escapeHtml(message)}</p>`,
+    confirmText,
+    danger: confirmClass !== 'primary',
+  })
+  if (confirmed) await action()
 }
 
 async function handleRefreshChannel(channelId: string): Promise<void> {
@@ -361,7 +352,7 @@ async function connectDiscordForChannelClaim(claim: VtualChannelClaim): Promise<
     })
     window.location.href = url
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
+    await showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
   }
 }
 
@@ -566,15 +557,5 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
       </Card>
     </div>
 
-    <ConfirmModal
-      v-model="confirmState.show"
-      :title="confirmState.title"
-      :confirm-label="confirmState.confirmText"
-      :confirm-variant="confirmState.confirmClass"
-      @confirm="executeConfirm"
-      @cancel="confirmState.show = false; confirmState.action = null"
-    >
-      <p>{{ confirmState.message }}</p>
-    </ConfirmModal>
   </div>
 </template>

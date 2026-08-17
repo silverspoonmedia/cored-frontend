@@ -1,4 +1,6 @@
+import i18n from '@/i18n'
 import { apiUrl } from './baseUrl'
+import { translateFallback } from '@/i18n/fallbacks'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
 
 type RefreshHandler = () => Promise<boolean>
@@ -69,15 +71,18 @@ async function readJson(res: Response): Promise<unknown> {
 function throwForStatus(res: Response, json: unknown): never {
   if (isValidationBody(json)) {
     const body = json as { message: string; errors: ValidationErrors }
-    throw new ApiError(body.message || 'Validation failed', res.status, body.errors)
+    throw new ApiError(body.message || translateFallback(i18n.global.t, 'validationFailed'), res.status, body.errors)
   }
 
   if (isEnvelope(json)) {
     const env = json as ApiResponse
-    throw new ApiError(env.message ?? 'Request failed', res.status)
+    throw new ApiError(env.message ?? translateFallback(i18n.global.t, 'requestFailed'), res.status)
   }
 
-  throw new ApiError(extractMessage(json, `HTTP ${res.status}`), res.status)
+  throw new ApiError(
+    extractMessage(json, translateFallback(i18n.global.t, 'requestFailed')),
+    res.status,
+  )
 }
 
 function ensureRefresh(): Promise<boolean> {
@@ -133,7 +138,7 @@ async function request<T>(
       throwForStatus(retryRes, retryJson)
     } else {
       unauthorizedHandler?.()
-      throw new ApiError('Session expired', 401)
+      throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
     }
   }
 
@@ -223,7 +228,7 @@ export async function getBlob(
       response = await doFetch()
     } else {
       unauthorizedHandler?.()
-      throw new ApiError('Session expired', 401)
+      throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
     }
   }
 

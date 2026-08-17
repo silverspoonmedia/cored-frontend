@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import FhIcon from '@/components/FhIcon.vue'
 import FhShareModal from '@/components/FhShareModal.vue'
 import FhMicrostockReviewModal from '@/components/FhMicrostockReviewModal.vue'
@@ -30,7 +31,6 @@ const isBusy = ref(false)
 
 const showRename = ref(false)
 const renameValue = ref('')
-const showDeleteConfirm = ref(false)
 const showShare = ref(false)
 const shareVisibility = ref('private')
 const shareUrl = ref<string | null>(null)
@@ -159,6 +159,16 @@ async function handleRename(): Promise<void> {
   }
 }
 
+async function confirmDelete(): Promise<void> {
+  if (!file.value) return
+  const confirmed = await confirmDialog({
+    title: t('web.file-hosting.modal_delete'),
+    html: `<p>${t('web.file-hosting.confirm_delete_file')}</p><p class="text-muted small">${t('web.file-hosting.trash_hint')}</p>`,
+    confirmText: t('web.file-hosting.delete'),
+  })
+  if (confirmed) await handleDelete()
+}
+
 async function handleDelete(): Promise<void> {
   if (!file.value) return
   isBusy.value = true
@@ -179,7 +189,7 @@ async function handleDownload(): Promise<void> {
     const payload = await fh.fetchFileDownload(file.value.id, ctxParams())
     window.location.href = payload.url
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_download_url'))
+    await showError(e instanceof Error ? e.message : t('web.file-hosting.failed_download_url'))
   }
 }
 </script>
@@ -242,7 +252,7 @@ async function handleDownload(): Promise<void> {
             <button v-if="canEdit" type="button" class="btn btn-outline-secondary btn-sm" @click="openShare">
               {{ t('web.file-hosting.share') }}
             </button>
-            <button v-if="canDelete" type="button" class="btn btn-outline-danger btn-sm" @click="showDeleteConfirm = true">
+            <button v-if="canDelete" type="button" class="btn btn-outline-danger btn-sm" @click="confirmDelete">
               {{ t('web.file-hosting.delete') }}
             </button>
           </div>
@@ -288,18 +298,6 @@ async function handleDownload(): Promise<void> {
       @cancel="showRename = false"
     >
       <input type="text" class="form-control" v-model="renameValue" @keyup.enter="handleRename" autofocus />
-    </ConfirmModal>
-
-    <ConfirmModal
-      v-model="showDeleteConfirm"
-      :title="t('web.file-hosting.modal_delete')"
-      :confirm-label="t('web.file-hosting.delete')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-      @cancel="showDeleteConfirm = false"
-    >
-      <p>{{ t('web.file-hosting.confirm_delete_file') }}</p>
-      <p class="text-muted small">{{ t('web.file-hosting.trash_hint') }}</p>
     </ConfirmModal>
 
     <FhShareModal

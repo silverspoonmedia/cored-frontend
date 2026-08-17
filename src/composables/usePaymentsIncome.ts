@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get } from '@/api/client'
 import type {
   ApiResponse,
@@ -7,6 +8,7 @@ import type {
 } from '@/api/types'
 
 export function usePaymentsIncome() {
+  const { t } = useI18n()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -23,9 +25,9 @@ export function usePaymentsIncome() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch income overview')
+      throw new Error(res.message ?? t('web.payments.income.load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch income overview'
+      error.value = e instanceof Error ? e.message : t('web.payments.income.load_failed')
       throw e
     } finally {
       loading.value = false
@@ -45,9 +47,9 @@ export function usePaymentsIncome() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch invoices')
+      throw new Error(res.message ?? t('web.payments.income.load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch invoices'
+      error.value = e instanceof Error ? e.message : t('web.payments.income.load_failed')
       throw e
     } finally {
       loading.value = false

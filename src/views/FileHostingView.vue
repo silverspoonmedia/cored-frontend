@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import Modal from '@/components/Modal.vue'
 import FhDropzone from '@/components/FhDropzone.vue'
 import FhIcon from '@/components/FhIcon.vue'
@@ -92,7 +92,6 @@ const showShare = ref(false)
 const shareVisibility = ref('private')
 const shareUrl = ref<string | null>(null)
 const shareTarget = ref<{ entity: 'folder' | 'file'; id: string } | null>(null)
-const showDeleteConfirm = ref(false)
 const deleteTarget = ref<{ type: 'folder' | 'file'; id: string } | null>(null)
 
 type ContextMenuState = {
@@ -583,10 +582,16 @@ async function saveShare(): Promise<void> {
   if (ok) showShare.value = false
 }
 
-function openDelete(entity: 'folder' | 'file', id: string): void {
+async function openDelete(entity: 'folder' | 'file', id: string): Promise<void> {
   contextMenu.value = null
   deleteTarget.value = { type: entity, id }
-  showDeleteConfirm.value = true
+  const confirmed = await confirmDialog({
+    title: t('web.file-hosting.modal_delete'),
+    html: `<p>${t('web.file-hosting.confirm_delete_item')}</p><p class="text-muted small">${t('web.file-hosting.trash_hint')}</p>`,
+    confirmText: t('web.file-hosting.delete'),
+  })
+  if (confirmed) await handleDelete()
+  else deleteTarget.value = null
 }
 
 async function handleDelete(): Promise<void> {
@@ -599,7 +604,6 @@ async function handleDelete(): Promise<void> {
     await loadAll()
   })
   if (ok) {
-    showDeleteConfirm.value = false
     deleteTarget.value = null
   }
 }
@@ -1483,18 +1487,6 @@ watch(searchQ, (q) => {
       :share-url="shareUrl"
       @save="saveShare"
     />
-
-    <ConfirmModal
-      v-model="showDeleteConfirm"
-      :title="t('web.file-hosting.modal_delete')"
-      :confirm-label="t('web.file-hosting.delete')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-      @cancel="deleteTarget = null"
-    >
-      <p>{{ t('web.file-hosting.confirm_delete_item') }}</p>
-      <p class="text-muted small">{{ t('web.file-hosting.trash_hint') }}</p>
-    </ConfirmModal>
 
     <FhCollectionDescribeModal
       v-model="showCollectionModal"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 
 const props = defineProps<{
@@ -23,6 +24,7 @@ const props = defineProps<{
 }>()
 
 const { fetchMe } = useAuth()
+const { locale } = useI18n()
 
 const liveProfile = ref({ ...props.profile })
 const loading = ref(false)
@@ -56,7 +58,10 @@ async function refresh(): Promise<void> {
       email: user.email,
       roles: user.roles,
     }
-    refreshedAt.value = new Date().toLocaleString()
+    refreshedAt.value = new Intl.DateTimeFormat(locale.value, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date())
   } catch (e) {
     error.value = e instanceof Error ? e.message : props.labels.loadFailed
   } finally {

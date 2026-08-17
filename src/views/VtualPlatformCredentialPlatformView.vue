@@ -7,6 +7,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { confirmDialog } from '@/lib/swal'
 import type { VtualPlatformCredential } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 
@@ -37,7 +38,7 @@ async function loadCredentials(): Promise<void> {
 onMounted(loadCredentials)
 
 async function handleDelete(cred: VtualPlatformCredential): Promise<void> {
-  if (!confirm(t('web.vtual.confirm.delete_credential_body'))) return
+  if (!(await confirmDialog({ text: t('web.vtual.confirm.delete_credential_body') }))) return
   setAction(cred.id, true)
   try {
     await vtual.deleteCredential(cred.id)
@@ -51,7 +52,7 @@ async function handleDelete(cred: VtualPlatformCredential): Promise<void> {
 }
 
 async function handleRevoke(cred: VtualPlatformCredential): Promise<void> {
-  if (!confirm(t('web.vtual.confirm.revoke_credential_body'))) return
+  if (!(await confirmDialog({ text: t('web.vtual.confirm.revoke_credential_body') }))) return
   setAction(cred.id, true)
   try {
     const updated = await vtual.revokeCredential(cred.id)

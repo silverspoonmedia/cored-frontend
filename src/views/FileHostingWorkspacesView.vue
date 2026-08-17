@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import Modal from '@/components/Modal.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFhHydrate } from '@/composables/useFhHydrate'
@@ -56,11 +56,7 @@ const inviting = ref(false)
 const inviteToken = ref('')
 const accepting = ref(false)
 
-// Archive confirm
-const showArchive = ref(false)
-
 // Remove member confirm
-const showRemoveMember = ref(false)
 const removeTarget = ref<FhWorkspaceMember | null>(null)
 
 const wsHandlers = {
@@ -215,9 +211,18 @@ async function handleRoleChange(member: FhWorkspaceMember, role: string): Promis
   }
 }
 
-function confirmRemoveMember(member: FhWorkspaceMember): void {
+async function confirmRemoveMember(member: FhWorkspaceMember): Promise<void> {
   removeTarget.value = member
-  showRemoveMember.value = true
+  const confirmed = await confirmDialog({
+    title: t('web.file-hosting.remove_member_title'),
+    text: t('web.file-hosting.remove_member_message', { name: removeTarget.value?.user?.name ?? removeTarget.value?.user_id }),
+    confirmText: t('web.file-hosting.remove_button'),
+  })
+  if (confirmed) {
+    await handleRemoveMember()
+  } else {
+    removeTarget.value = null
+  }
 }
 
 async function handleRemoveMember(): Promise<void> {
@@ -231,6 +236,16 @@ async function handleRemoveMember(): Promise<void> {
   } finally {
     removeTarget.value = null
   }
+}
+
+async function confirmArchive(): Promise<void> {
+  if (!selected.value) return
+  const confirmed = await confirmDialog({
+    title: t('web.file-hosting.archive_workspace_title'),
+    text: t('web.file-hosting.archive_workspace_message', { name: selected.value.name }),
+    confirmText: t('web.file-hosting.archive_button'),
+  })
+  if (confirmed) await handleArchive()
 }
 
 async function handleArchive(): Promise<void> {
@@ -338,7 +353,7 @@ function roleBadgeClass(role: string): string {
             <button
               v-if="selected.is_owner && canManage"
               class="btn btn-outline-danger btn-sm"
-              @click="showArchive = true"
+              @click="confirmArchive"
             >
               <i class="bi bi-archive me-1"></i> {{ t('actions.archive') }}
             </button>
@@ -492,25 +507,5 @@ function roleBadgeClass(role: string): string {
       </button>
     </template>
   </Modal>
-
-  <!-- Archive confirm -->
-  <ConfirmModal
-    v-model="showArchive"
-    :title="t('web.file-hosting.archive_workspace_title')"
-    :message="t('web.file-hosting.archive_workspace_message', { name: selected?.name ?? '' })"
-    :confirm-label="t('web.file-hosting.archive_button')"
-    confirm-variant="danger"
-    @confirm="handleArchive"
-  />
-
-  <!-- Remove member confirm -->
-  <ConfirmModal
-    v-model="showRemoveMember"
-    :title="t('web.file-hosting.remove_member_title')"
-    :message="t('web.file-hosting.remove_member_message', { name: removeTarget?.user?.name ?? removeTarget?.user_id })"
-    :confirm-label="t('web.file-hosting.remove_button')"
-    confirm-variant="danger"
-    @confirm="handleRemoveMember"
-  />
   </div>
 </template>

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get, post } from '@/api/client'
 import type {
   ApiResponse,
@@ -8,6 +9,7 @@ import type {
 } from '@/api/types'
 
 export function useProductActivations() {
+  const { t } = useI18n()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -23,7 +25,7 @@ export function useProductActivations() {
       }
       return []
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch products'
+      error.value = e instanceof Error ? e.message : t('web.product-activations.failed_load')
       return []
     } finally {
       loading.value = false
@@ -49,9 +51,9 @@ export function useProductActivations() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch product activations')
+      throw new Error(res.message ?? t('web.product-activations.fetch_product_activations_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch product activations'
+      error.value = e instanceof Error ? e.message : t('web.product-activations.fetch_product_activations_failed')
       throw e
     } finally {
       loading.value = false
@@ -77,7 +79,7 @@ export function useProductActivations() {
       }
       return { items: [], pagination: { current_page: 1, last_page: 1, per_page: 50, total: 0 } }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch activations'
+      error.value = e instanceof Error ? e.message : t('web.product-activations.fetch_activations_failed')
       return { items: [], pagination: { current_page: 1, last_page: 1, per_page: 50, total: 0 } }
     } finally {
       loading.value = false
@@ -90,7 +92,7 @@ export function useProductActivations() {
       { payload: payload ?? [] },
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to approve')
+    throw new Error(res.message ?? t('web.product-activations.approve_failed'))
   }
 
   async function reject(id: string, reason: string): Promise<ProductActivation> {
@@ -99,7 +101,7 @@ export function useProductActivations() {
       { reason },
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to reject')
+    throw new Error(res.message ?? t('web.product-activations.reject_failed'))
   }
 
   async function suspend(id: string, reason?: string): Promise<ProductActivation> {
@@ -108,7 +110,7 @@ export function useProductActivations() {
       { reason: reason ?? null },
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to suspend')
+    throw new Error(res.message ?? t('web.product-activations.suspend_failed'))
   }
 
   async function reactivate(id: string): Promise<ProductActivation> {
@@ -116,7 +118,7 @@ export function useProductActivations() {
       `admin/product-activations/${id}/reactivate`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to reactivate')
+    throw new Error(res.message ?? t('web.product-activations.reactivate_failed'))
   }
 
   return {

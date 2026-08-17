@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import { get } from '@/api/client'
 import { getEcho } from '@/composables/useEcho'
 import type { ApiResponse, NavigationTreeNode } from '@/api/types'
@@ -30,10 +31,10 @@ async function load(layout: Layout = 'sidebar'): Promise<void> {
         if (layout === 'sidebar') sidebarTree.value = res.data
         else navbarTree.value = res.data
       } else {
-        error.value = res.message ?? 'Failed to load navigation'
+        error.value = res.message ?? i18n.global.t('web.navigation.load_failed')
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to load navigation'
+      error.value = e instanceof Error ? e.message : i18n.global.t('web.navigation.load_failed')
     } finally {
       loading.value = false
       fetchPromises[layout] = null

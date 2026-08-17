@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useAlert } from '@/composables/useAlert'
 import type { FhHashBlocklistEntry } from '@/api/types'
@@ -16,7 +16,6 @@ const entries = ref<FhHashBlocklistEntry[]>([])
 const loading = ref(true)
 const submitting = ref(false)
 const deleteTarget = ref<FhHashBlocklistEntry | null>(null)
-const showDeleteConfirm = ref(false)
 
 const form = ref({
   sha256: '',
@@ -52,9 +51,18 @@ async function handleSubmit(): Promise<void> {
   }
 }
 
-function openDelete(entry: FhHashBlocklistEntry): void {
+async function openDelete(entry: FhHashBlocklistEntry): Promise<void> {
   deleteTarget.value = entry
-  showDeleteConfirm.value = true
+  const confirmed = await confirmDialog({
+    title: t('web.file-hosting.blocklist_remove_title'),
+    text: t('web.file-hosting.blocklist_remove_message'),
+    confirmText: t('web.file-hosting.blocklist_remove_button'),
+  })
+  if (confirmed) {
+    await handleDelete()
+  } else {
+    deleteTarget.value = null
+  }
 }
 
 async function handleDelete(): Promise<void> {
@@ -62,7 +70,6 @@ async function handleDelete(): Promise<void> {
   try {
     await fh.removeBlocklistEntry(deleteTarget.value.id)
     showSuccess(t('web.file-hosting.blocklist_entry_removed'))
-    showDeleteConfirm.value = false
     deleteTarget.value = null
     await loadEntries()
   } catch (e) {
@@ -149,16 +156,5 @@ async function handleDelete(): Promise<void> {
         </div>
       </div>
     </div>
-
-    <ConfirmModal
-      v-model="showDeleteConfirm"
-      :title="t('web.file-hosting.blocklist_remove_title')"
-      :confirm-label="t('web.file-hosting.blocklist_remove_button')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-      @cancel="showDeleteConfirm = false; deleteTarget = null"
-    >
-      <p>{{ t('web.file-hosting.blocklist_remove_message') }}</p>
-    </ConfirmModal>
   </div>
 </template>

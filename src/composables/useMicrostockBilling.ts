@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get } from '@/api/client'
 import type {
   ApiResponse,
@@ -10,6 +11,7 @@ import type {
 } from '@/api/types'
 
 export function useMicrostockBilling() {
+  const { t } = useI18n()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -23,9 +25,9 @@ export function useMicrostockBilling() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch billing')
+      throw new Error(res.message ?? t('web.microstock.usage.load_failed_billing'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch billing'
+      error.value = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_billing')
       throw e
     } finally {
       loading.value = false
@@ -45,9 +47,9 @@ export function useMicrostockBilling() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch ledger')
+      throw new Error(res.message ?? t('web.microstock.usage.load_failed_ledger'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch ledger'
+      error.value = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_ledger')
       throw e
     } finally {
       loading.value = false
@@ -67,9 +69,9 @@ export function useMicrostockBilling() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch usage events')
+      throw new Error(res.message ?? t('web.microstock.usage.load_failed_usage'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch usage events'
+      error.value = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_usage')
       throw e
     } finally {
       loading.value = false
@@ -89,9 +91,9 @@ export function useMicrostockBilling() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch admin overview')
+      throw new Error(res.message ?? t('web.microstock.usage.load_failed_platform'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch admin overview'
+      error.value = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform')
       throw e
     } finally {
       loading.value = false
@@ -111,9 +113,9 @@ export function useMicrostockBilling() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch admin usage events')
+      throw new Error(res.message ?? t('web.microstock.usage.load_failed_platform_events'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch admin usage events'
+      error.value = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform_events')
       throw e
     } finally {
       loading.value = false

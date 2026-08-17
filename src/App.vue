@@ -8,16 +8,16 @@ const route = useRoute()
 const { t } = useI18n()
 const { documentTitle, applyDocumentTitle } = usePageTitle()
 
+const AUTH_BODY_CLASSES = ['login-page', 'bg-body-secondary'] as const
+const APP_BODY_CLASSES = ['layout-fixed', 'sidebar-expand-lg', 'bg-body-tertiary'] as const
+const MANAGED_BODY_CLASSES = [...AUTH_BODY_CLASSES, ...APP_BODY_CLASSES]
+
 function applyBodyClass(): void {
   const body = document.body
   const isAuth = route.matched.some((record) => record.meta.guestOnly === true)
 
-  body.className = ''
-  if (isAuth) {
-    body.classList.add('login-page', 'bg-body-secondary')
-  } else {
-    body.classList.add('layout-fixed', 'sidebar-expand-lg', 'bg-body-tertiary')
-  }
+  body.classList.remove(...MANAGED_BODY_CLASSES)
+  body.classList.add(...(isAuth ? AUTH_BODY_CLASSES : APP_BODY_CLASSES))
 }
 
 onMounted(() => {

@@ -16,7 +16,9 @@ import type {
   InferenceUsageEvent,
 } from '@/api/types'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const formatNumber = (value: number): string => new Intl.NumberFormat(locale.value).format(value)
 const { fetchBilling, fetchLedger, fetchUsageEvents, fetchAdminOverview, fetchAdminUsageEvents } =
   useMicrostockBilling()
 const { hydrateUsage, hydratePlatform } = useMicrostockHydrate()
@@ -333,7 +335,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
                   <td class="small">{{ ev.file_name ?? '—' }}</td>
                   <td class="small">{{ ev.stage ?? '—' }}</td>
                   <td class="small"><code>{{ ev.resolved_model ?? '—' }}</code></td>
-                  <td class="text-end small">{{ ev.total_tokens.toLocaleString() }}</td>
+                  <td class="text-end small">{{ formatNumber(ev.total_tokens) }}</td>
                   <td class="text-end small">{{ ev.billable_usd }}</td>
                   <td class="small">{{ ev.billing_source ?? '—' }}</td>
                 </tr>
@@ -377,13 +379,13 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
                 <div class="text-muted small">{{ t('web.microstock.usage.col_events') }}</div>
-                <div class="fs-5 fw-bold">{{ platformOverview.totals.event_count.toLocaleString() }}</div>
+                <div class="fs-5 fw-bold">{{ formatNumber(platformOverview.totals.event_count) }}</div>
               </div>
             </div>
             <div class="col-6 col-md-2">
               <div class="border rounded p-3 text-center">
                 <div class="text-muted small">{{ t('web.microstock.usage.col_users') }}</div>
-                <div class="fs-5 fw-bold">{{ platformOverview.totals.unique_users.toLocaleString() }}</div>
+                <div class="fs-5 fw-bold">{{ formatNumber(platformOverview.totals.unique_users) }}</div>
               </div>
             </div>
             <div class="col-6 col-md-2">
@@ -428,7 +430,7 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
                     <tr v-for="row in platformOverview.by_model" :key="row.resolved_model">
                       <td class="small"><code>{{ row.resolved_model }}</code></td>
                       <td class="text-end small">{{ row.event_count }}</td>
-                      <td class="text-end small">{{ row.total_tokens.toLocaleString() }}</td>
+                      <td class="text-end small">{{ formatNumber(row.total_tokens) }}</td>
                     </tr>
                   </tbody>
                 </table>

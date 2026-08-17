@@ -6,7 +6,7 @@ import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions, { type RowAction } from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import { useInferenceProviders } from '@/composables/useInferenceProviders'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
@@ -23,7 +23,6 @@ const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage inference catalog'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 const deleteTarget = ref<InferenceProvider | null>(null)
-const showDeleteModal = ref(false)
 
 useListingLiveUpdate('inference-providers', fetchList)
 
@@ -57,9 +56,14 @@ function providerActions(row: InferenceProvider): RowAction[] {
       icon: 'trash3',
       label: t('ui.actions.delete'),
       variant: 'danger',
-      onClick: () => {
+      onClick: async () => {
         deleteTarget.value = row
-        showDeleteModal.value = true
+        const confirmed = await confirmDialog({
+          title: t('ui.datatable.delete'),
+          text: t('web.inference.confirm.delete'),
+          confirmText: t('ui.actions.delete'),
+        })
+        if (confirmed) await handleDelete()
       },
     })
   }
@@ -134,14 +138,5 @@ onUnmounted(() => {
         <RowActions :actions="providerActions(row)" />
       </template>
     </DataTable>
-
-    <ConfirmModal
-      v-model="showDeleteModal"
-      :title="t('ui.datatable.delete')"
-      :message="t('web.inference.confirm.delete')"
-      :confirm-label="t('ui.actions.delete')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-    />
   </Card>
 </template>

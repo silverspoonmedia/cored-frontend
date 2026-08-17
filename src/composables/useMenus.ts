@@ -1,8 +1,10 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get, post, put, del } from '@/api/client'
 import type { ApiResponse, MenuListItem, MenuTrashedItem } from '@/api/types'
 
 export function useMenus() {
+  const { t } = useI18n()
   const items = ref<MenuListItem[]>([])
   const trashedItems = ref<MenuTrashedItem[]>([])
   const loading = ref(false)
@@ -18,7 +20,7 @@ export function useMenus() {
       items.value = res.data ?? []
       return items.value
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch menus'
+      error.value = e instanceof Error ? e.message : t('web.menus.load_failed')
       items.value = []
       return []
     } finally {
@@ -36,7 +38,7 @@ export function useMenus() {
       trashedItems.value = res.data ?? []
       return trashedItems.value
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch trashed menus'
+      error.value = e instanceof Error ? e.message : t('web.menus.load_trashed_failed')
       trashedItems.value = []
       return []
     } finally {
@@ -49,7 +51,7 @@ export function useMenus() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to fetch menu')
+    throw new Error(res.message ?? t('web.menus.load_failed'))
   }
 
   async function createMenu(data: Record<string, unknown>): Promise<MenuListItem> {
@@ -57,7 +59,7 @@ export function useMenus() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to create menu')
+    throw new Error(res.message ?? t('web.menus.save_failed'))
   }
 
   async function updateMenu(id: string, data: Record<string, unknown>): Promise<MenuListItem> {
@@ -65,7 +67,7 @@ export function useMenus() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to update menu')
+    throw new Error(res.message ?? t('web.menus.save_failed'))
   }
 
   async function deleteMenu(id: string, cascade = false): Promise<void> {
@@ -77,7 +79,7 @@ export function useMenus() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to restore menu')
+    throw new Error(res.message ?? t('web.menus.restore_failed'))
   }
 
   return {

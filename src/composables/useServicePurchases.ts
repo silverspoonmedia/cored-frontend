@@ -1,8 +1,10 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get, patch } from '@/api/client'
 import type { ApiResponse, ServicePurchase } from '@/api/types'
 
 export function useServicePurchases() {
+  const { t } = useI18n()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -14,9 +16,9 @@ export function useServicePurchases() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch service purchase')
+      throw new Error(res.message ?? t('web.services.purchases.load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch service purchase'
+      error.value = e instanceof Error ? e.message : t('web.services.purchases.load_failed')
       throw e
     } finally {
       loading.value = false
@@ -33,9 +35,9 @@ export function useServicePurchases() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to update quantity')
+      throw new Error(res.message ?? t('web.services.purchases.update_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to update quantity'
+      error.value = e instanceof Error ? e.message : t('web.services.purchases.update_failed')
       throw e
     } finally {
       loading.value = false

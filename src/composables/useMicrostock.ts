@@ -1,3 +1,4 @@
+import { useI18n } from 'vue-i18n'
 import { get, post, patch, getBlob } from '@/api/client'
 import { saveBlob } from '@/utils/download'
 import type {
@@ -11,6 +12,8 @@ import type {
 } from '@/api/types'
 
 export function useMicrostock() {
+  const { t } = useI18n()
+
   async function lockCollection(
     folderId: string,
     hint: string | null,
@@ -24,7 +27,7 @@ export function useMicrostock() {
       body,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to lock collection')
+    throw new Error(res.message ?? t('web.file-hosting.lock_collection_failed'))
   }
 
   async function analyzeCollection(folderId: string): Promise<MicrostockCollectionPayload> {
@@ -32,7 +35,7 @@ export function useMicrostock() {
       `microstock/collections/${folderId}/analyze`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to analyze collection')
+    throw new Error(res.message ?? t('web.microstock.ai_failed'))
   }
 
   async function fetchCollectionStatus(
@@ -42,7 +45,7 @@ export function useMicrostock() {
       `microstock/collections/${folderId}/status`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch collection status')
+    throw new Error(res.message ?? t('web.file-hosting.operation_failed'))
   }
 
   async function exportCollection(folderId: string): Promise<MicrostockCollectionExportPayload> {
@@ -50,7 +53,7 @@ export function useMicrostock() {
       `microstock/collections/${folderId}/export`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to export collection')
+    throw new Error(res.message ?? t('web.microstock.ai_failed'))
   }
 
   async function downloadCollectionCsv(folderId: string): Promise<void> {
@@ -63,7 +66,7 @@ export function useMicrostock() {
       `microstock/assets/${fileId}/metadata`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to load metadata')
+    throw new Error(res.message ?? t('web.microstock.metadata_loaded'))
   }
 
   async function updateAssetMetadata(
@@ -76,7 +79,7 @@ export function useMicrostock() {
       { title, keywords },
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to save metadata')
+    throw new Error(res.message ?? t('web.microstock.metadata_saved'))
   }
 
   async function analyzeAsset(fileId: string): Promise<MicrostockAssetMetadata> {
@@ -84,13 +87,13 @@ export function useMicrostock() {
       `microstock/assets/${fileId}/analyze`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to queue analysis')
+    throw new Error(res.message ?? t('web.microstock.ai_failed'))
   }
 
   async function fetchSlots(): Promise<MicrostockSlotStatus> {
     const res = await get<ApiResponse<MicrostockSlotStatus>>('microstock/slots')
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to load slots')
+    throw new Error(res.message ?? t('web.microstock.slots_loaded'))
   }
 
   async function createWorkspace(name?: string | null): Promise<FhWorkspace> {
@@ -116,7 +119,7 @@ export function useMicrostock() {
         updated_at: null,
       }
     }
-    throw new Error(res.message ?? 'Failed to create workspace')
+    throw new Error(res.message ?? t('web.file-hosting.failed_create_workspace'))
   }
 
   return {

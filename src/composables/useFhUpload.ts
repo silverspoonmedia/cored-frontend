@@ -1,3 +1,4 @@
+import i18n from '@/i18n'
 import { post, del } from '@/api/client'
 import type {
   ApiResponse,
@@ -24,6 +25,10 @@ export type UploadStatus = 'pending' | 'uploading' | 'completing' | 'done' | 'er
 const MAX_PART_CONCURRENCY = 3
 const MAX_INIT_RETRIES = 3
 const MAX_PART_RETRIES = 3
+
+function localizedUploadMessage(key: 'init_failed' | 'sign_failed' | 'complete_failed'): string {
+  return i18n.global.t(`web.file-hosting.upload.${key}`)
+}
 
 function resolveMimeType(file: File): string {
   if (file.type && file.type !== 'application/octet-stream') return file.type
@@ -77,7 +82,7 @@ async function initUpload(file: File, ctx: UploadContext): Promise<FhUploadSessi
 
   const res = await post<ApiResponse<FhUploadSession>>('file-hosting/uploads', body)
   if (res.status === 'success' && res.data) return res.data
-  throw new Error(res.message ?? 'Failed to init upload')
+  throw new Error(res.message ?? localizedUploadMessage('init_failed'))
 }
 
 async function initUploadWithRetry(file: File, ctx: UploadContext): Promise<FhUploadSession> {
@@ -100,7 +105,7 @@ async function signParts(uploadId: string, partNumbers: number[]): Promise<FhUpl
     { part_numbers: partNumbers },
   )
   if (res.status === 'success' && res.data) return res.data.parts
-  throw new Error(res.message ?? 'Failed to sign parts')
+  throw new Error(res.message ?? localizedUploadMessage('sign_failed'))
 }
 
 async function abortUpload(uploadId: string): Promise<void> {
@@ -120,7 +125,7 @@ async function completeUpload(
     { parts },
   )
   if (res.status === 'success' && res.data) return res.data.file
-  throw new Error(res.message ?? 'Failed to complete upload')
+  throw new Error(res.message ?? localizedUploadMessage('complete_failed'))
 }
 
 async function putPart(

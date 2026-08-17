@@ -1,10 +1,12 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { post, put, patch, del } from '@/api/client'
 import { ApiError, type ApiResponse } from '@/api/types'
 
 type Method = 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export function useForm(action: string, method: Method = 'POST') {
+  const { t } = useI18n()
   const submitting = ref(false)
   const errors = ref<Record<string, string[]>>({})
   const error = ref<string | null>(null)
@@ -23,7 +25,7 @@ export function useForm(action: string, method: Method = 'POST') {
       } else if (e instanceof ApiError) {
         error.value = e.message
       } else {
-        error.value = e instanceof Error ? e.message : 'Request failed'
+        error.value = e instanceof Error ? e.message : t('ui.ajax.request_failed')
       }
       throw e
     } finally {

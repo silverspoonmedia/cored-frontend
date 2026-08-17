@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import FhIcon from '@/components/FhIcon.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
@@ -22,7 +22,6 @@ const trash = ref<FhTrashPayload | null>(null)
 const loading = ref(true)
 const isBusy = ref(false)
 const actionTarget = ref<{ type: 'folder' | 'file'; id: string; action: 'restore' | 'force-delete' } | null>(null)
-const showConfirm = ref(false)
 
 function ctxParams(): Record<string, unknown> {
   const params: Record<string, unknown> = {}
@@ -83,9 +82,22 @@ onUnmounted(() => {
   stopTrashPolling()
 })
 
-function openConfirm(type: 'folder' | 'file', id: string, action: 'restore' | 'force-delete'): void {
+async function openConfirm(type: 'folder' | 'file', id: string, action: 'restore' | 'force-delete'): Promise<void> {
   actionTarget.value = { type, id, action }
-  showConfirm.value = true
+  const confirmed = await confirmDialog({
+    title: action === 'restore' ? t('web.file-hosting.trash_restore_title') : t('web.file-hosting.trash_force_delete_title'),
+    html:
+      action === 'restore'
+        ? `<p>${t('web.file-hosting.trash_confirm_restore')}</p>`
+        : `<p>${t('web.file-hosting.trash_confirm_force_delete')}</p><p class="text-danger small">${t('web.file-hosting.trash_cannot_be_undone')}</p>`,
+    confirmText: action === 'restore' ? t('web.file-hosting.trash_restore_button') : t('web.file-hosting.trash_delete_forever_button'),
+    danger: action !== 'restore',
+  })
+  if (confirmed) {
+    await handleAction()
+  } else {
+    actionTarget.value = null
+  }
 }
 
 async function handleAction(): Promise<void> {
@@ -101,7 +113,6 @@ async function handleAction(): Promise<void> {
       else await fh.forceDeleteFile(id, ctxParams())
     }
     showSuccess(action === 'restore' ? t('web.file-hosting.trash_restored') : t('web.file-hosting.trash_permanently_deleted'))
-    showConfirm.value = false
     actionTarget.value = null
     await loadTrash()
   } catch (e) {
@@ -181,20 +192,5 @@ async function handleAction(): Promise<void> {
         </table>
       </div>
     </div>
-
-    <ConfirmModal
-      v-model="showConfirm"
-      :title="actionTarget?.action === 'restore' ? t('web.file-hosting.trash_restore_title') : t('web.file-hosting.trash_force_delete_title')"
-      :confirm-label="actionTarget?.action === 'restore' ? t('web.file-hosting.trash_restore_button') : t('web.file-hosting.trash_delete_forever_button')"
-      :confirm-variant="actionTarget?.action === 'restore' ? 'success' : 'danger'"
-      @confirm="handleAction"
-      @cancel="showConfirm = false; actionTarget = null"
-    >
-      <p v-if="actionTarget?.action === 'restore'">{{ t('web.file-hosting.trash_confirm_restore') }}</p>
-      <div v-else>
-        <p>{{ t('web.file-hosting.trash_confirm_force_delete') }}</p>
-        <p class="text-danger small">{{ t('web.file-hosting.trash_cannot_be_undone') }}</p>
-      </div>
-    </ConfirmModal>
   </div>
 </template>

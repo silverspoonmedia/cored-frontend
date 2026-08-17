@@ -12,7 +12,9 @@ import type { AiModelCardDetail, InferenceUsageEvent } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const formatNumber = (value: number): string => new Intl.NumberFormat(locale.value).format(value)
 const { fetchModelCardDetail, fetchUsageEvents } = useInferenceUsage()
 const { hydrateModelCardShow } = useInferenceHydrate()
 const { hasPermission } = useAuth()
@@ -118,7 +120,7 @@ onMounted(async () => {
         <div class="card h-100">
           <div class="card-body">
             <div class="text-muted small">{{ t('web.inference.model_cards.events_label') }}</div>
-            <div class="fs-5 fw-semibold">{{ card.usage_summary.event_count.toLocaleString() }}</div>
+            <div class="fs-5 fw-semibold">{{ formatNumber(card.usage_summary.event_count) }}</div>
           </div>
         </div>
       </div>
@@ -126,7 +128,7 @@ onMounted(async () => {
         <div class="card h-100">
           <div class="card-body">
             <div class="text-muted small">{{ t('web.inference.model_cards.total_tokens_label') }}</div>
-            <div class="fs-5 fw-semibold">{{ card.usage_summary.total_tokens.toLocaleString() }}</div>
+            <div class="fs-5 fw-semibold">{{ formatNumber(card.usage_summary.total_tokens) }}</div>
           </div>
         </div>
       </div>
@@ -171,7 +173,7 @@ onMounted(async () => {
                 <span v-else>—</span>
               </td>
               <td class="small">{{ ev.stage ?? '—' }}</td>
-              <td class="small">{{ ev.total_tokens.toLocaleString() }}</td>
+              <td class="small">{{ formatNumber(ev.total_tokens) }}</td>
               <td class="small">{{ ev.billable_usd }}</td>
               <td class="small">
                 <span v-if="ev.rate_snapshot">

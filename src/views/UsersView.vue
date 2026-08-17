@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions, { type RowAction } from '@/components/RowActions.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import { useUsers } from '@/composables/useUsers'
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
@@ -24,15 +24,14 @@ const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination
 const canCreate = computed(() => hasPermission('create user'))
 const canDelete = computed(() => hasPermission('delete user'))
 const deleteTarget = ref<UserManagement | null>(null)
-const showDeleteModal = ref(false)
 const deleting = ref(false)
 
-const columns: DataTableColumn[] = [
+const columns = computed<DataTableColumn[]>(() => [
   { key: 'name', label: t('web.users.datatable.columns.name'), sortable: true },
   { key: 'email', label: t('web.users.datatable.columns.email'), sortable: true },
   { key: 'roles', label: t('web.users.datatable.columns.roles'), sortable: false },
   { key: 'created_at', label: t('web.users.datatable.columns.created'), sortable: true, align: 'end' },
-]
+])
 
 useListingLiveUpdate('users-table', () => fetchList())
 
@@ -53,9 +52,14 @@ function userActions(row: UserManagement): RowAction[] {
       icon: 'trash3',
       label: t('ui.actions.delete'),
       variant: 'danger',
-      onClick: () => {
+      onClick: async () => {
         deleteTarget.value = row
-        showDeleteModal.value = true
+        const confirmed = await confirmDialog({
+          title: t('ui.datatable.delete'),
+          text: t('ui.datatable.confirm.delete_user'),
+          confirmText: t('ui.actions.delete'),
+        })
+        if (confirmed) await handleDelete()
       },
     })
   }
@@ -141,14 +145,5 @@ async function handleDelete(): Promise<void> {
         <RowActions :actions="userActions(row)" />
       </template>
     </DataTable>
-
-    <ConfirmModal
-      v-model="showDeleteModal"
-      :title="t('ui.datatable.delete')"
-      :message="t('ui.datatable.confirm.delete_user')"
-      :confirm-label="t('ui.actions.delete')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-    />
   </Card>
 </template>

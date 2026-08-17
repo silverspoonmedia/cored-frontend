@@ -53,7 +53,7 @@ async function connectDiscord(): Promise<void> {
     window.location.href = url
   } catch (e) {
     acting.value = false
-    showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
+    await showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
   }
 }
 

@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import i18n from '@/i18n'
 import { post, get, setRefreshHandler, setUnauthorizedHandler } from '@/api/client'
 import type { ApiResponse, AuthPayload, LoginResult, TwoFactorChallengePayload, User } from '@/api/types'
 
@@ -16,6 +17,7 @@ const remember = ref(false)
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
 
 const isAuthenticated = computed(() => !!user.value)
+const translated = (key: string): string => i18n.global.t(key)
 
 function clearLeftoverTokenStorage(): void {
   try {
@@ -264,7 +266,7 @@ async function login(
     return { type: 'authenticated', user: (data as AuthPayload).user }
   }
 
-  throw new Error(res.message ?? 'Login failed')
+  throw new Error(res.message ?? translated('web.auth.login_failed'))
 }
 
 async function verifyTwoFactor(
@@ -283,7 +285,7 @@ async function verifyTwoFactor(
     return res.data.user
   }
 
-  throw new Error(res.message ?? 'Two-factor verification failed')
+  throw new Error(res.message ?? translated('web.auth.two_factor_verification_failed'))
 }
 
 async function register(
@@ -306,7 +308,7 @@ async function register(
     return res.data.user
   }
 
-  throw new Error(res.message ?? 'Registration failed')
+  throw new Error(res.message ?? translated('web.auth.register_failed'))
 }
 
 async function forgotPassword(email: string, captcha?: string | null): Promise<void> {
@@ -316,7 +318,7 @@ async function forgotPassword(email: string, captcha?: string | null): Promise<v
   })
 
   if (res.status !== 'success') {
-    throw new Error(res.message ?? 'Failed to send reset link')
+    throw new Error(res.message ?? translated('web.auth.forgot_password_failed'))
   }
 }
 
@@ -334,7 +336,7 @@ async function resetPassword(
   })
 
   if (res.status !== 'success') {
-    throw new Error(res.message ?? 'Failed to reset password')
+    throw new Error(res.message ?? translated('web.auth.reset_password_failed'))
   }
 }
 
@@ -355,7 +357,7 @@ async function fetchMe(): Promise<User> {
     return res.data
   }
 
-  throw new Error(res.message ?? 'Failed to fetch user')
+  throw new Error(res.message ?? translated('web.auth.fetch_user_failed'))
 }
 
 let hydrated = false
@@ -406,13 +408,13 @@ function setUser(u: User | null): void {
 async function resendVerification(): Promise<void> {
   const res = await post<ApiResponse<null>>('auth/email/verification-notification')
   if (res.status !== 'success') {
-    throw new Error(res.message ?? 'Failed to send verification email')
+    throw new Error(res.message ?? translated('web.auth.verification_resent_failed'))
   }
 }
 
 async function switchLocale(locale: string): Promise<void> {
   const res = await post<ApiResponse<{ locale: string }>>('auth/locale', { locale })
   if (res.status !== 'success') {
-    throw new Error(res.message ?? 'Failed to update locale')
+    throw new Error(res.message ?? translated('web.auth.locale_update_failed'))
   }
 }

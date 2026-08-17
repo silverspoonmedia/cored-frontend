@@ -57,7 +57,7 @@ async function handleSubmit(): Promise<void> {
     } else if (e instanceof ApiError) {
       showError(e.message)
     } else {
-      showError(e instanceof Error ? e.message : 'Failed to update password')
+      showError(e instanceof Error ? e.message : t('web.auth.password_update_failed'))
     }
   } finally {
     loading.value = false

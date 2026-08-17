@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNavbar from '@/components/AppNavbar.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
-import AppAlert from '@/components/AppAlert.vue'
 import { useNavigation } from '@/composables/useNavigation'
 import { useShellHydrate } from '@/composables/useShellHydrate'
 import { useSidebar } from '@/composables/useSidebar'
@@ -82,7 +81,6 @@ watch(themeEffective, () => syncOverlayScrollbarTheme())
 
       <div class="app-content">
         <div class="container-fluid">
-          <AppAlert />
           <router-view />
         </div>
       </div>

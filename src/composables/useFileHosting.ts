@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get, post, patch, del } from '@/api/client'
 import type {
   ApiResponse,
@@ -17,6 +18,7 @@ import type {
 } from '@/api/types'
 
 export function useFileHosting() {
+  const { t } = useI18n()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -25,7 +27,7 @@ export function useFileHosting() {
   ): Promise<FhBrowsePayload> {
     const res = await get<ApiResponse<FhBrowsePayload>>('file-hosting/browse', params)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch browse')
+    throw new Error(res.message ?? t('web.file-hosting.load_failed'))
   }
 
   async function fetchTrash(
@@ -33,7 +35,7 @@ export function useFileHosting() {
   ): Promise<FhTrashPayload> {
     const res = await get<ApiResponse<FhTrashPayload>>('file-hosting/trash', params)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch trash')
+    throw new Error(res.message ?? t('web.file-hosting.load_failed'))
   }
 
   async function fetchQuota(
@@ -41,7 +43,7 @@ export function useFileHosting() {
   ): Promise<FhQuota> {
     const res = await get<ApiResponse<FhQuota>>('file-hosting/quota', params)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch quota')
+    throw new Error(res.message ?? t('web.file-hosting.load_failed'))
   }
 
   async function searchFiles(
@@ -59,7 +61,7 @@ export function useFileHosting() {
   async function fetchFile(id: string): Promise<HostedFile> {
     const res = await get<ApiResponse<HostedFile>>(`file-hosting/files/${id}`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch file')
+    throw new Error(res.message ?? t('web.file-hosting.failed_load_file'))
   }
 
   async function fetchFileDownload(
@@ -71,7 +73,7 @@ export function useFileHosting() {
       params,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to get download URL')
+    throw new Error(res.message ?? t('web.file-hosting.failed_download_url'))
   }
 
   // Folder mutations
@@ -84,31 +86,31 @@ export function useFileHosting() {
       ...params,
     })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to create folder')
+    throw new Error(res.message ?? t('web.file-hosting.operation_failed'))
   }
 
   async function renameFolder(id: string, name: string, ctx: Record<string, unknown> = {}): Promise<FhFolder> {
     const res = await patch<ApiResponse<FhFolder>>(`file-hosting/folders/${id}/rename`, { name, ...ctx })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to rename folder')
+    throw new Error(res.message ?? t('web.file-hosting.failed_rename'))
   }
 
   async function moveFolder(id: string, parentId: string | null, ctx: Record<string, unknown> = {}): Promise<FhFolder> {
     const res = await patch<ApiResponse<FhFolder>>(`file-hosting/folders/${id}/move`, { parent_id: parentId, ...ctx })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to move folder')
+    throw new Error(res.message ?? t('web.file-hosting.move_failed'))
   }
 
   async function setFolderVisibility(id: string, visibility: string, ctx: Record<string, unknown> = {}): Promise<FhFolder> {
     const res = await patch<ApiResponse<FhFolder>>(`file-hosting/folders/${id}/visibility`, { visibility, ...ctx })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to update visibility')
+    throw new Error(res.message ?? t('web.file-hosting.failed_visibility'))
   }
 
   async function restoreFolder(id: string, ctx: Record<string, unknown> = {}): Promise<FhFolder> {
     const res = await post<ApiResponse<FhFolder>>(`file-hosting/folders/${id}/restore`, ctx)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to restore folder')
+    throw new Error(res.message ?? t('web.file-hosting.move_failed'))
   }
 
   async function deleteFolder(id: string, ctx: Record<string, unknown> = {}): Promise<void> {
@@ -123,25 +125,25 @@ export function useFileHosting() {
   async function renameFile(id: string, name: string, ctx: Record<string, unknown> = {}): Promise<HostedFile> {
     const res = await patch<ApiResponse<HostedFile>>(`file-hosting/files/${id}/rename`, { name, ...ctx })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to rename file')
+    throw new Error(res.message ?? t('web.file-hosting.failed_rename'))
   }
 
   async function moveFile(id: string, folderId: string | null, ctx: Record<string, unknown> = {}): Promise<HostedFile> {
     const res = await patch<ApiResponse<HostedFile>>(`file-hosting/files/${id}/move`, { folder_id: folderId, ...ctx })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to move file')
+    throw new Error(res.message ?? t('web.file-hosting.move_failed'))
   }
 
   async function setFileVisibility(id: string, visibility: string, ctx: Record<string, unknown> = {}): Promise<HostedFile> {
     const res = await patch<ApiResponse<HostedFile>>(`file-hosting/files/${id}/visibility`, { visibility, ...ctx })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to update visibility')
+    throw new Error(res.message ?? t('web.file-hosting.failed_visibility'))
   }
 
   async function restoreFile(id: string, ctx: Record<string, unknown> = {}): Promise<HostedFile> {
     const res = await post<ApiResponse<HostedFile>>(`file-hosting/files/${id}/restore`, ctx)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to restore file')
+    throw new Error(res.message ?? t('web.file-hosting.move_failed'))
   }
 
   async function deleteFile(id: string, ctx: Record<string, unknown> = {}): Promise<void> {
@@ -181,19 +183,19 @@ export function useFileHosting() {
   async function fetchPublicFile(id: string): Promise<HostedFile> {
     const res = await get<ApiResponse<HostedFile>>(`file-hosting/public/files/${id}`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch public file')
+    throw new Error(res.message ?? t('web.file-hosting.public.file_not_found'))
   }
 
   async function fetchPublicFileDownload(id: string): Promise<{ url: string }> {
     const res = await get<ApiResponse<{ url: string }>>(`file-hosting/public/files/${id}/download`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to get download URL')
+    throw new Error(res.message ?? t('web.file-hosting.failed_download_url'))
   }
 
   async function fetchPublicFolder(id: string): Promise<FhPublicBrowsePayload> {
     const res = await get<ApiResponse<FhPublicBrowsePayload>>(`file-hosting/public/folders/${id}`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch public folder')
+    throw new Error(res.message ?? t('web.file-hosting.public.folder_not_found'))
   }
 
   // Blocklist
@@ -206,7 +208,7 @@ export function useFileHosting() {
   async function addBlocklistEntry(sha256: string, reason: string | null = null): Promise<FhHashBlocklistEntry> {
     const res = await post<ApiResponse<FhHashBlocklistEntry>>('file-hosting/blocklist', { sha256, reason })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to add blocklist entry')
+    throw new Error(res.message ?? t('web.file-hosting.blocklist_failed_add'))
   }
 
   async function removeBlocklistEntry(id: string): Promise<void> {
@@ -223,19 +225,19 @@ export function useFileHosting() {
   async function fetchWorkspace(id: string): Promise<FhWorkspace> {
     const res = await get<ApiResponse<FhWorkspace>>(`file-hosting/workspaces/${id}`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch workspace')
+    throw new Error(res.message ?? t('web.file-hosting.failed_load_workspace_detail'))
   }
 
   async function createWorkspace(name: string): Promise<FhWorkspace> {
     const res = await post<ApiResponse<FhWorkspace>>('file-hosting/workspaces', { name })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to create workspace')
+    throw new Error(res.message ?? t('web.file-hosting.failed_create_workspace'))
   }
 
   async function archiveWorkspace(id: string): Promise<FhWorkspace> {
     const res = await post<ApiResponse<FhWorkspace>>(`file-hosting/workspaces/${id}/archive`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to archive workspace')
+    throw new Error(res.message ?? t('web.file-hosting.failed_archive_workspace'))
   }
 
   async function fetchMembers(workspaceId: string): Promise<FhWorkspaceMember[]> {
@@ -247,19 +249,19 @@ export function useFileHosting() {
   async function inviteMember(workspaceId: string, email: string, role: string): Promise<FhWorkspaceInvite> {
     const res = await post<ApiResponse<FhWorkspaceInvite>>(`file-hosting/workspaces/${workspaceId}/invites`, { email, role })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to invite member')
+    throw new Error(res.message ?? t('web.file-hosting.failed_invite_member'))
   }
 
   async function acceptInvite(token: string): Promise<FhWorkspaceMember> {
     const res = await post<ApiResponse<FhWorkspaceMember>>('file-hosting/workspaces/invites/accept', { token })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to accept invite')
+    throw new Error(res.message ?? t('web.file-hosting.failed_accept_invite'))
   }
 
   async function updateMemberRole(workspaceId: string, userId: string, role: string): Promise<FhWorkspaceMember> {
     const res = await patch<ApiResponse<FhWorkspaceMember>>(`file-hosting/workspaces/${workspaceId}/members/${userId}`, { role })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to update member role')
+    throw new Error(res.message ?? t('web.file-hosting.failed_update_role'))
   }
 
   async function removeMember(workspaceId: string, userId: string): Promise<void> {

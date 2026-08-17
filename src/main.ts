@@ -1,4 +1,5 @@
 import './assets/main.css'
+import 'sweetalert2/dist/sweetalert2.min.css'
 
 // Bootstrap 5 JS bundle (includes Popper) — enables data-bs-toggle="dropdown"
 // and other data-attribute APIs without jQuery.
@@ -20,6 +21,10 @@ const app = createApp(App)
 
 app.use(router)
 app.use(i18n)
+
+router.onError((error, to, from) => {
+  console.error('Router navigation failed', { error, to, from })
+})
 
 // router.isReady() resolves after the first navigation completes, which
 // includes the beforeEach guard that hydrates auth via GET auth/me (cookie).

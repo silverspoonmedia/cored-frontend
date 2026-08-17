@@ -8,6 +8,7 @@ import { useVtual } from '@/composables/useVtual'
 import { useConnections } from '@/composables/useConnections'
 import { useVtualHydrate } from '@/composables/useVtualHydrate'
 import { useAlert } from '@/composables/useAlert'
+import { confirmDialog } from '@/lib/swal'
 import { getEcho } from '@/composables/useEcho'
 import type { VtualVtuberProfile, VtualCreatorClaim } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
@@ -225,7 +226,7 @@ async function connectDiscord(): Promise<void> {
     window.location.href = url
   } catch (e) {
     discordConnecting.value = false
-    showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
+    await showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
   }
 }
 
@@ -246,7 +247,7 @@ async function handleCancel(): Promise<void> {
 
 async function handleAcceptAnyway(): Promise<void> {
   if (!activeClaim.value || actionLoading.value) return
-  if (!confirm('Accept this claim without verification?')) return
+  if (!(await confirmDialog({ text: t('web.vtual-vtuber.claim_accept_without_verification') }))) return
   actionLoading.value = true
   try {
     const result = await vtual.acceptAnywayClaim(activeClaim.value.id)

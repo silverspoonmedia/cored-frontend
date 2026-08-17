@@ -1,3 +1,4 @@
+import { useI18n } from 'vue-i18n'
 import { get, del } from '@/api/client'
 import type { ApiResponse, DiscordAuthorizeUrl, ProfileConnections } from '@/api/types'
 
@@ -8,18 +9,20 @@ export type DiscordAuthorizeIntent =
   | 'channel_claim_verify'
 
 export function useConnections() {
+  const { t } = useI18n()
+
   async function fetchConnections(): Promise<ProfileConnections> {
     const res = await get<ApiResponse<ProfileConnections>>('profile/connections')
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to load connections')
+    throw new Error(res.message ?? t('web.identity-connections.load_failed'))
   }
 
   async function disconnectDiscord(): Promise<void> {
     const res = await del<ApiResponse<null>>('profile/connections/discord')
     if (res.status !== 'success') {
-      throw new Error(res.message ?? 'Failed to disconnect Discord')
+      throw new Error(res.message ?? t('web.identity-connections.disconnect_failed'))
     }
   }
 
@@ -34,7 +37,7 @@ export function useConnections() {
     if (res.status === 'success' && res.data?.url) {
       return res.data.url
     }
-    throw new Error(res.message ?? 'Failed to start Discord authorization')
+    throw new Error(res.message ?? t('web.identity-connections.authorization_failed'))
   }
 
   return {

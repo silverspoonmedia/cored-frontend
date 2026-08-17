@@ -6,7 +6,7 @@ import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions, { type RowAction } from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import { usePaymentGateways } from '@/composables/usePaymentGateways'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
@@ -21,7 +21,6 @@ const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage payment gateway'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 const deleteTarget = ref<PaymentGateway | null>(null)
-const showDeleteModal = ref(false)
 
 const columns: DataTableColumn[] = [
   { key: 'name', label: t('web.payments.gateways.datatable.columns.name'), sortable: true },
@@ -43,9 +42,14 @@ function gatewayActions(row: PaymentGateway): RowAction[] {
       icon: 'trash3',
       label: t('ui.actions.delete'),
       variant: 'danger',
-      onClick: () => {
+      onClick: async () => {
         deleteTarget.value = row
-        showDeleteModal.value = true
+        const confirmed = await confirmDialog({
+          title: t('ui.datatable.delete'),
+          text: t('web.payments.gateways.confirm_delete'),
+          confirmText: t('ui.actions.delete'),
+        })
+        if (confirmed) await handleDelete()
       },
     },
   ]
@@ -111,14 +115,5 @@ async function handleDelete(): Promise<void> {
         <RowActions :actions="gatewayActions(row)" />
       </template>
     </DataTable>
-
-    <ConfirmModal
-      v-model="showDeleteModal"
-      :title="t('ui.datatable.delete')"
-      :message="t('web.payments.gateways.confirm_delete')"
-      :confirm-label="t('ui.actions.delete')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-    />
   </Card>
 </template>

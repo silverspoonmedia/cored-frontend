@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import AppAlert from '@/components/AppAlert.vue'
 import { usePageTitle } from '@/composables/usePageTitle'
 
 const router = useRouter()
@@ -16,7 +15,6 @@ const { heading } = usePageTitle()
       <div class="card-body login-card-body" id="main-content">
         <p v-if="heading" class="login-box-msg">{{ heading }}</p>
 
-        <AppAlert />
         <router-view />
       </div>
     </div>

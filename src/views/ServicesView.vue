@@ -6,7 +6,7 @@ import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions, { type RowAction } from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import { useServices } from '@/composables/useServices'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
@@ -24,7 +24,6 @@ const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage service'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 const deleteTarget = ref<Service | null>(null)
-const showDeleteModal = ref(false)
 
 useListingLiveUpdate('services', fetchList)
 
@@ -58,9 +57,14 @@ function serviceActions(row: Service): RowAction[] {
       icon: 'trash3',
       label: t('ui.actions.delete'),
       variant: 'danger',
-      onClick: () => {
+      onClick: async () => {
         deleteTarget.value = row
-        showDeleteModal.value = true
+        const confirmed = await confirmDialog({
+          title: t('ui.datatable.delete'),
+          text: t('web.services.confirm_delete'),
+          confirmText: t('ui.actions.delete'),
+        })
+        if (confirmed) await handleDelete()
       },
     })
   }
@@ -132,14 +136,5 @@ onUnmounted(() => {
         <RowActions :actions="serviceActions(row)" />
       </template>
     </DataTable>
-
-    <ConfirmModal
-      v-model="showDeleteModal"
-      :title="t('ui.datatable.delete')"
-      :message="t('web.services.confirm_delete')"
-      :confirm-label="t('ui.actions.delete')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-    />
   </Card>
 </template>

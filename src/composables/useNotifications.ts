@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import { get, post } from '@/api/client'
 import { getEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
@@ -27,7 +28,7 @@ export function useNotifications() {
       hasSeededList.value = true
       return items.value
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch notifications'
+      error.value = e instanceof Error ? e.message : i18n.global.t('web.notifications.load_failed')
       items.value = []
       return []
     } finally {

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get } from '@/api/client'
 import type {
   ApiResponse,
@@ -8,6 +9,7 @@ import type {
 } from '@/api/types'
 
 export function useInferenceUsage() {
+  const { t } = useI18n()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -19,9 +21,9 @@ export function useInferenceUsage() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch model card')
+      throw new Error(res.message ?? t('web.inference.model_cards.load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch model card'
+      error.value = e instanceof Error ? e.message : t('web.inference.model_cards.load_failed')
       throw e
     } finally {
       loading.value = false
@@ -41,9 +43,9 @@ export function useInferenceUsage() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch usage overview')
+      throw new Error(res.message ?? t('web.inference.usage.overview_load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch usage overview'
+      error.value = e instanceof Error ? e.message : t('web.inference.usage.overview_load_failed')
       throw e
     } finally {
       loading.value = false
@@ -63,9 +65,9 @@ export function useInferenceUsage() {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch usage events')
+      throw new Error(res.message ?? t('web.inference.usage.events_load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch usage events'
+      error.value = e instanceof Error ? e.message : t('web.inference.usage.events_load_failed')
       throw e
     } finally {
       loading.value = false

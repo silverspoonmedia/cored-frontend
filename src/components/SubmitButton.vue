@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   label?: string
@@ -10,7 +13,7 @@ const props = withDefaults(defineProps<{
   type?: 'submit' | 'button'
   icon?: string | null
 }>(), {
-  label: 'Save',
+  label: '',
   loading: false,
   variant: 'primary',
   size: null,
@@ -43,6 +46,6 @@ const buttonClasses = computed(() => {
       aria-hidden="true"
     ></span>
     <i v-if="icon && !loading" class="bi" :class="icon" aria-hidden="true"></i>
-    <span v-if="label">{{ label }}</span>
+    <span v-if="label || !loading">{{ label || t('ui.actions.save') }}</span>
   </button>
 </template>

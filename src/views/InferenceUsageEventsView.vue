@@ -14,7 +14,9 @@ const { fetchOverview, fetchUsageEvents } = useInferenceUsage()
 const { items: modelCards, fetchList: fetchModelCards } = useInferenceModelCards()
 const { hydrateUsageEvents } = useInferenceHydrate()
 const { error: showError } = useAlert()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const formatNumber = (value: number): string => new Intl.NumberFormat(locale.value).format(value)
 
 const overview = ref<InferenceUsageOverview | null>(null)
 const events = ref<InferenceUsageEvent[]>([])
@@ -145,19 +147,19 @@ onMounted(async () => {
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
             <div class="text-muted small">{{ t('web.inference.usage.totals.events') }}</div>
-            <div class="fs-5 fw-bold">{{ overview.totals.event_count.toLocaleString() }}</div>
+            <div class="fs-5 fw-bold">{{ formatNumber(overview.totals.event_count) }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
             <div class="text-muted small">{{ t('web.inference.usage.totals.users') }}</div>
-            <div class="fs-5 fw-bold">{{ overview.totals.unique_users.toLocaleString() }}</div>
+            <div class="fs-5 fw-bold">{{ formatNumber(overview.totals.unique_users) }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
           <div class="border rounded p-3 text-center">
             <div class="text-muted small">{{ t('web.inference.usage.totals.tokens') }}</div>
-            <div class="fs-5 fw-bold">{{ overview.totals.total_tokens.toLocaleString() }}</div>
+            <div class="fs-5 fw-bold">{{ formatNumber(overview.totals.total_tokens) }}</div>
           </div>
         </div>
         <div class="col-6 col-md-2">
@@ -279,7 +281,7 @@ onMounted(async () => {
                 <td class="small"><code>{{ ev.resolved_model ?? ev.alias_model ?? '—' }}</code></td>
                 <td class="small">{{ ev.inference_provider?.name ?? '—' }}</td>
                 <td class="small">{{ ev.stage ?? '—' }}</td>
-                <td class="text-end small">{{ ev.total_tokens.toLocaleString() }}</td>
+                <td class="text-end small">{{ formatNumber(ev.total_tokens) }}</td>
                 <td class="text-end small">{{ ev.billable_usd }}</td>
                 <td class="small">
                   <span v-if="ev.rate_snapshot">

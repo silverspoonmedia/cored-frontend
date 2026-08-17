@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get, post, put, patch, del } from '@/api/client'
 import { ApiError, type ApiResponse, type ListPagination, type PagedList } from '@/api/types'
 
@@ -55,6 +56,7 @@ function wantsPaging(params?: ListParams): boolean {
 }
 
 export function useResource<T>(baseUri: string) {
+  const { t } = useI18n()
   const items: Ref<T[]> = ref([])
   const pagination: Ref<ListPagination> = ref(emptyListPagination())
   const loading = ref(false)
@@ -91,9 +93,10 @@ export function useResource<T>(baseUri: string) {
 
       items.value = []
       pagination.value = emptyListPagination()
+      error.value = t('web.shared.load_failed')
       return []
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch data'
+      error.value = e instanceof Error ? e.message : t('web.shared.load_failed')
       items.value = []
       pagination.value = emptyListPagination()
       return []
@@ -111,9 +114,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to fetch record')
+      throw new Error(res.message ?? t('web.shared.load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch record'
+      error.value = e instanceof Error ? e.message : t('web.shared.load_failed')
       throw e
     } finally {
       loading.value = false
@@ -127,9 +130,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to create record')
+      throw new Error(res.message ?? t('web.shared.create_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to create record'
+      error.value = e instanceof Error ? e.message : t('web.shared.create_failed')
       throw e
     }
   }
@@ -141,9 +144,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to update record')
+      throw new Error(res.message ?? t('web.shared.update_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to update record'
+      error.value = e instanceof Error ? e.message : t('web.shared.update_failed')
       throw e
     }
   }
@@ -155,9 +158,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? 'Failed to update record')
+      throw new Error(res.message ?? t('web.shared.update_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to update record'
+      error.value = e instanceof Error ? e.message : t('web.shared.update_failed')
       throw e
     }
   }
@@ -167,7 +170,7 @@ export function useResource<T>(baseUri: string) {
     try {
       await del<ApiResponse<null>>(`${baseUri}/${id}`)
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to delete record'
+      error.value = e instanceof Error ? e.message : t('web.shared.delete_failed')
       throw e
     }
   }

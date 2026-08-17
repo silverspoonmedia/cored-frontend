@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import { get, put } from '@/api/client'
 import type {
   ApiResponse,
@@ -16,6 +17,8 @@ let fetchPromise: Promise<void> | null = null
 
 const BASE = 'admin/notification-audiences'
 
+const translated = (key: string): string => i18n.global.t(key)
+
 async function load(force = false): Promise<void> {
   if ((loaded || fetchPromise) && !force) return fetchPromise ?? Promise.resolve()
 
@@ -30,10 +33,10 @@ async function load(force = false): Promise<void> {
         assignableRoles.value = res.data.assignable_roles
         loaded = true
       } else {
-        error.value = res.message ?? 'Failed to load notification audiences'
+        error.value = res.message ?? translated('web.notification-audiences.failed_load')
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to load notification audiences'
+      error.value = e instanceof Error ? e.message : translated('web.notification-audiences.failed_load')
     } finally {
       loading.value = false
       fetchPromise = null
@@ -55,10 +58,10 @@ async function fetchOne(type: string): Promise<NotificationAudience | null> {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    error.value = res.message ?? 'Failed to load notification audience'
+    error.value = res.message ?? translated('web.notification-audiences.failed_load')
     return null
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to load notification audience'
+    error.value = e instanceof Error ? e.message : translated('web.notification-audiences.failed_load')
     return null
   }
 }
@@ -83,10 +86,10 @@ async function update(
       }
       return updated
     }
-    error.value = res.message ?? 'Failed to update notification audience'
+    error.value = res.message ?? translated('web.notification-audiences.failed_update')
     return null
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to update notification audience'
+    error.value = e instanceof Error ? e.message : translated('web.notification-audiences.failed_update')
     return null
   }
 }

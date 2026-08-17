@@ -1,9 +1,11 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get, post, put, del } from '@/api/client'
 import type { ApiResponse, UserManagement, UserAssignableRole } from '@/api/types'
 import { useResource } from '@/composables/useResource'
 
 export function useUsers() {
+  const { t } = useI18n()
   const base = useResource<UserManagement>('users')
 
   const assignableRoles = ref<UserAssignableRole[]>([])
@@ -28,7 +30,7 @@ export function useUsers() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to create user')
+    throw new Error(res.message ?? t('web.users.save_failed'))
   }
 
   async function updateUser(id: number | string, data: Record<string, unknown>): Promise<UserManagement> {
@@ -36,7 +38,7 @@ export function useUsers() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to update user')
+    throw new Error(res.message ?? t('web.users.save_failed'))
   }
 
   async function deleteUser(id: number | string): Promise<void> {

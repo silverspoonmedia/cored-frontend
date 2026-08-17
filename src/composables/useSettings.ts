@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { get, put } from '@/api/client'
 import type {
   ApiResponse,
@@ -8,6 +9,7 @@ import type {
 } from '@/api/types'
 
 export function useSettings() {
+  const { t } = useI18n()
   const groups = ref<string[]>([])
   const currentGroup = ref<string>('')
   const settings = ref<SettingGroup>({})
@@ -22,7 +24,7 @@ export function useSettings() {
       const res = await get<ApiResponse<SettingsGroupsPayload>>('admin/settings/groups')
       groups.value = res.data?.groups ?? []
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch groups'
+      error.value = e instanceof Error ? e.message : t('web.settings.load_groups_failed')
     } finally {
       loading.value = false
     }
@@ -38,7 +40,7 @@ export function useSettings() {
         settings.value = res.data.settings
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to fetch settings'
+      error.value = e instanceof Error ? e.message : t('web.settings.load_failed')
     } finally {
       loading.value = false
     }
@@ -56,7 +58,7 @@ export function useSettings() {
       }
       return false
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to save settings'
+      error.value = e instanceof Error ? e.message : t('web.settings.save_failed')
       return false
     } finally {
       saving.value = false

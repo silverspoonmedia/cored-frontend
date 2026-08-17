@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions, { type RowAction } from '@/components/RowActions.vue'
-import ConfirmModal from '@/components/ConfirmModal.vue'
+import { confirmDialog } from '@/lib/swal'
 import { useMenus } from '@/composables/useMenus'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
@@ -21,14 +21,12 @@ const layout = ref('sidebar')
 const canManage = computed(() => hasPermission('manage menu'))
 
 const deleteTarget = ref<MenuListItem | null>(null)
-const showDeleteModal = ref(false)
 const cascade = ref(false)
 const deleting = ref(false)
 
-const deleteMessage = computed(() => {
-  if (!deleteTarget.value) return ''
-  return t('web.menus.delete_confirm_question', { name: deleteTarget.value.name })
-})
+function escapeHtml(value: unknown): string {
+  return String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch] ?? ch)
+}
 
 const columns: DataTableColumn[] = [
   { key: 'name', label: t('web.menus.columns.name'), sortable: true },
@@ -57,10 +55,16 @@ function menuActions(row: MenuListItem): RowAction[] {
   ]
 }
 
-function confirmDelete(row: MenuListItem): void {
+async function confirmDelete(row: MenuListItem): Promise<void> {
   deleteTarget.value = row
   cascade.value = (row.children_count ?? 0) > 0
-  showDeleteModal.value = true
+  const confirmed = await confirmDialog({
+    title: `Delete &quot;${escapeHtml(row.name)}&quot;`,
+    text: t('web.menus.delete_confirm_question', { name: row.name }),
+    confirmText: t('ui.actions.delete'),
+  })
+  if (confirmed) await handleDelete()
+  else deleteTarget.value = null
 }
 
 async function handleDelete(): Promise<void> {
@@ -143,15 +147,5 @@ onMounted(load)
         <RowActions :actions="menuActions(row)" />
       </template>
     </DataTable>
-
-    <ConfirmModal
-      v-model="showDeleteModal"
-      :title="`Delete &quot;${deleteTarget?.name ?? ''}&quot;`"
-      :message="deleteMessage"
-      :confirm-label="t('ui.actions.delete')"
-      confirm-variant="danger"
-      @confirm="handleDelete"
-    >
-    </ConfirmModal>
   </Card>
 </template>

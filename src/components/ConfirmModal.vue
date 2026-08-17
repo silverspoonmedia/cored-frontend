@@ -1,5 +1,10 @@
 <script setup lang="ts">
+import { useSlots } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Modal from './Modal.vue'
+
+const slots = useSlots()
+const { t } = useI18n()
 
 const props = withDefaults(defineProps<{
   modelValue?: boolean
@@ -10,10 +15,10 @@ const props = withDefaults(defineProps<{
   confirmVariant?: string
 }>(), {
   modelValue: false,
-  title: 'Confirm',
-  message: 'Are you sure?',
-  confirmLabel: 'Confirm',
-  cancelLabel: 'Cancel',
+  title: '',
+  message: '',
+  confirmLabel: '',
+  cancelLabel: '',
   confirmVariant: 'danger',
 })
 
@@ -37,10 +42,10 @@ function onCancel(): void {
 <template>
   <Modal
     :model-value="modelValue"
-    :title="title"
+    :title="title || t('ui.dialog.confirm_title')"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <p v-if="message" class="mb-0">{{ message }}</p>
+    <p v-if="message || !slots.default" class="mb-0">{{ message || t('ui.dialog.confirm_message') }}</p>
     <slot v-else />
 
     <template #footer>
@@ -48,13 +53,13 @@ function onCancel(): void {
         type="button"
         class="btn btn-outline-secondary"
         @click="onCancel"
-      >{{ cancelLabel }}</button>
+      >{{ cancelLabel || t('ui.actions.cancel') }}</button>
       <button
         type="button"
         class="btn"
         :class="`btn-${confirmVariant}`"
         @click="onConfirm"
-      >{{ confirmLabel }}</button>
+      >{{ confirmLabel || t('ui.dialog.confirm') }}</button>
     </template>
   </Modal>
 </template>

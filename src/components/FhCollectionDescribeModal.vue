@@ -2,6 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Modal from '@/components/Modal.vue'
+import { confirmDialog } from '@/lib/swal'
 import type { FhFolder, MicrostockBillingSummary } from '@/api/types'
 import {
   HINT_MAX_LENGTH,
@@ -82,7 +83,7 @@ function hasError(key: string): boolean {
   return errors.value.includes(key)
 }
 
-function submit(): void {
+async function submit(): Promise<void> {
   const result = validateCollectionDescribe(sections, { dailyFreeEnabled: dailyFreeEnabled.value })
   if (charCount.value > HINT_MAX_LENGTH) {
     result.errors.push('tooLong')
@@ -91,7 +92,7 @@ function submit(): void {
   errors.value = result.errors
   if (!result.valid) return
 
-  if (isBlindDescribe(sections) && !window.confirm(t('web.file-hosting.microstock.describe_warning_blind'))) {
+  if (isBlindDescribe(sections) && !(await confirmDialog({ text: t('web.file-hosting.microstock.describe_warning_blind') }))) {
     return
   }
 

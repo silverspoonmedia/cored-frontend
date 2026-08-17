@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import AppAlert from '@/components/AppAlert.vue'
-
 defineProps<{
   title?: string
 }>()
@@ -8,7 +6,6 @@ defineProps<{
 
 <template>
   <div id="main-content" class="fh-public-wrapper" data-bs-theme="dark">
-    <AppAlert />
     <router-view />
   </div>
 </template>

@@ -813,3 +813,20 @@ code {
         transition: none;
     }
 }
+
+/* ---- Sweetalert2 layering: keep dialogs/toasts above Bootstrap modals (1050/1055) and custom layers (1080) ---- */
+.swal2-container {
+    z-index: 1090 !important;
+}
+
+/* Toast sizing must not depend on body.swal2-toast-shown — App.vue and AdminLTE
+   both mutate body classes, and wiping that class makes the container fall back
+   to inset:0 / height:100% (full-viewport banner). */
+.swal2-container:has(.swal2-popup.swal2-toast) {
+    width: 360px;
+    max-width: 100%;
+    height: auto;
+    inset: 0 0 auto auto;
+    background: transparent;
+    pointer-events: none;
+}

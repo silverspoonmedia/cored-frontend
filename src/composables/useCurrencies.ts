@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import i18n from '@/i18n'
 import { get, put } from '@/api/client'
 import { useAlert } from '@/composables/useAlert'
 import type { ApiResponse, Currency } from '@/api/types'
@@ -7,6 +8,9 @@ const currencies = ref<Currency[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 const updating = ref<Set<string>>(new Set())
+
+const translated = (key: string, values?: Record<string, unknown>): string =>
+  i18n.global.t(key, values as never)
 let loaded = false
 let fetchPromise: Promise<void> | null = null
 
@@ -23,10 +27,10 @@ async function load(force = false): Promise<void> {
         currencies.value = res.data
         loaded = true
       } else {
-        error.value = res.message ?? 'Failed to load currencies'
+        error.value = res.message ?? translated('web.currencies.load_failed')
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to load currencies'
+      error.value = e instanceof Error ? e.message : translated('web.currencies.load_failed')
     } finally {
       loading.value = false
       fetchPromise = null
@@ -64,10 +68,10 @@ async function toggleActive(code: string, currentActive: boolean): Promise<void>
         next[idx] = updated
         currencies.value = next
       }
-      showSuccess(`Currency ${updated.is_active ? 'activated' : 'deactivated'}.`)
+      showSuccess(translated(updated.is_active ? 'web.currencies.activated' : 'web.currencies.deactivated'))
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to update currency')
+    showError(e instanceof Error ? e.message : translated('web.currencies.update_failed'))
   } finally {
     setUpdating(code, false)
   }
@@ -86,10 +90,10 @@ async function setSettlement(code: string): Promise<void> {
         ...c,
         is_settlement: c.code === updated.code ? true : false,
       }))
-      showSuccess(`${updated.code} set as settlement currency.`)
+      showSuccess(translated('web.currencies.settlement_updated', { code: updated.code }))
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : 'Failed to set settlement currency')
+    showError(e instanceof Error ? e.message : translated('web.currencies.settlement_failed'))
   } finally {
     setUpdating(code, false)
   }

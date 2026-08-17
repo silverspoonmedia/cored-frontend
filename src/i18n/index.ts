@@ -14,11 +14,13 @@ export const LOCALE_LABELS: Record<AppLocale, string> = {
 }
 
 function detectLocale(): AppLocale {
-  const stored = localStorage.getItem('locale') as AppLocale | null
-  if (stored && SUPPORTED_LOCALES.includes(stored)) return stored
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('locale') as AppLocale | null
+    if (stored && SUPPORTED_LOCALES.includes(stored)) return stored
 
-  const nav = navigator.language.slice(0, 2).toLowerCase() as AppLocale
-  if (SUPPORTED_LOCALES.includes(nav)) return nav
+    const nav = navigator.language.slice(0, 2).toLowerCase() as AppLocale
+    if (SUPPORTED_LOCALES.includes(nav)) return nav
+  }
 
   return 'en'
 }
@@ -32,12 +34,14 @@ const i18n = createI18n({
 
 export function setLocale(locale: AppLocale): void {
   i18n.global.locale.value = locale
-  localStorage.setItem('locale', locale)
-  document.documentElement.setAttribute('lang', locale)
+  if (typeof window !== 'undefined') localStorage.setItem('locale', locale)
+  applyHtmlLang()
 }
 
 export function applyHtmlLang(): void {
-  document.documentElement.setAttribute('lang', i18n.global.locale.value)
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('lang', i18n.global.locale.value)
+  }
 }
 
 export default i18n

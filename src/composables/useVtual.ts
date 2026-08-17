@@ -12,10 +12,12 @@ import type {
   VtualExternalLink,
 } from '@/api/types'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ListParams } from '@/composables/useResource'
 import { emptyListPagination, unwrapListPayload } from '@/composables/useResource'
 
 export function useVtual() {
+  const { t } = useI18n()
   const orphanPagination = ref(emptyListPagination())
 
   async function fetchOwned(): Promise<VtualCreator[]> {
@@ -43,7 +45,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to fetch orphan')
+    throw new Error(res.message ?? t('web.vtual-orphans.errors.load_failed'))
   }
 
   async function createOrphan(data: Record<string, unknown>): Promise<VtualCreator> {
@@ -51,7 +53,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to create orphan')
+    throw new Error(res.message ?? t('web.vtual-orphans.errors.save_failed'))
   }
 
   async function updateCreator(id: string, data: Record<string, unknown>): Promise<VtualCreator> {
@@ -59,7 +61,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to update creator')
+    throw new Error(res.message ?? t('web.vtual.errors.update_failed'))
   }
 
   async function mergeCreator(sourceId: string, destinationId: string): Promise<VtualCreator> {
@@ -69,7 +71,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to merge creators')
+    throw new Error(res.message ?? t('web.vtual.errors.merge_failed'))
   }
 
   async function fetchPlatforms(): Promise<VtualPlatform[]> {
@@ -95,7 +97,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to fetch credential')
+    throw new Error(res.message ?? t('web.vtual-platform-credentials.load_failed'))
   }
 
   async function createCredential(
@@ -109,7 +111,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to create credential')
+    throw new Error(res.message ?? t('web.vtual-platform-credentials.save_failed'))
   }
 
   async function updateCredential(
@@ -120,7 +122,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to update credential')
+    throw new Error(res.message ?? t('web.vtual-platform-credentials.save_failed'))
   }
 
   async function deleteCredential(id: string): Promise<void> {
@@ -130,13 +132,13 @@ export function useVtual() {
   async function revokeCredential(id: string): Promise<VtualPlatformCredential> {
     const res = await post<ApiResponse<VtualPlatformCredential>>(`vtual/admin/credentials/${id}/revoke`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to revoke')
+    throw new Error(res.message ?? t('web.vtual.credentials.revoke_failed'))
   }
 
   async function testCredential(id: string): Promise<VtualPlatformCredential> {
     const res = await post<ApiResponse<VtualPlatformCredential>>(`vtual/admin/credentials/${id}/test`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to test')
+    throw new Error(res.message ?? t('web.vtual.credentials.test_failed'))
   }
 
   // --- Profile show ---
@@ -146,7 +148,7 @@ export function useVtual() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Failed to fetch creator')
+    throw new Error(res.message ?? t('web.vtual.errors.load_failed'))
   }
 
   async function fetchChannels(creatorId: string): Promise<VtualChannel[]> {
@@ -185,25 +187,25 @@ export function useVtual() {
   async function refreshChannel(channelId: string): Promise<VtualChannel> {
     const res = await post<ApiResponse<VtualChannel>>(`vtual/channels/${channelId}/refresh`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to refresh channel')
+    throw new Error(res.message ?? t('web.vtual.errors.refresh_failed'))
   }
 
   async function archiveChannel(channelId: string): Promise<VtualChannel> {
     const res = await post<ApiResponse<VtualChannel>>(`vtual/channels/${channelId}/archive`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to archive channel')
+    throw new Error(res.message ?? t('web.vtual.errors.archive_failed'))
   }
 
   async function restoreChannel(channelId: string): Promise<VtualChannel> {
     const res = await post<ApiResponse<VtualChannel>>(`vtual/channels/${channelId}/restore`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to restore channel')
+    throw new Error(res.message ?? t('web.vtual.errors.restore_failed'))
   }
 
   async function promoteChannel(channelId: string): Promise<VtualChannel> {
     const res = await post<ApiResponse<VtualChannel>>(`vtual/channels/${channelId}/promote`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to promote channel')
+    throw new Error(res.message ?? t('web.vtual.errors.promote_failed'))
   }
 
   // Channel claim actions
@@ -213,44 +215,44 @@ export function useVtual() {
       { platform_key: platformKey, profile },
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to add channel')
+    throw new Error(res.message ?? t('web.vtual.errors.channel_add_failed'))
   }
 
   async function verifyChannelClaim(claimId: string): Promise<VtualChannelClaim> {
     const res = await post<ApiResponse<VtualChannelClaim>>(`vtual/channel-claims/${claimId}/verify`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to verify channel claim')
+    throw new Error(res.message ?? t('web.vtual.errors.verify_failed'))
   }
 
   async function verifyDiscordChannelClaim(claimId: string): Promise<VtualChannelClaim> {
     const res = await post<ApiResponse<VtualChannelClaim>>(`vtual/channel-claims/${claimId}/verify-discord`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed Discord verify')
+    throw new Error(res.message ?? t('web.vtual-vtuber.errors.discord_verify_failed'))
   }
 
   async function cancelChannelClaim(claimId: string): Promise<VtualChannelClaim> {
     const res = await post<ApiResponse<VtualChannelClaim>>(`vtual/channel-claims/${claimId}/cancel`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to cancel claim')
+    throw new Error(res.message ?? t('web.vtual.errors.cancel_failed'))
   }
 
   async function acceptAnywayChannelClaim(claimId: string): Promise<VtualChannelClaim> {
     const res = await post<ApiResponse<VtualChannelClaim>>(`vtual/channel-claims/${claimId}/accept-anyway`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to accept claim')
+    throw new Error(res.message ?? t('web.vtual.errors.accept_failed'))
   }
 
   // Links
   async function addLink(creatorId: string, data: { label: string; url: string; kind: string }): Promise<VtualExternalLink> {
     const res = await post<ApiResponse<VtualExternalLink>>(`vtual/creators/${creatorId}/links`, data)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to add link')
+    throw new Error(res.message ?? t('web.vtual.errors.link_save_failed'))
   }
 
   async function updateLink(linkId: string, data: Partial<{ label: string; url: string; kind: string }>): Promise<VtualExternalLink> {
     const res = await patch<ApiResponse<VtualExternalLink>>(`vtual/links/${linkId}`, data)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to update link')
+    throw new Error(res.message ?? t('web.vtual.errors.update_failed'))
   }
 
   async function deleteLink(linkId: string): Promise<void> {
@@ -262,7 +264,7 @@ export function useVtual() {
   async function fetchVtuberProfile(slugOrId: string): Promise<VtualVtuberProfile> {
     const res = await get<ApiResponse<VtualVtuberProfile>>(`vtual/vtubers/${slugOrId}`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch profile')
+    throw new Error(res.message ?? t('web.vtual-vtuber.show.errors.load_failed'))
   }
 
   // --- Creator claims ---
@@ -282,7 +284,7 @@ export function useVtual() {
   async function fetchClaim(claimId: string): Promise<VtualCreatorClaim> {
     const res = await get<ApiResponse<VtualCreatorClaim>>(`vtual/claims/${claimId}`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to fetch claim')
+    throw new Error(res.message ?? t('web.vtual-vtuber.errors.load_failed'))
   }
 
   async function startClaim(creatorId: string, channelId: string): Promise<VtualCreatorClaim> {
@@ -291,31 +293,31 @@ export function useVtual() {
       channel_id: channelId,
     })
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to start claim')
+    throw new Error(res.message ?? t('web.vtual-vtuber.errors.start_failed'))
   }
 
   async function verifyClaim(claimId: string): Promise<VtualCreatorClaim> {
     const res = await post<ApiResponse<VtualCreatorClaim>>(`vtual/claims/${claimId}/verify`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to verify claim')
+    throw new Error(res.message ?? t('web.vtual-vtuber.errors.verify_failed'))
   }
 
   async function verifyDiscordClaim(claimId: string): Promise<VtualCreatorClaim> {
     const res = await post<ApiResponse<VtualCreatorClaim>>(`vtual/claims/${claimId}/verify-discord`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed Discord verify')
+    throw new Error(res.message ?? t('web.vtual-vtuber.errors.discord_verify_failed'))
   }
 
   async function cancelClaim(claimId: string): Promise<VtualCreatorClaim> {
     const res = await post<ApiResponse<VtualCreatorClaim>>(`vtual/claims/${claimId}/cancel`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to cancel claim')
+    throw new Error(res.message ?? t('web.vtual.errors.cancel_failed'))
   }
 
   async function acceptAnywayClaim(claimId: string): Promise<VtualCreatorClaim> {
     const res = await post<ApiResponse<VtualCreatorClaim>>(`vtual/claims/${claimId}/accept-anyway`)
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? 'Failed to accept claim')
+    throw new Error(res.message ?? t('web.vtual.errors.accept_failed'))
   }
 
   return {
