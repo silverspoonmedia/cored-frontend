@@ -39,6 +39,48 @@ export function showErrorDialog(message: string, title?: string): Promise<void> 
   }).then(() => undefined)
 }
 
+export interface InputDialogOptions {
+  title: string
+  confirmText?: string
+  cancelText?: string
+  placeholder?: string
+  required?: boolean
+  danger?: boolean
+}
+
+/**
+ * Single-text-input dialog (replaces native prompt()). Resolves the trimmed
+ * string, or null on cancel. When `required` is true the confirm button stays
+ * disabled until the input is non-empty.
+ */
+export async function inputDialog(options: InputDialogOptions): Promise<string | null> {
+  closeActiveToast()
+  const result = await Swal.fire({
+    icon: 'question',
+    title: options.title,
+    input: 'text',
+    inputPlaceholder: options.placeholder ?? '',
+    showCancelButton: true,
+    confirmButtonText: options.confirmText ?? t('ui.dialog.confirm'),
+    cancelButtonText: options.cancelText ?? t('ui.swal.cancel'),
+    customClass: {
+      confirmButton: `btn ${options.danger === false ? 'btn-primary' : 'btn-danger'}`,
+      cancelButton: 'btn btn-outline-secondary',
+    },
+    buttonsStyling: false,
+    reverseButtons: true,
+    inputValidator: (value) => {
+      if (options.required && !value.trim()) {
+        return t('ui.dialog.input_required')
+      }
+      return null
+    },
+  })
+  if (!result.isConfirmed || typeof result.value !== 'string') return null
+  const trimmed = result.value.trim()
+  return trimmed === '' ? null : trimmed
+}
+
 export interface ConfirmDialogOptions {
   title?: string
   text?: string

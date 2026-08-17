@@ -1029,7 +1029,8 @@
       "request_failed": "リクエストを処理できませんでした。",
       "session_expired": "セッションの有効期限が切れました。もう一度ログインしてください。",
       "server_unreachable": "サーバーに接続できませんでした。接続を確認してください。",
-      "datatable_load_failed": "テーブルデータを読み込めませんでした。もう一度お試しください。"
+      "datatable_load_failed": "テーブルデータを読み込めませんでした。もう一度お試しください。",
+      "unexpected_error": "問題が発生しました。もう一度お試しください。"
     },
     "shared": {
       "load_failed": "データを読み込めませんでした。",
@@ -1041,7 +1042,8 @@
       "confirm_title": "確認",
       "confirm_message": "よろしいですか？",
       "confirm": "確認",
-      "error_title": "エラーが発生しました"
+      "error_title": "エラーが発生しました",
+      "input_required": "この項目は必須です。"
     },
     "password": {
       "show": "パスワードを表示",
@@ -1447,6 +1449,10 @@
       "locale_update_failed": "言語設定を更新できませんでした。",
       "forgot_password_heading": "再設定リンクを受け取るメールアドレスを入力してください",
       "reset_password_heading": "新しいパスワードを設定してください",
+      "verify_email_title": "メール確認",
+      "verify_email_heading": "メールアドレスを確認しています",
+      "verify_email_failed": "この確認リンクは無効か、有効期限が切れています。",
+      "verify_email_continue": "続ける",
       "send_reset_link": "再設定リンクを送信",
       "reset_password_submit": "パスワードを再設定",
       "new_password_placeholder": "新しいパスワード",
@@ -1468,6 +1474,7 @@
       "two_factor_card_title": "認証アプリ",
       "two_factor_is_enabled": "このアカウントでは二要素認証が有効です。",
       "two_factor_not_enabled": "二要素認証はまだ有効ではありません。",
+      "two_factor_idle_help": "認証アプリのコードを必須にして、アカウントのセキュリティを強化します。",
       "two_factor_setup_button": "二要素認証を設定",
       "two_factor_setup_started": "認証アプリでシークレットを読み取り、コードを確認してください。",
       "two_factor_setup_qr_help": "以下のシークレットを使用して、このアカウントを認証アプリに追加してください。",

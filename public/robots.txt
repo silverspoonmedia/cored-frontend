@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /apps
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /two-factor-challenge
+Disallow: /verify-email
+Disallow: /payment
+Allow: /s/

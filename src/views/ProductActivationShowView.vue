@@ -8,6 +8,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useProductActivations } from '@/composables/useProductActivations'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { inputDialog } from '@/lib/swal'
 import type { ProductActivationShowPayload, ProductActivation } from '@/api/types'
 import { PRODUCT_ACTIVATION_STATE_BADGE } from '@/utils/statusBadge'
 
@@ -66,7 +67,11 @@ async function handleApprove(act: ProductActivation): Promise<void> {
 }
 
 async function handleReject(act: ProductActivation): Promise<void> {
-  const reason = prompt(t('product-activations.reject_reason_prompt'))
+  const reason = await inputDialog({
+    title: t('product-activations.reject_reason_prompt'),
+    confirmText: t('ui.dialog.confirm'),
+    required: true,
+  })
   if (!reason) return
   actionLoading.value = act.id
   try {
@@ -81,7 +86,12 @@ async function handleReject(act: ProductActivation): Promise<void> {
 }
 
 async function handleSuspend(act: ProductActivation): Promise<void> {
-  const reason = prompt(t('product-activations.suspend_reason_prompt'))
+  const reason = await inputDialog({
+    title: t('product-activations.suspend_reason_prompt'),
+    confirmText: t('ui.dialog.confirm'),
+    danger: false,
+  })
+  if (reason === null) return
   actionLoading.value = act.id
   try {
     await suspend(act.id, reason ?? undefined)

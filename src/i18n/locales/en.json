@@ -1029,7 +1029,8 @@
       "request_failed": "The request could not be processed.",
       "session_expired": "Your session has expired. Please sign in again.",
       "server_unreachable": "Could not reach the server. Check your connection.",
-      "datatable_load_failed": "Could not load the table data. Please try again."
+      "datatable_load_failed": "Could not load the table data. Please try again.",
+      "unexpected_error": "Something went wrong. Please try again."
     },
     "shared": {
       "load_failed": "Could not load the data.",
@@ -1041,7 +1042,8 @@
       "confirm_title": "Confirm",
       "confirm_message": "Are you sure?",
       "confirm": "Confirm",
-      "error_title": "Something went wrong"
+      "error_title": "Something went wrong",
+      "input_required": "This field is required."
     },
     "password": {
       "show": "Show password",
@@ -1447,6 +1449,10 @@
       "locale_update_failed": "Could not update the language preference.",
       "forgot_password_heading": "Enter your email to receive a reset link",
       "reset_password_heading": "Choose a new password",
+      "verify_email_title": "Verify email",
+      "verify_email_heading": "Confirming your email",
+      "verify_email_failed": "This verification link is invalid or has expired.",
+      "verify_email_continue": "Continue",
       "send_reset_link": "Send reset link",
       "reset_password_submit": "Reset password",
       "new_password_placeholder": "New password",
@@ -1468,6 +1474,7 @@
       "two_factor_card_title": "Authenticator app",
       "two_factor_is_enabled": "Two-factor authentication is enabled for your account.",
       "two_factor_not_enabled": "Two-factor authentication is not enabled yet.",
+      "two_factor_idle_help": "Add an extra layer of security by requiring a code from your authenticator app.",
       "two_factor_setup_button": "Set up two-factor authentication",
       "two_factor_setup_started": "Scan the secret with your authenticator app, then confirm the code.",
       "two_factor_setup_qr_help": "Add this account in your authenticator app using the secret below.",

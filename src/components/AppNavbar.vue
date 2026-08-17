@@ -12,6 +12,8 @@ import { useNotifications } from '@/composables/useNotifications'
 import { useEcho } from '@/composables/useEcho'
 import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 import { isNavNodeActive } from '@/utils/navActive'
+import { resolveNotificationLocation } from '@/utils/notificationTarget'
+import type { AppNotification } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -90,15 +92,16 @@ async function handleMarkAllRead(): Promise<void> {
   }
 }
 
-async function handleNotificationClick(id: number | string, isRead: boolean): Promise<void> {
-  if (!isRead) {
+async function handleNotificationClick(n: AppNotification): Promise<void> {
+  if (!n.is_read) {
     try {
-      await markAsRead(id)
+      await markAsRead(n.id)
     } catch {
       // silent
     }
   }
-  router.push({ name: 'notifications.index.view' })
+  const target = resolveNotificationLocation(router, n.action_route, n.action_params)
+  await router.push(target ?? { name: 'notifications.index.view' })
 }
 
 function notificationTime(n: { created_at_human: string | null; created_at_formatted: string | null; created_at: string | null }): string {
@@ -327,7 +330,7 @@ onUnmounted(() => {
                 href="#"
                 class="dropdown-item"
                 :class="{ 'fw-semibold': !n.is_read }"
-                @click.prevent="handleNotificationClick(n.id, n.is_read)"
+                @click.prevent="handleNotificationClick(n)"
               >
                 <i :class="n.icon || 'bi bi-bell'" class="me-2" aria-hidden="true"></i>
                 <span class="small">{{ n.message }}</span>

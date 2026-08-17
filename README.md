@@ -1,27 +1,74 @@
 # monolith-vue-workers
 
-This template should help get you started developing with Vue 3 in Vite.
+Leading Vue 3 SPA for the Monolith `/api/v1/*` API. Deployed to Cloudflare Workers: static assets plus a small BFF isolate on `/api/*` that mints an HttpOnly `spa_jwt` cookie and reverse-proxies to Laravel.
 
-## Recommended IDE Setup
+Blade in the Monolith repo stays as the in-repo reference. Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Architecture
 
-## Recommended Browser Setup
+```
+Browser (SPA origin)
+  → static HTML/JS/CSS (no Worker invocation)
+  → same-origin /api/v1/*  → Worker (spa_jwt → Bearer, X-SPA-Origin: 1)
+       → MONOLITH_API_ORIGIN /api/v1/*
+```
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+`VITE_API_BASE_URL` must stay **empty**. An absolute API URL bypasses the Worker: hostname leak and no `spa_jwt`.
 
-## Type Support for `.vue` Imports in TS
+## Scripts
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Vite + the same Worker BFF locally (`http://localhost:5173`) |
+| `npm run type-check` | `vue-tsc --build` |
+| `npm run check:i18n` | Locale key/placeholder parity + hardcoded-copy heuristics |
+| `npm test` | Vitest (Worker BFF helpers + notification deep-link resolver) |
+| `npm run build` | Type-check + production build |
+| `npm run build-only` | Vite production build |
+| `npm run preview` | Build + `wrangler dev` |
+| `npm run deploy` | Build + `wrangler deploy` |
 
-## Customize configuration
+CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Setup
+
+```sh
+npm install
+cp .env.example .env
+cp .dev.vars.example .dev.vars
+```
+
+Set `MONOLITH_API_ORIGIN` in `.dev.vars` (Worker-only, not bundled). Leave `VITE_API_BASE_URL=""`. Set Monolith `SPA_URL="http://localhost:5173"`.
+
+## Environment
+
+| Var | Where | Bundled? | Notes |
+|-----|--------|----------|--------|
+| `MONOLITH_API_ORIGIN` | Wrangler `vars` / `.dev.vars` | No | Laravel origin, no `/api/v1`, no trailing slash. Must match Monolith `APP_URL` origin or signed email-verify links fail HMAC. Empty → Worker 503. |
+| `VITE_API_BASE_URL` | `.env` | Yes | Must be empty |
+| `VITE_HCAPTCHA_SITE_KEY` | `.env` | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
+| `VITE_PUSHER_*` | `.env` | Yes | Echo; empty key = poll fallback. Mirror Monolith `PUSHER_*` literals |
+
+Discord return is **not** a Vite var. Set Monolith `SPA_URL` to this SPA’s public origin.
+
+## Production checklist
+
+On **Monolith** (`APP_ENV=production`):
+
+1. `SPA_URL` = public Vue-Workers origin (no trailing slash). Empty keeps Blade/API URLs for local Blade dogfood.
+2. `APP_URL` origin = Worker `MONOLITH_API_ORIGIN` (signed verify HMAC).
+3. hCaptcha: Settings on **and** `VITE_HCAPTCHA_SITE_KEY` set, or both off.
+4. File Hosting bucket / Gateway CORS includes the SPA origin and **exposes `ETag`**.
+5. Pusher or Sockudo: `PUSHER_*` on Laravel + matching `VITE_PUSHER_*` in the SPA build.
+
+On **Vue-Workers**:
+
+1. `wrangler.jsonc` `vars.MONOLITH_API_ORIGIN` is the production API host.
+2. Custom domain on the Worker; `npm run deploy`.
+3. `VITE_API_BASE_URL` empty in the build env.
+4. Static security headers live in `public/_headers` (CSP, frame deny). Worker JSON responses also stamp `X-Content-Type-Options` / `Referrer-Policy` / `Permissions-Policy`. Do **not** widen `run_worker_first` past `/api/*`.
+
+When `SPA_URL` is set, Laravel mints password-reset, email-verify, public share, and iPaymu hosted return/cancel URLs onto the SPA. Email verify signs the **API** route (HMAC on `APP_URL`); the browser lands on `/verify-email/{id}/{hash}?expires=&signature=` and the SPA GETs the API through the Worker.
 
 ## Localization
 
@@ -47,26 +94,10 @@ All notifications and confirmations use Sweetalert2 through `src/lib/swal.ts` �
 
 - Notifications: call `useAlert()` (`success`/`error`/`info`). Success/info render as Swal toasts; errors render as a Swal error dialog.
 - Confirmations: `confirmDialog({ title, text | html, confirmText, ... })` from `@/lib/swal` resolves `true` on confirm. Do not build `v-model` confirm components. `ConfirmModal.vue` remains only for the file-hosting rename form (an input dialog, not a yes/no confirm).
+- Text input prompts: `inputDialog({ title, required?, confirmText?, danger? })` from `@/lib/swal` replaces native `prompt()` and resolves the trimmed string or `null` on cancel. `required: true` blocks an empty confirm. Used by the product-activation reject/suspend reason prompts.
 - Labels come from `ui.swal.*` / `ui.dialog.*` plus domain keys, in all three locales.
 - `.swal2-container` is pinned to `z-index: 1090` (see `src/assets/monolith-overrides.css`) so dialogs always sit above Bootstrap modals (1050/1055) and other fixed layers (1080).
 - Modals close any open toast first (`closeActiveToast()` in `src/lib/swal.ts`) — swal2 otherwise strips the toast body class when a modal closes and the toast balloons to full width. Never call raw `Swal.fire` modals outside this helper.
 - Never assign `document.body.className = ''`. Swal stores `swal2-toast-shown` on `<body>`; wiping it (e.g. from `App.vue` after a child `onMounted` toast) turns the toast into a full-width banner. Toggle layout classes via `classList` only. CSS also pins toast container size via `.swal2-container:has(.swal2-popup.swal2-toast)`.
 - `useAlert().error(...)` returns a Promise: `await showError(...)` before any `window.location.href = ...` redirect (OAuth connect, downloads) so the dialog survives instead of being unloaded with the page.
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
+- Uncaught Vue errors and router failures go through `app.config.errorHandler` / `router.onError()` to the same error dialog (`ui.ajax.unexpected_error`).

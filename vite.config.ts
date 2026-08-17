@@ -4,23 +4,40 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
-import { cloudflare } from "@cloudflare/vite-plugin"
+import { cloudflare } from '@cloudflare/vite-plugin'
 
-// https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
 	plugins: [
 		vue(),
-		vueDevTools(),
-		cloudflare()
+		...(command === 'serve' ? [vueDevTools()] : []),
+		cloudflare(),
 	],
 	resolve: {
 		alias: {
-			'@': fileURLToPath(new URL('./src', import.meta.url))
+			'@': fileURLToPath(new URL('./src', import.meta.url)),
 		},
 	},
 	server: {
 		hmr: {
-			overlay: false
-		}
-	}
-})
+			overlay: false,
+		},
+	},
+	build: {
+		rollupOptions: {
+			output: {
+				manualChunks(id) {
+					if (id.includes('node_modules/vue/') || id.includes('node_modules/vue-router') || id.includes('node_modules/vue-i18n')) {
+						return 'vue'
+					}
+					if (id.includes('node_modules/bootstrap/') && !id.includes('select2-bootstrap')) {
+						return 'bootstrap'
+					}
+					if (id.includes('node_modules/laravel-echo') || id.includes('node_modules/pusher-js')) {
+						return 'echo'
+					}
+					return undefined
+				},
+			},
+		},
+	},
+}))

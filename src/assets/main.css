@@ -6,7 +6,11 @@
 @import './file-hosting.css';
 @import './channels-admin.css';
 
-/* Source Sans 3 + Bootstrap Icons are loaded via CDN in index.html (same as Monolith). */
+/* Source Sans 3 + Bootstrap Icons are bundled (see vendor.css). No CDN. */
+
+body {
+  font-family: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
 
 #app {
   width: 100%;

@@ -137,8 +137,7 @@ function handleCancel(): void {
         <div v-if="status === 'idle'">
           <p class="text-muted">{{ t('web.auth.two_factor_not_enabled') }}</p>
           <p class="text-muted small">
-            Add an extra layer of security to your account by requiring a verification code
-            from your authenticator app.
+            {{ t('web.auth.two_factor_idle_help') }}
           </p>
           <button
             type="button"
@@ -154,12 +153,12 @@ function handleCancel(): void {
         <!-- State: setup in progress -->
         <div v-else-if="status === 'setup' && setup">
           <p class="text-muted">
-            Add this account in your authenticator app using the QR code or secret below.
+            {{ t('web.auth.two_factor_setup_qr_help') }}
           </p>
 
           <div class="text-center my-3">
             <div v-if="qrInfo?.isSvg" v-html="qrInfo.content" class="d-inline-block p-2 bg-white rounded"></div>
-            <img v-else-if="qrInfo" :src="qrInfo.content" alt="QR code" class="img-fluid p-2 bg-white rounded" style="max-width: 200px;" />
+            <img v-else-if="qrInfo" :src="qrInfo.content" :alt="t('web.auth.two_factor_qr_alt')" class="img-fluid p-2 bg-white rounded" style="max-width: 200px;" />
           </div>
 
           <div class="mb-3">

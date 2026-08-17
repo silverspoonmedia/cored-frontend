@@ -117,6 +117,19 @@ const router = createRouter({
       ],
     },
     {
+      path: '/verify-email/:id/:hash',
+      name: 'verify-email',
+      component: AuthLayout,
+      meta: { authChrome: true, titleKey: 'web.auth.verify_email_title', headingKey: 'web.auth.verify_email_heading' },
+      children: [
+        {
+          path: '',
+          name: 'auth.verify-email.view',
+          component: () => import('@/views/VerifyEmailView.vue'),
+        },
+      ],
+    },
+    {
       path: '/two-factor-challenge',
       name: 'two-factor.challenge',
       component: AuthLayout,
@@ -956,13 +969,13 @@ const router = createRouter({
     },
     {
       path: '/apps/file-hosting/blocklist',
-      name: 'file-hosting.blocklist',
+      name: 'file-hosting.blocklist.index',
       component: AppLayout,
       meta: { requiresAuth: true, titleKey: 'web.file-hosting.blocklist_title' },
       children: [
         {
           path: '',
-          name: 'file-hosting.blocklist.view',
+          name: 'file-hosting.blocklist.index.view',
           component: () => import('@/views/FileHostingBlocklistView.vue'),
         },
       ],

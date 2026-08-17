@@ -1029,7 +1029,8 @@
       "request_failed": "Permintaan tidak dapat diproses.",
       "session_expired": "Sesi Anda telah berakhir. Silakan masuk lagi.",
       "server_unreachable": "Server tidak dapat dihubungi. Periksa koneksi Anda.",
-      "datatable_load_failed": "Data tabel tidak dapat dimuat. Silakan coba lagi."
+      "datatable_load_failed": "Data tabel tidak dapat dimuat. Silakan coba lagi.",
+      "unexpected_error": "Terjadi kesalahan. Silakan coba lagi."
     },
     "shared": {
       "load_failed": "Data tidak dapat dimuat.",
@@ -1041,7 +1042,8 @@
       "confirm_title": "Konfirmasi",
       "confirm_message": "Apakah Anda yakin?",
       "confirm": "Konfirmasi",
-      "error_title": "Terjadi kesalahan"
+      "error_title": "Terjadi kesalahan",
+      "input_required": "Kolom ini wajib diisi."
     },
     "password": {
       "show": "Tampilkan kata sandi",
@@ -1447,6 +1449,10 @@
       "locale_update_failed": "Preferensi bahasa tidak dapat diperbarui.",
       "forgot_password_heading": "Masukkan email Anda untuk menerima tautan reset",
       "reset_password_heading": "Pilih kata sandi baru Anda",
+      "verify_email_title": "Verifikasi email",
+      "verify_email_heading": "Mengonfirmasi email Anda",
+      "verify_email_failed": "Tautan verifikasi ini tidak valid atau sudah kedaluwarsa.",
+      "verify_email_continue": "Lanjutkan",
       "send_reset_link": "Kirim tautan reset",
       "reset_password_submit": "Atur ulang kata sandi",
       "new_password_placeholder": "Kata sandi baru",
@@ -1468,6 +1474,7 @@
       "two_factor_card_title": "Aplikasi autentikator",
       "two_factor_is_enabled": "Autentikasi dua faktor diaktifkan untuk akun Anda.",
       "two_factor_not_enabled": "Autentikasi dua faktor belum diaktifkan.",
+      "two_factor_idle_help": "Tambahkan lapisan keamanan dengan mewajibkan kode dari aplikasi autentikator Anda.",
       "two_factor_setup_button": "Atur autentikasi dua faktor",
       "two_factor_setup_started": "Pindai secret dengan aplikasi autentikator Anda, lalu konfirmasi kode.",
       "two_factor_setup_qr_help": "Tambahkan akun ini ke aplikasi autentikator Anda menggunakan secret berikut.",

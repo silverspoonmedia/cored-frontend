@@ -14,7 +14,9 @@ const MANAGED_BODY_CLASSES = [...AUTH_BODY_CLASSES, ...APP_BODY_CLASSES]
 
 function applyBodyClass(): void {
   const body = document.body
-  const isAuth = route.matched.some((record) => record.meta.guestOnly === true)
+  const isAuth = route.matched.some(
+    (record) => record.meta.guestOnly === true || record.meta.authChrome === true,
+  )
 
   body.classList.remove(...MANAGED_BODY_CLASSES)
   body.classList.add(...(isAuth ? AUTH_BODY_CLASSES : APP_BODY_CLASSES))

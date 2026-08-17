@@ -12,6 +12,7 @@ import router from './router'
 import i18n from './i18n'
 import { applyHtmlLang } from './i18n'
 import { initTheme } from '@/composables/useTheme'
+import { showErrorDialog } from '@/lib/swal'
 
 // Apply theme before mount to prevent FOUC (matches Monolith's theme-scroll.js).
 initTheme()
@@ -22,8 +23,19 @@ const app = createApp(App)
 app.use(router)
 app.use(i18n)
 
+app.config.errorHandler = (err, _instance, info) => {
+  console.error('Vue error', err, info)
+  void showErrorDialog(i18n.global.t('ui.ajax.unexpected_error'))
+}
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled rejection', event.reason)
+  void showErrorDialog(i18n.global.t('ui.ajax.unexpected_error'))
+})
+
 router.onError((error, to, from) => {
   console.error('Router navigation failed', { error, to, from })
+  void showErrorDialog(i18n.global.t('ui.ajax.unexpected_error'))
 })
 
 // router.isReady() resolves after the first navigation completes, which

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import Card from '@/components/Card.vue'
 import { useNotifications } from '@/composables/useNotifications'
 import { useAlert } from '@/composables/useAlert'
 import type { AppNotification } from '@/api/types'
+import { resolveNotificationLocation } from '@/utils/notificationTarget'
 
 const { t } = useI18n()
+const router = useRouter()
 const { items, loading, fetchList, markAllRead, markAsRead } = useNotifications()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -28,6 +31,10 @@ async function handleClick(n: AppNotification): Promise<void> {
     } catch {
       // silent — still allow navigation
     }
+  }
+  const target = resolveNotificationLocation(router, n.action_route, n.action_params)
+  if (target) {
+    await router.push(target)
   }
 }
 
