@@ -46,7 +46,7 @@ Use `computed()` or active i18n translators for labels and option arrays that mu
 All notifications and confirmations use Sweetalert2 through `src/lib/swal.ts` — never native `alert()`/`confirm()` or ad-hoc Bootstrap alert blocks:
 
 - Notifications: call `useAlert()` (`success`/`error`/`info`). Success/info render as Swal toasts; errors render as a Swal error dialog.
-- Confirmations: `confirmDialog({ title, text | html, confirmText, ... })` from `@/lib/swal` resolves `true` on confirm. Do not build `v-model` confirm components.
+- Confirmations: `confirmDialog({ title, text | html, confirmText, ... })` from `@/lib/swal` resolves `true` on confirm. Do not build `v-model` confirm components. `ConfirmModal.vue` remains only for the file-hosting rename form (an input dialog, not a yes/no confirm).
 - Labels come from `ui.swal.*` / `ui.dialog.*` plus domain keys, in all three locales.
 - `.swal2-container` is pinned to `z-index: 1090` (see `src/assets/monolith-overrides.css`) so dialogs always sit above Bootstrap modals (1050/1055) and other fixed layers (1080).
 - Modals close any open toast first (`closeActiveToast()` in `src/lib/swal.ts`) — swal2 otherwise strips the toast body class when a modal closes and the toast balloons to full width. Never call raw `Swal.fire` modals outside this helper.
