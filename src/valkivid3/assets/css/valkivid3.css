@@ -1,0 +1,346 @@
+/* Valkivid3 str1 — scoped Tailwind v4 entry.
+   Loaded ONLY by VkStr1Layout.vue (lazy route) so /apps/* never pays for it.
+   Isolation contract:
+   1. No Tailwind preflight — global reset would destroy Bootstrap on admin pages.
+   2. Utilities nest under `.vk3-root` (`@tailwind utilities` inside that selector)
+      so they compile as `.vk3-root .mb-3` and cannot restyle AdminLTE after this
+      lazy chunk stays in the SPA. Do not use `important(.vk3-root)` on the import —
+      Tailwind 4.3 emits a fake `@media important(...)` that Vite/lightningcss rejects.
+   3. `dark:` is class-based (`html.dark`), not prefers-color-scheme — the header
+      switcher owns the theme via `str1-color-theme`. */
+@import 'tailwindcss/theme' layer(theme);
+@import '@fontsource/rajdhani/500.css';
+@import '@fontsource/rajdhani/600.css';
+@import '@fontsource/rajdhani/700.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* str1 screens (template custom breakpoints) */
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1210px;
+
+  /* str1 palette — CSS-var driven primary/accent, custom gray scale */
+  --color-primary: rgb(var(--color-primary) / 1);
+  --color-primary-500: rgb(var(--color-primary-500) / 1);
+  --color-accent: rgb(var(--color-accent) / 1);
+  --color-gray-100: #f5f4fe;
+  --color-gray-150: #eaeaf5;
+  --color-gray-180: #d8d8e6;
+  --color-gray-200: #cecdd8;
+  --color-gray-300: #b5b4bd;
+  --color-gray-DEFAULT: #a3a9c1;
+  --color-gray-500: #7a809b;
+  --color-gray-600: #303448;
+  --color-gray-650: #3d4151;
+  --color-gray-700: #20222e;
+  --color-gray-800: #1c1e28;
+  --color-gray-900: #151720;
+  --color-violet-300: #bebce4;
+  --color-social-facebook: #3b57fc;
+  --color-social-twitter: #000000;
+  --color-social-x: #000000;
+  --color-social-instagram: #f7337d;
+  --color-social-twitch: #94a3b8;
+  --color-social-discord: #7289da;
+  --color-social-patreon: #f75e49;
+  --color-social-tiktok: #000000;
+  --color-info: #23d2e2;
+  --color-danger: #ff3d54;
+  --color-success: #615dfa;
+
+  /* str1 typography */
+  --font-base: 'Rajdhani', sans-serif;
+  --font-heading: 'Rajdhani', sans-serif;
+  --text-3xs: 0.625rem;
+  --text-2xs: 0.6875rem;
+  --text-2sm: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 2em;
+  --text-1\.5xl: 1.375rem;
+  --text-2\.5xl: 1.6875rem;
+  --text-3\.5xl: 2.125rem;
+  --text-5\.5xl: 3.375rem;
+  --text-6\.5xl: 4.25rem;
+  --text-9\.5xl: 8.75rem;
+  --text-10\.5xl: 10.625rem;
+  --tracking-tightest: -0.06em;
+  --leading-tighter: 1.1em;
+  --leading-relaxed: 1.75em;
+
+  /* str1 fractional spacing */
+  --spacing-3\.5: 0.875rem;
+  --spacing-4\.5: 1.125rem;
+  --spacing-5\.5: 1.375rem;
+  --spacing-7\.5: 1.875rem;
+  --spacing-12\.5: 3.125rem;
+
+  /* Container: one content width matching header/hero */
+  --container-sm: 540px;
+  --container-md: 720px;
+  --container-lg: 960px;
+  --container-xl: 1360px;
+  --container-2xl: 1360px;
+
+  --background-image-current-marker: url("data:image/svg+xml,%3Csvg width='6' height='9' viewBox='0 0 6 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3V3H0V0Z' fill='%23CBD5E1'/%3E%3Cpath d='M3 3H6V6H3V3Z' fill='%23CBD5E1'/%3E%3Cpath d='M0 6H3V9H0V6Z' fill='%23CBD5E1'/%3E%3C/svg%3E");
+  --background-image-current-marker-dark: url("data:image/svg+xml,%3Csvg width='6' height='9' viewBox='0 0 6 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3V3H0V0Z' fill='%2394A3B8'/%3E%3Cpath d='M3 3H6V6H3V3Z' fill='%2394A3B8'/%3E%3Cpath d='M0 6H3V9H0V6Z' fill='%2394A3B8'/%3E%3C/svg%3E");
+  --background-position-spike-roll: 0px center, 8px center, 16px center, 24px center, 32px center, 40px center, 48px center, 56px center, 64px center;
+
+  /* str1 animations */
+  --animate-spike-roll: spike-roll 0.95s linear infinite alternate;
+  --animate-popper-pop-in: popper-pop-in 0.1s cubic-bezier(0.2, 0, 0.38, 0.9) forwards;
+  --animate-ring: ring 4s ease infinite;
+  --animate-dash: dash 180s linear alternate;
+  --animate-fade: fade 0.3s ease;
+
+  @keyframes spike-roll {
+    0% { background-size: 4px 4px; }
+    12.5% { background-size: 4px 40px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px; }
+    25% { background-size: 4px 30px, 4px 40px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px; }
+    37.5% { background-size: 4px 10px, 4px 30px, 4px 40px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px; }
+    50% { background-size: 4px 4px, 4px 10px, 4px 30px, 4px 40px, 4px 4px, 4px 4px, 4px 4px, 4px 4px; }
+    62.5% { background-size: 4px 4px, 4px 4px, 4px 10px, 4px 30px, 4px 40px, 4px 4px, 4px 4px, 4px 4px; }
+    75% { background-size: 4px 4px, 4px 4px, 4px 4px, 4px 10px, 4px 30px, 4px 40px, 4px 4px, 4px 4px; }
+    87.5% { background-size: 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 10px, 4px 30px, 4px 40px, 4px 4px; }
+    100% { background-size: 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 10px, 4px 30px, 4px 40px; }
+  }
+  @keyframes popper-pop-in {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes ring {
+    0% { transform: rotate(-15deg); }
+    2% { transform: rotate(15deg); }
+    4% { transform: rotate(-18deg); }
+    6% { transform: rotate(18deg); }
+    8% { transform: rotate(-22deg); }
+    10% { transform: rotate(22deg); }
+    12% { transform: rotate(-18deg); }
+    14% { transform: rotate(18deg); }
+    16% { transform: rotate(-12deg); }
+    18% { transform: rotate(12deg); }
+    20% { transform: rotate(0deg); }
+  }
+  @keyframes dash {
+    0% { stroke-dashoffset: 1000; }
+    100% { stroke-dashoffset: 0; }
+  }
+  @keyframes fade {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+}
+
+@layer base {
+  .vk3-root {
+    /* str1 skin CSS vars — steel-slate silver accent/primary */
+    --color-primary: 148 163 184; /* #94a3b8 (slate-400, light) */
+    --color-primary-500: 120 134 154; /* #78869a (darker slate for hover) */
+    --color-accent: 148 163 184; /* #94a3b8 (light) */
+
+    /* Page background + root text color + height live here in the base layer
+       because `@tailwind utilities` nested under `.vk3-root` compiles as
+       descendant selectors (`.vk3-root .bg-white`). Utilities placed ON the
+       .vk3-root element itself (e.g. `bg-white dark:bg-gray-900`) never match,
+       so the switch would appear dead. Dark overrides sit under `.dark`. */
+    background-color: #ffffff;
+    color: #a3a9c1; /* gray-DEFAULT */
+    min-height: 100vh;
+
+    /* Mini-reset scoped to the skin (replaces Tailwind preflight) */
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    font-family: var(--font-base);
+
+    h1, h2, h3, h4, h5, h6, p, figure, blockquote, ul, ol {
+      margin: 0;
+      padding: 0;
+    }
+    ul, ol {
+      list-style: none;
+    }
+    img, svg, video {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    button {
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+  }
+
+  .dark .vk3-root {
+    --color-accent: 203 213 225; /* #cbd5e1 (slate-300, dark) */
+    background-color: #151720; /* gray-900 */
+    color: #a3a9c1; /* gray-DEFAULT */
+  }
+}
+
+/* Selector-scoped utilities (v4 equivalent of important: '.vk3-root').
+   Compiles as `.vk3-root .flex`, not a global `.flex`. */
+@layer utilities {
+  .vk3-root {
+    @tailwind utilities;
+  }
+}
+
+/* Unlayered so it beats global Bootstrap `.container` (1320px / 12px pad).
+   Layered Tailwind/component rules lose to unlayered AdminLTE CSS. */
+.vk3-root .container {
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  width: 100%;
+  max-width: 1360px;
+}
+
+/* Unlayered color overrides — Bootstrap/AdminLTE set unlayered `h1–h6` and
+   `dd` color rules that beat our layered `.vk3-root .text-*` utilities.
+   CSS cascade layers: unlayered always beats layered regardless of
+   specificity. These unlayered rules make the scoped utilities win. */
+.vk3-root h1, .vk3-root h2, .vk3-root h3, .vk3-root h4, .vk3-root h5, .vk3-root h6,
+.vk3-root dd, .vk3-root dt {
+  color: var(--color-gray-DEFAULT);
+}
+.vk3-root .text-gray-900, .vk3-root h1.text-gray-900, .vk3-root h2.text-gray-900,
+.vk3-root h3.text-gray-900, .vk3-root h4.text-gray-900, .vk3-root h5.text-gray-900,
+.vk3-root h6.text-gray-900, .vk3-root dd.text-gray-900, .vk3-root dt.text-gray-900 {
+  color: var(--color-gray-900);
+}
+.vk3-root .text-white, .vk3-root h1.text-white, .vk3-root h2.text-white,
+.vk3-root h3.text-white, .vk3-root h4.text-white, .vk3-root h5.text-white,
+.vk3-root h6.text-white, .vk3-root dd.text-white, .vk3-root dt.text-white {
+  color: #ffffff;
+}
+.vk3-root .text-gray-600, .vk3-root h1.text-gray-600, .vk3-root h2.text-gray-600,
+.vk3-root h3.text-gray-600, .vk3-root h4.text-gray-600, .vk3-root h5.text-gray-600,
+.vk3-root h6.text-gray-600, .vk3-root dd.text-gray-600, .vk3-root dt.text-gray-600 {
+  color: var(--color-gray-600);
+}
+.vk3-root .text-gray-500, .vk3-root h1.text-gray-500, .vk3-root h2.text-gray-500,
+.vk3-root h3.text-gray-500, .vk3-root h4.text-gray-500, .vk3-root h5.text-gray-500,
+.vk3-root h6.text-gray-500, .vk3-root dd.text-gray-500, .vk3-root dt.text-gray-500 {
+  color: var(--color-gray-500);
+}
+.vk3-root .text-gray-300, .vk3-root dd.text-gray-300, .vk3-root dt.text-gray-300 {
+  color: var(--color-gray-300);
+}
+.vk3-root .dark\:text-white:where(.dark, .dark *),
+.vk3-root h1.dark\:text-white:where(.dark, .dark *),
+.vk3-root h2.dark\:text-white:where(.dark, .dark *),
+.vk3-root h3.dark\:text-white:where(.dark, .dark *),
+.vk3-root h4.dark\:text-white:where(.dark, .dark *),
+.vk3-root h5.dark\:text-white:where(.dark, .dark *),
+.vk3-root h6.dark\:text-white:where(.dark, .dark *),
+.vk3-root dd.dark\:text-white:where(.dark, .dark *),
+.vk3-root dt.dark\:text-white:where(.dark, .dark *) {
+  color: #ffffff;
+}
+.vk3-root .dark\:text-white\/80:where(.dark, .dark *),
+.vk3-root h3.dark\:text-white\/80:where(.dark, .dark *) {
+  color: rgb(255 255 255 / 0.8);
+}
+.vk3-root .dark\:text-white\/70:where(.dark, .dark *),
+.vk3-root h3.dark\:text-white\/70:where(.dark, .dark *) {
+  color: rgb(255 255 255 / 0.7);
+}
+.vk3-root .dark\:text-gray-300:where(.dark, .dark *),
+.vk3-root dd.dark\:text-gray-300:where(.dark, .dark *),
+.vk3-root dt.dark\:text-gray-300:where(.dark, .dark *) {
+  color: var(--color-gray-300);
+}
+.vk3-root .dark\:text-gray:where(.dark, .dark *) {
+  color: var(--color-gray-DEFAULT);
+}
+
+/* `fill-accent` / `text-accent` use `var(--color-accent)` but `.vk3-root`
+   overrides `--color-accent` with raw channels (`148 163 184`), not a valid
+   color. The `@theme` wrapper `rgb(var(--color-accent) / 1)` is
+   self-referential at `:root` scope. These unlayered rules wrap the raw
+   channels into a valid color for fill/text. */
+.vk3-root .fill-accent { fill: rgb(var(--color-accent) / 1); }
+.vk3-root .text-accent { color: rgb(var(--color-accent) / 1); }
+.vk3-root .bg-accent { background-color: rgb(var(--color-accent) / 1); }
+.vk3-root .stroke-accent { stroke: rgb(var(--color-accent) / 1); }
+.vk3-root .ring-accent { --tw-ring-color: rgb(var(--color-accent) / 1); }
+.vk3-root .group-hover\:fill-accent:is(:where(.group):hover *) { fill: rgb(var(--color-accent) / 1); }
+.vk3-root .group-hover\:text-accent:is(:where(.group):hover *) { color: rgb(var(--color-accent) / 1); }
+
+@layer components {
+
+  /* Body Background */
+  .vk3-root .vv-body-bg {
+    mask-image: linear-gradient(black, transparent);
+  }
+
+  .vk3-root .sub-menu {
+    transform: rotateX(-75deg);
+  }
+
+  /* Social brand colors */
+  .vk3-root .vv-social-list-color a[href*='facebook.com'] { background-color: var(--color-social-facebook); }
+  .vk3-root .vv-social-list-color a[href*='twitter.com'] { background-color: var(--color-social-twitter); }
+  .vk3-root .vv-social-list-color a[href*='x.com'] { background-color: var(--color-social-x); }
+  .vk3-root .vv-social-list-color a[href*='instagram.com'] { background-color: var(--color-social-instagram); }
+  .vk3-root .vv-social-list-color a[href*='twitch.tv'] { background-color: var(--color-social-twitch); }
+  .vk3-root .vv-social-list-color a[href*='discordapp.com'],
+  .vk3-root .vv-social-list-color a[href*='discord.com'],
+  .vk3-root .vv-social-list-color a[href*='discord.gg'] { background-color: var(--color-social-discord); }
+  .vk3-root .vv-social-list-color a[href*='patreon.com'] { background-color: var(--color-social-patreon); }
+  .vk3-root .vv-social-list-color a[href*='tiktok.com'] { background-color: var(--color-social-tiktok); }
+
+  /* Loader Spikes Roll */
+  .vk3-root .vv-preloader-spikes-roll {
+    background-image: linear-gradient(#94a3b8 60px, transparent 0),
+      linear-gradient(#8b98ab 60px, transparent 0),
+      linear-gradient(#82909f 60px, transparent 0),
+      linear-gradient(#798893 60px, transparent 0),
+      linear-gradient(#6f7f87 60px, transparent 0),
+      linear-gradient(#99a3b1 60px, transparent 0),
+      linear-gradient(#a8b2bf 60px, transparent 0),
+      linear-gradient(#cbd5e1 60px, transparent 0);
+  }
+
+  /* Hero Slider — vertical bar bullets (ported from str1 style.css).
+     Short gray bar stretches into a long accent bar when active. */
+  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet {
+    margin: 0 !important;
+    display: flex;
+    height: 1rem;
+    width: 1.25rem;
+    align-items: center;
+    border-radius: 0;
+    background: transparent;
+    opacity: 1;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet::before {
+    content: '';
+    height: 0.125rem;
+    flex-basis: 100%;
+    background: rgb(122 128 155 / 0.2);
+    transition: inherit;
+  }
+  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active {
+    width: 34px;
+    background: transparent;
+    box-shadow: none;
+  }
+  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active::before {
+    background: rgb(var(--color-accent) / 1);
+  }
+
+}

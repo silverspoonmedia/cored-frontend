@@ -3360,14 +3360,14 @@
         "avatar_url": "URL avatar",
         "submit_create": "Buat yatim",
         "submit_update": "Simpan perubahan",
-        "display_name_hint": "The creator's public display name",
+        "display_name_hint": "Nama tampilan publik kreator",
         "avatar_url_placeholder": "https://…"
       },
       "datatable": {
         "empty": "Belum ada profil vTuber yatim.",
         "zero_records": "Tidak ada profil yang cocok.",
         "confirm_delete": "Arsipkan profil yatim ini? Tidak lagi bisa diklaim.",
-        "search_placeholder": "Search orphans…",
+        "search_placeholder": "Cari yatim…",
         "columns": {
           "display_name": "Nama tampilan",
           "slug": "Slug",
@@ -3397,18 +3397,19 @@
         "status_active": "Aktif",
         "status_disconnected": "Terputus",
         "status_archived": "Diarsipkan",
-        "handle_or_id": "Handle / ID"
+        "handle_or_id": "Handle atau ID"
       },
       "errors": {
-        "load_failed": "Failed to load orphan",
-        "save_failed": "Failed to save",
-        "channel_add_failed": "Failed to add channel"
+        "load_failed": "Gagal memuat yatim",
+        "save_failed": "Gagal menyimpan",
+        "channel_add_failed": "Gagal menambah channel",
+        "archive_failed": "Gagal mengarsipkan yatim"
       },
       "ajax": {
-        "updated": "Orphan updated.",
-        "created": "Orphan created.",
-        "channel_claim_started": "Channel claim started. Verify via the profile page.",
-        "channel_added": "Channel added."
+        "updated": "Yatim diperbarui.",
+        "created": "Yatim dibuat.",
+        "channel_claim_started": "Klaim channel dimulai. Verifikasi lewat halaman profil.",
+        "channel_added": "Channel ditambahkan."
       }
     },
     "vtual-platform-credentials": {
@@ -4017,7 +4018,124 @@
       "run_probe": "Run Probe",
       "result_label": "Result",
       "no_data_returned": "No data returned.",
-      "probe_failed": "Probe failed"
+      "probe_failed": "Probe failed",
+      "public": {
+        "title": "vTual — Pusat Kreator Virtual",
+        "nav": {
+          "home": "Beranda",
+          "directory": "vTuber",
+          "contents": "Konten",
+          "events": "Acara",
+          "about": "Tentang",
+          "login": "Masuk",
+          "my_profiles": "Profil vTuber saya",
+          "toggle_theme": "Ganti mode gelap",
+          "toggle_menu": "Buka menu"
+        },
+        "hero": {
+          "one": {
+            "title_a": "Temukan",
+            "title_b": "vTuber",
+            "text": "Satu hub untuk semua kreator virtual. Jelajahi channel, saksikan stream terbaru, dan ikuti favoritmu di YouTube, Twitch, dan lainnya.",
+            "cta": "Gabung vTual"
+          },
+          "two": {
+            "title_a": "Klaim",
+            "title_b": "Profilmu",
+            "text": "Kamu vTuber? Profil publikmu mungkin sudah ada. Klaim, tautkan channel-mu, dan kendalikan cara fans menemukanmu.",
+            "cta": "Klaim Profil",
+            "kicker": "Sorotan"
+          },
+          "spotlight_kicker_live": "{name} sedang live",
+          "spotlight_cta": "Tonton sekarang",
+          "prev": "Slide sebelumnya",
+          "next": "Slide berikutnya"
+        },
+        "countdown": {
+          "eyebrow": "Acara Berikutnya",
+          "title": "Community Showcase",
+          "body": "Showcase komunitas berikutnya segera hadir. Nantikan debut unggulan, kolab, dan event live dari roster.",
+          "days": "Hari",
+          "hours": "Jam",
+          "mins": "Menit",
+          "secs": "Detik"
+        },
+        "directory": {
+          "heading": "Kenalan dengan Para vTuber",
+          "search_placeholder": "Cari kreator…",
+          "subscribers": "{count} pengikut",
+          "view_profile": "Lihat profil",
+          "error": "Gagal memuat direktori vTuber. Coba lagi nanti.",
+          "empty": "Tidak ada vTuber ditemukan.",
+          "prev": "Halaman sebelumnya",
+          "next": "Halaman berikutnya",
+          "live": "LIVE",
+          "empty_cta": "Klaim profil"
+        },
+        "contents": {
+          "heading": "Stream dan video terbaru",
+          "empty": "Belum ada video atau stream publik.",
+          "error": "Gagal memuat umpan konten. Coba lagi nanti.",
+          "prev": "Halaman sebelumnya",
+          "next": "Halaman berikutnya"
+        },
+        "video": {
+          "play": "Putar"
+        },
+        "events": {
+          "heading": "Acara Mendatang"
+        },
+        "live_now": {
+          "heading": "Sedang Live",
+          "badge": "LIVE"
+        },
+        "stats": {
+          "creators": "Kreator",
+          "channels": "Channel",
+          "contents": "Video & Stream",
+          "subscribers": "Total Followers"
+        },
+        "channel_banner": {
+          "eyebrow": "Kamu vTuber?",
+          "title": "Halaman hub-mu menunggu",
+          "body": "Profil publikmu mungkin sudah ada. Klaim, buktikan kepemilikan channel, dan kendalikan cara fans menemukanmu.",
+          "cta_claim": "Klaim Profilmu",
+          "cta_browse": "Jelajahi vTuber"
+        },
+        "schedule": {
+          "start_time": "Waktu mulai",
+          "platform": "Platform"
+        },
+        "footer": {
+          "nav_label": "Navigasi footer",
+          "tagline": "vTual — hub kreator virtual. Satu direktori, semua channel, selalu sinkron."
+        },
+        "profile": {
+          "live": "LIVE",
+          "ended": "Selesai",
+          "vod": "VOD",
+          "breadcrumb": "Jejak halaman",
+          "stat_channels": "Channel",
+          "stat_followers": "Pengikut",
+          "not_found": "vTuber tidak ditemukan",
+          "not_found_body": "Profil publik ini tidak ada atau tidak ditampilkan.",
+          "error": "Gagal memuat profil ini. Coba lagi nanti.",
+          "claim_body": "Profil ini belum punya pemilik. Masuk untuk mengklaimnya.",
+          "claim_cta": "Klaim profil ini",
+          "contents_heading": "Konten terbaru",
+          "contents_empty": "Belum ada video atau stream publik.",
+          "contents_browse": "Jelajahi semua konten",
+          "channels_heading": "Channel",
+          "details": {
+            "channels": "Channel",
+            "platforms": "Platform",
+            "followers": "Followers",
+            "contents": "Konten terbaru",
+            "status": "Status",
+            "offline": "Offline"
+          }
+        }
+      }
     },
     "product-activations": {
       "failed_load": "Aktivasi produk tidak dapat dimuat.",

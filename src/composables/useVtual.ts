@@ -64,6 +64,14 @@ export function useVtual() {
     throw new Error(res.message ?? t('web.vtual.errors.update_failed'))
   }
 
+  async function deleteCreator(id: string): Promise<void> {
+    const res = await del<ApiResponse<null>>(`vtual/creators/${id}`)
+    if (res.status === 'success') {
+      return
+    }
+    throw new Error(res.message ?? t('web.vtual-orphans.errors.archive_failed'))
+  }
+
   async function mergeCreator(sourceId: string, destinationId: string): Promise<VtualCreator> {
     const res = await post<ApiResponse<VtualCreator>>(`vtual/creators/${sourceId}/merge`, {
       destination_id: destinationId,
@@ -327,6 +335,7 @@ export function useVtual() {
     fetchOrphan,
     createOrphan,
     updateCreator,
+    deleteCreator,
     mergeCreator,
     fetchPlatforms,
     fetchCredentials,

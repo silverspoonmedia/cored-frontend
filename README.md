@@ -15,6 +15,15 @@ Browser (SPA origin)
 
 `VITE_API_BASE_URL` must stay **empty**. An absolute API URL bypasses the Worker: hostname leak and no `spa_jwt`.
 
+## Template namespaces
+
+Two CSS systems coexist, kept strictly separate:
+
+- **AdminLTE4** (Bootstrap 5, global `src/assets/main.css`) — the authenticated app shell under `/apps/*` and auth pages. `body` gets `layout-fixed`/`login-page` classes.
+- **Valkivid3** (Tailwind v4, scoped entry `src/valkivid3/`) — public vTual at `/vtual` (landing: Swiper hero slider + live-now strip + countdown event + platform stats + directory + `#contents` feed + upcoming-schedule events + claim banner, all fed by one `useVtualPublic().fetchLanding()` call plus the directory/feed components' own fetches) and `/vtual/vtubers/:slug` (guest profile: banner overlay, `VkStr1ProfileSidebar` / `VkStr1DetailsList` / `VkStr1ChannelCard`, featured live + **paginated** video grid with Prev/Next pager — `contents: { items, pagination }`, `fetchProfile(slug, page)`). Components live under `src/valkivid3/{layouts,components,composables,views,assets}`. The CSS entry (`src/valkivid3/assets/css/valkivid3.css`) is imported **only** by `VkStr1Layout.vue` (lazy route chunk), ships **no Tailwind preflight** (a global reset would destroy Bootstrap), and nests `@tailwind utilities` under `.vk3-root` so they compile as `.vk3-root .mb-3` (cannot restyle AdminLTE after the chunk stays loaded). Do not use `@import … important(.vk3-root)` — Tailwind 4.3 emits a fake `@media important(...)` that Vite/lightningcss rejects. `dark:` is a **class** variant (`@custom-variant dark (&:where(.dark, .dark *));`) so the header switcher (`html.dark` + `str1-color-theme`, sun/moon sprite icons in header + mobile menu) actually works — switcher track carries explicit `bg-gray-150 border-gray-500/60 dark:bg-white/10 dark:border-white/50` so the pill stays visible on the always-dark header, icons use `fill-accent stroke-accent` (both utilities compile). Default theme is dark when storage is empty, and an inline `index.html` head script restores `html.dark` before first paint (no light FOUC; inert for `/apps/*` since utilities are `.vk3-root`-scoped). Leaving `/vtual` removes `html.dark` (AdminLTE uses `data-bs-theme` / `lte-theme` — leave it alone). **Scoping caveat:** because `@tailwind utilities` is nested under `.vk3-root`, every utility compiles as a **descendant** selector (`.vk3-root .bg-white`). Utilities placed ON the `.vk3-root` element itself (e.g. `<div class="vk3-root bg-white dark:bg-gray-900">`) never match — `.vk3-root.bg-white` is not `.vk3-root .bg-white`. Page background, root text color, and min-height therefore live in `@layer base` on `.vk3-root` / `.dark .vk3-root`, not as utility classes on the layout div. Put presentation utilities on children, not on `.vk3-root` itself. The hero slider mimics the original Valkivid str1 (Swiper fade, 3 slides, staggered entrance animations with `vv-slide-played` replay, vertical bar pagination `.vv-hero-swiper-pagination`, width `1320px`); other content width stays `1360px`. Routes opt in via `meta.template: 'valkivid3'`; `App.vue` then sets `body.vk3-page` instead of the AdminLTE classes. Unmatched `/vtual/*` still rewrites to `/apps/vtual/*` (`LEGACY_APP_ROOTS`); only registered children stay public.
+
+Never import `valkivid3.css` (or `main.css`) from the other namespace; the two bundles must stay loadable in the same DOM without conflicts.
+
 ## Scripts
 
 | Command | Purpose |
@@ -69,6 +78,8 @@ On **Vue-Workers**:
 4. Static security headers live in `public/_headers` (CSP, frame deny). Worker JSON responses also stamp `X-Content-Type-Options` / `Referrer-Policy` / `Permissions-Policy`. Do **not** widen `run_worker_first` past `/api/*`.
 
 When `SPA_URL` is set, Laravel mints password-reset, email-verify, public share, and iPaymu hosted return/cancel URLs onto the SPA. Email verify signs the **API** route (HMAC on `APP_URL`); the browser lands on `/verify-email/{id}/{hash}?expires=&signature=` and the SPA GETs the API through the Worker.
+
+Login and register honor `?redirect=` via `src/lib/safeRedirect.ts` (`safeInternalRedirect`): internal paths only (`/` prefix; reject `//`, `\`, `://`, `/http:`). Used by the public vTual claim CTA (`/login?redirect=/apps/vtual/vtubers/{slug}/claim`) so signup from `/vtual` does not dump people on the dashboard.
 
 ## Localization
 

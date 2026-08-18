@@ -4,7 +4,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
-import RowActions from '@/components/RowActions.vue'
+import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import { confirmDialog } from '@/lib/swal'
 import { useVtual } from '@/composables/useVtual'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
@@ -14,13 +15,19 @@ import type { VtualCreator } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { fetchOrphans, orphanPagination } = useVtual()
+const { fetchOrphans, deleteCreator, orphanPagination } = useVtual()
 const { hasPermission } = useAuth()
-const { error: showError } = useAlert()
+const { success: showSuccess, error: showError } = useAlert()
 
 const items = ref<VtualCreator[]>([])
 const loading = ref(true)
+const searchQuery = ref('')
 const canManage = computed(() => hasPermission('manage any vtual resource'))
+const emptyTitle = computed(() =>
+  searchQuery.value.trim()
+    ? t('web.vtual-orphans.datatable.zero_records')
+    : t('web.vtual-orphans.datatable.empty'),
+)
 
 async function fetchList(params?: ListParams): Promise<VtualCreator[]> {
   loading.value = true
@@ -36,7 +43,12 @@ async function fetchList(params?: ListParams): Promise<VtualCreator[]> {
   }
 }
 
-const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, orphanPagination)
+const { load, onPage, onPerPage, onSearch } = useServerDataTable(fetchList, orphanPagination)
+
+function handleSearch(search: string): void {
+  searchQuery.value = search
+  onSearch(search)
+}
 
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'display_name', label: t('web.vtual-orphans.datatable.columns.display_name'), sortable: true },
@@ -47,6 +59,46 @@ const columns = computed<DataTableColumn[]>(() => [
 
 function editOrphan(row: VtualCreator): void {
   router.push({ name: 'vtual.orphans.edit.view', params: { id: row.id } })
+}
+
+function orphanActions(row: VtualCreator): RowAction[] {
+  return [
+    {
+      key: 'edit',
+      icon: 'pencil',
+      label: t('ui.actions.edit'),
+      variant: 'secondary',
+      onClick: () => editOrphan(row),
+    },
+    {
+      key: 'delete',
+      icon: 'trash3',
+      label: t('ui.actions.delete'),
+      variant: 'danger',
+      onClick: () => {
+        void archiveOrphan(row)
+      },
+    },
+  ]
+}
+
+async function archiveOrphan(row: VtualCreator): Promise<void> {
+  const confirmed = await confirmDialog({
+    title: t('ui.datatable.delete'),
+    text: t('web.vtual-orphans.datatable.confirm_delete'),
+    confirmText: t('ui.actions.delete'),
+  })
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    await deleteCreator(row.id)
+    showSuccess(t('api.vtual.creator.archived'))
+    await load()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.archive_failed'))
+  }
 }
 </script>
 
@@ -62,6 +114,8 @@ function editOrphan(row: VtualCreator): void {
       </button>
     </template>
 
+    <p class="text-muted small mb-3">{{ t('web.vtual-orphans.subtitle') }}</p>
+
     <DataTable
       :columns="columns"
       :rows="items"
@@ -71,12 +125,12 @@ function editOrphan(row: VtualCreator): void {
       :page="orphanPagination.current_page"
       :per-page="orphanPagination.per_page"
       :search-placeholder="t('web.vtual-orphans.datatable.search_placeholder')"
-      empty-icon="bi-search"
-      :empty-title="t('web.vtual-orphans.datatable.empty')"
+      empty-icon="bi-person-plus"
+      :empty-title="emptyTitle"
       @row-click="editOrphan"
       @update:page="onPage"
       @update:per-page="onPerPage"
-      @update:search="onSearch"
+      @update:search="handleSearch"
     >
       <template #cell-slug="{ row }: { row: VtualCreator }">
         <code>{{ row.slug }}</code>
@@ -91,9 +145,7 @@ function editOrphan(row: VtualCreator): void {
       </template>
 
       <template v-if="canManage" #actions="{ row }: { row: VtualCreator }">
-        <RowActions
-          :actions="[{ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editOrphan(row) }]"
-        />
+        <RowActions :actions="orphanActions(row)" />
       </template>
     </DataTable>
   </Card>

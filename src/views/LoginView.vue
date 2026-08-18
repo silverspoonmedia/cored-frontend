@@ -7,6 +7,7 @@ import { useAlert } from '@/composables/useAlert'
 import { useHcaptcha } from '@/composables/useHcaptcha'
 import HcaptchaWidget from '@/components/HcaptchaWidget.vue'
 import { ApiError } from '@/api/types'
+import { safeInternalRedirect } from '@/lib/safeRedirect'
 
 const router = useRouter()
 const route = useRoute()
@@ -23,8 +24,7 @@ const loading = ref(false)
 const errors = ref<Record<string, string[]>>({})
 
 function getRedirectTarget(): string {
-  const redirect = route.query.redirect
-  return typeof redirect === 'string' ? redirect : '/dashboard'
+  return safeInternalRedirect(route.query.redirect)
 }
 
 async function handleSubmit(): Promise<void> {
@@ -167,6 +167,7 @@ function fieldError(field: string): string | null {
     <router-link :to="{ name: 'auth.forgot-password.view' }">{{ t('web.auth.forgot_password_link') }}</router-link>
   </p>
   <p class="mb-0">
-    {{ t('web.auth.no_account') }} <router-link :to="{ name: 'auth.register.view' }">{{ t('web.auth.register_now') }}</router-link>
+    {{ t('web.auth.no_account') }}
+    <router-link :to="{ name: 'auth.register.view', query: route.query.redirect ? { redirect: route.query.redirect } : {} }">{{ t('web.auth.register_now') }}</router-link>
   </p>
 </template>

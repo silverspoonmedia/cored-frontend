@@ -1033,6 +1033,24 @@ const router = createRouter({
       ],
     },
     {
+      path: '/apps/vtual/vtuber/:slug/claim',
+      redirect: (to) => ({
+        name: 'vtual.vtuber.claim.view',
+        params: { slug: String(to.params.slug ?? '') },
+        query: to.query,
+        hash: to.hash,
+      }),
+    },
+    {
+      path: '/apps/vtual/vtuber/:slug',
+      redirect: (to) => ({
+        name: 'vtual.vtuber.show.view',
+        params: { slug: String(to.params.slug ?? '') },
+        query: to.query,
+        hash: to.hash,
+      }),
+    },
+    {
       path: '/apps/vtual/vtubers/:slug',
       name: 'vtual.vtuber.show',
       component: AppLayout,
@@ -1055,6 +1073,43 @@ const router = createRouter({
           path: '',
           name: 'vtual.vtuber.claim.view',
           component: () => import('@/views/VtualVtuberClaimView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/vtual',
+      name: 'vtual.public',
+      component: () => import('@/valkivid3/layouts/VkStr1Layout.vue'),
+      meta: { public: true, template: 'valkivid3', titleKey: 'web.vtual.public.title' },
+      children: [
+        {
+          path: '',
+          name: 'vtual.public.view',
+          component: () => import('@/valkivid3/views/VkStr1VtualHomeView.vue'),
+        },
+        {
+          path: 'vtuber/:slug/claim',
+          redirect: (to) => ({
+            name: 'vtual.vtuber.claim.view',
+            params: { slug: String(to.params.slug ?? '') },
+            query: to.query,
+            hash: to.hash,
+          }),
+        },
+        {
+          path: 'vtuber/:slug',
+          redirect: (to) => ({
+            name: 'vtual.vtuber.show.view',
+            params: { slug: String(to.params.slug ?? '') },
+            query: to.query,
+            hash: to.hash,
+          }),
+        },
+        {
+          path: 'vtubers/:slug',
+          name: 'vtual.public.vtuber',
+          component: () => import('@/valkivid3/views/VkStr1VtuberShowView.vue'),
+          meta: { public: true, template: 'valkivid3', titleKey: 'web.vtual.public.title' },
         },
       ],
     },

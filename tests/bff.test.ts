@@ -38,6 +38,12 @@ describe('cacheControlFor', () => {
     expect(cacheControlFor('GET', `${API_PREFIX}/services/options`, false)).toBe('public, max-age=60')
   })
 
+  it('is public (edge-cacheable) for the vTual public API', () => {
+    expect(cacheControlFor('GET', `${API_PREFIX}/vtual/public/vtubers`, false)).toBe('public, max-age=60')
+    expect(cacheControlFor('GET', `${API_PREFIX}/vtual/public/vtubers/neon-fox`, false)).toBe('public, max-age=60')
+    expect(cacheControlFor('GET', `${API_PREFIX}/vtual/public/contents`, false)).toBe('public, max-age=60')
+  })
+
   it('skips mutations and unknown paths', () => {
     expect(cacheControlFor('POST', `${API_PREFIX}/navigation/menus`, true)).toBeNull()
     expect(cacheControlFor('GET', `${API_PREFIX}/auth/me`, true)).toBeNull()

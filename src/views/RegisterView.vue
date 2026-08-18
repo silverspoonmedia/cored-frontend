@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useHcaptcha } from '@/composables/useHcaptcha'
 import HcaptchaWidget from '@/components/HcaptchaWidget.vue'
 import { ApiError } from '@/api/types'
+import { safeInternalRedirect } from '@/lib/safeRedirect'
 
 const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
 const { register } = useAuth()
 const { error: showError } = useAlert()
@@ -31,7 +33,7 @@ async function handleSubmit(): Promise<void> {
   try {
     const captcha = await captchaToken()
     await register(name.value, email.value, password.value, passwordConfirmation.value, captcha)
-    router.push({ name: 'dashboard.view' })
+    router.push(safeInternalRedirect(route.query.redirect))
   } catch (e) {
     resetCaptcha()
     if (e instanceof ApiError && e.isValidation) {
@@ -184,6 +186,6 @@ function fieldError(field: string): string | null {
 
   <p class="mt-3 mb-0">
     {{ t('web.auth.has_account') }}
-    <router-link :to="{ name: 'login.view' }">{{ t('web.auth.sign_in') }}</router-link>
+    <router-link :to="{ name: 'login.view', query: route.query.redirect ? { redirect: route.query.redirect } : {} }">{{ t('web.auth.sign_in') }}</router-link>
   </p>
 </template>

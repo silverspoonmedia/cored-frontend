@@ -27,13 +27,13 @@
     --fh-shadow-lg: var(--monolith-shadow-lg);
     --fh-transition: var(--monolith-transition);
 
-    --fh-dropzone-border: rgba(99, 102, 241, 0.3);
-    --fh-dropzone-bg: rgba(99, 102, 241, 0.02);
-    --fh-dropzone-active-bg: rgba(99, 102, 241, 0.08);
+    --fh-dropzone-border: rgba(148, 163, 184, 0.3);
+    --fh-dropzone-bg: rgba(148, 163, 184, 0.02);
+    --fh-dropzone-active-bg: rgba(148, 163, 184, 0.08);
     --fh-dropzone-active-border: var(--monolith-accent);
 
     --fh-quota-track: var(--monolith-bg-muted);
-    --fh-quota-fill: linear-gradient(90deg, #6366f1, #818cf8);
+    --fh-quota-fill: linear-gradient(90deg, #94a3b8, #cbd5e1);
     --fh-quota-fill-warn: linear-gradient(90deg, #f59e0b, #fbbf24);
     --fh-quota-fill-danger: linear-gradient(90deg, #ef4444, #f87171);
 
@@ -108,12 +108,12 @@
 }
 
 [data-bs-theme="dark"] .fh-manager {
-    --fh-dropzone-border: rgba(129, 140, 248, 0.3);
-    --fh-dropzone-bg: rgba(129, 140, 248, 0.04);
-    --fh-dropzone-active-bg: rgba(129, 140, 248, 0.12);
+    --fh-dropzone-border: rgba(203, 213, 225, 0.3);
+    --fh-dropzone-bg: rgba(203, 213, 225, 0.04);
+    --fh-dropzone-active-bg: rgba(203, 213, 225, 0.12);
     --fh-dropzone-active-border: var(--monolith-accent);
 
-    --fh-quota-fill: linear-gradient(90deg, #818cf8, #a5b4fc);
+    --fh-quota-fill: linear-gradient(90deg, #cbd5e1, #94a3b8);
     --fh-quota-fill-warn: linear-gradient(90deg, #f59e0b, #fcd34d);
     --fh-quota-fill-danger: linear-gradient(90deg, #ef4444, #fca5a5);
 

@@ -25,6 +25,7 @@ const CACHEABLE_GET_EXACT = new Map<string, string>([
 ])
 const CACHEABLE_GET_PREFIX: ReadonlyArray<readonly [string, string]> = [
 	[`${API_PREFIX}/currencies`, 'private, max-age=300'],
+	[`${API_PREFIX}/vtual/public`, 'public, max-age=60'],
 ]
 
 export function applySecurityHeaders(headers: Headers): void {

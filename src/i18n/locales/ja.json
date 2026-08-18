@@ -3360,14 +3360,14 @@
         "avatar_url": "アバター URL",
         "submit_create": "オーファンを作成",
         "submit_update": "変更を保存",
-        "display_name_hint": "The creator's public display name",
+        "display_name_hint": "クリエイターの公開表示名",
         "avatar_url_placeholder": "https://…"
       },
       "datatable": {
         "empty": "未クレーム vTuber プロフィールはまだありません。",
         "zero_records": "一致するプロフィールがありません。",
         "confirm_delete": "このオーファンプロフィールをアーカイブしますか？クレームできなくなります。",
-        "search_placeholder": "Search orphans…",
+        "search_placeholder": "オーファンを検索…",
         "columns": {
           "display_name": "表示名",
           "slug": "スラッグ",
@@ -3397,18 +3397,19 @@
         "status_active": "有効",
         "status_disconnected": "切断",
         "status_archived": "アーカイブ",
-        "handle_or_id": "Handle / ID"
+        "handle_or_id": "ハンドル / ID"
       },
       "errors": {
-        "load_failed": "Failed to load orphan",
-        "save_failed": "Failed to save",
-        "channel_add_failed": "Failed to add channel"
+        "load_failed": "オーファンの読み込みに失敗しました",
+        "save_failed": "保存に失敗しました",
+        "channel_add_failed": "チャンネルの追加に失敗しました",
+        "archive_failed": "アーカイブに失敗しました"
       },
       "ajax": {
-        "updated": "Orphan updated.",
-        "created": "Orphan created.",
-        "channel_claim_started": "Channel claim started. Verify via the profile page.",
-        "channel_added": "Channel added."
+        "updated": "オーファンを更新しました。",
+        "created": "オーファンを作成しました。",
+        "channel_claim_started": "チャンネルクレームを開始しました。プロフィールページで確認してください。",
+        "channel_added": "チャンネルを追加しました。"
       }
     },
     "vtual-platform-credentials": {
@@ -4017,7 +4018,124 @@
       "profile_help_youtube": "YouTube: UC channel id, @handle, or youtube.com/… profile URL.",
       "profile_help_twitch": "Twitch: numeric user id, login, or twitch.tv/… profile URL.",
       "profile_placeholder_youtube": "UC… / @handle / https://youtube.com/@handle",
-      "profile_placeholder_twitch": "12345678 / login / https://twitch.tv/login"
+      "profile_placeholder_twitch": "12345678 / login / https://twitch.tv/login",
+      "public": {
+        "title": "vTual — バーチャルクリエイターハブ",
+        "nav": {
+          "home": "ホーム",
+          "directory": "vTuber",
+          "contents": "コンテンツ",
+          "events": "イベント",
+          "about": "概要",
+          "login": "ログイン",
+          "my_profiles": "自分の vTuber プロフィール",
+          "toggle_theme": "ダークモード切替",
+          "toggle_menu": "メニュー切替"
+        },
+        "hero": {
+          "one": {
+            "title_a": "見つけよう",
+            "title_b": "vTuber",
+            "text": "すべてのバーチャルクリエイターのためのハブ。チャンネルを巡り、最新の配信を追い、YouTube や Twitch のお気に入りをフォローしよう。",
+            "cta": "vTual に参加"
+          },
+          "two": {
+            "title_a": "プロフィールを",
+            "title_b": "クレーム",
+            "text": "あなたは vTuber ですか？公開プロフィールはすでに存在するかもしれません。クレームしてチャンネルをリンクし、ファンへの見え方を管理しましょう。",
+            "cta": "プロフィールをクレーム",
+            "kicker": "スポットライト"
+          },
+          "spotlight_kicker_live": "{name} がライブ中",
+          "spotlight_cta": "今すぐ見る",
+          "prev": "前のスライド",
+          "next": "次のスライド"
+        },
+        "countdown": {
+          "eyebrow": "次のイベント",
+          "title": "コミュニティショーケース",
+          "body": "次回のコミュニティショーケースは近日開催。注目のデビュー、コラボ、ロスターによるライブイベントをお楽しみに。",
+          "days": "日",
+          "hours": "時間",
+          "mins": "分",
+          "secs": "秒"
+        },
+        "directory": {
+          "heading": "vTuber に会おう",
+          "search_placeholder": "クリエイターを検索…",
+          "subscribers": "フォロワー {count}",
+          "view_profile": "プロフィールを見る",
+          "error": "vTuber ディレクトリを読み込めませんでした。後でもう一度お試しください。",
+          "empty": "vTuber が見つかりません。",
+          "prev": "前のページ",
+          "next": "次のページ",
+          "live": "LIVE",
+          "empty_cta": "プロフィールをクレーム"
+        },
+        "contents": {
+          "heading": "最新の配信と動画",
+          "empty": "公開中の動画・配信はまだありません。",
+          "error": "コンテンツ一覧を読み込めませんでした。後でもう一度お試しください。",
+          "prev": "前のページ",
+          "next": "次のページ"
+        },
+        "video": {
+          "play": "再生"
+        },
+        "events": {
+          "heading": "今後のイベント"
+        },
+        "live_now": {
+          "heading": "ライブ中",
+          "badge": "LIVE"
+        },
+        "stats": {
+          "creators": "クリエイター",
+          "channels": "チャンネル",
+          "contents": "動画・配信",
+          "subscribers": "合計フォロワー"
+        },
+        "channel_banner": {
+          "eyebrow": "あなたは vTuber ですか？",
+          "title": "あなたのハブページが待っています",
+          "body": "公開プロフィールはすでに存在するかもしれません。クレームしてチャンネル所有権を証明し、ファンへの見え方を管理しましょう。",
+          "cta_claim": "プロフィールをクレーム",
+          "cta_browse": "vTuber を探す"
+        },
+        "schedule": {
+          "start_time": "開始時刻",
+          "platform": "プラットフォーム"
+        },
+        "footer": {
+          "nav_label": "フッターナビゲーション",
+          "tagline": "vTual — バーチャルクリエイターハブ。1つのディレクトリ、すべてのチャンネル、常に同期。"
+        },
+        "profile": {
+          "live": "LIVE",
+          "ended": "終了",
+          "vod": "VOD",
+          "breadcrumb": "パンくずリスト",
+          "stat_channels": "チャンネル",
+          "stat_followers": "フォロワー",
+          "not_found": "vTuber が見つかりません",
+          "not_found_body": "この公開プロフィールは存在しないか、非公開です。",
+          "error": "プロフィールを読み込めませんでした。後でもう一度お試しください。",
+          "claim_body": "このプロフィールにはまだ所有者がいません。ログインしてクレームしてください。",
+          "claim_cta": "このプロフィールをクレーム",
+          "contents_heading": "最新コンテンツ",
+          "contents_empty": "公開中の動画・配信はまだありません。",
+          "contents_browse": "すべてのコンテンツを見る",
+          "channels_heading": "チャンネル",
+          "details": {
+            "channels": "チャンネル",
+            "platforms": "プラットフォーム",
+            "followers": "フォロワー",
+            "contents": "最近のコンテンツ",
+            "status": "ステータス",
+            "offline": "オフライン"
+          }
+        }
+      }
     },
     "product-activations": {
       "failed_load": "プロダクトの有効化情報を読み込めませんでした。",

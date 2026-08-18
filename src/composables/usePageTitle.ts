@@ -1,9 +1,15 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
 
 const APP_NAME = 'Monolith'
+const documentTitleOverride = ref<string | null>(null)
+
+/** Full `document.title` string, or null to resume route meta titles. */
+export function setDocumentTitleOverride(value: string | null): void {
+  documentTitleOverride.value = value
+}
 
 function metaString(
   matched: { meta: Record<string, unknown> }[],
@@ -45,6 +51,9 @@ export function usePageTitle() {
   })
 
   const documentTitle = computed(() => {
+    if (documentTitleOverride.value) {
+      return documentTitleOverride.value
+    }
     const title = pageTitle.value
     return title ? `${title} | ${APP_NAME}` : APP_NAME
   })

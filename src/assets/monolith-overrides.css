@@ -27,21 +27,22 @@
     --monolith-text-strong: #0f172a;
     --monolith-transition: 0.18s ease;
 
-    /* Accent: indigo. Consistent with focus rings, adds life to light mode.
-       Hover tints use very low opacity so they read as "soft indigo wash". */
-    --monolith-accent: #6366f1;
-    --monolith-accent-soft: rgba(99, 102, 241, 0.06);
-    --monolith-accent-soft-hover: rgba(99, 102, 241, 0.10);
+    /* Accent: steel-slate silver. Blue-tinted to preserve chroma signal for
+       UI affordances — pure silver has 1.6:1 contrast on white (invisible).
+       Hover tints use low opacity for a soft steel wash. */
+    --monolith-accent: #94a3b8;
+    --monolith-accent-soft: rgba(148, 163, 184, 0.10);
+    --monolith-accent-soft-hover: rgba(148, 163, 184, 0.16);
 
     /* Counterpart tokens: every property that differs between light/dark
        is token-driven so both modes define the same set of concerns. */
     --monolith-text-body: #1e293b;
     --monolith-text-code: #c2410c;
-    --monolith-focus-color: #6366f1;
-    --monolith-focus-ring: rgba(99, 102, 241, 0.12);
+    --monolith-focus-color: #94a3b8;
+    --monolith-focus-ring: rgba(148, 163, 184, 0.20);
     --monolith-gradient-start: #e0e7ff;
     --monolith-gradient-mid: #f1f5f9;
-    --monolith-gradient-end: #ede9fe;
+    --monolith-gradient-end: #e2e8f0;
     --monolith-status-secondary-bg: #e2e8f0;
     --monolith-status-secondary-text: #334155;
     --monolith-status-warning-bg: #fef3c7;
@@ -73,18 +74,18 @@
     --monolith-text-muted: #94a3b8;
     --monolith-text-strong: #f1f5f9;
 
-    --monolith-accent: #818cf8;
-    --monolith-accent-soft: rgba(129, 140, 248, 0.08);
-    --monolith-accent-soft-hover: rgba(129, 140, 248, 0.14);
+    --monolith-accent: #cbd5e1;
+    --monolith-accent-soft: rgba(203, 213, 225, 0.10);
+    --monolith-accent-soft-hover: rgba(203, 213, 225, 0.16);
 
     /* Counterpart tokens: dark values for every light-mode token above. */
     --monolith-text-body: #e2e8f0;
     --monolith-text-code: #fba74d;
-    --monolith-focus-color: #818cf8;
-    --monolith-focus-ring: rgba(129, 140, 248, 0.15);
+    --monolith-focus-color: #cbd5e1;
+    --monolith-focus-ring: rgba(203, 213, 225, 0.20);
     --monolith-gradient-start: #0f172a;
     --monolith-gradient-mid: #1e293b;
-    --monolith-gradient-end: #312e81;
+    --monolith-gradient-end: #1e293b;
     --monolith-status-secondary-bg: rgba(148, 163, 184, 0.20);
     --monolith-status-secondary-text: #cbd5e1;
     --monolith-status-warning-bg: rgba(245, 158, 11, 0.18);

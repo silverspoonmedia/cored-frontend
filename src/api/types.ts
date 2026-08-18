@@ -1317,6 +1317,112 @@ export interface VtualVtuberProfile {
   contents?: VtualContent[]
 }
 
+// --- Vtual public (guest-safe, slug-addressed — no UUID, no claim URLs) ---
+
+export interface VtualPublicChannel {
+  platform_key: string | null
+  platform_name?: string | null
+  handle: string | null
+  display_name?: string | null
+  avatar_url?: string | null
+  banner_url?: string | null
+  url: string | null
+  subscriber_count: number | null
+  subscriber_count_formatted?: string | null
+}
+
+export interface VtualPublicVtuber {
+  slug: string
+  display_name: string
+  avatar_url: string | null
+  bio_snippet: string | null
+  is_live: boolean
+  channels: VtualPublicChannel[]
+  total_subscribers: number | null
+  total_subscribers_formatted: string | null
+}
+
+export interface VtualPublicDirectoryPagination {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  has_more: boolean
+}
+
+export interface VtualPublicDirectory {
+  items: VtualPublicVtuber[]
+  pagination: VtualPublicDirectoryPagination
+}
+
+export interface VtualPublicContentCreator {
+  slug: string
+  display_name: string
+  avatar_url: string | null
+}
+
+export interface VtualPublicContent {
+  type: string | null
+  status: string | null
+  title: string | null
+  thumbnail_url: string | null
+  url: string | null
+  published_at: string | null
+  scheduled_at?: string | null
+  platform_key: string | null
+  creator?: VtualPublicContentCreator | null
+}
+
+export interface VtualPublicContentFeed {
+  items: VtualPublicContent[]
+  pagination: VtualPublicDirectoryPagination
+}
+
+export interface VtualPublicLink {
+  kind: string | null
+  label: string | null
+  url: string | null
+}
+
+export interface VtualPublicProfile {
+  slug: string
+  display_name: string
+  bio: string | null
+  avatar_url: string | null
+  is_claimable: boolean
+  is_live: boolean
+  total_subscribers: number | null
+  total_subscribers_formatted: string | null
+  channels: VtualPublicChannel[]
+  links: VtualPublicLink[]
+  contents: VtualPublicContentFeed
+}
+
+export interface VtualPublicLandingEvent {
+  title: string
+  starts_at: string
+  body: string
+}
+
+export interface VtualPublicStats {
+  creators: number
+  channels: number
+  contents: number
+  subscribers_total: number
+  subscribers_total_formatted: string
+}
+
+export interface VtualPublicLanding {
+  event: VtualPublicLandingEvent | null
+  live_now: VtualPublicContent[]
+  schedule: VtualPublicContent[]
+  stats: VtualPublicStats
+}
+
+export interface VtualPublicItems {
+  items: VtualPublicContent[]
+}
+
 export interface VtualCreatorClaim {
   id: string
   user_id: string

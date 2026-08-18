@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
@@ -8,6 +8,7 @@ import { useAlert } from '@/composables/useAlert'
 import type { VtualVtuberProfile } from '@/api/types'
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const vtual = useVtual()
 const { error: showError } = useAlert()
@@ -18,7 +19,14 @@ const loading = ref(true)
 onMounted(async () => {
   loading.value = true
   try {
-    profile.value = await vtual.fetchVtuberProfile(route.params.slug as string)
+    const key = typeof route.params.slug === 'string' ? route.params.slug : ''
+    profile.value = await vtual.fetchVtuberProfile(key)
+    if (profile.value.slug && profile.value.slug !== key) {
+      await router.replace({
+        name: 'vtual.vtuber.show.view',
+        params: { slug: profile.value.slug },
+      })
+    }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.show.errors.load_failed'))
   } finally {
@@ -57,13 +65,12 @@ function platformIcon(key: string): string {
           <p class="text-muted small">{{ profile.slug }}</p>
 
           <div v-if="profile.is_claimable" class="mb-2">
-            <a
-              v-if="profile.claim_process_url"
-              :href="profile.claim_process_url"
+            <router-link
+              :to="{ name: 'vtual.vtuber.claim.view', params: { slug: profile.slug } }"
               class="btn btn-outline-primary btn-sm"
             >
               <i class="bi bi-shield-check me-1"></i> {{ t('web.vtual-vtuber.show.claim_profile') }}
-            </a>
+            </router-link>
           </div>
 
           <div v-if="profile.claim_blocked_until" class="alert alert-warning small mb-0">

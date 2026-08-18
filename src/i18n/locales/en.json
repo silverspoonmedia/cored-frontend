@@ -3398,7 +3398,8 @@
       "errors": {
         "load_failed": "Failed to load orphan",
         "save_failed": "Failed to save",
-        "channel_add_failed": "Failed to add channel"
+        "channel_add_failed": "Failed to add channel",
+        "archive_failed": "Failed to archive orphan"
       },
       "ajax": {
         "updated": "Orphan updated.",
@@ -4013,7 +4014,124 @@
       "run_probe": "Run Probe",
       "result_label": "Result",
       "no_data_returned": "No data returned.",
-      "probe_failed": "Probe failed"
+      "probe_failed": "Probe failed",
+      "public": {
+        "title": "vTual — Virtual Creator Hub",
+        "nav": {
+          "home": "Home",
+          "directory": "vTubers",
+          "contents": "Content",
+          "events": "Events",
+          "about": "About",
+          "login": "Sign in",
+          "my_profiles": "My vTuber profiles",
+          "toggle_theme": "Toggle dark mode",
+          "toggle_menu": "Toggle menu"
+        },
+        "hero": {
+          "one": {
+            "title_a": "Discover",
+            "title_b": "vTubers",
+            "text": "One hub for every virtual creator. Browse channels, catch the latest streams, and follow your favorites across YouTube, Twitch, and more.",
+            "cta": "Join vTual"
+          },
+          "two": {
+            "title_a": "Claim Your",
+            "title_b": "Profile",
+            "text": "Are you a vTuber? Your public profile may already exist. Claim it, link your channels, and control how fans find you.",
+            "cta": "Claim Profile",
+            "kicker": "Spotlight"
+          },
+          "spotlight_kicker_live": "{name} is live",
+          "spotlight_cta": "Watch now",
+          "prev": "Previous slide",
+          "next": "Next slide"
+        },
+        "countdown": {
+          "eyebrow": "Next Event",
+          "title": "Community Showcase",
+          "body": "Our next community showcase is coming soon. Stay tuned for featured debuts, collabs, and live events from the roster.",
+          "days": "Days",
+          "hours": "Hours",
+          "mins": "Mins",
+          "secs": "Secs"
+        },
+        "directory": {
+          "heading": "Meet the vTubers",
+          "search_placeholder": "Search creators…",
+          "subscribers": "{count} followers",
+          "view_profile": "View profile",
+          "error": "Could not load the vTuber directory. Try again later.",
+          "empty": "No vTubers found.",
+          "prev": "Previous page",
+          "next": "Next page",
+          "live": "LIVE",
+          "empty_cta": "Claim a profile"
+        },
+        "contents": {
+          "heading": "Latest streams & videos",
+          "empty": "No public videos or streams yet.",
+          "error": "Could not load the content feed. Try again later.",
+          "prev": "Previous page",
+          "next": "Next page"
+        },
+        "video": {
+          "play": "Play"
+        },
+        "events": {
+          "heading": "Next Events"
+        },
+        "live_now": {
+          "heading": "Live Now",
+          "badge": "LIVE"
+        },
+        "stats": {
+          "creators": "Creators",
+          "channels": "Channels",
+          "contents": "Videos & Streams",
+          "subscribers": "Combined Followers"
+        },
+        "channel_banner": {
+          "eyebrow": "Are you a vTuber?",
+          "title": "Your hub page is waiting",
+          "body": "Your public profile may already exist. Claim it, prove channel ownership, and control how fans find you.",
+          "cta_claim": "Claim Your Profile",
+          "cta_browse": "Browse vTubers"
+        },
+        "schedule": {
+          "start_time": "Start time",
+          "platform": "Platform"
+        },
+        "footer": {
+          "nav_label": "Footer navigation",
+          "tagline": "vTual — the virtual creator hub. One directory, every channel, always in sync."
+        },
+        "profile": {
+          "live": "LIVE",
+          "ended": "Ended",
+          "vod": "VOD",
+          "breadcrumb": "Breadcrumb",
+          "stat_channels": "Channels",
+          "stat_followers": "Followers",
+          "not_found": "vTuber not found",
+          "not_found_body": "This public profile does not exist or is not listed.",
+          "error": "Could not load this profile. Try again later.",
+          "claim_body": "This profile has no owner yet. Sign in to claim it.",
+          "claim_cta": "Claim this profile",
+          "contents_heading": "Latest content",
+          "contents_empty": "No public videos or streams yet.",
+          "contents_browse": "Browse all content",
+          "channels_heading": "Channels",
+          "details": {
+            "channels": "Channels",
+            "platforms": "Platforms",
+            "followers": "Followers",
+            "contents": "Recent content",
+            "status": "Status",
+            "offline": "Offline"
+          }
+        }
+      }
     },
     "product-activations": {
       "failed_load": "Could not load product activations.",
