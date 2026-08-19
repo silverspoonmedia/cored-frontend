@@ -4046,6 +4046,13 @@
             "cta": "Klaim Profil",
             "kicker": "Sorotan"
           },
+          "three": {
+            "kicker": "Mendatang",
+            "title_a": "Stream",
+            "title_b": "Berikutnya",
+            "text": "Pantau stream terjadwal dari kreator favoritmu. Atur pengingat dan jangan lewatkan momen apa pun.",
+            "cta": "Lihat Jadwal"
+          },
           "spotlight_kicker_live": "{name} sedang live",
           "spotlight_cta": "Tonton sekarang",
           "prev": "Slide sebelumnya",
@@ -4087,7 +4094,8 @@
         },
         "live_now": {
           "heading": "Sedang Live",
-          "badge": "LIVE"
+          "badge": "LIVE",
+          "more_streams": "+{count} stream lainnya"
         },
         "stats": {
           "creators": "Kreator",

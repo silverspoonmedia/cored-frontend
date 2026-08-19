@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted, ref } from 'vue'
 import type { VtualPublicLanding } from '@/api/types'
 import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
-import VkStr1HeroSlider, {
-  type VkStr1HeroSpotlight,
-} from '@/valkivid3/components/str1/VkStr1HeroSlider.vue'
+import VkStr1HeroSlider from '@/valkivid3/components/str1/VkStr1HeroSlider.vue'
 import VkStr1LiveNow from '@/valkivid3/components/str1/VkStr1LiveNow.vue'
 import VkStr1PlatformStats from '@/valkivid3/components/str1/VkStr1PlatformStats.vue'
 import VkStr1VtuberDirectory from '@/valkivid3/components/str1/VkStr1VtuberDirectory.vue'
@@ -13,27 +10,9 @@ import VkStr1ContentFeed from '@/valkivid3/components/str1/VkStr1ContentFeed.vue
 import VkStr1SectionEvents from '@/valkivid3/components/str1/VkStr1SectionEvents.vue'
 import VkStr1ChannelBanner from '@/valkivid3/components/str1/VkStr1ChannelBanner.vue'
 
-const { t } = useI18n()
 const { fetchLanding } = useVtualPublic()
 
 const landing = ref<VtualPublicLanding | null>(null)
-
-// Hero slide 2 spotlight: latest live content when available.
-const spotlight = computed<VkStr1HeroSpotlight | null>(() => {
-  const live = landing.value?.live_now?.[0]
-  if (!live || !live.title) {
-    return null
-  }
-  return {
-    kicker: live.creator?.display_name
-      ? t('web.vtual.public.hero.spotlight_kicker_live', { name: live.creator.display_name })
-      : t('web.vtual.public.hero.two.kicker'),
-    title: live.title,
-    url: live.url,
-    cta: t('web.vtual.public.hero.spotlight_cta'),
-    image_url: live.thumbnail_url,
-  }
-})
 
 onMounted(() => {
   fetchLanding()
@@ -48,7 +27,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <VkStr1HeroSlider :spotlight="spotlight" />
+  <VkStr1HeroSlider />
   <div class="pt-12 md:pt-16 lg:pt-16">
     <VkStr1LiveNow :items="landing?.live_now ?? null" />
     <VkStr1PlatformStats :stats="landing?.stats ?? null" />

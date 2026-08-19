@@ -4042,6 +4042,13 @@
             "cta": "Claim Profile",
             "kicker": "Spotlight"
           },
+          "three": {
+            "kicker": "Upcoming",
+            "title_a": "Catch the Next",
+            "title_b": "Stream",
+            "text": "Stay tuned for scheduled streams from your favorite creators. Set reminders and never miss a moment.",
+            "cta": "View Schedule"
+          },
           "spotlight_kicker_live": "{name} is live",
           "spotlight_cta": "Watch now",
           "prev": "Previous slide",
@@ -4083,7 +4090,8 @@
         },
         "live_now": {
           "heading": "Live Now",
-          "badge": "LIVE"
+          "badge": "LIVE",
+          "more_streams": "+{count} more streams"
         },
         "stats": {
           "creators": "Creators",

@@ -1,39 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Swiper from 'swiper/bundle'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
-
-export interface VkStr1HeroSpotlight {
-  kicker?: string | null
-  title: string
-  url?: string | null
-  cta?: string | null
-  image_url?: string | null
-}
-
-const props = defineProps<{
-  spotlight?: VkStr1HeroSpotlight | null
-}>()
 
 const { t } = useI18n()
 
 const swiperEl = ref<HTMLElement | null>(null)
 let swiper: Swiper | null = null
-
-// Slide 2 = API-driven content spotlight; falls back to i18n slide copy.
-const spotlight = computed<VkStr1HeroSpotlight>(() => {
-  if (props.spotlight && props.spotlight.title) {
-    return props.spotlight
-  }
-  return {
-    kicker: t('web.vtual.public.hero.two.kicker'),
-    title: t('web.vtual.public.hero.two.title_a') + ' ' + t('web.vtual.public.hero.two.title_b'),
-    url: null,
-    cta: t('web.vtual.public.hero.two.cta'),
-    image_url: null,
-  }
-})
 
 onMounted(() => {
   if (!swiperEl.value) return
@@ -104,7 +78,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <!-- Slide 2 — content spotlight -->
+          <!-- Slide 2 — claim profile promo -->
           <div class="swiper-slide group">
             <div class="relative isolate h-full w-full bg-gray-900">
               <div class="container h-full">
@@ -112,42 +86,54 @@ onBeforeUnmount(() => {
                   <div class="col-span-full md:col-span-8 md:col-start-3 lg:col-span-10 lg:col-start-2 xl:col-span-6 xl:col-start-4">
                     <div class="px-6 text-center">
                       <div class="mb-1 flex flex-wrap justify-center gap-1 font-bold uppercase text-accent lg:mb-2">
-                        <div>{{ spotlight.kicker || t('web.vtual.public.hero.two.kicker') }}</div>
+                        <div>{{ t('web.vtual.public.hero.two.kicker') }}</div>
                       </div>
                       <h2 class="mb-6 text-4xl font-bold leading-none tracking-tighter text-white sm:text-5xl md:mb-8 md:text-6xl md:leading-none lg:mb-12 lg:text-7xl lg:leading-none xl:text-[74px]">
-                        <a
-                          v-if="spotlight.url"
-                          :href="spotlight.url"
-                          target="_blank"
-                          rel="noopener"
-                          class="transition-opacity duration-300 hover:opacity-80"
-                        >{{ spotlight.title }}</a>
-                        <span v-else>{{ spotlight.title }}</span>
+                        {{ t('web.vtual.public.hero.two.title_a') }} {{ t('web.vtual.public.hero.two.title_b') }}
                       </h2>
-                      <a
-                        v-if="spotlight.url"
-                        :href="spotlight.url"
-                        target="_blank"
-                        rel="noopener"
+                      <p class="mb-8 text-base font-medium leading-8 text-gray-300 lg:text-lg">
+                        {{ t('web.vtual.public.hero.two.text') }}
+                      </p>
+                      <router-link
+                        to="/register?redirect=/apps/vtual/profiles"
                         class="inline-flex justify-center gap-x-3 bg-primary px-4 py-4 text-center text-sm font-bold uppercase leading-none text-white transition-colors hover:bg-primary/90 md:py-[18px] lg:px-8"
                       >
-                        {{ spotlight.cta || t('web.vtual.public.hero.spotlight_cta') }}
-                      </a>
+                        {{ t('web.vtual.public.hero.two.cta') }}
+                      </router-link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="absolute inset-0 -z-10 bg-gradient-to-br from-gray-900 via-gray-900/80 to-primary/80"></div>
+            </div>
+          </div>
+
+          <!-- Slide 3 — events promo -->
+          <div class="swiper-slide group">
+            <div class="relative isolate h-full w-full bg-gray-900">
+              <div class="container h-full">
+                <div class="grid h-full grid-cols-12 items-end md:gap-x-6 lg:gap-x-7.5">
+                  <div class="col-span-full pb-8 sm:pb-10 md:col-span-6 md:pb-12">
+                    <div class="text-left">
+                      <div class="mb-1 flex flex-wrap gap-1 font-bold uppercase text-accent lg:mb-2">
+                        <div>{{ t('web.vtual.public.hero.three.kicker') }}</div>
+                      </div>
+                      <h2 class="mb-4 text-2xl font-bold leading-none tracking-tight text-white sm:text-3xl md:mb-5 md:text-4xl md:leading-none lg:mb-7 lg:text-5xl lg:leading-none xl:text-[62px]">
+                        {{ t('web.vtual.public.hero.three.title_a') }} {{ t('web.vtual.public.hero.three.title_b') }}
+                      </h2>
+                      <p class="mb-6 text-base font-medium leading-8 text-gray-300 lg:text-lg">
+                        {{ t('web.vtual.public.hero.three.text') }}
+                      </p>
                       <a
-                        v-else
-                        href="#contents"
-                        class="inline-flex justify-center gap-x-3 bg-primary px-4 py-4 text-center text-sm font-bold uppercase leading-none text-white transition-colors hover:bg-primary/90 md:py-[18px] lg:px-8"
+                        href="#events"
+                        class="inline-flex justify-center gap-x-3 bg-accent px-4 py-4 text-center text-sm font-bold uppercase leading-none text-gray-900 transition-colors hover:bg-accent/90 md:py-[18px] lg:px-8"
                       >
-                        {{ spotlight.cta || t('web.vtual.public.hero.spotlight_cta') }}
+                        {{ t('web.vtual.public.hero.three.cta') }}
                       </a>
                     </div>
                   </div>
                 </div>
               </div>
-              <div
-                class="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat transition-transform duration-[8000ms] ease-out group-[.swiper-slide-active]:scale-110"
-                :style="{ backgroundImage: spotlight.image_url ? `url(${spotlight.image_url})` : 'none' }"
-              ></div>
               <div class="absolute inset-0 -z-10 bg-gradient-to-br from-gray-900 via-gray-900/80 to-primary/80"></div>
             </div>
           </div>

@@ -4046,6 +4046,13 @@
             "cta": "プロフィールをクレーム",
             "kicker": "スポットライト"
           },
+          "three": {
+            "kicker": "予定",
+            "title_a": "次の",
+            "title_b": "配信を見逃すな",
+            "text": "お気に入りのクリエイターの予定された配信をチェック。リマインダーを設定して、瞬きを見逃さないで。",
+            "cta": "スケジュールを見る"
+          },
           "spotlight_kicker_live": "{name} がライブ中",
           "spotlight_cta": "今すぐ見る",
           "prev": "前のスライド",
@@ -4087,7 +4094,8 @@
         },
         "live_now": {
           "heading": "ライブ中",
-          "badge": "LIVE"
+          "badge": "LIVE",
+          "more_streams": "他{count}件の配信"
         },
         "stats": {
           "creators": "クリエイター",
