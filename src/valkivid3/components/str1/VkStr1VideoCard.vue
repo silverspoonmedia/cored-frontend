@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { VtualPublicContent } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
@@ -47,6 +47,34 @@ const creatorTo = computed(() => {
   const slug = props.item.creator?.slug
   return slug ? `/vtual/vtubers/${slug}` : null
 })
+
+const channelAvatar = computed(() => {
+  const channel = props.item.channel
+  if (!channel) {
+    return null
+  }
+  const label = channel.display_name ?? props.item.creator?.display_name ?? ''
+  const initial = label.trim().charAt(0).toUpperCase()
+  return {
+    url: channel.avatar_url,
+    label,
+    initial: initial || '?',
+  }
+})
+
+const thumbFailed = ref(false)
+const showThumb = computed(() => Boolean(props.item.thumbnail_url) && !thumbFailed.value)
+
+function onThumbError(): void {
+  thumbFailed.value = true
+}
+
+watch(
+  () => props.item.thumbnail_url,
+  () => {
+    thumbFailed.value = false
+  },
+)
 </script>
 
 <template>
@@ -56,22 +84,26 @@ const creatorTo = computed(() => {
         :href="item.url ?? undefined"
         :target="item.url ? '_blank' : undefined"
         :rel="item.url ? 'noopener' : undefined"
-        class="group relative block h-full overflow-hidden bg-gray-100 dark:bg-gray-900"
+        class="group relative block overflow-hidden bg-gray-100 dark:bg-gray-900"
+        :class="featured ? 'aspect-[77/46]' : 'aspect-[370/215]'"
       >
+        <div
+          class="absolute inset-0 flex items-center justify-center bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600"
+          aria-hidden="true"
+        >
+          <svg role="img" class="fill-current" :class="featured ? 'aspect-[18/22] w-12' : 'aspect-[18/22] w-9'">
+            <use :href="`${spriteUrl}#play`"></use>
+          </svg>
+        </div>
         <img
-          v-if="item.thumbnail_url"
-          class="w-full object-cover transition-all duration-300 group-hover:scale-110 group-hover:opacity-75"
-          :class="featured ? 'aspect-[77/46]' : 'aspect-[370/215]'"
-          :src="item.thumbnail_url"
+          v-if="showThumb"
+          class="absolute inset-0 h-full w-full object-cover transition-all duration-300 group-hover:scale-110 group-hover:opacity-75"
+          :src="item.thumbnail_url ?? undefined"
           :alt="item.title ?? ''"
           loading="lazy"
           decoding="async"
+          @error="onThumbError"
         />
-        <div
-          v-else
-          class="w-full bg-gray-200 dark:bg-gray-800"
-          :class="featured ? 'aspect-[77/46]' : 'aspect-[370/215]'"
-        ></div>
         <div class="absolute inset-0 bg-black/60"></div>
         <span
           class="absolute left-3.5 top-3 px-1.5 py-1 text-xs font-bold uppercase leading-none"
@@ -96,26 +128,22 @@ const creatorTo = computed(() => {
     </figure>
 
     <div class="flex min-w-0 gap-x-3">
-      <router-link
-        v-if="showCreator && creatorTo && item.creator?.avatar_url"
-        :to="creatorTo"
-        class="shrink-0"
-      >
-        <img
-          class="aspect-square w-10 object-cover"
-          :src="item.creator.avatar_url"
-          :alt="item.creator.display_name"
-          width="40"
-          height="40"
-          loading="lazy"
-          decoding="async"
-        />
-      </router-link>
+      <img
+        v-if="channelAvatar?.url"
+        class="h-12 w-12 shrink-0 self-start rounded-full object-cover ring-1 ring-black/5 dark:ring-white/10"
+        :src="channelAvatar.url"
+        :alt="channelAvatar.label"
+        width="48"
+        height="48"
+        loading="lazy"
+        decoding="async"
+      />
       <div
-        v-else-if="showCreator && item.creator"
-        class="flex aspect-square w-10 shrink-0 items-center justify-center bg-primary text-sm font-bold text-white"
+        v-else-if="channelAvatar"
+        class="flex h-12 w-12 shrink-0 self-start items-center justify-center rounded-full bg-primary text-base font-bold text-white"
+        aria-hidden="true"
       >
-        {{ item.creator.display_name.charAt(0) }}
+        {{ channelAvatar.initial }}
       </div>
 
       <div class="min-w-0">
@@ -129,10 +157,11 @@ const creatorTo = computed(() => {
             target="_blank"
             rel="noopener"
             class="transition-colors hover:text-accent"
+            :title="item.title ?? undefined"
           >
             {{ item.title }}
           </a>
-          <span v-else>{{ item.title }}</span>
+          <span v-else :title="item.title ?? undefined">{{ item.title }}</span>
         </h3>
         <ul class="flex flex-col gap-y-1.5 text-sm font-medium leading-none text-gray-500">
           <li v-if="published">

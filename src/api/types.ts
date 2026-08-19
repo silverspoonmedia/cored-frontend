@@ -1361,6 +1361,11 @@ export interface VtualPublicContentCreator {
   avatar_url: string | null
 }
 
+export interface VtualPublicContentChannel {
+  display_name: string | null
+  avatar_url: string | null
+}
+
 export interface VtualPublicContent {
   type: string | null
   status: string | null
@@ -1371,6 +1376,7 @@ export interface VtualPublicContent {
   scheduled_at?: string | null
   platform_key: string | null
   creator?: VtualPublicContentCreator | null
+  channel?: VtualPublicContentChannel | null
 }
 
 export interface VtualPublicContentFeed {

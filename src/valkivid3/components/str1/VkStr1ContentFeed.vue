@@ -64,7 +64,7 @@ function goTo(delta: number): void {
         <div v-for="n in 6" :key="n" class="col-span-full animate-pulse sm:col-span-6 lg:col-span-4">
           <div class="mb-5 aspect-[370/215] w-full bg-gray-200 dark:bg-gray-800"></div>
           <div class="flex gap-x-3">
-            <div class="aspect-square w-10 shrink-0 bg-gray-200 dark:bg-gray-800"></div>
+            <div class="h-12 w-12 shrink-0 self-start rounded-full bg-gray-200 dark:bg-gray-800"></div>
             <div class="min-w-0 flex-1 space-y-2">
               <div class="h-4 w-5/6 bg-gray-200 dark:bg-gray-800"></div>
               <div class="h-3 w-1/3 bg-gray-200 dark:bg-gray-800"></div>
