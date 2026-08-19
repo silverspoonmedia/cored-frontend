@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-[1320px] 2xl:px-16">
+  <div class="mx-auto w-full max-w-[1320px]">
     <div class="relative z-10 h-[420px] md:h-[460px] lg:h-[660px]">
       <div ref="swiperEl" class="swiper h-full w-full">
         <div class="swiper-wrapper">
