@@ -22,7 +22,7 @@ function platformIcon(key: string | null | undefined): string {
 </script>
 
 <template>
-  <section v-if="lives.length > 0" class="pb-12 md:pb-16 lg:pb-20">
+  <section v-if="lives.length > 0" class="pb-8 lg:pb-10">
     <div class="container">
       <div class="mb-10 flex items-center gap-x-4 md:mb-12">
         <span class="relative flex h-3 w-3 shrink-0">
@@ -30,7 +30,7 @@ function platformIcon(key: string | null | undefined): string {
           <span class="relative inline-flex h-3 w-3 rounded-full bg-danger"></span>
         </span>
         <h2
-          class="text-2.5xl font-bold tracking-tighter text-gray-900 before:text-accent before:content-['.'] dark:text-white sm:text-3.5xl md:text-4xl lg:text-[42px] lg:leading-none"
+          class="text-xl font-bold tracking-tighter text-gray-900 before:text-accent before:content-['.'] dark:text-white md:text-2xl lg:text-3xl lg:leading-none"
         >
           {{ t('web.vtual.public.live_now.heading') }}
         </h2>

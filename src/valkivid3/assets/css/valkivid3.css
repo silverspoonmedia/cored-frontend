@@ -313,34 +313,68 @@
       linear-gradient(#cbd5e1 60px, transparent 0);
   }
 
-  /* Hero Slider — vertical bar bullets (ported from str1 style.css).
-     Short gray bar stretches into a long accent bar when active. */
-  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet {
-    margin: 0 !important;
-    display: flex;
-    height: 1rem;
-    width: 1.25rem;
-    align-items: center;
-    border-radius: 0;
-    background: transparent;
-    opacity: 1;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet::before {
-    content: '';
-    height: 0.125rem;
-    flex-basis: 100%;
-    background: rgb(122 128 155 / 0.2);
-    transition: inherit;
-  }
-  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active {
-    width: 34px;
-    background: transparent;
-    box-shadow: none;
-  }
-  .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active::before {
-    background: rgb(var(--color-accent) / 1);
-  }
+}
 
+/* Hero Slider pagination container (ported from str1 HBS classes).
+   UNLAYERED: swiper/css/bundle sets unlayered
+   `.swiper-pagination-bullets.swiper-pagination-horizontal { bottom: 8px;
+   left: 0; top: auto; width: 100% }` and `.swiper-pagination { transform:
+   translate3d(0,0,0) }`. Equal specificity + later chunk order lets `top: auto`
+   win after Swiper init, dropping bars to the hero bottom. `!important` on
+   top/transform and the extra `.swiper-pagination-horizontal` class (0,3,0)
+   beat that regardless of load order. */
+.vk3-root .vv-hero-swiper-pagination.swiper-pagination-horizontal,
+.vk3-root .vv-hero-swiper-pagination {
+  position: absolute;
+  top: 50% !important;
+  right: 0.5rem !important; /* !right-2 */
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 20;
+  display: flex;
+  width: 34px !important; /* !w-[34px] */
+  transform: translateY(-50%) !important;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+@media (min-width: 576px) {
+  .vk3-root .vv-hero-swiper-pagination.swiper-pagination-horizontal,
+  .vk3-root .vv-hero-swiper-pagination { right: 1rem !important; } /* sm:!right-4 */
+}
+@media (min-width: 1210px) {
+  .vk3-root .vv-hero-swiper-pagination.swiper-pagination-horizontal,
+  .vk3-root .vv-hero-swiper-pagination { right: -4rem !important; } /* xl:!-right-16 */
+}
+
+/* Hero Slider — vertical bar bullets (ported from str1 style.css).
+   Short gray bar stretches into a long accent bar when active.
+   UNLAYERED: swiper/css/bundle is unlayered; layered component rules lose
+   the cascade. Same pattern as the color overrides above. */
+.vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet {
+  margin: 0 !important;
+  display: flex;
+  height: 1rem;
+  width: 1.25rem;
+  align-items: center;
+  border-radius: 0;
+  background: transparent;
+  opacity: 1;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet::before {
+  content: '';
+  height: 0.125rem;
+  flex-basis: 100%;
+  background: rgb(122 128 155 / 0.2);
+  transition: inherit;
+}
+.vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active {
+  width: 34px;
+  background: transparent;
+  box-shadow: none;
+}
+.vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active::before {
+  background: rgb(var(--color-accent) / 1);
 }

@@ -2,7 +2,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Swiper from 'swiper/bundle'
-import 'swiper/css/bundle'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 
 export interface VkStr1HeroSpotlight {
@@ -64,7 +63,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-[1320px] px-5 min-[1500px]:px-[90px]">
+  <div class="mx-auto w-full max-w-[1320px]">
     <div class="relative z-10 h-[420px] md:h-[460px] lg:h-[660px]">
       <div ref="swiperEl" class="swiper h-full w-full">
         <div class="swiper-wrapper">
@@ -155,12 +154,12 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !bottom-auto !left-auto !right-2 top-1/2 z-20 flex !w-[34px] -translate-y-1/2 flex-col items-end gap-0.5 sm:!right-4 xl:!-right-16"></div>
+      <div class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !right-2 sm:!right-4 xl:!-right-16 top-1/2 !left-auto -translate-y-1/2 !bottom-auto z-20 flex !w-[34px] flex-col items-end gap-0.5"></div>
 
       <div class="absolute bottom-0 right-0 z-10 flex justify-center gap-y-4 xl:-right-16 xl:flex-col">
         <button
           type="button"
-          class="js-vk-hero-prev flex aspect-square w-8 items-center justify-center bg-white text-gray-900 ring-1 ring-gray-300 hover:cursor-pointer hover:text-accent dark:bg-gray-900 dark:text-white dark:ring-white/20 xl:rotate-90 xl:bg-transparent dark:xl:bg-transparent"
+          class="js-vk-hero-prev flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
           :aria-label="t('web.vtual.public.hero.prev')"
         >
           <svg class="h-2.5 w-1.5" fill="currentColor">
@@ -169,7 +168,7 @@ onBeforeUnmount(() => {
         </button>
         <button
           type="button"
-          class="js-vk-hero-next flex aspect-square w-8 items-center justify-center bg-white text-gray-900 ring-1 ring-gray-300 hover:cursor-pointer hover:text-accent dark:bg-gray-900 dark:text-white dark:ring-white/20 xl:rotate-90 xl:bg-transparent dark:xl:bg-transparent"
+          class="js-vk-hero-next flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
           :aria-label="t('web.vtual.public.hero.next')"
         >
           <svg class="h-2.5 w-1.5" fill="currentColor">

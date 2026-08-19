@@ -7,7 +7,6 @@ import VkStr1HeroSlider, {
   type VkStr1HeroSpotlight,
 } from '@/valkivid3/components/str1/VkStr1HeroSlider.vue'
 import VkStr1LiveNow from '@/valkivid3/components/str1/VkStr1LiveNow.vue'
-import VkStr1SectionCountdown from '@/valkivid3/components/str1/VkStr1SectionCountdown.vue'
 import VkStr1PlatformStats from '@/valkivid3/components/str1/VkStr1PlatformStats.vue'
 import VkStr1VtuberDirectory from '@/valkivid3/components/str1/VkStr1VtuberDirectory.vue'
 import VkStr1ContentFeed from '@/valkivid3/components/str1/VkStr1ContentFeed.vue'
@@ -50,13 +49,10 @@ onMounted(() => {
 
 <template>
   <VkStr1HeroSlider :spotlight="spotlight" />
-  <VkStr1LiveNow :items="landing?.live_now ?? null" />
-  <VkStr1SectionCountdown
-    :target-date="landing?.event?.starts_at ?? null"
-    :event-title="landing?.event?.title ?? null"
-    :event-body="landing?.event?.body ?? null"
-  />
-  <VkStr1PlatformStats :stats="landing?.stats ?? null" />
+  <div class="pt-12 md:pt-16 lg:pt-16">
+    <VkStr1LiveNow :items="landing?.live_now ?? null" />
+    <VkStr1PlatformStats :stats="landing?.stats ?? null" />
+  </div>
   <VkStr1VtuberDirectory />
   <VkStr1ContentFeed />
   <VkStr1SectionEvents :schedule="landing?.schedule ?? null" />
