@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import 'swiper/css/bundle'
 import '@/valkivid3/assets/css/valkivid3.css'
 
 import { onMounted, onBeforeUnmount, watch } from 'vue'

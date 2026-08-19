@@ -64,6 +64,8 @@ const creatorTo = computed(() => {
           :class="featured ? 'aspect-[77/46]' : 'aspect-[370/215]'"
           :src="item.thumbnail_url"
           :alt="item.title ?? ''"
+          loading="lazy"
+          decoding="async"
         />
         <div
           v-else
@@ -103,6 +105,10 @@ const creatorTo = computed(() => {
           class="aspect-square w-10 object-cover"
           :src="item.creator.avatar_url"
           :alt="item.creator.display_name"
+          width="40"
+          height="40"
+          loading="lazy"
+          decoding="async"
         />
       </router-link>
       <div

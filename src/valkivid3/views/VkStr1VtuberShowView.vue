@@ -109,8 +109,30 @@ onUnmounted(() => {
 
 <template>
   <div class="container pb-20 pt-8 md:pb-24 lg:pb-[120px] lg:pt-12">
-    <div v-if="loading" class="flex justify-center py-24">
-      <div class="vv-preloader-spikes-roll h-[60px] w-16 animate-spike-roll bg-spike-roll" aria-hidden="true"></div>
+    <div v-if="loading" aria-hidden="true">
+      <div class="mb-8 aspect-[1360/320] w-full animate-pulse bg-gray-200 dark:bg-gray-800 lg:mb-12"></div>
+      <div class="grid grid-cols-12 gap-x-5 gap-y-12 md:gap-x-6 lg:gap-x-7.5">
+        <div class="col-span-full lg:col-span-4">
+          <div class="animate-pulse bg-gray-150 p-6 dark:bg-gray-800 lg:p-8">
+            <div class="mx-auto mb-6 aspect-square w-28 rounded-full bg-gray-300 dark:bg-gray-700 lg:w-36"></div>
+            <div class="mx-auto h-6 w-2/3 bg-gray-300 dark:bg-gray-700"></div>
+            <div class="mt-6 space-y-2">
+              <div class="h-3 w-full bg-gray-300 dark:bg-gray-700"></div>
+              <div class="h-3 w-5/6 bg-gray-300 dark:bg-gray-700"></div>
+              <div class="h-3 w-1/2 bg-gray-300 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-full lg:col-span-8">
+          <div class="grid grid-cols-12 gap-5 md:gap-6 lg:gap-7.5">
+            <div v-for="n in 6" :key="n" class="col-span-full animate-pulse sm:col-span-6 lg:col-span-4">
+              <div class="mb-5 aspect-[370/215] w-full bg-gray-200 dark:bg-gray-800"></div>
+              <div class="h-4 w-5/6 bg-gray-200 dark:bg-gray-800"></div>
+              <div class="mt-2 h-3 w-1/3 bg-gray-200 dark:bg-gray-800"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-else-if="notFound" class="py-24 text-center">
@@ -156,6 +178,9 @@ onUnmounted(() => {
           class="aspect-[1360/320] w-full object-cover"
           :src="bannerUrl"
           alt=""
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
         />
         <div
           v-else
@@ -169,6 +194,9 @@ onUnmounted(() => {
             class="h-16 w-16 rounded-full object-cover ring-4 ring-white/20 lg:h-24 lg:w-24"
             :src="profile.avatar_url"
             :alt="profile.display_name"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
           />
           <div
             v-else
@@ -234,7 +262,7 @@ onUnmounted(() => {
               <div v-if="gridContents.length > 0" class="grid grid-cols-12 gap-5 md:gap-6 lg:gap-7.5">
                 <VkStr1VideoCard
                   v-for="(item, index) in gridContents"
-                  :key="item.url ?? `${item.title}-${index}`"
+                  :key="`${item.type ?? 'content'}:${item.url ?? item.title ?? index}`"
                   :item="item"
                 />
               </div>

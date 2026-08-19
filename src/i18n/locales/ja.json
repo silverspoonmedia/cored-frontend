@@ -1438,14 +1438,14 @@
       "reset_password_success": "パスワードを再設定しました。ログインしてください。",
       "password_updated": "パスワードを更新しました。",
       "verification_resent": "確認リンクをメールで送信しました。",
-      "password_update_failed": "パスワードを更新できませんでした。",
-      "login_failed": "ログインできませんでした。",
-      "two_factor_verification_failed": "二要素認証を確認できませんでした。",
-      "register_failed": "登録できませんでした。",
-      "forgot_password_failed": "パスワード再設定リンクを送信できませんでした。",
-      "reset_password_failed": "パスワードを再設定できませんでした。",
+      "password_update_failed": "パスワードの更新に失敗しました",
+      "login_failed": "ログインに失敗しました",
+      "two_factor_verification_failed": "認証に失敗しました",
+      "register_failed": "登録に失敗しました",
+      "forgot_password_failed": "再設定リンクの送信に失敗しました",
+      "reset_password_failed": "パスワードの再設定に失敗しました",
       "fetch_user_failed": "アカウント情報を読み込めませんでした。",
-      "verification_resent_failed": "確認メールを再送信できませんでした。",
+      "verification_resent_failed": "確認メールの再送信に失敗しました。",
       "locale_update_failed": "言語設定を更新できませんでした。",
       "forgot_password_heading": "再設定リンクを受け取るメールアドレスを入力してください",
       "reset_password_heading": "新しいパスワードを設定してください",
@@ -1494,18 +1494,11 @@
       "sending": "送信中…",
       "resetting": "再設定中…",
       "verifying": "確認中…",
-      "login_failed": "ログインに失敗しました",
-      "register_failed": "登録に失敗しました",
-      "forgot_password_failed": "再設定リンクの送信に失敗しました",
-      "reset_password_failed": "パスワードの再設定に失敗しました",
       "two_factor_invalid_code": "認証コードが無効です",
       "two_factor_no_token": "二要素認証チャレンジトークンが見つかりません。再度ログインしてください。",
-      "two_factor_verification_failed": "認証に失敗しました",
       "two_factor_setup_failed": "設定の開始に失敗しました",
       "two_factor_confirm_failed": "設定の確認に失敗しました",
-      "two_factor_disable_failed": "無効化に失敗しました",
-      "password_update_failed": "パスワードの更新に失敗しました",
-      "verification_resent_failed": "確認メールの再送信に失敗しました。"
+      "two_factor_disable_failed": "無効化に失敗しました"
     },
     "currencies": {
       "load_failed": "通貨を読み込めませんでした。",
@@ -2187,7 +2180,6 @@
           "needs_classification_badge": "分類が必要"
         },
         "back_to_list": "モデルカタログに戻る",
-        "load_failed": "モデルカードを読み込めませんでした。",
         "save_failed": "モデルカードを保存できませんでした。",
         "save_changes": "変更を保存",
         "create_submit": "作成",
@@ -2305,7 +2297,7 @@
       "load_failed": "メニューを読み込めませんでした。",
       "load_trashed_failed": "削除済みメニューを読み込めませんでした。",
       "save_failed": "メニューを保存できませんでした。",
-      "restore_failed": "メニューを復元できませんでした。",
+      "restore_failed": "メニューの復元に失敗しました",
       "title": "ナビゲーションメニュー",
       "list_title": "メニュー一覧",
       "trashed_title": "削除済みメニュー",
@@ -2337,7 +2329,6 @@
       "restored": "メニュー \"{name}\" を復元しました。",
       "deleted": "メニュー \"{name}\" を削除しました。",
       "delete_failed": "メニューの削除に失敗しました",
-      "restore_failed": "メニューの復元に失敗しました",
       "deleted_at": "削除",
       "search_placeholder": "メニューを検索…",
       "empty_trashed": "削除済みメニューはありません。",
@@ -2396,12 +2387,10 @@
         "reference_placeholder": "基準メニューを選択",
         "reference_hint_edit": "位置を設定する場合は必須です。順序を変更しない場合は両方を空にしてください。",
         "reference_hint_create": "位置が「前」または「後」の場合は必須です。",
-      "name_label": "名前",
-      "route_label": "ルート名",
-      "headers_no_parent": "ヘッダーには親を設定できません。"
-      },
-      "load_failed": "メニューを読み込めませんでした。",
-      "save_failed": "メニューを保存できませんでした。"
+        "name_label": "名前",
+        "route_label": "ルート名",
+        "headers_no_parent": "ヘッダーには親を設定できません。"
+      }
     },
     "microstock": {
       "menu": "Microstock",
@@ -2473,8 +2462,8 @@
     "notification-audiences": {
       "title": "通知オーディエンス",
       "load_failed": "通知オーディエンスを読み込めませんでした。",
-      "failed_load": "通知オーディエンスを読み込めませんでした。",
-      "failed_update": "通知オーディエンスを更新できませんでした。",
+      "failed_load": "Failed to load notification audience",
+      "failed_update": "Failed to update notification audience",
       "subtitle": "各アクティビティ通知タイプの受信者。",
       "edit_title": "通知オーディエンスを編集",
       "empty": "通知タイプがありません。",
@@ -2487,9 +2476,7 @@
         "roles": "対象ロール",
         "notify_subject_user": "対象ユーザーにも通知"
       },
-      "failed_load": "Failed to load notification audience",
       "updated": "Notification audience updated.",
-      "failed_update": "Failed to update notification audience",
       "loading": "Loading…",
       "select_roles_hint": "Select which roles receive this notification type.",
       "not_found": "Notification audience not found.",
@@ -4095,7 +4082,8 @@
         "live_now": {
           "heading": "ライブ中",
           "badge": "LIVE",
-          "more_streams": "他{count}件の配信"
+          "more_streams": "他{count}件の配信",
+          "active": "配信中"
         },
         "stats": {
           "creators": "クリエイター",
@@ -4142,6 +4130,10 @@
             "status": "ステータス",
             "offline": "オフライン"
           }
+        },
+        "landing": {
+          "error": "最新のハイライトを読み込めませんでした。",
+          "retry": "再試行"
         }
       }
     },

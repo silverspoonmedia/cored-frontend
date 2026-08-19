@@ -31,11 +31,6 @@ const { theme, toggleTheme } = useVkStr1Theme()
             {{ t('web.vtual.public.nav.contents') }}
           </router-link>
         </li>
-        <li>
-          <router-link to="/vtual#about" class="block py-2" @click="close()">
-            {{ t('web.vtual.public.nav.about') }}
-          </router-link>
-        </li>
         <li class="mt-4 border-t border-gray-150 pt-4 dark:border-gray-600">
           <button
             type="button"

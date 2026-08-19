@@ -45,14 +45,6 @@ const { theme, toggleTheme } = useVkStr1Theme()
                 {{ t('web.vtual.public.nav.contents') }}
               </router-link>
             </li>
-            <li>
-              <router-link
-                to="/vtual#about"
-                class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:left-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-right after:scale-x-0 after:bg-current-marker-dark after:transition-transform hover:after:origin-left hover:after:scale-x-100 dark:text-white dark:after:bg-current-marker xl:px-4.5"
-              >
-                {{ t('web.vtual.public.nav.about') }}
-              </router-link>
-            </li>
           </ul>
 
           <!-- Controls -->

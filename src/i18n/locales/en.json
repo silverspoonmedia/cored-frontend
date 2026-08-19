@@ -1438,14 +1438,14 @@
       "reset_password_success": "Password reset successfully. Please sign in.",
       "password_updated": "Password updated successfully.",
       "verification_resent": "A verification link has been sent to your email.",
-      "password_update_failed": "Could not update your password.",
-      "login_failed": "Sign-in failed.",
-      "two_factor_verification_failed": "Two-factor verification failed.",
-      "register_failed": "Registration failed.",
-      "forgot_password_failed": "Could not send the password reset link.",
-      "reset_password_failed": "Could not reset the password.",
+      "password_update_failed": "Failed to update password",
+      "login_failed": "Login failed",
+      "two_factor_verification_failed": "Verification failed",
+      "register_failed": "Registration failed",
+      "forgot_password_failed": "Failed to send reset link",
+      "reset_password_failed": "Failed to reset password",
       "fetch_user_failed": "Could not load your account.",
-      "verification_resent_failed": "Could not resend the verification email.",
+      "verification_resent_failed": "Failed to resend verification email.",
       "locale_update_failed": "Could not update the language preference.",
       "forgot_password_heading": "Enter your email to receive a reset link",
       "reset_password_heading": "Choose a new password",
@@ -1494,27 +1494,20 @@
       "sending": "Sending…",
       "resetting": "Resetting…",
       "verifying": "Verifying…",
-      "login_failed": "Login failed",
-      "register_failed": "Registration failed",
-      "forgot_password_failed": "Failed to send reset link",
-      "reset_password_failed": "Failed to reset password",
       "two_factor_invalid_code": "Invalid authentication code",
       "two_factor_no_token": "No two-factor challenge token found. Please log in again.",
-      "two_factor_verification_failed": "Verification failed",
       "two_factor_setup_failed": "Failed to start setup",
       "two_factor_confirm_failed": "Failed to confirm setup",
-      "two_factor_disable_failed": "Failed to disable",
-      "password_update_failed": "Failed to update password",
-      "verification_resent_failed": "Failed to resend verification email."
+      "two_factor_disable_failed": "Failed to disable"
     },
-      "currencies": {
-        "load_failed": "Could not load currencies.",
-        "activated": "Currency activated.",
-        "deactivated": "Currency deactivated.",
-        "update_failed": "Could not update the currency.",
-        "settlement_updated": "{code} is now the settlement currency.",
-        "settlement_failed": "Could not set the settlement currency.",
-        "title": "Currencies",
+    "currencies": {
+      "load_failed": "Could not load currencies.",
+      "activated": "Currency activated.",
+      "deactivated": "Currency deactivated.",
+      "update_failed": "Could not update the currency.",
+      "settlement_updated": "{code} is now the settlement currency.",
+      "settlement_failed": "Could not set the settlement currency.",
+      "title": "Currencies",
       "subtitle": "Active checkout currencies and settlement currency marker.",
       "activate": "Activate",
       "deactivate": "Deactivate",
@@ -2187,7 +2180,6 @@
           "needs_classification_badge": "Needs classification"
         },
         "back_to_list": "Back to model catalog",
-        "load_failed": "Could not load the model card.",
         "save_failed": "Could not save the model card.",
         "save_changes": "Save changes",
         "create_submit": "Create",
@@ -2302,10 +2294,10 @@
       }
     },
     "menus": {
-      "load_failed": "Could not load menus.",
+      "load_failed": "Could not load the menu.",
       "load_trashed_failed": "Could not load deleted menus.",
       "save_failed": "Could not save the menu.",
-      "restore_failed": "Could not restore the menu.",
+      "restore_failed": "Failed to restore menu",
       "title": "Navigation menu",
       "list_title": "Menu list",
       "trashed_title": "Trashed menus",
@@ -2337,7 +2329,6 @@
       "restored": "Menu \"{name}\" restored.",
       "deleted": "Menu \"{name}\" deleted.",
       "delete_failed": "Failed to delete menu",
-      "restore_failed": "Failed to restore menu",
       "deleted_at": "Deleted",
       "search_placeholder": "Search menus…",
       "empty_trashed": "No trashed menus.",
@@ -2399,9 +2390,7 @@
         "name_label": "Name",
         "route_label": "Route Name",
         "headers_no_parent": "Headers cannot have a parent."
-      },
-      "load_failed": "Could not load the menu.",
-      "save_failed": "Could not save the menu."
+      }
     },
     "microstock": {
       "menu": "Microstock",
@@ -2473,8 +2462,8 @@
     "notification-audiences": {
       "title": "Notification audiences",
       "load_failed": "Could not load notification audiences.",
-      "failed_load": "Could not load the notification audience.",
-      "failed_update": "Could not update the notification audience.",
+      "failed_load": "Failed to load notification audience",
+      "failed_update": "Failed to update notification audience",
       "subtitle": "Who receives each activity notification type.",
       "edit_title": "Edit notification audience",
       "empty": "No notification types configured.",
@@ -2487,9 +2476,7 @@
         "roles": "Target roles",
         "notify_subject_user": "Also notify the subject user"
       },
-      "failed_load": "Failed to load notification audience",
       "updated": "Notification audience updated.",
-      "failed_update": "Failed to update notification audience",
       "loading": "Loading…",
       "select_roles_hint": "Select which roles receive this notification type.",
       "not_found": "Notification audience not found.",
@@ -4091,7 +4078,8 @@
         "live_now": {
           "heading": "Live Now",
           "badge": "LIVE",
-          "more_streams": "+{count} more streams"
+          "more_streams": "+{count} more streams",
+          "active": "Live now"
         },
         "stats": {
           "creators": "Creators",
@@ -4138,6 +4126,10 @@
             "status": "Status",
             "offline": "Offline"
           }
+        },
+        "landing": {
+          "error": "Could not load the latest highlights.",
+          "retry": "Try again"
         }
       }
     },

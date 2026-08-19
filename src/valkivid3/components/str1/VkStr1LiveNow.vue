@@ -15,6 +15,7 @@ interface LiveGroup {
   creator: VtualPublicContentCreator | null
   items: VtualPublicContent[]
   platforms: string[]
+  key?: string
 }
 
 const groups = computed<LiveGroup[]>(() => {
@@ -35,7 +36,10 @@ const groups = computed<LiveGroup[]>(() => {
       g.platforms.push(item.platform_key)
     }
   }
-  return Array.from(map.values())
+  return Array.from(map.values()).map((group, gi) => ({
+    ...group,
+    key: group.creator?.slug ?? `ungrouped-${gi}`,
+  }))
 })
 
 function platformIcon(key: string | null | undefined): string {
@@ -62,7 +66,7 @@ function platformIcon(key: string | null | undefined): string {
       </div>
 
       <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-7.5">
-        <li v-for="(group, gi) in groups" :key="group.creator?.slug ?? `group-${gi}`">
+        <li v-for="group in groups" :key="group.key">
           <div
             class="flex flex-col bg-gray-150 ring-1 ring-gray-500/20 transition-all hover:ring-accent dark:bg-gray-800 dark:ring-gray-500/20"
           >
@@ -74,6 +78,10 @@ function platformIcon(key: string | null | undefined): string {
                   :src="group.creator.avatar_url"
                   :alt="group.creator?.display_name ?? ''"
                   class="h-9 w-9 rounded-full object-cover ring-2 ring-danger/60"
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <span
                   v-else

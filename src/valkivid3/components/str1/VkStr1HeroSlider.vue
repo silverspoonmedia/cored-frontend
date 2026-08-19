@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Swiper from 'swiper/bundle'
+import Swiper from 'swiper'
+import { Autoplay, EffectFade, Navigation, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/effect-fade'
+import 'swiper/css/pagination'
+import 'swiper/css/navigation'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 
 const { t } = useI18n()
@@ -13,6 +18,7 @@ onMounted(() => {
   if (!swiperEl.value) return
 
   swiper = new Swiper(swiperEl.value, {
+    modules: [Autoplay, EffectFade, Navigation, Pagination],
     slidesPerView: 1,
     loop: true,
     speed: 400,
@@ -58,12 +64,12 @@ onBeforeUnmount(() => {
                         {{ t('web.vtual.public.hero.one.text') }}
                       </p>
                       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <a
-                          href="#vtubers"
+                        <router-link
+                          to="/vtual#vtubers"
                           class="inline-flex w-full justify-center bg-accent px-5 py-4 text-center font-bold uppercase leading-none text-gray-900 transition-colors hover:bg-accent/90 md:py-[21px] lg:w-auto lg:px-10"
                         >
                           {{ t('web.vtual.public.hero.one.cta') }}
-                        </a>
+                        </router-link>
                         <router-link
                           to="/register?redirect=/apps/vtual/profiles"
                           class="inline-flex w-full justify-center px-5 py-4 text-center font-bold uppercase leading-none text-gray-900 ring-1 ring-inset ring-gray-900 transition-colors hover:bg-gray-900 hover:text-white dark:text-white dark:ring-white dark:hover:bg-white dark:hover:text-gray-900 md:py-[21px] lg:w-auto lg:px-10"
@@ -124,12 +130,11 @@ onBeforeUnmount(() => {
                       <p class="mb-6 text-base font-medium leading-8 text-gray-300 lg:text-lg">
                         {{ t('web.vtual.public.hero.three.text') }}
                       </p>
-                      <a
-                        href="#events"
+                      <router-link to="/vtual#events"
                         class="inline-flex justify-center gap-x-3 bg-accent px-4 py-4 text-center text-sm font-bold uppercase leading-none text-gray-900 transition-colors hover:bg-accent/90 md:py-[18px] lg:px-8"
                       >
                         {{ t('web.vtual.public.hero.three.cta') }}
-                      </a>
+                      </router-link>
                     </div>
                   </div>
                 </div>

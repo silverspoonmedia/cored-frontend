@@ -31,12 +31,12 @@ const { isAuthenticated } = useAuth()
             >
               {{ t('web.vtual.public.channel_banner.cta_claim') }}
             </router-link>
-            <a
-              href="#vtubers"
+            <router-link
+              to="/vtual#vtubers"
               class="inline-flex w-full justify-center px-8 py-4 text-center text-sm font-bold uppercase leading-none text-white ring-1 ring-inset ring-white transition-colors hover:bg-white hover:text-gray-900 sm:w-auto"
             >
               {{ t('web.vtual.public.channel_banner.cta_browse') }}
-            </a>
+            </router-link>
           </div>
         </div>
       </div>

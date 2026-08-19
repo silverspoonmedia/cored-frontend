@@ -1438,14 +1438,14 @@
       "reset_password_success": "Kata sandi berhasil diatur ulang. Silakan masuk.",
       "password_updated": "Kata sandi berhasil diperbarui.",
       "verification_resent": "Tautan verifikasi telah dikirim ke email Anda.",
-      "password_update_failed": "Kata sandi Anda tidak dapat diperbarui.",
-      "login_failed": "Gagal masuk.",
-      "two_factor_verification_failed": "Verifikasi dua faktor gagal.",
-      "register_failed": "Pendaftaran gagal.",
-      "forgot_password_failed": "Tautan reset kata sandi tidak dapat dikirim.",
-      "reset_password_failed": "Kata sandi tidak dapat diatur ulang.",
+      "password_update_failed": "Gagal memperbarui kata sandi",
+      "login_failed": "Gagal masuk",
+      "two_factor_verification_failed": "Verifikasi gagal",
+      "register_failed": "Gagal mendaftar",
+      "forgot_password_failed": "Gagal mengirim tautan reset",
+      "reset_password_failed": "Gagal mengatur ulang kata sandi",
       "fetch_user_failed": "Akun Anda tidak dapat dimuat.",
-      "verification_resent_failed": "Email verifikasi tidak dapat dikirim ulang.",
+      "verification_resent_failed": "Gagal mengirim ulang email verifikasi.",
       "locale_update_failed": "Preferensi bahasa tidak dapat diperbarui.",
       "forgot_password_heading": "Masukkan email Anda untuk menerima tautan reset",
       "reset_password_heading": "Pilih kata sandi baru Anda",
@@ -1494,18 +1494,11 @@
       "sending": "Mengirim…",
       "resetting": "Mengatur ulang…",
       "verifying": "Memverifikasi…",
-      "login_failed": "Gagal masuk",
-      "register_failed": "Gagal mendaftar",
-      "forgot_password_failed": "Gagal mengirim tautan reset",
-      "reset_password_failed": "Gagal mengatur ulang kata sandi",
       "two_factor_invalid_code": "Kode autentikasi tidak valid",
       "two_factor_no_token": "Token tantangan dua faktor tidak ditemukan. Silakan masuk lagi.",
-      "two_factor_verification_failed": "Verifikasi gagal",
       "two_factor_setup_failed": "Gagal memulai setup",
       "two_factor_confirm_failed": "Gagal mengkonfirmasi setup",
-      "two_factor_disable_failed": "Gagal menonaktifkan",
-      "password_update_failed": "Gagal memperbarui kata sandi",
-      "verification_resent_failed": "Gagal mengirim ulang email verifikasi."
+      "two_factor_disable_failed": "Gagal menonaktifkan"
     },
     "currencies": {
       "load_failed": "Mata uang tidak dapat dimuat.",
@@ -2187,7 +2180,6 @@
           "needs_classification_badge": "Perlu klasifikasi"
         },
         "back_to_list": "Kembali ke katalog model",
-        "load_failed": "Kartu model tidak dapat dimuat.",
         "save_failed": "Kartu model tidak dapat disimpan.",
         "save_changes": "Simpan perubahan",
         "create_submit": "Buat",
@@ -2305,7 +2297,7 @@
       "load_failed": "Menu tidak dapat dimuat.",
       "load_trashed_failed": "Menu yang dihapus tidak dapat dimuat.",
       "save_failed": "Menu tidak dapat disimpan.",
-      "restore_failed": "Menu tidak dapat dipulihkan.",
+      "restore_failed": "Gagal memulihkan menu",
       "title": "Navigasi Menu",
       "list_title": "Daftar menu",
       "trashed_title": "Menu terhapus",
@@ -2337,7 +2329,6 @@
       "restored": "Menu \"{name}\" dipulihkan.",
       "deleted": "Menu \"{name}\" dihapus.",
       "delete_failed": "Gagal menghapus menu",
-      "restore_failed": "Gagal memulihkan menu",
       "deleted_at": "Dihapus",
       "search_placeholder": "Cari menu…",
       "empty_trashed": "Tidak ada menu terhapus.",
@@ -2396,12 +2387,10 @@
         "reference_placeholder": "Pilih menu referensi",
         "reference_hint_edit": "Wajib jika posisi diisi. Kosongkan keduanya agar urutan tidak berubah.",
         "reference_hint_create": "Wajib jika posisi sebelum atau sesudah.",
-      "name_label": "Nama",
-      "route_label": "Nama route",
-      "headers_no_parent": "Header tidak dapat memiliki parent."
-      },
-      "load_failed": "Menu tidak dapat dimuat.",
-      "save_failed": "Menu tidak dapat disimpan."
+        "name_label": "Nama",
+        "route_label": "Nama route",
+        "headers_no_parent": "Header tidak dapat memiliki parent."
+      }
     },
     "microstock": {
       "menu": "Manajemen Microstock",
@@ -2473,8 +2462,8 @@
     "notification-audiences": {
       "title": "Audiens notifikasi",
       "load_failed": "Audiens notifikasi tidak dapat dimuat.",
-      "failed_load": "Audiens notifikasi tidak dapat dimuat.",
-      "failed_update": "Audiens notifikasi tidak dapat diperbarui.",
+      "failed_load": "Failed to load notification audience",
+      "failed_update": "Failed to update notification audience",
       "subtitle": "Siapa yang menerima setiap jenis notifikasi aktivitas.",
       "edit_title": "Edit audiens notifikasi",
       "empty": "Tidak ada jenis notifikasi.",
@@ -2487,9 +2476,7 @@
         "roles": "Peran target",
         "notify_subject_user": "Juga beri tahu pengguna subjek"
       },
-      "failed_load": "Failed to load notification audience",
       "updated": "Notification audience updated.",
-      "failed_update": "Failed to update notification audience",
       "loading": "Loading…",
       "select_roles_hint": "Select which roles receive this notification type.",
       "not_found": "Notification audience not found.",
@@ -4095,7 +4082,8 @@
         "live_now": {
           "heading": "Sedang Live",
           "badge": "LIVE",
-          "more_streams": "+{count} stream lainnya"
+          "more_streams": "+{count} stream lainnya",
+          "active": "Sedang live"
         },
         "stats": {
           "creators": "Kreator",
@@ -4142,6 +4130,10 @@
             "status": "Status",
             "offline": "Offline"
           }
+        },
+        "landing": {
+          "error": "Sorotan terbaru tidak dapat dimuat.",
+          "retry": "Coba lagi"
         }
       }
     },

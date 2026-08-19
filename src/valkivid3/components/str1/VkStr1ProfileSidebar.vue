@@ -25,6 +25,8 @@ const guestClaimTo = computed(() => `/login?redirect=${encodeURIComponent(claimP
         class="aspect-square w-full rounded-full object-cover ring-4 ring-accent/40"
         :src="profile.avatar_url"
         :alt="profile.display_name"
+        loading="lazy"
+        decoding="async"
       />
       <div
         v-else

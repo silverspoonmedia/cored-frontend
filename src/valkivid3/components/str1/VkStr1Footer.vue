@@ -33,11 +33,6 @@ const { t } = useI18n()
                   {{ t('web.vtual.public.nav.contents') }}
                 </router-link>
               </li>
-              <li>
-                <router-link to="/vtual#about" class="text-gray-900 transition-colors hover:text-accent dark:text-white">
-                  {{ t('web.vtual.public.nav.about') }}
-                </router-link>
-              </li>
             </ul>
           </nav>
         </div>

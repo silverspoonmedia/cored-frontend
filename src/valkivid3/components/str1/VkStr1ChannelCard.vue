@@ -40,6 +40,10 @@ const platformIcon = computed(() => {
       :src="channel.avatar_url"
       :alt="label"
       class="h-8 w-8 rounded-full object-cover"
+      width="32"
+      height="32"
+      loading="lazy"
+      decoding="async"
     />
     <svg v-else class="h-4 w-4" fill="currentColor">
       <use :href="platformIcon"></use>

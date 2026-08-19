@@ -7,7 +7,7 @@ import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
 
 const { t } = useI18n()
-const { fetchDirectory } = useVtualPublic()
+const { fetchDirectory, prefetchProfile } = useVtualPublic()
 
 const items = ref<VtualPublicVtuber[]>([])
 const pagination = ref<VtualPublicDirectoryPagination | null>(null)
@@ -93,9 +93,23 @@ function goTo(delta: number): void {
         </div>
       </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center py-16">
-        <div class="vv-preloader-spikes-roll h-[60px] w-16 animate-spike-roll bg-spike-roll" aria-hidden="true"></div>
+      <!-- Loading skeleton -->
+      <div v-if="loading" class="mb-7.5 grid grid-cols-12 gap-5 md:gap-6 lg:gap-7.5" aria-hidden="true">
+        <div
+          v-for="n in 6"
+          :key="n"
+          class="col-span-full animate-pulse bg-gray-150 ring-1 ring-gray-500/20 dark:bg-gray-800 sm:col-span-6 lg:col-span-4"
+        >
+          <div class="flex items-center gap-x-4 p-5 lg:p-6">
+            <div class="aspect-square w-16 rounded-full bg-gray-300 dark:bg-gray-700 lg:w-20"></div>
+            <div class="min-w-0 flex-1 space-y-2">
+              <div class="h-4 w-2/3 bg-gray-300 dark:bg-gray-700"></div>
+              <div class="h-3 w-full bg-gray-300 dark:bg-gray-700"></div>
+              <div class="h-3 w-1/2 bg-gray-300 dark:bg-gray-700"></div>
+            </div>
+          </div>
+          <div class="h-8 border-t border-gray-500/20 bg-gray-200 dark:bg-gray-700"></div>
+        </div>
       </div>
 
       <!-- Error -->
@@ -125,6 +139,7 @@ function goTo(delta: number): void {
             <router-link
               :to="`/vtual/vtubers/${vtuber.slug}`"
               class="group relative block overflow-hidden bg-gray-150 ring-1 ring-gray-500/20 transition-all hover:-translate-y-0.5 hover:ring-accent dark:bg-gray-800"
+              @mouseenter="prefetchProfile(vtuber.slug)"
             >
               <div class="flex items-center gap-x-4 p-5 lg:p-6">
                 <figure class="relative shrink-0">
@@ -133,6 +148,8 @@ function goTo(delta: number): void {
                     class="aspect-square w-16 rounded-full object-cover ring-2 ring-white/40 dark:ring-white/10 lg:w-20"
                     :src="vtuber.avatar_url"
                     :alt="vtuber.display_name"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div
                     v-else
