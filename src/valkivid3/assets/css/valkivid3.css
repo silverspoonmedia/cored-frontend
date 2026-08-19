@@ -43,7 +43,7 @@
   --color-social-twitter: #000000;
   --color-social-x: #000000;
   --color-social-instagram: #f7337d;
-  --color-social-twitch: #94a3b8;
+  --color-social-twitch: #7a809b; /* gray-500 — match the port's gray ramp */
   --color-social-discord: #7289da;
   --color-social-patreon: #f75e49;
   --color-social-tiktok: #000000;
@@ -87,7 +87,7 @@
   --container-2xl: 1360px;
 
   --background-image-current-marker: url("data:image/svg+xml,%3Csvg width='6' height='9' viewBox='0 0 6 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3V3H0V0Z' fill='%23CBD5E1'/%3E%3Cpath d='M3 3H6V6H3V3Z' fill='%23CBD5E1'/%3E%3Cpath d='M0 6H3V9H0V6Z' fill='%23CBD5E1'/%3E%3C/svg%3E");
-  --background-image-current-marker-dark: url("data:image/svg+xml,%3Csvg width='6' height='9' viewBox='0 0 6 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3V3H0V0Z' fill='%2394A3B8'/%3E%3Cpath d='M3 3H6V6H3V3Z' fill='%2394A3B8'/%3E%3Cpath d='M0 6H3V9H0V6Z' fill='%2394A3B8'/%3E%3C/svg%3E");
+  --background-image-current-marker-dark: url("data:image/svg+xml,%3Csvg width='6' height='9' viewBox='0 0 6 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3V3H0V0Z' fill='%237A809B'/%3E%3Cpath d='M3 3H6V6H3V3Z' fill='%237A809B'/%3E%3Cpath d='M0 6H3V9H0V6Z' fill='%237A809B'/%3E%3C/svg%3E");
   --background-position-spike-roll: 0px center, 8px center, 16px center, 24px center, 32px center, 40px center, 48px center, 56px center, 64px center;
 
   /* str1 animations */
@@ -137,10 +137,12 @@
 
 @layer base {
   .vk3-root {
-    /* str1 skin CSS vars — steel-slate silver accent/primary */
-    --color-primary: 148 163 184; /* #94a3b8 (slate-400, light) */
-    --color-primary-500: 120 134 154; /* #78869a (darker slate for hover) */
-    --color-accent: 148 163 184; /* #94a3b8 (light) */
+    /* str1 skin CSS vars — steel-slate silver accent/primary.
+       Light uses the deep end of the slate ramp (slate-600/700) so the accent
+       stays visible on white; dark (below) flips to the bright end. */
+    --color-primary: 71 85 105; /* #475569 (slate-600, light) */
+    --color-primary-500: 51 65 85; /* #334155 (slate-700, hover, light) */
+    --color-accent: 71 85 105; /* #475569 (slate-600, light) */
 
     /* Page background + root text color + height live here in the base layer
        because `@tailwind utilities` nested under `.vk3-root` compiles as
@@ -148,7 +150,7 @@
        .vk3-root element itself (e.g. `bg-white dark:bg-gray-900`) never match,
        so the switch would appear dead. Dark overrides sit under `.dark`. */
     background-color: #ffffff;
-    color: #a3a9c1; /* gray-DEFAULT */
+    color: #7a809b; /* gray-500 (light-mode body text) */
     min-height: 100vh;
 
     /* Mini-reset scoped to the skin (replaces Tailwind preflight) */
@@ -183,9 +185,11 @@
   }
 
   .dark .vk3-root {
+    --color-primary: 148 163 184; /* #94a3b8 (slate-400, dark) */
+    --color-primary-500: 203 213 225; /* #cbd5e1 (slate-300, hover, dark) */
     --color-accent: 203 213 225; /* #cbd5e1 (slate-300, dark) */
     background-color: #151720; /* gray-900 */
-    color: #a3a9c1; /* gray-DEFAULT */
+    color: #a3a9c1; /* gray-DEFAULT (dark-mode body text) */
   }
 }
 
@@ -369,13 +373,13 @@
 
   /* Loader Spikes Roll */
   .vk3-root .vv-preloader-spikes-roll {
-    background-image: linear-gradient(#94a3b8 60px, transparent 0),
-      linear-gradient(#8b98ab 60px, transparent 0),
-      linear-gradient(#82909f 60px, transparent 0),
-      linear-gradient(#798893 60px, transparent 0),
-      linear-gradient(#6f7f87 60px, transparent 0),
-      linear-gradient(#99a3b1 60px, transparent 0),
-      linear-gradient(#a8b2bf 60px, transparent 0),
+    background-image: linear-gradient(#475569 60px, transparent 0),
+      linear-gradient(#525f78 60px, transparent 0),
+      linear-gradient(#5d6a82 60px, transparent 0),
+      linear-gradient(#68758c 60px, transparent 0),
+      linear-gradient(#738096 60px, transparent 0),
+      linear-gradient(#8692a6 60px, transparent 0),
+      linear-gradient(#99a4b6 60px, transparent 0),
       linear-gradient(#cbd5e1 60px, transparent 0);
   }
 
@@ -443,4 +447,30 @@
 }
 .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active::before {
   background: rgb(var(--color-accent) / 1);
+}
+
+/* Hero nav arrows (prev/next). UNLAYERED: at xl the chip bg goes transparent
+   (`xl:bg-transparent`), so the arrow sits directly on slide-1's light gradient.
+   The utility `xl:text-gray-900` is layered and loses to unlayered Bootstrap
+   color rules, leaving the arrow white (1.09:1) in light mode. Fork the color
+   per mode at ≥992px (`lg`, the viewport floor where bg is transparent): light
+   uses gray-900, dark restores white. Below xl the bg-gray-900 chip keeps the
+   arrow white regardless. */
+/* The skin owns its color-scheme: AdminLTE can leave `data-bs-theme="dark"`
+   on <html>, which bleeds `color-scheme: dark` into form controls/scrollbars
+   here even in Valkivid light mode. Pin it per skin mode. */
+.vk3-root { color-scheme: light; }
+.dark .vk3-root { color-scheme: dark; }
+
+@media (min-width: 992px) {
+  /* !important: an unlayered vendor rule still outranks these selectors
+     (same pattern as the swiper pagination overrides above). */
+  .vk3-root .js-vk-hero-prev,
+  .vk3-root .js-vk-hero-next {
+    color: var(--color-gray-900) !important;
+  }
+  .dark .vk3-root .js-vk-hero-prev,
+  .dark .vk3-root .js-vk-hero-next {
+    color: #ffffff !important;
+  }
 }

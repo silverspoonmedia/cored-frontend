@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-[1320px]">
+  <div class="mx-auto w-full max-w-[1320px] 2xl:px-16">
     <div class="relative z-10 h-[420px] md:h-[460px] lg:h-[660px]">
       <div ref="swiperEl" class="swiper h-full w-full">
         <div class="swiper-wrapper">
@@ -145,10 +145,10 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !right-2 sm:!right-4 xl:!-right-16 top-1/2 !left-auto -translate-y-1/2 !bottom-auto z-20 flex !w-[34px] flex-col items-end gap-0.5"></div>
+      <div title="Weswes1" class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !right-2 sm:!right-4 2xl:!-right-16 top-1/2 !left-auto -translate-y-1/2 !bottom-auto z-20 flex !w-[34px] flex-col items-end gap-0.5"></div>
 
-      <div class="absolute bottom-0 right-0 z-10 flex justify-center gap-y-4 xl:-right-16 xl:flex-col">
-        <button
+      <div class="absolute bottom-0 right-0 z-10 flex justify-center gap-y-4 2xl:-right-16 xl:flex-col">
+        <button title="Weswes2"
           type="button"
           class="js-vk-hero-prev flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
           :aria-label="t('web.vtual.public.hero.prev')"
@@ -157,7 +157,8 @@ onBeforeUnmount(() => {
             <use :href="`${spriteUrl}#arrow-left-pixel-alt`"></use>
           </svg>
         </button>
-        <button
+
+        <button title="Weswes3"
           type="button"
           class="js-vk-hero-next flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
           :aria-label="t('web.vtual.public.hero.next')"
