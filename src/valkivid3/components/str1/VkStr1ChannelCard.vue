@@ -33,7 +33,7 @@ const platformIcon = computed(() => {
     :target="channel.url ? '_blank' : undefined"
     :rel="channel.url ? 'noopener' : undefined"
     class="flex items-center gap-x-3 bg-white px-3 py-2 text-sm font-bold text-gray-900 transition-colors dark:bg-gray-700 dark:text-white"
-    :class="channel.url ? 'hover:bg-accent hover:text-gray-900 dark:hover:bg-accent dark:hover:text-gray-900' : ''"
+    :class="channel.url ? 'hover:bg-accent hover:text-white dark:hover:bg-accent dark:hover:text-gray-900' : ''"
   >
     <img
       v-if="channel.avatar_url"

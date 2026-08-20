@@ -203,7 +203,7 @@ function goTo(delta: number): void {
         <div v-if="pagination && pagination.last_page > 1" class="flex items-center justify-center gap-x-4">
           <button
             type="button"
-            class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-gray-900 disabled:opacity-30 dark:bg-gray-800 dark:text-white"
+            class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-white disabled:opacity-30 dark:bg-gray-800 dark:text-white dark:hover:text-gray-900"
             :disabled="pagination.current_page <= 1"
             :aria-label="t('web.vtual.public.directory.prev')"
             @click="goTo(-1)"
@@ -217,7 +217,7 @@ function goTo(delta: number): void {
           </span>
           <button
             type="button"
-            class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-gray-900 disabled:opacity-30 dark:bg-gray-800 dark:text-white"
+            class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-white disabled:opacity-30 dark:bg-gray-800 dark:text-white dark:hover:text-gray-900"
             :disabled="!pagination.has_more"
             :aria-label="t('web.vtual.public.directory.next')"
             @click="goTo(1)"

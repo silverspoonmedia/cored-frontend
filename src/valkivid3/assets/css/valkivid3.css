@@ -277,6 +277,27 @@
 .vk3-root .dark\:text-gray-900:where(.dark, .dark *) {
   color: var(--color-gray-900) !important;
 }
+/* Hover label forks must ALSO be unlayered !important: the unlayered
+   `.vk3-root .text-gray-900` / `.dark:text-white` overrides above beat the
+   layered `hover:text-white` / `dark:hover:text-gray-900` utilities, so a
+   hovered label would otherwise keep its resting color (dark text on a dark
+   accent hover in light mode; white on the bright dark-mode accent). Every
+   `hover:text-white` in the skin sits on a dark hover bg (accent/slate), and
+   every `dark:hover:text-gray-900` sits on the bright dark-mode accent — so
+   these forks are always safe. */
+.vk3-root .hover\:text-white:hover {
+  color: #ffffff !important;
+}
+.vk3-root .dark\:hover\:text-gray-900:where(.dark, .dark *):hover {
+  color: var(--color-gray-900) !important;
+}
+/* Bootstrap .bg-white is unlayered !important and beats the layered
+   dark:bg-gray-700 fork, leaving the bg white in dark mode (white-on-white
+   label on ChannelCard / MobileMenu). Same !important-vs-!important pattern as
+   .bg-primary — the scoped :where(.dark,.dark *) selector outranks .bg-white. */
+.vk3-root .dark\:bg-gray-700:where(.dark, .dark *) {
+  background-color: var(--color-gray-700) !important;
+}
 
 /* Mini-reset for lists — UNLAYERED. Bootstrap reboot sets `ul { padding-left:
    2rem }` outside any layer, which beats the layered `.vk3-root ul { padding: 0 }`

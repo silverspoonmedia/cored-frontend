@@ -4112,6 +4112,7 @@
           "not_found": "vTuber not found",
           "not_found_body": "This public profile does not exist or is not listed.",
           "error": "Could not load this profile. Try again later.",
+          "retry": "Try again",
           "claim_body": "This profile has no owner yet. Sign in to claim it.",
           "claim_cta": "Claim this profile",
           "contents_heading": "Latest content",

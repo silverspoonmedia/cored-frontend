@@ -4116,6 +4116,7 @@
           "not_found": "vTuber tidak ditemukan",
           "not_found_body": "Profil publik ini tidak ada atau tidak ditampilkan.",
           "error": "Gagal memuat profil ini. Coba lagi nanti.",
+          "retry": "Coba lagi",
           "claim_body": "Profil ini belum punya pemilik. Masuk untuk mengklaimnya.",
           "claim_cta": "Klaim profil ini",
           "contents_heading": "Konten terbaru",

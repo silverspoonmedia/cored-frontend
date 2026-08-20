@@ -1,0 +1,35 @@
+{
+  "captured": "2026-08-20",
+  "route": "/vtual",
+  "viewport": "1440x900",
+  "note": "Baseline computed-style elemen kunci HomeView. Bandingkan setelah tiap perubahan yang menyentuh Valkivid3. Screenshot pendamping: home-light.jpg, home-dark.jpg.",
+  "light": {
+    "heroSlide1_bg": "linear-gradient(to right bottom in oklab, rgb(245, 244, 254) 0%, rgb(206, 205, 216) 50%, rgba(0, 0, 0, 0) 100%)",
+    "ctaAccent_bg": "rgb(71, 85, 105)",
+    "ctaAccent_color": "rgb(255, 255, 255)",
+    "body_color": "rgb(122, 128, 155)",
+    "body_bg": "rgb(255, 255, 255)",
+    "sectionHeading_color": "rgb(255, 255, 255)",
+    "slide1Light": {
+      "heroTone": "light",
+      "heroNav_color": "rgb(21, 23, 32)",
+      "bulletActive_bg": "rgb(71, 85, 105)",
+      "bulletTrack_bg": "rgba(122, 128, 155, 0.35)"
+    },
+    "slideDark": {
+      "heroTone": "dark",
+      "heroNav_color": "rgb(255, 255, 255)",
+      "bulletActive_bg": "rgb(203, 213, 225)"
+    }
+  },
+  "dark": {
+    "heroSlide1_bg": "linear-gradient(to right bottom in oklab, rgb(21, 23, 32) 0%, rgb(28, 30, 40) 50%, rgba(0, 0, 0, 0) 100%)",
+    "ctaAccent_bg": "rgb(203, 213, 225)",
+    "ctaAccent_color": "rgb(21, 23, 32)",
+    "body_color": "rgb(163, 169, 193)",
+    "body_bg": "rgb(21, 23, 32)",
+    "sectionHeading_color": "rgb(255, 255, 255)",
+    "heroNav_color": "rgb(255, 255, 255)",
+    "bulletActive_bg": "rgb(203, 213, 225)"
+  }
+}

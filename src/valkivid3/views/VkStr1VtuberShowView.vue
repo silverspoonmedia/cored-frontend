@@ -148,8 +148,21 @@ onUnmounted(() => {
       </router-link>
     </div>
 
-    <div v-else-if="error" class="py-24 text-center text-danger">
-      {{ t('web.vtual.public.profile.error') }}
+    <div v-else-if="error" class="py-24">
+      <div
+        class="mx-auto flex max-w-xl flex-col items-center gap-y-4 bg-gray-150 px-6 py-10 text-center ring-1 ring-gray-500/20 dark:bg-gray-800"
+      >
+        <p class="font-medium text-gray-600 dark:text-gray-300">
+          {{ t('web.vtual.public.profile.error') }}
+        </p>
+        <button
+          type="button"
+          class="inline-flex bg-accent px-6 py-3 text-sm font-bold uppercase text-white transition-colors hover:bg-accent-500 dark:text-gray-900"
+          @click="load(contentsPage)"
+        >
+          {{ t('web.vtual.public.profile.retry') }}
+        </button>
+      </div>
     </div>
 
     <template v-else-if="profile">
@@ -274,7 +287,7 @@ onUnmounted(() => {
             >
               <button
                 type="button"
-                class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-gray-900 disabled:opacity-30 dark:bg-gray-800 dark:text-white"
+                class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-white disabled:opacity-30 dark:bg-gray-800 dark:text-white dark:hover:text-gray-900"
                 :disabled="contentsPage <= 1 || contentsLoading"
                 :aria-label="t('web.vtual.public.contents.prev')"
                 @click="goTo(-1)"
@@ -288,7 +301,7 @@ onUnmounted(() => {
               </span>
               <button
                 type="button"
-                class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-gray-900 disabled:opacity-30 dark:bg-gray-800 dark:text-white"
+                class="flex aspect-square w-10 items-center justify-center bg-gray-150 text-gray-900 transition-colors hover:bg-accent hover:text-white disabled:opacity-30 dark:bg-gray-800 dark:text-white dark:hover:text-gray-900"
                 :disabled="!contentsPagination.has_more || contentsLoading"
                 :aria-label="t('web.vtual.public.contents.next')"
                 @click="goTo(1)"
