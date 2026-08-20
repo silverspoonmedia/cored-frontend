@@ -66,13 +66,13 @@ onBeforeUnmount(() => {
                       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <router-link
                           to="/vtual#vtubers"
-                          class="inline-flex w-full justify-center bg-accent px-5 py-4 text-center font-bold uppercase leading-none text-gray-900 transition-colors hover:bg-accent/90 md:py-[21px] lg:w-auto lg:px-10"
+                          class="inline-flex w-full justify-center bg-accent px-5 py-4 text-center font-bold uppercase leading-none text-white transition-colors hover:bg-accent-500 dark:text-gray-900 md:py-[21px] lg:w-auto lg:px-10"
                         >
                           {{ t('web.vtual.public.hero.one.cta') }}
                         </router-link>
                         <router-link
                           to="/register?redirect=/apps/vtual/profiles"
-                          class="inline-flex w-full justify-center px-5 py-4 text-center font-bold uppercase leading-none text-gray-900 ring-1 ring-inset ring-gray-900 transition-colors hover:bg-gray-900 hover:text-white dark:text-white dark:ring-white dark:hover:bg-white dark:hover:text-gray-900 md:py-[21px] lg:w-auto lg:px-10"
+                          class="inline-flex w-full justify-center px-5 py-4 text-center font-bold uppercase leading-none text-gray-900 ring-1 ring-inset ring-gray-900 transition-colors hover:bg-slate-500 hover:text-white dark:text-white dark:ring-white dark:hover:bg-slate-400 dark:hover:text-gray-900 md:py-[21px] lg:w-auto lg:px-10"
                         >
                           {{ t('web.vtual.public.hero.two.cta') }}
                         </router-link>
@@ -102,7 +102,7 @@ onBeforeUnmount(() => {
                       </p>
                       <router-link
                         to="/register?redirect=/apps/vtual/profiles"
-                        class="inline-flex justify-center gap-x-3 bg-primary px-4 py-4 text-center text-sm font-bold uppercase leading-none text-white transition-colors hover:bg-primary/90 md:py-[18px] lg:px-8"
+                        class="inline-flex justify-center gap-x-3 bg-primary px-4 py-4 text-center text-sm font-bold uppercase leading-none text-white transition-colors hover:bg-primary-500 dark:text-gray-900 md:py-[18px] lg:px-8"
                       >
                         {{ t('web.vtual.public.hero.two.cta') }}
                       </router-link>
@@ -131,7 +131,7 @@ onBeforeUnmount(() => {
                         {{ t('web.vtual.public.hero.three.text') }}
                       </p>
                       <router-link to="/vtual#events"
-                        class="inline-flex justify-center gap-x-3 bg-accent px-4 py-4 text-center text-sm font-bold uppercase leading-none text-gray-900 transition-colors hover:bg-accent/90 md:py-[18px] lg:px-8"
+                        class="inline-flex justify-center gap-x-3 bg-accent px-4 py-4 text-center text-sm font-bold uppercase leading-none text-white transition-colors hover:bg-accent-500 dark:text-gray-900 md:py-[18px] lg:px-8"
                       >
                         {{ t('web.vtual.public.hero.three.cta') }}
                       </router-link>
@@ -145,10 +145,10 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div title="Weswes1" class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !right-2 sm:!right-4 2xl:!-right-16 top-1/2 !left-auto -translate-y-1/2 !bottom-auto z-20 flex !w-[34px] flex-col items-end gap-0.5"></div>
+      <div class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !right-2 sm:!right-4 2xl:!-right-16 top-1/2 !left-auto -translate-y-1/2 !bottom-auto z-20 flex !w-[34px] flex-col items-end gap-0.5"></div>
 
       <div class="absolute bottom-0 right-0 z-10 flex justify-center gap-y-4 2xl:-right-16 xl:flex-col">
-        <button title="Weswes2"
+        <button
           type="button"
           class="js-vk-hero-prev flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
           :aria-label="t('web.vtual.public.hero.prev')"
@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
           </svg>
         </button>
 
-        <button title="Weswes3"
+        <button
           type="button"
           class="js-vk-hero-next flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
           :aria-label="t('web.vtual.public.hero.next')"

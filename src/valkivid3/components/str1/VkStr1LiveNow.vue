@@ -85,7 +85,7 @@ function platformIcon(key: string | null | undefined): string {
                 />
                 <span
                   v-else
-                  class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-white ring-2 ring-danger/60"
+                  class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-white dark:text-gray-900 ring-2 ring-danger/60"
                 >
                   {{ (group.creator?.display_name ?? '?').charAt(0) }}
                 </span>

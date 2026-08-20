@@ -30,7 +30,7 @@ const guestClaimTo = computed(() => `/login?redirect=${encodeURIComponent(claimP
       />
       <div
         v-else
-        class="flex aspect-square w-full items-center justify-center rounded-full bg-primary text-4xl font-bold text-white ring-4 ring-accent/40"
+        class="flex aspect-square w-full items-center justify-center rounded-full bg-primary text-4xl font-bold text-white dark:text-gray-900 ring-4 ring-accent/40"
       >
         {{ profile.display_name.charAt(0) }}
       </div>
@@ -81,7 +81,7 @@ const guestClaimTo = computed(() => `/login?redirect=${encodeURIComponent(claimP
       <p class="mb-4 text-sm">{{ t('web.vtual.public.profile.claim_body') }}</p>
       <router-link
         :to="isAuthenticated ? claimPath : guestClaimTo"
-        class="inline-flex w-full justify-center bg-accent px-6 py-4 text-center text-sm font-bold uppercase text-gray-900 transition-colors hover:bg-accent/90"
+        class="inline-flex w-full justify-center bg-accent px-6 py-4 text-center text-sm font-bold uppercase text-white transition-colors hover:bg-accent-500 dark:text-gray-900"
       >
         {{ t('web.vtual.public.profile.claim_cta') }}
       </router-link>

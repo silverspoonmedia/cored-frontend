@@ -122,7 +122,7 @@ function goTo(delta: number): void {
         <p class="mb-6 text-gray-500">{{ t('web.vtual.public.directory.empty') }}</p>
         <router-link
           to="/register?redirect=/apps/vtual/profiles"
-          class="inline-flex justify-center bg-accent px-8 py-4 text-center text-sm font-bold uppercase leading-none text-gray-900 transition-colors hover:bg-accent/90"
+          class="inline-flex justify-center bg-accent px-8 py-4 text-center text-sm font-bold uppercase leading-none text-white transition-colors hover:bg-accent-500 dark:text-gray-900"
         >
           {{ t('web.vtual.public.directory.empty_cta') }}
         </router-link>
@@ -153,7 +153,7 @@ function goTo(delta: number): void {
                   />
                   <div
                     v-else
-                    class="flex aspect-square w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white ring-2 ring-white/40 dark:ring-white/10 lg:w-20"
+                    class="flex aspect-square w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white dark:text-gray-900 ring-2 ring-white/40 dark:ring-white/10 lg:w-20"
                   >
                     {{ vtuber.display_name.charAt(0) }}
                   </div>

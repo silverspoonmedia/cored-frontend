@@ -107,7 +107,7 @@ watch(
         <div class="absolute inset-0 bg-black/60"></div>
         <span
           class="absolute left-3.5 top-3 px-1.5 py-1 text-xs font-bold uppercase leading-none"
-          :class="isLive ? 'bg-danger text-white' : 'bg-primary text-white'"
+          :class="isLive ? 'bg-danger text-white' : 'bg-primary text-white dark:text-gray-900'"
         >
           {{ badge }}
         </span>
@@ -140,7 +140,7 @@ watch(
       />
       <div
         v-else-if="channelAvatar"
-        class="flex h-12 w-12 shrink-0 self-start items-center justify-center rounded-full bg-primary text-base font-bold text-white"
+        class="flex h-12 w-12 shrink-0 self-start items-center justify-center rounded-full bg-primary text-base font-bold text-white dark:text-gray-900"
         aria-hidden="true"
       >
         {{ channelAvatar.initial }}

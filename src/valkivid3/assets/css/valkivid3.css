@@ -26,6 +26,7 @@
   --color-primary: rgb(var(--color-primary) / 1);
   --color-primary-500: rgb(var(--color-primary-500) / 1);
   --color-accent: rgb(var(--color-accent) / 1);
+  --color-accent-500: rgb(var(--color-accent-500) / 1);
   --color-gray-100: #f5f4fe;
   --color-gray-150: #eaeaf5;
   --color-gray-180: #d8d8e6;
@@ -143,6 +144,7 @@
     --color-primary: 71 85 105; /* #475569 (slate-600, light) */
     --color-primary-500: 51 65 85; /* #334155 (slate-700, hover, light) */
     --color-accent: 71 85 105; /* #475569 (slate-600, light) */
+    --color-accent-500: 51 65 85; /* #334155 (slate-700, accent hover, light) */
 
     /* Page background + root text color + height live here in the base layer
        because `@tailwind utilities` nested under `.vk3-root` compiles as
@@ -188,6 +190,7 @@
     --color-primary: 148 163 184; /* #94a3b8 (slate-400, dark) */
     --color-primary-500: 203 213 225; /* #cbd5e1 (slate-300, hover, dark) */
     --color-accent: 203 213 225; /* #cbd5e1 (slate-300, dark) */
+    --color-accent-500: 226 232 240; /* #e2e8f0 (slate-200, accent hover, dark — brightens instead of matching accent) */
     background-color: #151720; /* gray-900 */
     color: #a3a9c1; /* gray-DEFAULT (dark-mode body text) */
   }
@@ -268,6 +271,12 @@
 .vk3-root .dark\:text-gray:where(.dark, .dark *) {
   color: var(--color-gray-DEFAULT);
 }
+/* !important: the unlayered `.vk3-root .text-white` rule above (needed to beat
+   Bootstrap) would otherwise keep CTA labels white on the bright dark-mode
+   accent/primary backgrounds. */
+.vk3-root .dark\:text-gray-900:where(.dark, .dark *) {
+  color: var(--color-gray-900) !important;
+}
 
 /* Mini-reset for lists — UNLAYERED. Bootstrap reboot sets `ul { padding-left:
    2rem }` outside any layer, which beats the layered `.vk3-root ul { padding: 0 }`
@@ -347,6 +356,26 @@
 .vk3-root .ring-accent { --tw-ring-color: rgb(var(--color-accent) / 1); }
 .vk3-root .group-hover\:fill-accent:is(:where(.group):hover *) { fill: rgb(var(--color-accent) / 1); }
 .vk3-root .group-hover\:text-accent:is(:where(.group):hover *) { color: rgb(var(--color-accent) / 1); }
+
+/* `bg-primary` / `hover:bg-primary-500` use the same self-referential
+   `rgb(var(--color-primary*) / 1)` pattern as accent, so they need scoped
+   wrappers too (the `@theme` value alone never resolves under `.vk3-root`).
+   These drive button backgrounds + the hover shade for CTAs. */
+/* !important: Bootstrap/AdminLTE also ships an unlayered `.bg-primary`
+   (its blue #0d6efd) that loads after this chunk and otherwise wins on the
+   CTA buttons. Same override pattern as the swiper pagination/nav rules. */
+.vk3-root .bg-primary { background-color: rgb(var(--color-primary) / 1) !important; }
+.vk3-root .bg-primary-500 { background-color: rgb(var(--color-primary-500) / 1) !important; }
+.vk3-root .hover\:bg-primary:hover { background-color: rgb(var(--color-primary) / 1) !important; }
+.vk3-root .hover\:bg-primary-500:hover { background-color: rgb(var(--color-primary-500) / 1) !important; }
+.vk3-root .hover\:bg-accent:hover { background-color: rgb(var(--color-accent) / 1) !important; }
+.vk3-root .hover\:bg-accent-500:hover { background-color: rgb(var(--color-accent-500) / 1) !important; }
+
+/* Outline soft-fill hover (replaces the harsh white<->gray-900 invert).
+   slate-500/400 are not port @theme tokens, so the hex is defined directly.
+   !important for the same unlayered-Bootstrap reason as above. */
+.vk3-root .hover\:bg-slate-500:hover { background-color: #64748b !important; }
+.vk3-root .hover\:bg-slate-400:hover { background-color: #94a3b8 !important; }
 
 @layer components {
 

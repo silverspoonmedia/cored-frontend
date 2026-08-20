@@ -142,7 +142,7 @@ onUnmounted(() => {
       <p class="mb-8 text-gray-500">{{ t('web.vtual.public.profile.not_found_body') }}</p>
       <router-link
         to="/vtual"
-        class="inline-flex bg-accent px-8 py-4 text-sm font-bold uppercase text-gray-900 hover:bg-accent/90"
+        class="inline-flex bg-accent px-8 py-4 text-sm font-bold uppercase text-white transition-colors hover:bg-accent-500 dark:text-gray-900"
       >
         {{ t('web.vtual.public.nav.home') }}
       </router-link>
@@ -200,7 +200,7 @@ onUnmounted(() => {
           />
           <div
             v-else
-            class="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white ring-4 ring-white/20 lg:h-24 lg:w-24"
+            class="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white dark:text-gray-900 ring-4 ring-white/20 lg:h-24 lg:w-24"
           >
             {{ profile.display_name.charAt(0) }}
           </div>
@@ -248,7 +248,7 @@ onUnmounted(() => {
             </p>
             <router-link
               to="/vtual#contents"
-              class="inline-flex bg-primary px-6 py-3 text-sm font-bold uppercase text-white transition-colors hover:bg-primary/90"
+              class="inline-flex bg-primary px-6 py-3 text-sm font-bold uppercase text-white transition-colors hover:bg-primary-500 dark:text-gray-900"
             >
               {{ t('web.vtual.public.profile.contents_browse') }}
             </router-link>

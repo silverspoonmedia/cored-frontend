@@ -45,7 +45,7 @@ onMounted(() => {
       </p>
       <button
         type="button"
-        class="inline-flex bg-accent px-6 py-3 text-sm font-bold uppercase text-gray-900 transition-colors hover:bg-accent/90"
+        class="inline-flex bg-accent px-6 py-3 text-sm font-bold uppercase text-white transition-colors hover:bg-accent-500 dark:text-gray-900"
         @click="loadLanding"
       >
         {{ t('web.vtual.public.landing.retry') }}

@@ -27,13 +27,13 @@ const { isAuthenticated } = useAuth()
           <div class="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <router-link
               :to="isAuthenticated ? '/apps/vtual/profiles' : '/register?redirect=/apps/vtual/profiles'"
-              class="inline-flex w-full justify-center bg-accent px-8 py-4 text-center text-sm font-bold uppercase leading-none text-gray-900 transition-colors hover:bg-accent/90 sm:w-auto"
+              class="inline-flex w-full justify-center bg-accent px-8 py-4 text-center text-sm font-bold uppercase leading-none text-white transition-colors hover:bg-accent-500 dark:text-gray-900 sm:w-auto"
             >
               {{ t('web.vtual.public.channel_banner.cta_claim') }}
             </router-link>
             <router-link
               to="/vtual#vtubers"
-              class="inline-flex w-full justify-center px-8 py-4 text-center text-sm font-bold uppercase leading-none text-white ring-1 ring-inset ring-white transition-colors hover:bg-white hover:text-gray-900 sm:w-auto"
+              class="inline-flex w-full justify-center px-8 py-4 text-center text-sm font-bold uppercase leading-none text-white ring-1 ring-inset ring-white transition-colors hover:bg-slate-400 hover:text-gray-900 sm:w-auto"
             >
               {{ t('web.vtual.public.channel_banner.cta_browse') }}
             </router-link>
