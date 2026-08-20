@@ -7,13 +7,16 @@ import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useServices } from '@/composables/useServices'
+import { useServicesHydrate } from '@/composables/useServicesHydrate'
 import { useAlert } from '@/composables/useAlert'
+import { isTerminalBatchError } from '@/api/batch'
 import { ApiError, type ServicePrice } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const { fetchOne, create, update, fetchOptions } = useServices()
+const { hydrateServiceEdit } = useServicesHydrate()
 const { success: showSuccess, error: showError } = useAlert()
 
 const isEdit = computed(() => !!route.params.id)
@@ -62,10 +65,35 @@ function removePrice(index: number): void {
 async function load(): Promise<void> {
   loading.value = true
   try {
-    const [opts, s] = await Promise.all([
-      fetchOptions(),
-      isEdit.value ? fetchOne(route.params.id as string) : Promise.resolve(null),
-    ])
+    let opts: Awaited<ReturnType<typeof fetchOptions>> | null = null
+    let s: Awaited<ReturnType<typeof fetchOne>> | null = null
+
+    if (isEdit.value) {
+      // Batch the two independent reads; fall back to standalone loaders on
+      // transient entry failure (standalone endpoints stay the source of truth).
+      // A terminal 401/403/429 entry re-throws so we never re-fire a request
+      // that would be rejected again (and a 401 would force a global logout).
+      const hydrated = await hydrateServiceEdit(route.params.id as string).catch((e) => {
+        if (isTerminalBatchError(e)) throw e
+        return null
+      })
+      opts = hydrated?.options ?? null
+      s = hydrated?.service ?? null
+      if (opts === null || s === null) {
+        const [fallbackOpts, fallbackService] = await Promise.all([
+          opts === null ? fetchOptions() : Promise.resolve(opts),
+          s === null ? fetchOne(route.params.id as string) : Promise.resolve(s),
+        ])
+        opts = fallbackOpts
+        s = fallbackService
+      }
+    } else {
+      opts = await fetchOptions()
+    }
+
+    if (opts === null) {
+      throw new Error(t('web.services.load_failed'))
+    }
     billingIntervals.value = Object.fromEntries(opts.billing_intervals.map((v) => [v, humanize(v)]))
     planKinds.value = { '': t('web.services.form.none_option'), ...Object.fromEntries(opts.plan_kinds.map((v) => [v, humanize(v)])) }
     statuses.value = Object.fromEntries(opts.statuses.map((v) => [v, humanize(v)]))

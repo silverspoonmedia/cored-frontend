@@ -9,7 +9,6 @@ import FhShareModal from '@/components/FhShareModal.vue'
 import FhMicrostockReviewModal from '@/components/FhMicrostockReviewModal.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
-import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { HostedFile } from '@/api/types'
@@ -23,7 +22,6 @@ const fh = useFileHosting()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
-const { connected: echoConnected } = useEcho()
 
 const file = ref<HostedFile | null>(null)
 const loading = ref(true)
@@ -64,39 +62,13 @@ const showHandlers = {
   onListingChanged: () => loadFile(),
 }
 
-let showPollTimer: ReturnType<typeof setInterval> | null = null
-const SHOW_POLL_MS = 30_000
-
-function startShowPolling(): void {
-  if (showPollTimer) return
-  showPollTimer = setInterval(() => {
-    if (document.visibilityState !== 'visible') return
-    if (echoConnected.value) {
-      stopShowPolling()
-      return
-    }
-    loadFile()
-  }, SHOW_POLL_MS)
-}
-
-function stopShowPolling(): void {
-  if (showPollTimer) {
-    clearInterval(showPollTimer)
-    showPollTimer = null
-  }
-}
-
 onMounted(() => {
   loadFile()
   subscribe(showHandlers)
-  if (!echoConnected.value) {
-    startShowPolling()
-  }
 })
 
 onUnmounted(() => {
   unsubscribe(showHandlers)
-  stopShowPolling()
 })
 
 function visLabel(v: string): string {
@@ -222,7 +194,7 @@ async function handleDownload(): Promise<void> {
                 <div class="fh-detail__hero-icon"><FhIcon :mime="file.mime" /></div>
                 <div class="flex-grow-1 min-w-0">
                   <div class="fh-detail__hero-name">{{ file.name }}</div>
-                  <div class="fh-detail__hero-meta">{{ file.mime }} · {{ file.size_human }}</div>
+                  <div class="fh-detail__hero-meta">{{ file.mime }} Â· {{ file.size_human }}</div>
                 </div>
               </div>
               <div class="fh-stats mt-3">

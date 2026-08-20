@@ -25,7 +25,6 @@ const profile = ref<VtualVtuberProfile | null>(null)
 const activeClaim = ref<VtualCreatorClaim | null>(null)
 const loading = ref(true)
 const actionLoading = ref(false)
-const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
 let echoChannel: string | null = null
 
 const hasActiveClaim = computed(() => activeClaim.value?.status === 'pending')
@@ -63,7 +62,6 @@ onMounted(async () => {
       if (existing) {
         activeClaim.value = existing
         subscribeClaimRealtime(existing.id)
-        startPolling()
       }
     } else {
       profile.value = await vtual.fetchVtuberProfile(slug)
@@ -72,7 +70,6 @@ onMounted(async () => {
       if (existing) {
         activeClaim.value = existing
         subscribeClaimRealtime(existing.id)
-        startPolling()
       }
     }
   } catch (e) {
@@ -83,39 +80,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  stopPolling()
   unsubscribeClaimRealtime()
 })
-
-function startPolling(): void {
-  stopPolling()
-  pollTimer.value = setInterval(async () => {
-    if (!activeClaim.value) return
-    try {
-      const updated = await vtual.fetchClaim(activeClaim.value.id)
-      if (updated.status !== activeClaim.value.status) {
-        activeClaim.value = updated
-        if (updated.status === 'verified') {
-          showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
-          stopPolling()
-        } else if (updated.status === 'cancelled' || updated.status === 'expired') {
-          stopPolling()
-        }
-      } else {
-        activeClaim.value = updated
-      }
-    } catch {
-      // non-critical
-    }
-  }, 5000)
-}
-
-function stopPolling(): void {
-  if (pollTimer.value) {
-    clearInterval(pollTimer.value)
-    pollTimer.value = null
-  }
-}
 
 function subscribeClaimRealtime(claimId: string): void {
   const echo = getEcho()
@@ -132,11 +98,9 @@ function subscribeClaimRealtime(claimId: string): void {
       if (payload.phase === 'verified') {
         activeClaim.value = claim
         showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
-        stopPolling()
         setTimeout(() => router.push({ name: 'vtual.profiles.show.view', params: { id: claim.creator_id } }), 800)
       } else if (payload.phase === 'cancelled' || payload.phase === 'max_attempts_blocked') {
         activeClaim.value = null
-        stopPolling()
       } else if (payload.phase === 'verify_failed') {
         activeClaim.value = claim
         showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
@@ -145,9 +109,8 @@ function subscribeClaimRealtime(claimId: string): void {
       }
     })
     echoChannel = `vtual.claim.${claimId}`
-    stopPolling()
   } catch {
-    // Echo not available — polling stays active as fallback
+    // Echo not available: pending claim gets no live update until reload.
   }
 }
 
@@ -171,7 +134,6 @@ async function handleStartClaim(channelId: string): Promise<void> {
     activeClaim.value = await vtual.startClaim(profile.value.id, channelId)
     showSuccess(t('web.vtual-vtuber.claim_step_token'))
     subscribeClaimRealtime(activeClaim.value.id)
-    startPolling()
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.start_failed'))
   } finally {
@@ -200,7 +162,6 @@ async function handleVerifyDiscord(): Promise<void> {
     activeClaim.value = result
     if (result.status === 'verified') {
       showSuccess(t('web.vtual-vtuber.claim_discord_verified'))
-      stopPolling()
     } else {
       showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
     }
@@ -237,7 +198,6 @@ async function handleCancel(): Promise<void> {
     await vtual.cancelClaim(activeClaim.value.id)
     activeClaim.value = null
     showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
-    stopPolling()
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.cancel_failed'))
   } finally {
@@ -254,7 +214,6 @@ async function handleAcceptAnyway(): Promise<void> {
     activeClaim.value = result
     if (result.status === 'verified') {
       showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
-      stopPolling()
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.accept_failed'))

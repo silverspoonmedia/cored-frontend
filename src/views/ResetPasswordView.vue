@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useHcaptcha } from '@/composables/useHcaptcha'
+import HcaptchaWidget from '@/components/HcaptchaWidget.vue'
 import { ApiError } from '@/api/types'
 
 const route = useRoute()
@@ -11,6 +13,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { resetPassword } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
 const token = ref((route.query.token as string) ?? '')
 const email = ref((route.query.email as string) ?? '')
@@ -28,10 +31,12 @@ async function handleSubmit(): Promise<void> {
   errors.value = {}
 
   try {
-    await resetPassword(token.value, email.value, password.value, passwordConfirmation.value)
+    const captcha = await captchaToken()
+    await resetPassword(token.value, email.value, password.value, passwordConfirmation.value, captcha)
     done.value = true
     showSuccess(t('passwords.reset'))
   } catch (e) {
+    resetCaptcha()
     if (e instanceof ApiError && e.isValidation) {
       errors.value = e.errors ?? {}
       if (e.errors === null) {
@@ -39,6 +44,8 @@ async function handleSubmit(): Promise<void> {
       }
     } else if (e instanceof ApiError) {
       showError(e.message || t('web.auth.reset_password_failed'))
+    } else if (e instanceof Error && e.message.toLowerCase().includes('hcaptcha')) {
+      showError(t('validation.hcaptcha'))
     } else {
       showError(e instanceof Error ? e.message : t('web.auth.reset_password_failed'))
     }
@@ -149,6 +156,11 @@ function fieldError(field: string): string | null {
           {{ fieldError('password_confirmation') }}
         </div>
       </div>
+    </div>
+
+    <HcaptchaWidget ref="widget" />
+    <div v-if="fieldError('h-captcha-response')" class="invalid-feedback d-block mb-3">
+      {{ fieldError('h-captcha-response') }}
     </div>
 
     <div class="d-grid">

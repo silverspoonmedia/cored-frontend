@@ -1,7 +1,11 @@
 import i18n from '@/i18n'
-import { apiUrl } from './baseUrl'
+import { apiUrl, isCrossOrigin } from './baseUrl'
+import { applyCsrfHeader, ensureCsrf, refreshCsrf } from './csrf'
 import { translateFallback } from '@/i18n/fallbacks'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
+
+// Mirrors BatchController::MAX_REQUESTS. Keep in sync with the server cap.
+const MAX_BATCH_REQUESTS = 10
 
 type RefreshHandler = () => Promise<boolean>
 type UnauthorizedHandler = () => void
@@ -18,7 +22,7 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
   unauthorizedHandler = handler
 }
 
-function buildHeaders(hasBody: boolean, isFormData: boolean): Headers {
+function buildHeaders(hasBody: boolean, isFormData: boolean, crossOrigin: boolean, mutating: boolean): Headers {
   const headers = new Headers()
   headers.set('Accept', 'application/json')
   headers.set('X-Requested-With', 'XMLHttpRequest')
@@ -27,7 +31,22 @@ function buildHeaders(hasBody: boolean, isFormData: boolean): Headers {
     headers.set('Content-Type', 'application/json')
   }
 
+  // Cross-origin cookie auth: send the double-submit CSRF token on mutations.
+  if (crossOrigin && mutating) {
+    applyCsrfHeader(headers)
+  }
+
   return headers
+}
+
+function isMutating(method: string): boolean {
+  return method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE'
+}
+
+function credentialsFor(crossOrigin: boolean): RequestCredentials {
+  // Same-origin (Worker BFF / local dev) → same-origin. Direct API → include so
+  // the browser attaches the cross-site HttpOnly auth cookie.
+  return crossOrigin ? 'include' : 'same-origin'
 }
 
 function isValidationBody(json: unknown): json is { message: string; errors: ValidationErrors } {
@@ -101,6 +120,21 @@ function skipAuthRefresh(uri: string): boolean {
   return uri === 'auth/refresh' || uri === 'auth/logout'
 }
 
+// Auth-session endpoints are CSRF-skipped server-side (a guest has no nonce
+// yet). A 419 there means something else is wrong, so do not burn the single
+// retry re-fetching a nonce that would not help.
+function isAuthSessionPath(uri: string): boolean {
+  return (
+    uri === 'auth/login' ||
+    uri === 'auth/register' ||
+    uri === 'auth/refresh' ||
+    uri === 'auth/logout' ||
+    uri === 'auth/forgot-password' ||
+    uri === 'auth/reset-password' ||
+    uri === 'auth/two-factor/login'
+  )
+}
+
 async function request<T>(
   method: string,
   uri: string,
@@ -108,6 +142,13 @@ async function request<T>(
   query: Record<string, unknown> | null = null,
 ): Promise<T> {
   const url = apiUrl(uri, query)
+  const crossOrigin = isCrossOrigin(url)
+  const mutating = isMutating(method)
+
+  // Cross-origin mutations need the double-submit CSRF nonce before they run.
+  if (crossOrigin && mutating) {
+    await ensureCsrf()
+  }
 
   const isFormData = body instanceof FormData
   const bodyStr = body === null ? undefined : isFormData ? body : JSON.stringify(body)
@@ -115,12 +156,19 @@ async function request<T>(
   const doFetch = (): Promise<Response> =>
     fetch(url.toString(), {
       method,
-      headers: buildHeaders(body !== null, isFormData),
+      headers: buildHeaders(body !== null, isFormData, crossOrigin, mutating),
       body: bodyStr,
-      credentials: 'same-origin',
+      credentials: credentialsFor(crossOrigin),
     })
 
-  const response = await doFetch()
+  let response = await doFetch()
+
+  // Stale/rotated CSRF nonce: refresh once and retry before treating as an error.
+  if (response.status === 419 && crossOrigin && mutating && !isAuthSessionPath(uri)) {
+    await refreshCsrf()
+    response = await doFetch()
+  }
+
   const json = await readJson(response)
 
   if (response.ok) {
@@ -185,14 +233,30 @@ export interface BatchSubResponse<T = unknown> {
 export async function batch<T = unknown>(
   requests: ReadonlyArray<BatchSubRequest>,
 ): Promise<Array<BatchSubResponse<T>>> {
-  const payload = requests.map((entry) => {
-    const url = apiUrl(entry.path, entry.query ?? null)
-    const path = `${url.pathname}${url.search}`
-    return { method: entry.method ?? 'GET', path }
-  })
+  // Server cap is 10 per call (BatchController::MAX_REQUESTS). A larger fan-out
+  // (e.g. hydrateCredentials' 1 + N platforms) is split into sequential chunks
+  // and the positional results re-joined, so every entry is honored instead of
+  // silently dropped.
+  if (requests.length === 0) return []
 
-  const res = await post<ApiResponse<Array<BatchSubResponse<T>>>>('batch', { requests: payload })
-  return res.data ?? []
+  const chunks: Array<ReadonlyArray<BatchSubRequest>> = []
+  for (let i = 0; i < requests.length; i += MAX_BATCH_REQUESTS) {
+    chunks.push(requests.slice(i, i + MAX_BATCH_REQUESTS))
+  }
+
+  const out: Array<BatchSubResponse<T>> = []
+  for (const chunk of chunks) {
+    const payload = chunk.map((entry) => {
+      const url = apiUrl(entry.path, entry.query ?? null)
+      const path = `${url.pathname}${url.search}`
+      return { method: entry.method ?? 'GET', path }
+    })
+
+    const res = await post<ApiResponse<Array<BatchSubResponse<T>>>>('batch', { requests: payload })
+    out.push(...(res.data ?? []))
+  }
+
+  return out
 }
 
 function filenameFromDisposition(header: string | null): string | null {
@@ -209,6 +273,7 @@ export async function getBlob(
   query?: Record<string, unknown>,
 ): Promise<{ blob: Blob; filename: string | null }> {
   const url = apiUrl(uri, query)
+  const crossOrigin = isCrossOrigin(url)
 
   const headers = (): Headers => {
     const h = new Headers()
@@ -218,7 +283,7 @@ export async function getBlob(
   }
 
   const doFetch = (): Promise<Response> =>
-    fetch(url.toString(), { method: 'GET', headers: headers(), credentials: 'same-origin' })
+    fetch(url.toString(), { method: 'GET', headers: headers(), credentials: credentialsFor(crossOrigin) })
 
   let response = await doFetch()
 

@@ -3,9 +3,11 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Modal from '@/components/Modal.vue'
 import { useMicrostock } from '@/composables/useMicrostock'
+import { useMicrostockHydrate } from '@/composables/useMicrostockHydrate'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useAlert } from '@/composables/useAlert'
+import { isTerminalBatchError } from '@/api/batch'
 import type { MicrostockAssetMetadata, MicrostockAssetStages } from '@/api/types'
 
 const open = defineModel<boolean>({ default: false })
@@ -25,6 +27,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const ms = useMicrostock()
+const { hydrateReviewAsset } = useMicrostockHydrate()
 const fh = useFileHosting()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
@@ -74,10 +77,27 @@ async function loadMeta(): Promise<void> {
   }
   loading.value = true
   try {
-    const [loaded, dl] = await Promise.all([
-      ms.fetchAssetMetadata(fileId.value),
-      fh.fetchFileDownload(fileId.value, { preview: 1, ...props.downloadCtx }).catch(() => null),
-    ])
+    // Batch metadata + preview download URL; fall back to standalone loaders
+    // on transient entry failure (standalone endpoints stay the source of truth).
+    // A terminal 401/403/429 entry re-throws so we never re-fire a rejection.
+    const id = fileId.value
+    const hydrated = await hydrateReviewAsset(id, props.downloadCtx).catch((e) => {
+      if (isTerminalBatchError(e)) throw e
+      return null
+    })
+    let loaded = hydrated?.metadata ?? null
+    let dl = hydrated?.download ?? null
+    if (loaded === null || dl === null) {
+      const [fallbackMeta, fallbackDl] = await Promise.all([
+        loaded === null ? ms.fetchAssetMetadata(id) : Promise.resolve(loaded),
+        dl === null ? fh.fetchFileDownload(id, { preview: 1, ...props.downloadCtx }).catch(() => null) : Promise.resolve(dl),
+      ])
+      loaded = fallbackMeta
+      dl = fallbackDl
+    }
+    if (loaded === null) {
+      throw new Error(t('web.file-hosting.failed_load_file'))
+    }
     meta.value = loaded
     title.value = loaded.title ?? ''
     keywords.value = [...(loaded.keywords ?? [])]

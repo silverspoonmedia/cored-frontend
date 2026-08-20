@@ -9,7 +9,8 @@ import { useTheme } from '@/composables/useTheme'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useNotifications } from '@/composables/useNotifications'
-import { useEcho } from '@/composables/useEcho'
+import { useEcho, onEchoResync } from '@/composables/useEcho'
+import { triggerAllListingsReload } from '@/composables/useListingReload'
 import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 import { isNavNodeActive } from '@/utils/navActive'
 import { resolveNotificationLocation } from '@/utils/notificationTarget'
@@ -31,6 +32,7 @@ const supportedLocales = SUPPORTED_LOCALES
 
 const notificationCount = computed(() => unreadCount.value)
 const bellLoading = ref(false)
+let stopResync: (() => void) | null = null
 
 const userName = computed(() => user.value?.name ?? '—')
 const userEmail = computed(() => user.value?.email ?? '—')
@@ -108,48 +110,6 @@ function notificationTime(n: { created_at_human: string | null; created_at_forma
   return n.created_at_human ?? n.created_at_formatted ?? n.created_at ?? '—'
 }
 
-const POLL_INTERVAL_MS = 120_000
-const POLL_MAX_MS = 300_000
-const IDLE_POLLS_BEFORE_BACKOFF = 5
-const REALTIME_GRACE_MS = 30_000
-let pollTimer: ReturnType<typeof setTimeout> | null = null
-let graceTimer: ReturnType<typeof setTimeout> | null = null
-let idlePolls = 0
-let lastUnread: number | null = null
-
-// Idle bells poll slower over time (2x per idle streak, capped) so an open tab
-// left overnight does not burn the Worker quota on an empty inbox. Any unread
-// change — or an Echo event — snaps the interval back to the base.
-async function pollTick(): Promise<void> {
-  if (pollTimer === null) return
-  const before = lastUnread
-  await fetchUnreadCount()
-  if (before !== null && unreadCount.value === before) {
-    idlePolls += 1
-  } else {
-    idlePolls = 0
-    lastUnread = unreadCount.value
-  }
-  const delay = idlePolls >= IDLE_POLLS_BEFORE_BACKOFF
-    ? Math.min(POLL_INTERVAL_MS * 2 ** (idlePolls - IDLE_POLLS_BEFORE_BACKOFF + 1), POLL_MAX_MS)
-    : POLL_INTERVAL_MS
-  pollTimer = setTimeout(pollTick, delay)
-}
-
-function startPolling(): void {
-  if (pollTimer) return
-  idlePolls = 0
-  lastUnread = null
-  pollTimer = setTimeout(pollTick, POLL_INTERVAL_MS)
-}
-
-function stopPolling(): void {
-  if (pollTimer) {
-    clearTimeout(pollTimer)
-    pollTimer = null
-  }
-}
-
 onMounted(() => {
   // The shell-hydrate batch (AppLayout) may already have seeded the unread
   // count and navbar tree; only fetch what is still missing.
@@ -163,27 +123,27 @@ onMounted(() => {
     loadNavigation('navbar')
   }
 
+  // Live updates arrive only over the websocket; Echo auto-reconnect is the
+  // recovery path, so there is no polling fallback.
   const echoStarted = initEcho()
   if (echoStarted) {
     startRealtime()
-    graceTimer = setTimeout(() => {
-      if (!echoConnected.value) {
-        startPolling()
-      }
-    }, REALTIME_GRACE_MS)
-  } else {
-    startPolling()
   }
+
+  // Re-pull state after a socket outage: events during the gap are lost, so
+  // refresh the bell and every registered listing when the socket recovers.
+  stopResync = onEchoResync(() => {
+    fetchUnreadCount()
+    fetchList(5)
+    triggerAllListingsReload()
+  })
 })
 
 onUnmounted(() => {
-  stopPolling()
+  stopResync?.()
+  stopResync = null
   stopRealtime()
   disconnectEcho()
-  if (graceTimer) {
-    clearTimeout(graceTimer)
-    graceTimer = null
-  }
 })
 </script>
 
@@ -217,6 +177,14 @@ onUnmounted(() => {
       </ul>
 
       <ul class="navbar-nav ms-auto">
+        <!-- Realtime connection indicator: visible only while the socket is down
+             (Echo auto-reconnect in progress). Hidden when connected. -->
+        <li v-if="!echoConnected" class="nav-item d-flex align-items-center" :title="t('web.navbar.reconnecting')">
+          <span class="nav-link py-0">
+            <span class="spinner-border spinner-border-sm text-warning align-middle" role="status" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ t('web.navbar.reconnecting') }}</span>
+          </span>
+        </li>
         <!-- Color mode toggle -->
         <li class="nav-item dropdown">
           <a

@@ -2457,7 +2457,8 @@
       "two_factor": "二要素認証",
       "connected_accounts": "連携アカウント",
       "logout": "ログアウト",
-      "language_updated": "言語を変更しました。"
+      "language_updated": "言語を変更しました。",
+      "reconnecting": "再接続中…"
     },
     "notification-audiences": {
       "title": "通知オーディエンス",

@@ -44,6 +44,22 @@ export function triggerListingReload(tableId: string): void {
   }
 }
 
+/**
+ * Reload every registered listing. Used by the Echo resync-on-reconnect bus:
+ * events during a socket outage are lost, so all live listings re-pull.
+ */
+export function triggerAllListingsReload(): void {
+  for (const set of registry.values()) {
+    for (const fn of set) {
+      try {
+        fn()
+      } catch {
+        // a failing refetch must not block other callbacks
+      }
+    }
+  }
+}
+
 export function useListingReload() {
   return {
     registerListing,

@@ -1156,6 +1156,11 @@ const router = createRouter({
 
 let hydrated = false
 
+/** Reset the one-shot cold-boot hydrate flag (called on logout). */
+export function resetRouterHydration(): void {
+  hydrated = false
+}
+
 router.beforeEach(async (to) => {
   if (!hydrated) {
     const { hydrateShell } = useAuth()
@@ -1163,10 +1168,17 @@ router.beforeEach(async (to) => {
     hydrated = true
   }
 
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, fetchMe } = useAuth()
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
-    return { name: 'login.view', query: { redirect: to.fullPath } }
+    // Cookie-settle race: right after a login redirect the in-memory user can be
+    // null while the session cookie is valid. Re-validate once against the server
+    // before concluding the visitor is a guest (a real guest's fetchMe resolves
+    // to null after the client's refresh attempt fails).
+    await fetchMe().catch(() => null)
+    if (!isAuthenticated.value) {
+      return { name: 'login.view', query: { redirect: to.fullPath } }
+    }
   }
 
   if (to.meta.guestOnly && isAuthenticated.value) {

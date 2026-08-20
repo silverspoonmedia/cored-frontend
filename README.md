@@ -1,6 +1,6 @@
 # monolith-vue-workers
 
-Leading Vue 3 SPA for the Monolith `/api/v1/*` API. Deployed to Cloudflare Workers: static assets plus a small BFF isolate on `/api/*` that mints an HttpOnly `spa_jwt` cookie and reverse-proxies to Laravel.
+Leading Vue 3 SPA for the Monolith `/api/v1/*` API. Deployed to Cloudflare Workers: static assets (zero-invocation) plus a **narrow auth-only BFF** that brokers just the five session endpoints (`/api/v1/auth/login|register|refresh|logout|two-factor/login`). All data traffic calls the Laravel API **directly** from the browser, authenticated by the cross-site HttpOnly `__Host-spa_jwt` cookie Laravel mints (`credentials: 'include'` + double-submit `X-CSRF-Token`).
 
 Blade in the Monolith repo stays as the in-repo reference. Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
 
@@ -8,12 +8,16 @@ Blade in the Monolith repo stays as the in-repo reference. Do not store JWTs in 
 
 ```
 Browser (SPA origin)
-  → static HTML/JS/CSS (no Worker invocation)
-  → same-origin /api/v1/*  → Worker (spa_jwt → Bearer, X-SPA-Origin: 1)
-       → MONOLITH_API_ORIGIN /api/v1/*
+  - static HTML/JS/CSS from the Worker (no invocation, free)
+  - DATA /api/v1/*  ->  direct cross-site to Laravel (VITE_API_BASE_URL):
+        credentials:'include' -> HttpOnly __Host-spa_jwt cookie
+        X-CSRF-Token header   -> double-submit __Host-spa_csrf nonce
+  - AUTH /api/v1/auth/{login,register,refresh,logout,two-factor/login}
+        -> same-origin Worker BFF -> strips data.token, forwards the
+           __Host-spa_jwt Set-Cookie from Laravel
 ```
 
-`VITE_API_BASE_URL` must stay **empty**. An absolute API URL bypasses the Worker: hostname leak and no `spa_jwt`.
+`VITE_API_BASE_URL` **must be set** to the absolute Laravel API origin (e.g. `https://api.example.com/api/v1`). Data calls go straight to it — the Worker is not in the data path, so API requests cost zero Worker invocations. Leave it empty only for a local same-origin setup.
 
 ## Template namespaces
 
@@ -51,16 +55,16 @@ cp .env.example .env
 cp .dev.vars.example .dev.vars
 ```
 
-Set `MONOLITH_API_ORIGIN` in `.dev.vars` (Worker-only, not bundled). Leave `VITE_API_BASE_URL=""`. Set Monolith `SPA_URL="http://localhost:5173"`.
+Set `MONOLITH_API_ORIGIN` in `.dev.vars` (Worker-only, not bundled). Set `VITE_API_BASE_URL` to the Laravel API origin (e.g. `http://localhost:8000/api/v1`) so data calls go direct. Set Monolith `SPA_URL="http://localhost:5173"`.
 
 ## Environment
 
 | Var | Where | Bundled? | Notes |
 |-----|--------|----------|--------|
 | `MONOLITH_API_ORIGIN` | Wrangler `vars` / `.dev.vars` | No | Laravel origin, no `/api/v1`, no trailing slash. Must match Monolith `APP_URL` origin or signed email-verify links fail HMAC. Empty → Worker 503. |
-| `VITE_API_BASE_URL` | `.env` | Yes | Must be empty |
+| `VITE_API_BASE_URL` | `.env` | Yes | Absolute Laravel API origin (incl. `/api/v1`). Drives direct data calls; empty = same-origin only |
 | `VITE_HCAPTCHA_SITE_KEY` | `.env` | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
-| `VITE_PUSHER_*` | `.env` | Yes | Echo; empty key = poll fallback. Mirror Monolith `PUSHER_*` literals |
+| `VITE_PUSHER_*` | `.env` | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
 
 Discord return is **not** a Vite var. Set Monolith `SPA_URL` to this SPA’s public origin.
 
@@ -78,10 +82,10 @@ On **Vue-Workers**:
 
 1. `wrangler.jsonc` `vars.MONOLITH_API_ORIGIN` is the production API host.
 2. Custom domain on the Worker; `npm run deploy`.
-3. `VITE_API_BASE_URL` empty in the build env.
+3. `VITE_API_BASE_URL` set to the production API origin in the build env.
 4. Static security headers live in `public/_headers` (CSP, frame deny). Worker JSON responses also stamp `X-Content-Type-Options` / `Referrer-Policy` / `Permissions-Policy`. Do **not** widen `run_worker_first` past `/api/*`.
 
-When `SPA_URL` is set, Laravel mints password-reset, email-verify, public share, and iPaymu hosted return/cancel URLs onto the SPA. Email verify signs the **API** route (HMAC on `APP_URL`); the browser lands on `/verify-email/{id}/{hash}?expires=&signature=` and the SPA GETs the API through the Worker.
+When `SPA_URL` is set, Laravel mints password-reset, email-verify, public share, and iPaymu hosted return/cancel URLs onto the SPA. Email verify signs the **API** route (HMAC on `APP_URL`); the browser lands on `/verify-email/{id}/{hash}?expires=&signature=` and the SPA GETs the API directly (cross-site cookie).
 
 Login and register honor `?redirect=` via `src/lib/safeRedirect.ts` (`safeInternalRedirect`): internal paths only (`/` prefix; reject `//`, `\`, `://`, `/http:`). Used by the public vTual claim CTA (`/login?redirect=/apps/vtual/vtubers/{slug}/claim`) so signup from `/vtual` does not dump people on the dashboard.
 

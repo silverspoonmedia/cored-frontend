@@ -26,3 +26,41 @@ export function bodyOf<T>(entry: BatchEntry | undefined): ApiResponse<T> | null 
 export function dataOf<T>(entry: BatchEntry | undefined): T | null {
   return bodyOf<T>(entry)?.data ?? null
 }
+
+/**
+ * Thrown when a batch sub-entry came back with a terminal status (401/403/429):
+ * the request was rejected by auth/RBAC/throttle, so re-firing it standalone
+ * would just repeat the same rejection (and a 401 would trip the global
+ * force-logout). Callers must NOT fall back to the standalone loader for these.
+ */
+export class TerminalBatchError extends Error {
+  readonly status: number
+
+  constructor(status: number) {
+    super(`Batch entry rejected with terminal status ${status}`)
+    this.name = 'TerminalBatchError'
+    this.status = status
+  }
+}
+
+const TERMINAL_STATUSES = new Set([401, 403, 429])
+
+export function isTerminalEntry(entry: BatchEntry | undefined): boolean {
+  return entry !== undefined && TERMINAL_STATUSES.has(entry.status)
+}
+
+/**
+ * Like {@link bodyOf} but throws {@link TerminalBatchError} on 401/403/429 so a
+ * hydrate caller can distinguish "transient failure — fall back to standalone"
+ * from "terminal rejection — do not retry".
+ */
+export function bodyOfOrThrow<T>(entry: BatchEntry | undefined): ApiResponse<T> | null {
+  if (isTerminalEntry(entry)) {
+    throw new TerminalBatchError((entry as BatchEntry).status)
+  }
+  return bodyOf<T>(entry)
+}
+
+export function isTerminalBatchError(e: unknown): e is TerminalBatchError {
+  return e instanceof TerminalBatchError
+}

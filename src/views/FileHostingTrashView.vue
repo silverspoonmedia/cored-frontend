@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -6,7 +6,6 @@ import { confirmDialog } from '@/lib/swal'
 import FhIcon from '@/components/FhIcon.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
-import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { FhTrashPayload } from '@/api/types'
 
@@ -16,7 +15,6 @@ const { t } = useI18n()
 const fh = useFileHosting()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
-const { connected: echoConnected } = useEcho()
 
 const trash = ref<FhTrashPayload | null>(null)
 const loading = ref(true)
@@ -47,39 +45,13 @@ const trashHandlers = {
   onListingChanged: () => loadTrash(),
 }
 
-let trashPollTimer: ReturnType<typeof setInterval> | null = null
-const TRASH_POLL_MS = 30_000
-
-function startTrashPolling(): void {
-  if (trashPollTimer) return
-  trashPollTimer = setInterval(() => {
-    if (document.visibilityState !== 'visible') return
-    if (echoConnected.value) {
-      stopTrashPolling()
-      return
-    }
-    loadTrash()
-  }, TRASH_POLL_MS)
-}
-
-function stopTrashPolling(): void {
-  if (trashPollTimer) {
-    clearInterval(trashPollTimer)
-    trashPollTimer = null
-  }
-}
-
 onMounted(() => {
   loadTrash()
   subscribe(trashHandlers)
-  if (!echoConnected.value) {
-    startTrashPolling()
-  }
 })
 
 onUnmounted(() => {
   unsubscribe(trashHandlers)
-  stopTrashPolling()
 })
 
 async function openConfirm(type: 'folder' | 'file', id: string, action: 'restore' | 'force-delete'): Promise<void> {

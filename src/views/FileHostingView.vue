@@ -14,7 +14,6 @@ import { useFhHydrate } from '@/composables/useFhHydrate'
 import { useMicrostock } from '@/composables/useMicrostock'
 import { useMicrostockBilling } from '@/composables/useMicrostockBilling'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
-import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useFhDragMove } from '@/composables/useFhDragMove'
 import { applyBrowseClick, listingKeys, idsByEntity } from '@/composables/useFhSelection'
@@ -44,7 +43,6 @@ const { fetchBilling } = useMicrostockBilling()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe: subscribeFhRealtime, unsubscribe: unsubscribeFhRealtime } = useFileHostingRealtime()
-const { connected: echoConnected } = useEcho()
 
 const browse = ref<FhBrowsePayload | null>(null)
 const quota = ref<FhQuota | null>(null)
@@ -767,28 +765,6 @@ const fhRealtimeHandlers = {
   onAssetMetadataProgress: () => loadBrowse({ keepSelection: true }),
 }
 
-let fhPollTimer: ReturnType<typeof setInterval> | null = null
-const FH_POLL_INTERVAL_MS = 30_000
-
-function startFhPolling(): void {
-  if (fhPollTimer) return
-  fhPollTimer = setInterval(() => {
-    if (document.visibilityState !== 'visible') return
-    if (echoConnected.value) {
-      stopFhPolling()
-      return
-    }
-    loadAll()
-  }, FH_POLL_INTERVAL_MS)
-}
-
-function stopFhPolling(): void {
-  if (fhPollTimer) {
-    clearInterval(fhPollTimer)
-    fhPollTimer = null
-  }
-}
-
 function closeCtx(): void {
   contextMenu.value = null
 }
@@ -803,14 +779,12 @@ function onEsc(e: KeyboardEvent): void {
 
 onMounted(() => {
   subscribeFhRealtime(fhRealtimeHandlers)
-  if (!echoConnected.value) startFhPolling()
   document.addEventListener('click', closeCtx)
   document.addEventListener('keydown', onEsc)
 })
 
 onUnmounted(() => {
   unsubscribeFhRealtime(fhRealtimeHandlers)
-  stopFhPolling()
   document.removeEventListener('click', closeCtx)
   document.removeEventListener('keydown', onEsc)
   if (searchTimer) clearTimeout(searchTimer)

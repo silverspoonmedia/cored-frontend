@@ -5,7 +5,6 @@ import Card from '@/components/Card.vue'
 import { useMicrostockBilling } from '@/composables/useMicrostockBilling'
 import { useMicrostockHydrate } from '@/composables/useMicrostockHydrate'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
-import { useEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type {
@@ -25,7 +24,6 @@ const { hydrateUsage, hydratePlatform } = useMicrostockHydrate()
 const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
 const { subscribe, unsubscribe } = useFileHostingRealtime()
-const { connected: echoConnected } = useEcho()
 
 const canViewPlatform = computed(() => hasPermission('view platform billing'))
 
@@ -178,43 +176,16 @@ const msHandlers = {
   },
 }
 
-let msPollTimer: ReturnType<typeof setInterval> | null = null
-const MS_POLL_MS = 30_000
-
-function startMsPolling(): void {
-  if (msPollTimer) return
-  msPollTimer = setInterval(() => {
-    if (document.visibilityState !== 'visible') return
-    if (echoConnected.value) {
-      stopMsPolling()
-      return
-    }
-    loadBilling()
-    loadLedger(true)
-  }, MS_POLL_MS)
-}
-
-function stopMsPolling(): void {
-  if (msPollTimer) {
-    clearInterval(msPollTimer)
-    msPollTimer = null
-  }
-}
-
 onMounted(async () => {
   await loadBilling()
   if (ledger.value.length === 0 && !ledgerHasMore.value) {
     await loadLedger(true)
   }
   subscribe(msHandlers)
-  if (!echoConnected.value) {
-    startMsPolling()
-  }
 })
 
 onUnmounted(() => {
   unsubscribe(msHandlers)
-  stopMsPolling()
 })
 
 async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {

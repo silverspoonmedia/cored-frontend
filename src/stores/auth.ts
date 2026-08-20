@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import i18n from '@/i18n'
 import { post, get, setRefreshHandler, setUnauthorizedHandler } from '@/api/client'
+import { clearCsrf } from '@/api/csrf'
 import type { ApiResponse, AuthPayload, LoginResult, TwoFactorChallengePayload, User } from '@/api/types'
 
 const STORAGE_KEY = 'mw_auth'
@@ -89,6 +90,9 @@ if (authChannel) {
           clearTimeout(refreshTimer)
           refreshTimer = null
         }
+        // Session nonce died with the session; drop it here too (the tab that
+        // initiated logout already cleared + broadcast its own clear).
+        clearCsrf()
         break
     }
   }
@@ -104,12 +108,17 @@ function applyAuth(payload: AuthPayload): void {
 function clearAuth(): void {
   user.value = null
   expiresAt.value = null
+  clearCsrf()
   remember.value = false
   clearLeftoverTokenStorage()
   if (refreshTimer) {
     clearTimeout(refreshTimer)
     refreshTimer = null
   }
+  // Reset shell/router hydration so the next login re-bootstraps from a clean
+  // state. Dynamic imports avoid a circular dep (router imports this store).
+  void import('@/composables/useShellHydrate').then((m) => m.resetShellHydration())
+  void import('@/router').then((m) => m.resetRouterHydration())
   broadcast({ type: 'logout' })
 }
 
@@ -327,12 +336,14 @@ async function resetPassword(
   email: string,
   password: string,
   passwordConfirmation: string,
+  captcha?: string | null,
 ): Promise<void> {
   const res = await post<ApiResponse<null>>('auth/reset-password', {
     token: resetToken,
     email,
     password,
     password_confirmation: passwordConfirmation,
+    ...captchaBody(captcha),
   })
 
   if (res.status !== 'success') {

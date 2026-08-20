@@ -2457,7 +2457,8 @@
       "two_factor": "Two-factor authentication",
       "connected_accounts": "Connected accounts",
       "logout": "Log out",
-      "language_updated": "Language updated."
+      "language_updated": "Language updated.",
+      "reconnecting": "Reconnecting…"
     },
     "notification-audiences": {
       "title": "Notification audiences",

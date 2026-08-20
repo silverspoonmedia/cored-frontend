@@ -1,10 +1,10 @@
 import { batch } from '@/api/client'
-import { bodyOf } from '@/api/batch'
+import { bodyOfOrThrow } from '@/api/batch'
 import type {
   MicrostockBillingSummary,
   MicrostockLedgerEntry,
-  MicrostockUsageEvent,
   MicrostockPlatformOverview,
+  MicrostockAssetMetadata,
   InferenceUsageEventListPayload,
 } from '@/api/types'
 
@@ -16,10 +16,6 @@ import type {
 interface MicrostockUsageResult {
   billing: MicrostockBillingSummary | null
   ledger: { items: MicrostockLedgerEntry[]; pagination: { has_more: boolean } } | null
-}
-
-interface MicrostockUsageEventsResult {
-  usageEvents: { items: MicrostockUsageEvent[]; pagination: { has_more: boolean } } | null
 }
 
 interface MicrostockPlatformResult {
@@ -38,22 +34,8 @@ async function hydrateUsage(params: { page?: number; per_page?: number } = {}): 
   ])
 
   return {
-    billing: bodyOf<MicrostockBillingSummary>(billingRes)?.data ?? null,
-    ledger: bodyOf<{ items: MicrostockLedgerEntry[]; pagination: { has_more: boolean } }>(ledgerRes)?.data ?? null,
-  }
-}
-
-async function hydrateUsageEvents(params: { page?: number; per_page?: number } = {}): Promise<MicrostockUsageEventsResult> {
-  const query: Record<string, string> = {}
-  if (params.page) query.page = String(params.page)
-  if (params.per_page) query.per_page = String(params.per_page)
-
-  const [usageRes] = await batch<unknown>([
-    { path: 'microstock/billing/usage-events', query },
-  ])
-
-  return {
-    usageEvents: bodyOf<{ items: MicrostockUsageEvent[]; pagination: { has_more: boolean } }>(usageRes)?.data ?? null,
+    billing: bodyOfOrThrow<MicrostockBillingSummary>(billingRes)?.data ?? null,
+    ledger: bodyOfOrThrow<{ items: MicrostockLedgerEntry[]; pagination: { has_more: boolean } }>(ledgerRes)?.data ?? null,
   }
 }
 
@@ -68,15 +50,35 @@ async function hydratePlatform(params: { page?: number; per_page?: number } = {}
   ])
 
   return {
-    overview: bodyOf<MicrostockPlatformOverview>(overviewRes)?.data ?? null,
-    usageEvents: bodyOf<InferenceUsageEventListPayload>(eventsRes)?.data ?? null,
+    overview: bodyOfOrThrow<MicrostockPlatformOverview>(overviewRes)?.data ?? null,
+    usageEvents: bodyOfOrThrow<InferenceUsageEventListPayload>(eventsRes)?.data ?? null,
+  }
+}
+
+interface MicrostockReviewAssetResult {
+  metadata: MicrostockAssetMetadata | null
+  download: { url: string; expires_at: string } | null
+}
+
+async function hydrateReviewAsset(
+  fileId: string,
+  downloadCtx: Record<string, unknown> = {},
+): Promise<MicrostockReviewAssetResult> {
+  const [metadataRes, downloadRes] = await batch<unknown>([
+    { path: `microstock/assets/${fileId}/metadata` },
+    { path: `file-hosting/files/${fileId}/download`, query: { preview: 1, ...downloadCtx } },
+  ])
+
+  return {
+    metadata: bodyOfOrThrow<MicrostockAssetMetadata>(metadataRes)?.data ?? null,
+    download: bodyOfOrThrow<{ url: string; expires_at: string }>(downloadRes)?.data ?? null,
   }
 }
 
 export function useMicrostockHydrate() {
   return {
     hydrateUsage,
-    hydrateUsageEvents,
     hydratePlatform,
+    hydrateReviewAsset,
   }
 }

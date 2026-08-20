@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useInvoices } from '@/composables/useInvoices'
 import { usePaymentRealtime } from '@/composables/usePaymentRealtime'
-import { useEcho } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { Invoice, PaymentChannel, CheckoutResult, InvoiceStatusPayload } from '@/api/types'
 
@@ -20,7 +19,6 @@ const emit = defineEmits<{
 const { fetchCheckoutChannels, channelCheckout, syncStatus } = useInvoices()
 const { error: showError, success: showSuccess } = useAlert()
 const { subscribeInvoice, unsubscribeInvoice, subscribeRoutingCatalog, unsubscribeRoutingCatalog } = usePaymentRealtime()
-const { connected: echoConnected } = useEcho()
 const { t } = useI18n()
 
 const channels = ref<PaymentChannel[]>(props.channels ?? [])
@@ -28,7 +26,6 @@ const selectedChannel = ref<string>('')
 const checkoutResult = ref<CheckoutResult | null>(null)
 const loading = ref(false)
 const syncing = ref(false)
-const pollTimer = ref<ReturnType<typeof setInterval> | null>(null)
 
 const isPayable = computed(() => {
   const status = props.invoice.status.toLowerCase()
@@ -66,16 +63,12 @@ onMounted(async () => {
   if (isPayable.value) {
     subscribeInvoice(props.invoice.id, handleInvoiceStatusChanged)
     subscribeRoutingCatalog(refreshChannels)
-    if (!echoConnected.value) {
-      startPolling()
-    }
   }
 })
 
 onUnmounted(() => {
   unsubscribeInvoice()
   unsubscribeRoutingCatalog()
-  stopPolling()
 })
 
 function handleInvoiceStatusChanged(payload: InvoiceStatusPayload): void {
@@ -84,7 +77,6 @@ function handleInvoiceStatusChanged(payload: InvoiceStatusPayload): void {
     emit('invoice-updated', payload)
     if (payload.status === 'paid') {
       showSuccess(t('web.payments.payment_confirmed'))
-      stopPolling()
     }
   }
 }
@@ -101,25 +93,6 @@ async function refreshChannels(): Promise<void> {
     }
   } catch {
     // non-critical
-  }
-}
-
-function startPolling(): void {
-  stopPolling()
-  pollTimer.value = setInterval(async () => {
-    if (document.visibilityState !== 'visible') return
-    if (echoConnected.value) {
-      stopPolling()
-      return
-    }
-    await handleSyncStatus()
-  }, 15_000)
-}
-
-function stopPolling(): void {
-  if (pollTimer.value) {
-    clearInterval(pollTimer.value)
-    pollTimer.value = null
   }
 }
 
@@ -152,7 +125,6 @@ async function handleSyncStatus(): Promise<void> {
       emit('status-updated', result.invoice.status)
       if (result.invoice.status === 'paid') {
         showSuccess(t('web.payments.payment_confirmed'))
-        stopPolling()
       }
     }
   } catch {

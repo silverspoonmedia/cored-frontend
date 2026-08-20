@@ -2,7 +2,8 @@ import Echo, { type EchoOptions } from 'laravel-echo'
 import Pusher from 'pusher-js'
 import type { ChannelAuthorizerGenerator } from 'pusher-js'
 import { ref, type Ref } from 'vue'
-import { resolveApiUrl } from '@/api/baseUrl'
+import { resolveApiUrl, isCrossOrigin } from '@/api/baseUrl'
+import { applyCsrfHeader, ensureCsrf } from '@/api/csrf'
 
 type PusherEcho = Echo<'pusher'>
 type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
@@ -10,6 +11,31 @@ type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
 let echoInstance: PusherEcho | null = null
 let stopConnectionWatch: (() => void) | null = null
 const connected = ref(false)
+
+// Tracks a prior outage so a later "connected" is known to be a RE-connect
+// (events were potentially missed) rather than the initial subscription.
+let hadOutage = false
+
+// Resync bus: views/stores register a refetch; fired once when the socket
+// recovers from an outage. WebSocket-only realtime means events during a
+// disconnect are lost permanently, so recovery must re-pull state.
+type ResyncFn = () => void
+const resyncListeners = new Set<ResyncFn>()
+
+export function onEchoResync(fn: ResyncFn): () => void {
+  resyncListeners.add(fn)
+  return () => resyncListeners.delete(fn)
+}
+
+function fireResync(): void {
+  for (const fn of resyncListeners) {
+    try {
+      fn()
+    } catch {
+      // a failing resync must not block the others
+    }
+  }
+}
 
 export interface BroadcastConfig {
   key: string
@@ -45,19 +71,31 @@ function readConfig(): BroadcastConfig | null {
 function createEcho(config: BroadcastConfig): PusherEcho {
   const authorizer: ChannelAuthorizerGenerator = (channel) => ({
     authorize: (socketId, callback) => {
-      fetch(config.authEndpoint, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
+      const crossOrigin = isCrossOrigin(config.authEndpoint)
+      const run = async (): Promise<Response> => {
+        if (crossOrigin) {
+          await ensureCsrf()
+        }
+        const headers: Record<string, string> = {
           'Content-Type': 'application/json',
           Accept: 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-          socket_id: socketId,
-          channel_name: channel.name,
-        }),
-      })
+        }
+        const headerObj = new Headers(headers)
+        if (crossOrigin) {
+          applyCsrfHeader(headerObj)
+        }
+        return fetch(config.authEndpoint, {
+          method: 'POST',
+          credentials: crossOrigin ? 'include' : 'same-origin',
+          headers: headerObj,
+          body: JSON.stringify({
+            socket_id: socketId,
+            channel_name: channel.name,
+          }),
+        })
+      }
+      run()
         .then(async (res) => {
           const data: unknown = await res.json()
           if (!res.ok) {
@@ -126,7 +164,19 @@ export function useEcho(): {
     try {
       echoInstance = createEcho(config)
       stopConnectionWatch = echoInstance.connector.onConnectionChange((status) => {
-        connected.value = status === 'connected'
+        const isConnected = status === 'connected'
+        if (isConnected && hadOutage) {
+          // Recovered from an outage: any events during the gap are gone, so
+          // tell every listener to re-pull its state.
+          hadOutage = false
+          connected.value = true
+          fireResync()
+          return
+        }
+        if (!isConnected) {
+          hadOutage = true
+        }
+        connected.value = isConnected
       })
       connected.value = echoInstance.connectionStatus() === 'connected'
 
@@ -145,6 +195,7 @@ export function useEcho(): {
       echoInstance.disconnect()
       echoInstance = null
       connected.value = false
+      hadOutage = false
     }
   }
 

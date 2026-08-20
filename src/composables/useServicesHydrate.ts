@@ -1,5 +1,5 @@
 import { batch } from '@/api/client'
-import { bodyOf } from '@/api/batch'
+import { bodyOfOrThrow } from '@/api/batch'
 import type {
   Service,
   ServiceOptions,
@@ -9,7 +9,6 @@ import type {
 /**
  * Batch-hydrate for Service domain views.
  */
-
 interface ServiceShowResult {
   service: Service | null
   options: ServiceOptions | null
@@ -27,8 +26,8 @@ async function hydrateServiceShow(serviceId: string): Promise<ServiceShowResult>
   ])
 
   return {
-    service: bodyOf<Service>(serviceRes)?.data ?? null,
-    options: bodyOf<ServiceOptions>(optionsRes)?.data ?? null,
+    service: bodyOfOrThrow<Service>(serviceRes)?.data ?? null,
+    options: bodyOfOrThrow<ServiceOptions>(optionsRes)?.data ?? null,
   }
 }
 
@@ -39,8 +38,20 @@ async function hydratePurchaseShow(purchaseId: string): Promise<ServicePurchaseS
   ])
 
   return {
-    purchase: bodyOf<ServicePurchase>(purchaseRes)?.data ?? null,
-    options: bodyOf<ServiceOptions>(optionsRes)?.data ?? null,
+    purchase: bodyOfOrThrow<ServicePurchase>(purchaseRes)?.data ?? null,
+    options: bodyOfOrThrow<ServiceOptions>(optionsRes)?.data ?? null,
+  }
+}
+
+async function hydrateServiceEdit(serviceId: string): Promise<ServiceShowResult> {
+  const [serviceRes, optionsRes] = await batch<unknown>([
+    { path: `services/${serviceId}` },
+    { path: 'services/options' },
+  ])
+
+  return {
+    service: bodyOfOrThrow<Service>(serviceRes)?.data ?? null,
+    options: bodyOfOrThrow<ServiceOptions>(optionsRes)?.data ?? null,
   }
 }
 
@@ -48,5 +59,6 @@ export function useServicesHydrate() {
   return {
     hydrateServiceShow,
     hydratePurchaseShow,
+    hydrateServiceEdit,
   }
 }

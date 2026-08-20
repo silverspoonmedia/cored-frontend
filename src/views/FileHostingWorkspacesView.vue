@@ -8,7 +8,6 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFhHydrate } from '@/composables/useFhHydrate'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
-import { useEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { FhWorkspace, FhWorkspaceMember, FhWorkspaceActivity } from '@/api/types'
@@ -28,7 +27,6 @@ const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe: subscribeFh, unsubscribe: unsubscribeFh } = useFileHostingRealtime()
 const { hydrateWorkspaceDetail } = useFhHydrate()
-const { connected: echoConnected } = useEcho()
 const { t } = useI18n()
 
 const workspaces = ref<FhWorkspace[]>([])
@@ -72,39 +70,13 @@ const wsHandlers = {
   },
 }
 
-let wsPollTimer: ReturnType<typeof setInterval> | null = null
-const WS_POLL_MS = 30_000
-
-function startWsPolling(): void {
-  if (wsPollTimer) return
-  wsPollTimer = setInterval(() => {
-    if (document.visibilityState !== 'visible') return
-    if (echoConnected.value) {
-      stopWsPolling()
-      return
-    }
-    loadWorkspaces()
-  }, WS_POLL_MS)
-}
-
-function stopWsPolling(): void {
-  if (wsPollTimer) {
-    clearInterval(wsPollTimer)
-    wsPollTimer = null
-  }
-}
-
 onMounted(async () => {
   await loadWorkspaces()
   subscribeFh(wsHandlers)
-  if (!echoConnected.value) {
-    startWsPolling()
-  }
 })
 
 onUnmounted(() => {
   unsubscribeFh(wsHandlers)
-  stopWsPolling()
 })
 
 async function loadWorkspaces(): Promise<void> {

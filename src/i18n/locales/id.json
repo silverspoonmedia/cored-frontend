@@ -2457,7 +2457,8 @@
       "two_factor": "Autentikasi dua faktor",
       "connected_accounts": "Akun terhubung",
       "logout": "Keluar",
-      "language_updated": "Bahasa berhasil diubah."
+      "language_updated": "Bahasa berhasil diubah.",
+      "reconnecting": "Menyambungkan kembali…"
     },
     "notification-audiences": {
       "title": "Audiens notifikasi",

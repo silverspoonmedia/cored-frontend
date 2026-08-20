@@ -3,29 +3,32 @@ export const COOKIE_NAME = 'spa_jwt'
 export const CSRF_HEADER = 'X-Requested-With'
 export const CSRF_VALUE = 'XMLHttpRequest'
 
-export const TOKEN_ISSUE_PATHS = new Set([
+/**
+ * The Worker BFF now brokers ONLY the auth session endpoints. Laravel mints the
+ * cross-site HttpOnly `__Host-spa_jwt` cookie itself; the Worker's remaining
+ * jobs are the security boundary the browser cannot provide:
+ *   1. strip the raw JWT from the login/refresh JSON body so it never reaches JS,
+ *   2. forward Laravel's `Set-Cookie` to the browser,
+ *   3. keep the first-party CSRF gate on cookie-bearing mutations,
+ *   4. expire the session cookie on logout.
+ * Everything else (all data traffic) bypasses the Worker entirely.
+ */
+const TOKEN_ISSUE_PATHS = new Set([
 	`${API_PREFIX}/auth/login`,
 	`${API_PREFIX}/auth/register`,
 	`${API_PREFIX}/auth/refresh`,
 	`${API_PREFIX}/auth/two-factor/login`,
 ])
 
-const FORWARD_REQUEST = ['authorization', 'content-type', 'accept', 'accept-language'] as const
-const FORWARD_RESPONSE = ['content-type', 'content-disposition', 'cache-control'] as const
+const LOGOUT_PATH = `${API_PREFIX}/auth/logout`
+
+const FORWARD_REQUEST = ['authorization', 'content-type', 'accept', 'accept-language', 'x-csrf-token'] as const
+const FORWARD_RESPONSE = ['content-type', 'cache-control'] as const
 
 const SECURITY_HEADERS: ReadonlyArray<readonly [string, string]> = [
 	['X-Content-Type-Options', 'nosniff'],
 	['Referrer-Policy', 'strict-origin-when-cross-origin'],
 	['Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()'],
-]
-
-const CACHEABLE_GET_EXACT = new Map<string, string>([
-	[`${API_PREFIX}/navigation/menus`, 'private, max-age=60'],
-	[`${API_PREFIX}/services/options`, 'private, max-age=60'],
-])
-const CACHEABLE_GET_PREFIX: ReadonlyArray<readonly [string, string]> = [
-	[`${API_PREFIX}/currencies`, 'private, max-age=300'],
-	[`${API_PREFIX}/vtual/public`, 'public, max-age=60'],
 ]
 
 export function applySecurityHeaders(headers: Headers): void {
@@ -36,25 +39,13 @@ export function applySecurityHeaders(headers: Headers): void {
 	}
 }
 
-export function cacheControlFor(method: string, pathname: string, authed: boolean): string | null {
-	if (method !== 'GET') {
-		return null
-	}
-	const directive = CACHEABLE_GET_EXACT.get(pathname)
-		?? CACHEABLE_GET_PREFIX.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.[1]
-		?? null
-	if (directive === null) {
-		return null
-	}
-	return authed ? directive : directive.replace('private', 'public')
-}
-
 export function envelope(status: number, message: string): Response {
 	const headers = new Headers({ 'content-type': 'application/json' })
 	applySecurityHeaders(headers)
 	return new Response(JSON.stringify({ status: 'error', message }), { status, headers })
 }
 
+/** Only the auth session endpoints are proxied; nothing else reaches the Worker. */
 export function pathAllowed(pathname: string): boolean {
 	let decoded = pathname
 	try {
@@ -67,7 +58,7 @@ export function pathAllowed(pathname: string): boolean {
 		return false
 	}
 
-	return decoded === API_PREFIX || decoded.startsWith(`${API_PREFIX}/`)
+	return TOKEN_ISSUE_PATHS.has(decoded) || decoded === LOGOUT_PATH
 }
 
 export function copyHeaders(source: Headers, names: readonly string[]): Headers {
@@ -132,6 +123,24 @@ function finalize(status: number, statusText: string, body: BodyInit | null, hea
 	return new Response(body, { status, statusText, headers })
 }
 
+/** Forward every upstream Set-Cookie (the __Host-spa_jwt mint/expire) to the browser. */
+function forwardSetCookies(upstreamRes: Response, out: Headers): void {
+	const getSetCookie = (upstreamRes.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie
+	const values = typeof getSetCookie === 'function'
+		? getSetCookie.call(upstreamRes.headers)
+		: []
+	if (values.length === 0) {
+		const single = upstreamRes.headers.get('set-cookie')
+		if (single) {
+			out.append('Set-Cookie', single)
+		}
+		return
+	}
+	for (const value of values) {
+		out.append('Set-Cookie', value)
+	}
+}
+
 export async function attachSession(
 	request: Request,
 	upstreamRes: Response,
@@ -139,26 +148,19 @@ export async function attachSession(
 	method: string,
 	spaJwt: string | null,
 ): Promise<Response> {
-	const isLogout = method === 'POST' && pathname === `${API_PREFIX}/auth/logout`
+	const isLogout = method === 'POST' && pathname === LOGOUT_PATH
 	const isIssue = method === 'POST' && TOKEN_ISSUE_PATHS.has(pathname)
 	const contentType = upstreamRes.headers.get('content-type') ?? ''
 
-	if (!isLogout && !isIssue) {
-		const out = copyHeaders(upstreamRes.headers, FORWARD_RESPONSE)
-		if (upstreamRes.ok) {
-			const cacheable = cacheControlFor(method, pathname, spaJwt !== null && spaJwt !== '')
-			if (cacheable !== null && !out.has('set-cookie')) {
-				out.set('cache-control', cacheable)
-			}
-		}
+	const out = copyHeaders(upstreamRes.headers, FORWARD_RESPONSE)
+	forwardSetCookies(upstreamRes, out)
+
+	if (isLogout) {
+		out.append('Set-Cookie', expireCookie(request))
 		return finalize(upstreamRes.status, upstreamRes.statusText, upstreamRes.body, out)
 	}
 
-	if (!contentType.toLowerCase().includes('application/json')) {
-		const out = copyHeaders(upstreamRes.headers, FORWARD_RESPONSE)
-		if (isLogout) {
-			out.append('Set-Cookie', expireCookie(request))
-		}
+	if (!isIssue || !contentType.toLowerCase().includes('application/json')) {
 		return finalize(upstreamRes.status, upstreamRes.statusText, upstreamRes.body, out)
 	}
 
@@ -166,19 +168,12 @@ export async function attachSession(
 	try {
 		json = await upstreamRes.json()
 	} catch {
-		const out = copyHeaders(upstreamRes.headers, FORWARD_RESPONSE)
-		if (isLogout) {
-			out.append('Set-Cookie', expireCookie(request))
-		}
 		return finalize(upstreamRes.status, upstreamRes.statusText, null, out)
 	}
 
-	const out = copyHeaders(upstreamRes.headers, FORWARD_RESPONSE)
 	out.set('content-type', 'application/json')
 
-	if (isLogout) {
-		out.append('Set-Cookie', expireCookie(request))
-	} else if (isRecord(json) && isRecord(json.data)) {
+	if (isRecord(json) && isRecord(json.data)) {
 		const data = json.data
 		const token = data.token
 		const tokenType = data.token_type
@@ -187,6 +182,7 @@ export async function attachSession(
 			const maxAge = typeof rawAge === 'number' && Number.isFinite(rawAge) && rawAge > 0
 				? Math.floor(rawAge)
 				: null
+			// Keep the raw JWT out of the browser JS runtime.
 			delete data.token
 			out.append('Set-Cookie', mintCookie(request, token, maxAge))
 		}
@@ -218,8 +214,8 @@ export async function proxyToMonolith(request: Request, origin: string): Promise
 	}
 	headers.set('X-Forwarded-Proto', incoming.protocol.replace(':', ''))
 
-	// Marks the request as brokered by this BFF so Monolith can audit the
-	// direct hits that bypass the Worker. Not an auth control by itself.
+	// Marks the request as brokered by this BFF for observability (audit-only on
+	// the Monolith side; not an auth control).
 	headers.set('X-SPA-Origin', '1')
 	if (clientIp) {
 		headers.set('X-SPA-Client-IP', clientIp)
