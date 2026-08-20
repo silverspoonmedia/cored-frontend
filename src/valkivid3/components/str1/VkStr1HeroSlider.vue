@@ -14,6 +14,12 @@ const { t } = useI18n()
 const swiperEl = ref<HTMLElement | null>(null)
 let swiper: Swiper | null = null
 
+// Slide 1 is the only slide that goes light (and only in light mode); slides 2/3
+// stay dark (bg-gray-900) in both modes. Controls fork on this per-slide tone, not
+// the global mode. CSS gates the light branch with :not(.dark), so we only need to
+// distinguish slide-1 from the rest here.
+const heroTone = ref<'light' | 'dark'>('light')
+
 onMounted(() => {
   if (!swiperEl.value) return
 
@@ -34,6 +40,12 @@ onMounted(() => {
       prevEl: '.js-vk-hero-prev',
     },
   })
+
+  const syncTone = () => {
+    heroTone.value = swiper && swiper.realIndex === 0 ? 'light' : 'dark'
+  }
+  swiper.on('slideChange', syncTone)
+  syncTone()
 })
 
 onBeforeUnmount(() => {
@@ -44,7 +56,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="mx-auto w-full max-w-[1320px]">
-    <div class="relative z-10 h-[420px] md:h-[460px] lg:h-[660px]">
+    <div class="relative z-10 h-[420px] md:h-[460px] lg:h-[660px]" :data-tone="heroTone">
       <div ref="swiperEl" class="swiper h-full w-full">
         <div class="swiper-wrapper">
           <!-- Slide 1 — hub intro -->

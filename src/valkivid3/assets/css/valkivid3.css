@@ -466,8 +466,18 @@
   content: '';
   height: 0.125rem;
   flex-basis: 100%;
-  background: rgb(122 128 155 / 0.2);
+  background: rgb(255 255 255 / 0.25); /* dark slides (default): brighter track */
   transition: inherit;
+}
+/* Slide-1 light (and only in light mode): the slide is light, so the track must
+   go darker to stay visible. Dark mode + all dark slides keep the bright track. */
+html:not(.dark) .vk3-root [data-tone='light'] .vv-hero-swiper-pagination .swiper-pagination-bullet::before {
+  background: rgb(122 128 155 / 0.35);
+}
+/* Active bullet keeps the solid accent even on slide-1 light (the track override
+   above is more specific, so re-assert it). */
+html:not(.dark) .vk3-root [data-tone='light'] .vv-hero-swiper-pagination .swiper-pagination-bullet-active::before {
+  background: rgb(var(--color-accent) / 1);
 }
 .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active {
   width: 34px;
@@ -476,6 +486,12 @@
 }
 .vk3-root .vv-hero-swiper-pagination .swiper-pagination-bullet-active::before {
   background: rgb(var(--color-accent) / 1);
+}
+/* Active bullet on dark slides in LIGHT mode: the light accent (slate-600) is too
+   dim on bg-gray-900, so reuse the dark accent (slate-300) there. Slide-1 light
+   keeps the per-mode accent (already ≥7:1 on its light gradient). */
+html:not(.dark) .vk3-root [data-tone='dark'] .vv-hero-swiper-pagination .swiper-pagination-bullet-active::before {
+  background: #cbd5e1;
 }
 
 /* Hero nav arrows (prev/next). UNLAYERED: at xl the chip bg goes transparent
@@ -493,13 +509,19 @@
 
 @media (min-width: 992px) {
   /* !important: an unlayered vendor rule still outranks these selectors
-     (same pattern as the swiper pagination overrides above). */
+     (same pattern as the swiper pagination overrides above).
+     Fork per ACTIVE-SLIDE tone (data-tone on the hero container), not global
+     mode: slides 2/3 stay dark (bg-gray-900) in both modes, so in light mode a
+     gray-900 arrow would vanish there. White is the safe default for dark
+     slides; the light branch only applies on slide-1 AND :not(.dark). */
   .vk3-root .js-vk-hero-prev,
   .vk3-root .js-vk-hero-next {
-    color: var(--color-gray-900) !important;
-  }
-  .dark .vk3-root .js-vk-hero-prev,
-  .dark .vk3-root .js-vk-hero-next {
     color: #ffffff !important;
+  }
+  /* Gate on html explicitly: bare `:not(.dark)` matches ANY non-dark ancestor
+     (body/wrappers), so it would still match in dark mode. */
+  html:not(.dark) .vk3-root [data-tone='light'] .js-vk-hero-prev,
+  html:not(.dark) .vk3-root [data-tone='light'] .js-vk-hero-next {
+    color: var(--color-gray-900) !important;
   }
 }
