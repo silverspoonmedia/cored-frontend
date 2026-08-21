@@ -2,7 +2,7 @@
 
 Leading Vue 3 SPA for the Monolith `/api/v1/*` API. Deployed to Cloudflare Workers: static assets (zero-invocation) plus a **narrow auth-only BFF** that brokers just the five session endpoints (`/api/v1/auth/login|register|refresh|logout|two-factor/login`). All data traffic calls the Laravel API **directly** from the browser, authenticated by the cross-site HttpOnly `__Host-spa_jwt` cookie Laravel mints (`credentials: 'include'` + double-submit `X-CSRF-Token`).
 
-Blade in the Monolith repo stays as the in-repo reference. Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
+Monolith's in-repo Blade admin is **removed** — this SPA is the sole browser UI. Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
 
 ## Architecture
 
@@ -72,7 +72,7 @@ Discord return is **not** a Vite var. Set Monolith `SPA_URL` to this SPA’s pub
 
 On **Monolith** (`APP_ENV=production`):
 
-1. `SPA_URL` = public Vue-Workers origin (no trailing slash). Empty keeps Blade/API URLs for local Blade dogfood.
+1. `SPA_URL` = public Vue-Workers origin (no trailing slash). Empty falls back to Monolith `APP_URL` + surviving server endpoints (public share, iPaymu return, OAuth callback).
 2. `APP_URL` origin = Worker `MONOLITH_API_ORIGIN` (signed verify HMAC).
 3. hCaptcha: Settings on **and** `VITE_HCAPTCHA_SITE_KEY` set, or both off.
 4. File Hosting bucket / Gateway CORS includes the SPA origin and **exposes `ETag`**.
