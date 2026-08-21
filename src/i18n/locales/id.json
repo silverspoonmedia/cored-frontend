@@ -2440,6 +2440,46 @@
         "load_failed_platform_events": "Peristiwa penggunaan platform tidak dapat dimuat."
       }
     },
+    "microstock-credentials": {
+      "title": "Kredensial marketplace",
+      "breadcrumb": "Kredensial marketplace",
+      "add_title": "Tambah kredensial marketplace",
+      "add_help": "Simpan kredensial terenkripsi envelope untuk marketplace microstock.",
+      "list_title": "Kredensial tersimpan",
+      "table_caption": "Kredensial marketplace",
+      "empty": "Belum ada kredensial tersimpan.",
+      "confirm_delete": "Hapus kredensial ini?",
+      "marketplaces": {
+        "shutterstock": "Shutterstock",
+        "adobe_stock": "Adobe Stock",
+        "getty_images": "Getty Images",
+        "istock": "iStock",
+        "dreamstime": "Dreamstime",
+        "123rf": "123RF",
+        "freepik": "Freepik",
+        "vecteezy": "Vecteezy",
+        "depositphotos": "Depositphotos",
+        "other": "Lainnya"
+      },
+      "form": {
+        "marketplace": "Marketplace",
+        "label": "Label",
+        "host": "Host",
+        "username": "Nama pengguna",
+        "password": "Kata sandi",
+        "submit": "Simpan kredensial"
+      },
+      "columns": {
+        "marketplace": "Marketplace",
+        "label": "Label",
+        "created_at": "Dibuat"
+      },
+      "errors": {
+        "load_failed": "Gagal memuat kredensial.",
+        "save_failed": "Gagal menyimpan kredensial.",
+        "delete_failed": "Gagal menghapus kredensial."
+      }
+    },
     "navbar": {
       "home": "Beranda",
       "toggle_sidebar": "Buka/tutup sidebar",
@@ -3398,6 +3438,61 @@
         "created": "Yatim dibuat.",
         "channel_claim_started": "Klaim channel dimulai. Verifikasi lewat halaman profil.",
         "channel_added": "Channel ditambahkan."
+      }
+    },
+    "vtual-managements": {
+      "title": "Manajemen",
+      "breadcrumb": "Manajemen",
+      "list_title": "Manajemen vTuber",
+      "subtitle": "Grup agensi atau tim yang mengelola satu atau lebih kreator vTuber.",
+      "add_button": "Tambah manajemen",
+      "create_title": "Buat manajemen",
+      "edit_title": "Ubah manajemen",
+      "status": {
+        "active": "Aktif",
+        "archived": "Diarsipkan"
+      },
+      "datatable": {
+        "search_placeholder": "Cari manajemen.",
+        "empty": "Belum ada manajemen.",
+        "zero_records": "Tidak ada manajemen yang cocok dengan pencarian.",
+        "confirm_delete": "Arsipkan manajemen ini?",
+        "columns": {
+          "name": "Nama",
+          "slug": "Slug",
+          "status": "Status",
+          "created_at": "Dibuat"
+        }
+      },
+      "form": {
+        "name": "Nama",
+        "slug": "Slug",
+        "slug_hint": "Hanya huruf kecil, angka, dan tanda hubung.",
+        "description": "Deskripsi",
+        "logo_url": "URL logo",
+        "status": "Status",
+        "submit_create": "Buat manajemen",
+        "submit_update": "Perbarui manajemen"
+      },
+      "creators": {
+        "section_title": "Kreator yang dikelola",
+        "section_help": "Tetapkan kreator vTuber ke manajemen ini.",
+        "creator": "Kreator",
+        "assign_button": "Tetapkan",
+        "unassign_button": "Hapus",
+        "table_caption": "Kreator yang ditetapkan ke manajemen ini",
+        "empty": "Belum ada kreator yang ditetapkan.",
+        "columns": {
+          "creator": "Kreator",
+          "joined_at": "Bergabung"
+        }
+      },
+      "errors": {
+        "load_failed": "Gagal memuat manajemen.",
+        "save_failed": "Gagal menyimpan manajemen.",
+        "archive_failed": "Gagal mengarsipkan manajemen.",
+        "assign_failed": "Gagal menetapkan kreator.",
+        "unassign_failed": "Gagal menghapus kreator."
       }
     },
     "vtual-platform-credentials": {

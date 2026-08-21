@@ -777,6 +777,45 @@ const router = createRouter({
       ],
     },
     {
+      path: '/apps/vtual/managements',
+      name: 'vtual.managements.index',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'web.vtual-managements.title' },
+      children: [
+        {
+          path: '',
+          name: 'vtual.managements.index.view',
+          component: () => import('@/views/VtualManagementsView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/apps/vtual/managements/create',
+      name: 'vtual.managements.create',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'web.vtual-managements.create_title' },
+      children: [
+        {
+          path: '',
+          name: 'vtual.managements.create.view',
+          component: () => import('@/views/VtualManagementEditView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/apps/vtual/managements/:id/edit',
+      name: 'vtual.managements.edit',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'web.vtual-managements.edit_title' },
+      children: [
+        {
+          path: '',
+          name: 'vtual.managements.edit.view',
+          component: () => import('@/views/VtualManagementEditView.vue'),
+        },
+      ],
+    },
+    {
       path: '/apps/vtual/platform-credentials',
       name: 'vtual.platform-credentials.index',
       component: AppLayout,
@@ -903,6 +942,19 @@ const router = createRouter({
           path: '',
           name: 'file-hosting.microstock-usage.view',
           component: () => import('@/views/FileHostingMicrostockUsageView.vue'),
+        },
+      ],
+    },
+    {
+      path: '/apps/file-hosting/microstock-credentials',
+      name: 'file-hosting.microstock-credentials',
+      component: AppLayout,
+      meta: { requiresAuth: true, titleKey: 'web.microstock-credentials.title' },
+      children: [
+        {
+          path: '',
+          name: 'file-hosting.microstock-credentials.view',
+          component: () => import('@/views/MicrostockCredentialsView.vue'),
         },
       ],
     },

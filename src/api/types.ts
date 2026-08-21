@@ -517,6 +517,13 @@ export interface PaymentIncomeInvoicesPayload {
 }
 
 // --- Microstock Usage ---
+export interface MicrostockCredential {
+  id: string
+  marketplace: string
+  label: string
+  created_at: string | null
+}
+
 export interface MicrostockBillingSummary {
   balance_micro_usd: number
   balance_usd: string
@@ -1315,6 +1322,40 @@ export interface VtualVtuberProfile {
   avatar_url: string | null
   channels?: VtualChannel[]
   contents?: VtualContent[]
+}
+
+export interface VtualManagementMember {
+  id: string
+  management_id: string
+  user_id: string
+  role: string
+  user?: { id: string; name: string; email?: string } | null
+}
+
+export interface VtualManagementCreatorAssignment {
+  assignment_id: string
+  joined_at: string | null
+  joined_at_formatted?: string | null
+  joined_at_human?: string | null
+  creator: VtualCreator
+}
+
+export interface VtualManagement {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  logo_url: string | null
+  status: string
+  my_role: string | null
+  members?: VtualManagementMember[]
+  creators?: VtualManagementCreatorAssignment[]
+  created_at: string | null
+  created_at_formatted?: string | null
+  created_at_human?: string | null
+  updated_at: string | null
+  updated_at_formatted?: string | null
+  updated_at_human?: string | null
 }
 
 // --- Vtual public (guest-safe, slug-addressed — no UUID, no claim URLs) ---

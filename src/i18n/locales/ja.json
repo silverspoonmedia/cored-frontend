@@ -2440,6 +2440,46 @@
         "load_failed_platform_events": "プラットフォームの利用イベントを読み込めませんでした。"
       }
     },
+    "microstock-credentials": {
+      "title": "マーケットプレイス認証情報",
+      "breadcrumb": "マーケットプレイス認証情報",
+      "add_title": "マーケットプレイス認証情報を追加",
+      "add_help": "マイクロストックのマーケットプレイス用にエンベロープ暗号化された認証情報を保存します。",
+      "list_title": "保存済みの認証情報",
+      "table_caption": "マーケットプレイス認証情報",
+      "empty": "保存された認証情報はまだありません。",
+      "confirm_delete": "この認証情報を削除しますか？",
+      "marketplaces": {
+        "shutterstock": "Shutterstock",
+        "adobe_stock": "Adobe Stock",
+        "getty_images": "Getty Images",
+        "istock": "iStock",
+        "dreamstime": "Dreamstime",
+        "123rf": "123RF",
+        "freepik": "Freepik",
+        "vecteezy": "Vecteezy",
+        "depositphotos": "Depositphotos",
+        "other": "その他"
+      },
+      "form": {
+        "marketplace": "マーケットプレイス",
+        "label": "ラベル",
+        "host": "ホスト",
+        "username": "ユーザー名",
+        "password": "パスワード",
+        "submit": "認証情報を保存"
+      },
+      "columns": {
+        "marketplace": "マーケットプレイス",
+        "label": "ラベル",
+        "created_at": "作成日"
+      },
+      "errors": {
+        "load_failed": "認証情報の読み込みに失敗しました。",
+        "save_failed": "認証情報の保存に失敗しました。",
+        "delete_failed": "認証情報の削除に失敗しました。"
+      }
+    },
     "navbar": {
       "home": "ホーム",
       "toggle_sidebar": "サイドバーの切り替え",
@@ -3398,6 +3438,61 @@
         "created": "オーファンを作成しました。",
         "channel_claim_started": "チャンネルクレームを開始しました。プロフィールページで確認してください。",
         "channel_added": "チャンネルを追加しました。"
+      }
+    },
+    "vtual-managements": {
+      "title": "マネジメント",
+      "breadcrumb": "マネジメント",
+      "list_title": "vTuber マネジメント",
+      "subtitle": "1 人以上の vTuber クリエイターを管理する事務所またはチームのグループです。",
+      "add_button": "マネジメントを追加",
+      "create_title": "マネジメントを作成",
+      "edit_title": "マネジメントを編集",
+      "status": {
+        "active": "有効",
+        "archived": "アーカイブ済み"
+      },
+      "datatable": {
+        "search_placeholder": "マネジメントを検索。",
+        "empty": "マネジメントはまだありません。",
+        "zero_records": "検索に一致するマネジメントがありません。",
+        "confirm_delete": "このマネジメントをアーカイブしますか？",
+        "columns": {
+          "name": "名前",
+          "slug": "スラッグ",
+          "status": "ステータス",
+          "created_at": "作成日"
+        }
+      },
+      "form": {
+        "name": "名前",
+        "slug": "スラッグ",
+        "slug_hint": "小文字・数字・ハイフンのみ使用できます。",
+        "description": "説明",
+        "logo_url": "ロゴ URL",
+        "status": "ステータス",
+        "submit_create": "マネジメントを作成",
+        "submit_update": "マネジメントを更新"
+      },
+      "creators": {
+        "section_title": "管理対象クリエイター",
+        "section_help": "このマネジメントに vTuber クリエイターを割り当てます。",
+        "creator": "クリエイター",
+        "assign_button": "割り当て",
+        "unassign_button": "解除",
+        "table_caption": "このマネジメントに割り当てられたクリエイター",
+        "empty": "割り当てられたクリエイターはまだいません。",
+        "columns": {
+          "creator": "クリエイター",
+          "joined_at": "参加日"
+        }
+      },
+      "errors": {
+        "load_failed": "マネジメントの読み込みに失敗しました。",
+        "save_failed": "マネジメントの保存に失敗しました。",
+        "archive_failed": "マネジメントのアーカイブに失敗しました。",
+        "assign_failed": "クリエイターの割り当てに失敗しました。",
+        "unassign_failed": "クリエイターの解除に失敗しました。"
       }
     },
     "vtual-platform-credentials": {

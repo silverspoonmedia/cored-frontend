@@ -2440,6 +2440,46 @@
         "load_failed_platform_events": "Could not load platform usage events."
       }
     },
+    "microstock-credentials": {
+      "title": "Marketplace credentials",
+      "breadcrumb": "Marketplace credentials",
+      "add_title": "Add marketplace credential",
+      "add_help": "Store an envelope-encrypted credential for a microstock marketplace.",
+      "list_title": "Saved credentials",
+      "table_caption": "Marketplace credentials",
+      "empty": "No credentials saved yet.",
+      "confirm_delete": "Delete this credential?",
+      "marketplaces": {
+        "shutterstock": "Shutterstock",
+        "adobe_stock": "Adobe Stock",
+        "getty_images": "Getty Images",
+        "istock": "iStock",
+        "dreamstime": "Dreamstime",
+        "123rf": "123RF",
+        "freepik": "Freepik",
+        "vecteezy": "Vecteezy",
+        "depositphotos": "Depositphotos",
+        "other": "Other"
+      },
+      "form": {
+        "marketplace": "Marketplace",
+        "label": "Label",
+        "host": "Host",
+        "username": "Username",
+        "password": "Password",
+        "submit": "Save credential"
+      },
+      "columns": {
+        "marketplace": "Marketplace",
+        "label": "Label",
+        "created_at": "Created"
+      },
+      "errors": {
+        "load_failed": "Failed to load credentials.",
+        "save_failed": "Failed to save credential.",
+        "delete_failed": "Failed to delete credential."
+      }
+    },
     "navbar": {
       "home": "Home",
       "toggle_sidebar": "Toggle sidebar",
@@ -3394,6 +3434,61 @@
         "created": "Orphan created.",
         "channel_claim_started": "Channel claim started. Verify via the profile page.",
         "channel_added": "Channel added."
+      }
+    },
+    "vtual-managements": {
+      "title": "Managements",
+      "breadcrumb": "Managements",
+      "list_title": "vTuber managements",
+      "subtitle": "Agency or team groupings that manage one or more vTuber creators.",
+      "add_button": "Add management",
+      "create_title": "Create management",
+      "edit_title": "Edit management",
+      "status": {
+        "active": "Active",
+        "archived": "Archived"
+      },
+      "datatable": {
+        "search_placeholder": "Search managements.",
+        "empty": "No managements yet.",
+        "zero_records": "No managements match the search.",
+        "confirm_delete": "Archive this management?",
+        "columns": {
+          "name": "Name",
+          "slug": "Slug",
+          "status": "Status",
+          "created_at": "Created"
+        }
+      },
+      "form": {
+        "name": "Name",
+        "slug": "Slug",
+        "slug_hint": "Lowercase letters, numbers, and dashes only.",
+        "description": "Description",
+        "logo_url": "Logo URL",
+        "status": "Status",
+        "submit_create": "Create management",
+        "submit_update": "Update management"
+      },
+      "creators": {
+        "section_title": "Managed creators",
+        "section_help": "Assign vTuber creators to this management.",
+        "creator": "Creator",
+        "assign_button": "Assign",
+        "unassign_button": "Remove",
+        "table_caption": "Creators assigned to this management",
+        "empty": "No creators assigned yet.",
+        "columns": {
+          "creator": "Creator",
+          "joined_at": "Joined"
+        }
+      },
+      "errors": {
+        "load_failed": "Failed to load managements.",
+        "save_failed": "Failed to save management.",
+        "archive_failed": "Failed to archive management.",
+        "assign_failed": "Failed to assign creator.",
+        "unassign_failed": "Failed to remove creator."
       }
     },
     "vtual-platform-credentials": {
