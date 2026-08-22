@@ -59,7 +59,7 @@ Set `VITE_API_BASE_URL` to the Laravel API origin (e.g. `http://localhost:8000/a
 | Var | Where | Bundled? | Notes |
 |-----|--------|----------|--------|
 | `MONOLITH_API_ORIGIN` | Wrangler `vars` / `.dev.vars` | No | Legacy local compatibility variable. Not read by current Worker. |
-| `VITE_API_BASE_URL` | `.env` | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
+| `VITE_API_BASE_URL` | `.env` (local), `.env.production` (tracked, deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
 | `VITE_HCAPTCHA_SITE_KEY` | `.env` | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
 | `VITE_PUSHER_*` | `.env` | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
 
@@ -78,7 +78,7 @@ On **Monolith** (`APP_ENV=production`):
 On **Vue-Workers**:
 
 1. Custom domain on the Worker; `npm run deploy`.
-2. `VITE_API_BASE_URL` set to the production API origin over HTTPS in the build environment.
+2. `VITE_API_BASE_URL` set to the production API origin over HTTPS via the **tracked** `.env.production` (Vite auto-loads it for `vite build`, and `.env.local` does not override it). Never rely on `wrangler.jsonc` `vars` for `VITE_*` — those are runtime isolate env and never reach the browser bundle; a build without `.env.production` bakes an empty base and every API call 404s on the SPA origin.
 3. Monolith `SPA_URL` and CORS allowlist include the Worker origin.
 4. Static security headers live in `public/_headers` (CSP, frame deny, HSTS). Worker-generated JSON/404 responses also stamp `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`. **Do not add API proxy paths to the Worker.**
 
