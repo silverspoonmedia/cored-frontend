@@ -16,6 +16,8 @@ Browser (SPA origin)
 
 `VITE_API_BASE_URL` **must be set** to absolute Laravel API origin (e.g. `https://api.example.com/api/v1`). All API calls go straight to it; Worker is not in request path, so API requests cost zero Worker invocations. Leave it empty only for local same-origin development. CSP allows hCaptcha challenge resources and HTTPS API/CDN connections; external URLs are sanitized before use.
 
+`vue-i18n` and `@intlify/unplugin-vue-i18n` must share the same major version (currently both v11). The unplugin precompiles locale JSON into a minified AST read by the `vue-i18n` runtime formatter; a major mismatch (unplugin v11 emitting node type 9 + runtime v9) makes `t()` throw `SyntaxError: unhandled minifier node type` on those messages.
+
 ## Template namespaces
 
 Two CSS systems coexist, kept strictly separate:
