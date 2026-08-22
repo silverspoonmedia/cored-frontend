@@ -137,6 +137,9 @@ async function putPart(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.open('PUT', url)
+    // Fail-fast: a stuck part must not hang a concurrency slot indefinitely.
+    // Worker UploadPart has its own 60s deadline; 90s gives it room to retry first.
+    xhr.timeout = 90_000
 
     if (headers) {
       for (const [key, values] of Object.entries(headers)) {
@@ -167,6 +170,7 @@ async function putPartWithRetry(
   part: FhUploadPart,
   blob: Blob,
   uploadId: string,
+  strategy: 'single' | 'multipart',
   onProgress?: (loaded: number) => void,
 ): Promise<{ part_number: number; etag: string; size: number }> {
   let lastErr: unknown
@@ -181,8 +185,10 @@ async function putPartWithRetry(
       lastErr = e
       if (!isRetriablePutError(e) && !isAuthExpired(e)) throw e
 
-      // re-sign on expired/auth
+      // re-sign on expired/auth — single-PUT sessions have no multipart state,
+      // so sign-parts would throw multipart_only; surface the original 403.
       if (isAuthExpired(e)) {
+        if (strategy === 'single') throw e
         const fresh = await signParts(uploadId, [part.part_number])
         const np = fresh[0]
         if (np) {
@@ -284,7 +290,7 @@ export async function uploadFile(
       const part = session.parts[0]
       if (!part) throw new Error('No upload part returned')
 
-      const putResult = await putPartWithRetry(part, file, session.upload_id, (l) => {
+      const putResult = await putPartWithRetry(part, file, session.upload_id, session.strategy, (l) => {
         const percent = Math.min(100, Math.round((l / totalBytes) * 100))
         const bps = rateSampler(l)
         onProgress?.({ percent, bytesPerSecond: bps })
@@ -313,7 +319,7 @@ export async function uploadFile(
 
       if (!part) throw new Error(`Missing part ${n}`)
 
-      const result = await putPartWithRetry(part, blob, session!.upload_id, (l) => {
+      const result = await putPartWithRetry(part, blob, session!.upload_id, session!.strategy, (l) => {
         partProgress.set(n, l)
         const total = Array.from(partProgress.values()).reduce((a, b) => a + b, 0)
         const percent = Math.min(100, Math.round((total / totalBytes) * 100))
