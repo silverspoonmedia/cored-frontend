@@ -35,7 +35,7 @@
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
 	 */
 	"vars": {
-		"MONOLITH_API_ORIGIN": "https://monolith-ph24.spnd.uk"
+		"MONOLITH_API_ORIGIN": "https://monolith-sandbox-api.spnd.uk"
 	}
 	/**
 	 * Service Bindings (communicate between multiple Workers)
