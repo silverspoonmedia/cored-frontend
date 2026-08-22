@@ -135,8 +135,24 @@ async function putPart(
   onProgress?: (loaded: number) => void,
 ): Promise<{ etag: string; size: number }> {
   return new Promise((resolve, reject) => {
+    let parsedUrl: URL
+    try {
+      parsedUrl = new URL(url)
+    } catch {
+      reject(new Error('Invalid upload URL'))
+      return
+    }
+    if (
+      (parsedUrl.protocol !== 'https:' && !(import.meta.env.DEV && parsedUrl.protocol === 'http:'))
+      || parsedUrl.username
+      || parsedUrl.password
+    ) {
+      reject(new Error('Invalid upload URL'))
+      return
+    }
+
     const xhr = new XMLHttpRequest()
-    xhr.open('PUT', url)
+    xhr.open('PUT', parsedUrl.toString())
     // Fail-fast: a stuck part must not hang a concurrency slot indefinitely.
     // Worker UploadPart has its own 60s deadline; 90s gives it room to retry first.
     xhr.timeout = 90_000

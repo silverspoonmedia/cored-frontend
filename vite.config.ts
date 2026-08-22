@@ -1,11 +1,14 @@
 import { fileURLToPath, URL } from 'node:url'
 
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 
 import { cloudflare } from '@cloudflare/vite-plugin'
+
+const localeDirectory = fileURLToPath(new URL('./src/i18n/locales/**', import.meta.url))
 
 export default defineConfig(({ command }) => ({
 	define: {
@@ -14,6 +17,10 @@ export default defineConfig(({ command }) => ({
 	},
 	plugins: [
 		vue(),
+		VueI18nPlugin({
+			include: localeDirectory,
+			runtimeOnly: true,
+		}),
 		...(command === 'serve' ? [vueDevTools()] : []),
 		tailwindcss(),
 		cloudflare(),

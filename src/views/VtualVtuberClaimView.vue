@@ -12,6 +12,7 @@ import { confirmDialog } from '@/lib/swal'
 import { getEcho } from '@/composables/useEcho'
 import type { VtualVtuberProfile, VtualCreatorClaim } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
+import { safeDiscordAuthorizeUrl, safeHttpUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -184,7 +185,11 @@ async function connectDiscord(): Promise<void> {
       claim_id: activeClaim.value.id,
       return_path: `/apps/vtual/vtubers/${profile.value.slug}/claim`,
     })
-    window.location.href = url
+    const safeUrl = safeDiscordAuthorizeUrl(url)
+    if (!safeUrl) {
+      throw new Error(t('web.identity-connections.authorization_failed'))
+    }
+    window.location.assign(safeUrl)
   } catch (e) {
     discordConnecting.value = false
     await showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
@@ -267,7 +272,7 @@ function platformIcon(key: string): string {
               <div class="text-muted small">{{ t('web.vtual-vtuber.claim_proof_channel_label') }}</div>
               <div class="d-flex align-items-center gap-2">
                 <i class="bi" :class="platformIcon(activeClaim.channel.platform?.key ?? '')"></i>
-                <a v-if="activeClaim.channel.url" :href="activeClaim.channel.url" target="_blank">
+                <a v-if="safeHttpUrl(activeClaim.channel.url)" :href="safeHttpUrl(activeClaim.channel.url) ?? undefined" target="_blank" rel="noopener noreferrer">
                   {{ activeClaim.channel.display_name ?? activeClaim.channel.handle ?? '—' }}
                 </a>
                 <span v-else>{{ activeClaim.channel.display_name ?? activeClaim.channel.handle ?? '—' }}</span>

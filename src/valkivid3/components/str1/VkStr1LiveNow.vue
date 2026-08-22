@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { VtualPublicContent, VtualPublicContentCreator } from '@/api/types'
 import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
+import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const props = defineProps<{
   items?: VtualPublicContent[] | null
@@ -48,6 +49,14 @@ function platformIcon(key: string | null | undefined): string {
   if (key === 'discord') return `${socialIconsUrl}#discord`
   return `${spriteUrl}#play`
 }
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
+}
+
+function externalUrl(value: string | null | undefined): string | null {
+  return safeHttpUrl(value)
+}
 </script>
 
 <template>
@@ -74,8 +83,8 @@ function platformIcon(key: string | null | undefined): string {
             <div class="flex items-center gap-x-3 border-b border-gray-500/10 p-4 dark:border-gray-500/10">
               <span class="relative shrink-0">
                 <img
-                  v-if="group.creator?.avatar_url"
-                  :src="group.creator.avatar_url"
+                  v-if="imageUrl(group.creator?.avatar_url)"
+                  :src="imageUrl(group.creator?.avatar_url) ?? undefined"
                   :alt="group.creator?.display_name ?? ''"
                   class="h-9 w-9 rounded-full object-cover ring-2 ring-danger/60"
                   width="36"
@@ -119,10 +128,10 @@ function platformIcon(key: string | null | undefined): string {
                 :key="live.url ?? `${live.title}-${li}`"
               >
                 <a
-                  v-if="live.url"
-                  :href="live.url"
+                  v-if="externalUrl(live.url)"
+                  :href="externalUrl(live.url) ?? undefined"
                   target="_blank"
-                  rel="noopener"
+                  rel="noopener noreferrer"
                   class="group flex items-center gap-x-2 px-4 py-2.5 transition-colors hover:bg-gray-500/5 dark:hover:bg-gray-500/5"
                 >
                   <svg class="h-4 w-4 shrink-0 fill-gray-500 transition-colors group-hover:fill-accent dark:fill-gray-300" fill="currentColor">

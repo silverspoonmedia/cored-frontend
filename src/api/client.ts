@@ -44,8 +44,8 @@ function isMutating(method: string): boolean {
 }
 
 function credentialsFor(crossOrigin: boolean): RequestCredentials {
-  // Same-origin (Worker BFF / local dev) → same-origin. Direct API → include so
-  // the browser attaches the cross-site HttpOnly auth cookie.
+  // Same-origin local development uses same-origin credentials. Direct API calls
+  // use include so the browser attaches the cross-site HttpOnly auth cookie.
   return crossOrigin ? 'include' : 'same-origin'
 }
 
@@ -225,8 +225,8 @@ export interface BatchSubResponse<T = unknown> {
 }
 
 /**
- * Fan several read-only calls into one HTTP request so the Worker BFF spends
- * a single invocation per view hydrate. Each entry keeps its own API envelope
+ * Fan several read-only calls into one HTTP request so one API request can
+ * hydrate several independent widgets. Each entry keeps its own API envelope
  * inside `body`; `status` mirrors what the direct call would have returned.
  * Paths are API-relative (`auth/me`), matching the other helpers.
  */

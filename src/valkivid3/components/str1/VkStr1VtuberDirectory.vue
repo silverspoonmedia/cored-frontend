@@ -5,6 +5,7 @@ import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
 import type { VtualPublicDirectoryPagination, VtualPublicVtuber } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
+import { safeImageUrl } from '@/utils/safeUrl'
 
 const { t } = useI18n()
 const { fetchDirectory, prefetchProfile } = useVtualPublic()
@@ -144,9 +145,9 @@ function goTo(delta: number): void {
               <div class="flex items-center gap-x-4 p-5 lg:p-6">
                 <figure class="relative shrink-0">
                   <img
-                    v-if="vtuber.avatar_url"
+                    v-if="safeImageUrl(vtuber.avatar_url)"
                     class="aspect-square w-16 rounded-full object-cover ring-2 ring-white/40 dark:ring-white/10 lg:w-20"
-                    :src="vtuber.avatar_url"
+                    :src="safeImageUrl(vtuber.avatar_url) ?? undefined"
                     :alt="vtuber.display_name"
                     loading="lazy"
                     decoding="async"

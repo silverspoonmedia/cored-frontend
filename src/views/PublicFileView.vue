@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useAlert } from '@/composables/useAlert'
 import type { HostedFile } from '@/api/types'
+import { safeHttpUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -23,7 +24,7 @@ onMounted(async () => {
       fh.fetchPublicFileDownload(route.params.id as string).catch(() => null),
     ])
     file.value = fileData
-    downloadUrl.value = dlData?.url ?? null
+    downloadUrl.value = safeHttpUrl(dlData?.url)
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.file-hosting.public.file_not_found'))
   } finally {
@@ -74,7 +75,7 @@ function fileIcon(mime: string): string {
         <div class="fh-public__actions">
           <a
             v-if="downloadUrl"
-            :href="downloadUrl"
+            :href="downloadUrl ?? undefined"
             class="btn btn-primary w-100"
           >
             <i class="bi bi-download me-1"></i> {{ t('web.file-hosting.public.download') }}

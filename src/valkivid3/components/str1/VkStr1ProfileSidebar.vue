@@ -5,6 +5,7 @@ import type { VtualPublicProfile } from '@/api/types'
 import { useAuth } from '@/stores/auth'
 import VkStr1ChannelCard from '@/valkivid3/components/str1/VkStr1ChannelCard.vue'
 import VkStr1DetailsList from '@/valkivid3/components/str1/VkStr1DetailsList.vue'
+import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const props = defineProps<{
   profile: VtualPublicProfile
@@ -15,15 +16,23 @@ const { isAuthenticated } = useAuth()
 
 const claimPath = computed(() => `/apps/vtual/vtubers/${props.profile.slug}/claim`)
 const guestClaimTo = computed(() => `/login?redirect=${encodeURIComponent(claimPath.value)}`)
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
+}
+
+function externalUrl(value: string | null | undefined): string | null {
+  return safeHttpUrl(value)
+}
 </script>
 
 <template>
   <div class="bg-gray-150 p-6 dark:bg-gray-800 lg:p-8">
     <figure class="relative mx-auto mb-6 w-28 lg:w-36">
       <img
-        v-if="profile.avatar_url"
+        v-if="imageUrl(profile.avatar_url)"
         class="aspect-square w-full rounded-full object-cover ring-4 ring-accent/40"
-        :src="profile.avatar_url"
+        :src="imageUrl(profile.avatar_url) ?? undefined"
         :alt="profile.display_name"
         loading="lazy"
         decoding="async"
@@ -66,10 +75,10 @@ const guestClaimTo = computed(() => `/login?redirect=${encodeURIComponent(claimP
     <ul v-if="profile.links.length > 0" class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm font-bold">
       <li v-for="link in profile.links" :key="`${link.kind}-${link.url}`">
         <a
-          v-if="link.url"
-          :href="link.url"
+          v-if="externalUrl(link.url)"
+          :href="externalUrl(link.url) ?? undefined"
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
           class="text-accent transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           {{ link.label || link.kind }}

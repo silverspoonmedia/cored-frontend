@@ -5,6 +5,7 @@ import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAlert } from '@/composables/useAlert'
 import type { VtualCreator } from '@/api/types'
+import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const { fetchOwned } = useVtual()
 const { error: showError } = useAlert()
@@ -12,6 +13,14 @@ const { t } = useI18n()
 
 const profiles = ref<VtualCreator[]>([])
 const loading = ref(true)
+
+function externalUrl(value: string | null | undefined): string | null {
+  return safeHttpUrl(value)
+}
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
+}
 
 onMounted(async () => {
   loading.value = true
@@ -52,8 +61,8 @@ onMounted(async () => {
             <td>
               <div class="d-flex align-items-center gap-2">
                 <img
-                  v-if="p.avatar_url"
-                  :src="p.avatar_url"
+                  v-if="imageUrl(p.avatar_url)"
+                  :src="imageUrl(p.avatar_url) ?? undefined"
                   :alt="p.display_name"
                   class="rounded-circle"
                   width="32"
@@ -69,9 +78,10 @@ onMounted(async () => {
             <td class="text-center">{{ p.channels_count ?? 0 }}</td>
             <td class="text-end">
               <a
-                v-if="p.profile_url"
-                :href="p.profile_url"
+                v-if="externalUrl(p.profile_url)"
+                :href="externalUrl(p.profile_url) ?? undefined"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="btn btn-outline-info btn-sm"
               >
                 <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>

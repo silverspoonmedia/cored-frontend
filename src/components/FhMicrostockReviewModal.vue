@@ -9,6 +9,7 @@ import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useAlert } from '@/composables/useAlert'
 import { isTerminalBatchError } from '@/api/batch'
 import type { MicrostockAssetMetadata, MicrostockAssetStages } from '@/api/types'
+import { safeHttpUrl } from '@/utils/safeUrl'
 
 const open = defineModel<boolean>({ default: false })
 const fileId = defineModel<string | null>('fileId', { default: null })
@@ -101,7 +102,7 @@ async function loadMeta(): Promise<void> {
     meta.value = loaded
     title.value = loaded.title ?? ''
     keywords.value = [...(loaded.keywords ?? [])]
-    previewUrl.value = dl?.url ?? null
+    previewUrl.value = safeHttpUrl(dl?.url)
   } catch (e) {
     meta.value = null
     showError(e instanceof Error ? e.message : t('web.file-hosting.failed_load_file'))

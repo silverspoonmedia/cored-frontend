@@ -1,5 +1,4 @@
-# Upstream monolith origin for the Cloudflare Worker reverse proxy.
-# Loaded by Wrangler / @cloudflare/vite-plugin as env.MONOLITH_API_ORIGIN.
-# NOT prefixed with VITE_ — never bundled into the browser. No trailing slash.
-# Path /api/v1 is appended by the Worker; do not include it here.
-MONOLITH_API_ORIGIN="https://monolith-ph24.spnd.uk"
+# Retained for local Wrangler compatibility only. The deployed Worker does not
+# proxy API or auth requests; browser traffic uses VITE_API_BASE_URL directly.
+# NOT prefixed with VITE_ — never bundled into the browser.
+MONOLITH_API_ORIGIN="https://api.example.com"

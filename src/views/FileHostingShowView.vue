@@ -12,6 +12,7 @@ import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { HostedFile } from '@/api/types'
+import { safeHttpUrl } from '@/utils/safeUrl'
 
 const VIS_LINK = 'anyone_with_link'
 
@@ -159,7 +160,12 @@ async function handleDownload(): Promise<void> {
   if (!file.value) return
   try {
     const payload = await fh.fetchFileDownload(file.value.id, ctxParams())
-    window.location.href = payload.url
+    const safeUrl = safeHttpUrl(payload.url)
+    if (!safeUrl) {
+      await showError(t('web.file-hosting.failed_download_url'))
+      return
+    }
+    window.location.assign(safeUrl)
   } catch (e) {
     await showError(e instanceof Error ? e.message : t('web.file-hosting.failed_download_url'))
   }

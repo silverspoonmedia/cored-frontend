@@ -36,6 +36,25 @@ describe('resolveApiUrl', () => {
       'https://api.example.com/api/v1/'
     expect(resolveApiUrl('batch')).toBe('https://api.example.com/api/v1/batch')
   })
+
+  it('rejects HTTP API origins outside development builds', () => {
+    ;(import.meta.env as Record<string, unknown>).DEV = false
+    ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = 'http://api.example.com/api/v1'
+    expect(resolveApiUrl('auth/me')).toBe('/api/v1/auth/me')
+  })
+
+  it('falls back to same-origin when configured API URL is unsafe', () => {
+    for (const value of [
+      'javascript:alert(1)',
+      'https://user:pass@example.com/api/v1',
+      'https://api.example.com/api/v1?token=secret',
+      'https://api.example.com/api/v1#fragment',
+      'not a url',
+    ]) {
+      ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = value
+      expect(resolveApiUrl('auth/me')).toBe('/api/v1/auth/me')
+    }
+  })
 })
 
 describe('isCrossOrigin', () => {

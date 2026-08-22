@@ -1,6 +1,7 @@
 import { useI18n } from 'vue-i18n'
 import { get, del } from '@/api/client'
 import type { ApiResponse, DiscordAuthorizeUrl, ProfileConnections } from '@/api/types'
+import { safeDiscordAuthorizeUrl } from '@/utils/safeUrl'
 
 export type DiscordAuthorizeIntent =
   | 'profile'
@@ -35,7 +36,10 @@ export function useConnections() {
   }): Promise<string> {
     const res = await get<ApiResponse<DiscordAuthorizeUrl>>('auth/discord/authorize-url', params)
     if (res.status === 'success' && res.data?.url) {
-      return res.data.url
+      const safeUrl = safeDiscordAuthorizeUrl(res.data.url)
+      if (safeUrl) {
+        return safeUrl
+      }
     }
     throw new Error(res.message ?? t('web.identity-connections.authorization_failed'))
   }

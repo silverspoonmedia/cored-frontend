@@ -9,6 +9,7 @@ import type {
 } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
+import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const props = withDefaults(
   defineProps<{
@@ -98,6 +99,14 @@ function platformIcon(key: string | null | undefined): string {
   if (key === 'twitch') return `${socialIconsUrl}#twitch`
   if (key === 'discord') return `${socialIconsUrl}#discord`
   return `${spriteUrl}#play`
+}
+
+function externalUrl(value: string | null | undefined): string | null {
+  return safeHttpUrl(value)
+}
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
 }
 
 function channelIcon(key: string | null): string {
@@ -196,10 +205,10 @@ function goTo(delta: number): void {
                 <div class="flex items-center gap-x-4 p-5 lg:p-6">
                   <figure class="relative shrink-0">
                     <img
-                      v-if="vtuber.avatar_url"
+                      v-if="imageUrl(vtuber.avatar_url)"
                       class="aspect-square w-16 rounded-full object-cover lg:w-20"
                       :class="isLiveCard(vtuber) ? 'ring-2 ring-danger/60' : 'ring-2 ring-white/40 dark:ring-white/10'"
-                      :src="vtuber.avatar_url"
+                      :src="imageUrl(vtuber.avatar_url) ?? undefined"
                       :alt="vtuber.display_name"
                       loading="lazy"
                       decoding="async"
@@ -262,11 +271,11 @@ function goTo(delta: number): void {
                     class="vk-live-row"
                   >
                     <a
-                      v-if="live.url"
-                      :href="live.url"
+                      v-if="externalUrl(live.url)"
+                      :href="externalUrl(live.url) ?? undefined"
                       :title="live.title ?? undefined"
                       target="_blank"
-                      rel="noopener"
+                      rel="noopener noreferrer"
                       class="vk-live-row__link"
                     >
                       <svg class="h-4 w-4 shrink-0 fill-danger" fill="currentColor">

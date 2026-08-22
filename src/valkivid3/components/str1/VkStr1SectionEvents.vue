@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { VtualPublicContent } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
+import { safeHttpUrl } from '@/utils/safeUrl'
 
 const props = defineProps<{
   schedule?: VtualPublicContent[] | null
@@ -53,7 +54,7 @@ const scheduleRows = computed<ScheduleRow[]>(() => {
         platformKey: item.platform_key,
         creatorName: item.creator?.display_name ?? null,
         creatorSlug: item.creator?.slug ?? null,
-        url: item.url,
+        url: safeHttpUrl(item.url),
       }
     })
 })
@@ -98,7 +99,7 @@ function platformIcon(key: string | null): string {
                 v-if="row.url"
                 :href="row.url"
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
                 class="transition-colors hover:text-accent"
               >{{ row.title }}</a>
               <template v-else>{{ row.title }}</template>

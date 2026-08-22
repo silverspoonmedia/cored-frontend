@@ -5,6 +5,7 @@ import Card from '@/components/Card.vue'
 import { useAlert } from '@/composables/useAlert'
 import { useConnections } from '@/composables/useConnections'
 import type { ProfileConnections } from '@/api/types'
+import { safeDiscordAuthorizeUrl } from '@/utils/safeUrl'
 
 const { t } = useI18n()
 const { success: showSuccess, error: showError } = useAlert()
@@ -50,7 +51,13 @@ async function connectDiscord(): Promise<void> {
       intent: 'profile',
       return_path: '/apps/profile/connections',
     })
-    window.location.href = url
+    const safeUrl = safeDiscordAuthorizeUrl(url)
+    if (!safeUrl) {
+      acting.value = false
+      await showError(t('web.identity-connections.authorization_failed'))
+      return
+    }
+    window.location.assign(safeUrl)
   } catch (e) {
     acting.value = false
     await showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))

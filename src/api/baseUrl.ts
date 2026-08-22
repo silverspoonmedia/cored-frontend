@@ -1,7 +1,24 @@
 const API_PREFIX = '/api/v1'
 
 function apiOrigin(): string {
-  return (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '')
+  const raw = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '')
+  if (raw === '') return ''
+
+  try {
+    const url = new URL(raw)
+    if (
+      (import.meta.env.DEV ? !['http:', 'https:'].includes(url.protocol) : url.protocol !== 'https:')
+      || url.username
+      || url.password
+      || url.search
+      || url.hash
+    ) {
+      return ''
+    }
+    return url.toString().replace(/\/+$/, '')
+  } catch {
+    return ''
+  }
 }
 
 /**

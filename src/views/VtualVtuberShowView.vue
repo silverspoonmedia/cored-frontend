@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useAlert } from '@/composables/useAlert'
 import type { VtualVtuberProfile } from '@/api/types'
+import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,6 +41,14 @@ function platformIcon(key: string): string {
   if (key === 'kick') return 'bi-play-btn'
   return 'bi-broadcast'
 }
+
+function externalUrl(value: string | null | undefined): string | null {
+  return safeHttpUrl(value)
+}
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
+}
 </script>
 
 <template>
@@ -55,8 +64,8 @@ function platformIcon(key: string): string {
       <Card>
         <div class="text-center">
           <img
-            v-if="profile.avatar_url"
-            :src="profile.avatar_url"
+            v-if="imageUrl(profile.avatar_url)"
+            :src="imageUrl(profile.avatar_url) ?? undefined"
             class="rounded-circle mb-2"
             style="width: 120px; height: 120px; object-fit: cover;"
           />
@@ -86,7 +95,7 @@ function platformIcon(key: string): string {
           <h6 class="small fw-semibold text-muted mb-2">{{ t('web.vtual-vtuber.show.channels_title') }}</h6>
           <div v-for="ch in profile.channels" :key="ch.id" class="d-flex align-items-center gap-2 mb-1">
             <i class="bi" :class="platformIcon(ch.platform?.key ?? '')"></i>
-            <a v-if="ch.url" :href="ch.url" target="_blank" class="small text-decoration-none">
+            <a v-if="externalUrl(ch.url)" :href="externalUrl(ch.url) ?? undefined" target="_blank" rel="noopener noreferrer" class="small text-decoration-none">
               {{ ch.display_name ?? ch.handle ?? '—' }}
             </a>
             <span v-else class="small">{{ ch.display_name ?? ch.handle ?? '—' }}</span>
@@ -107,15 +116,15 @@ function platformIcon(key: string): string {
           <div v-for="content in profile.contents" :key="content.id" class="col-md-6">
             <div class="card h-100">
               <img
-                v-if="content.thumbnail_url"
-                :src="content.thumbnail_url"
+                v-if="imageUrl(content.thumbnail_url)"
+                :src="imageUrl(content.thumbnail_url) ?? undefined"
                 class="card-img-top"
                 style="object-fit: cover; height: 140px;"
               />
               <div class="card-body">
                 <span class="badge text-bg-light mb-1">{{ content.type }}</span>
                 <h6 class="card-title small">
-                  <a v-if="content.url" :href="content.url" target="_blank" class="text-decoration-none">
+                  <a v-if="externalUrl(content.url)" :href="externalUrl(content.url) ?? undefined" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
                     {{ content.title ?? t('web.vtual-vtuber.untitled') }}
                   </a>
                   <span v-else>{{ content.title ?? t('web.vtual-vtuber.untitled') }}</span>

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { VtualPublicContent } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
+import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const props = withDefaults(
   defineProps<{
@@ -56,21 +57,24 @@ const channelAvatar = computed(() => {
   const label = channel.display_name ?? props.item.creator?.display_name ?? ''
   const initial = label.trim().charAt(0).toUpperCase()
   return {
-    url: channel.avatar_url,
+    url: safeImageUrl(channel.avatar_url),
     label,
     initial: initial || '?',
   }
 })
 
+const contentUrl = computed(() => safeHttpUrl(props.item.url))
+const thumbnailUrl = computed(() => safeImageUrl(props.item.thumbnail_url))
+
 const thumbFailed = ref(false)
-const showThumb = computed(() => Boolean(props.item.thumbnail_url) && !thumbFailed.value)
+const showThumb = computed(() => Boolean(thumbnailUrl.value) && !thumbFailed.value)
 
 function onThumbError(): void {
   thumbFailed.value = true
 }
 
 watch(
-  () => props.item.thumbnail_url,
+  () => thumbnailUrl.value,
   () => {
     thumbFailed.value = false
   },
@@ -81,9 +85,9 @@ watch(
   <article :class="featured ? 'col-span-full' : 'col-span-full sm:col-span-6 lg:col-span-4'">
     <figure class="mb-5">
       <a
-        :href="item.url ?? undefined"
-        :target="item.url ? '_blank' : undefined"
-        :rel="item.url ? 'noopener' : undefined"
+        :href="contentUrl ?? undefined"
+        :target="contentUrl ? '_blank' : undefined"
+        :rel="contentUrl ? 'noopener noreferrer' : undefined"
         class="group relative block overflow-hidden bg-gray-100 dark:bg-gray-900"
         :class="featured ? 'aspect-[77/46]' : 'aspect-[370/215]'"
       >
@@ -98,7 +102,7 @@ watch(
         <img
           v-if="showThumb"
           class="absolute inset-0 h-full w-full object-cover transition-all duration-300 group-hover:scale-110 group-hover:opacity-75"
-          :src="item.thumbnail_url ?? undefined"
+          :src="thumbnailUrl ?? undefined"
           :alt="item.title ?? ''"
           loading="lazy"
           decoding="async"
@@ -131,7 +135,7 @@ watch(
       <img
         v-if="channelAvatar?.url"
         class="h-12 w-12 shrink-0 self-start rounded-full object-cover ring-1 ring-black/5 dark:ring-white/10"
-        :src="channelAvatar.url"
+        :src="channelAvatar.url ?? undefined"
         :alt="channelAvatar.label"
         width="48"
         height="48"
@@ -152,10 +156,10 @@ watch(
           :class="featured || showCreator ? 'text-base lg:text-lg lg:leading-6' : 'text-base'"
         >
           <a
-            v-if="item.url"
-            :href="item.url"
+            v-if="contentUrl"
+            :href="contentUrl"
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             class="transition-colors hover:text-accent"
             :title="item.title ?? undefined"
           >

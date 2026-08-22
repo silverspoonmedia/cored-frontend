@@ -9,6 +9,7 @@ import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
 import VkStr1VideoCard from '@/valkivid3/components/str1/VkStr1VideoCard.vue'
 import VkStr1ProfileSidebar from '@/valkivid3/components/str1/VkStr1ProfileSidebar.vue'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
+import { safeImageUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -24,8 +25,10 @@ const contentsPage = ref(1)
 const slug = computed(() => (typeof route.params.slug === 'string' ? route.params.slug : ''))
 
 const bannerUrl = computed(
-  () => profile.value?.channels.find((channel) => channel.banner_url)?.banner_url ?? null,
+  () => safeImageUrl(profile.value?.channels.find((channel) => channel.banner_url)?.banner_url),
 )
+
+const avatarUrl = computed(() => safeImageUrl(profile.value?.avatar_url))
 
 const contentsPagination = computed(() => profile.value?.contents.pagination ?? null)
 
@@ -203,9 +206,9 @@ onUnmounted(() => {
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
         <div class="absolute bottom-0 left-0 flex w-full items-end gap-x-4 p-5 lg:p-8">
           <img
-            v-if="profile.avatar_url"
+            v-if="avatarUrl"
             class="h-16 w-16 rounded-full object-cover ring-4 ring-white/20 lg:h-24 lg:w-24"
-            :src="profile.avatar_url"
+            :src="avatarUrl ?? undefined"
             :alt="profile.display_name"
             loading="eager"
             fetchpriority="high"

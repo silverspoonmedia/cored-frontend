@@ -9,6 +9,7 @@ import { post } from '@/api/client'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import { ApiError, type ApiResponse, type TwoFactorSetupPayload } from '@/api/types'
+import { safeOtpAuthUrl, safeSvgUrl } from '@/utils/safeUrl'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -25,12 +26,11 @@ const error = ref<string | null>(null)
 
 const qrInfo = computed(() => {
   if (!setup.value) return null
-  const svg = setup.value.qr_code_svg
-  return {
-    isSvg: svg.startsWith('<svg'),
-    content: svg,
-  }
+  const imageUrl = safeSvgUrl(setup.value.qr_code_svg)
+  return imageUrl ? { content: imageUrl } : null
 })
+
+const qrCodeUrl = computed(() => safeOtpAuthUrl(setup.value?.qr_code_url))
 
 onMounted(() => {
   if (user.value?.two_factor_enabled) {
@@ -157,8 +157,7 @@ function handleCancel(): void {
           </p>
 
           <div class="text-center my-3">
-            <div v-if="qrInfo?.isSvg" v-html="qrInfo.content" class="d-inline-block p-2 bg-white rounded"></div>
-            <img v-else-if="qrInfo" :src="qrInfo.content" :alt="t('web.auth.two_factor_qr_alt')" class="img-fluid p-2 bg-white rounded" style="max-width: 200px;" />
+            <img v-if="qrInfo" :src="qrInfo.content" :alt="t('web.auth.two_factor_qr_alt')" class="img-fluid p-2 bg-white rounded" style="max-width: 200px;" />
           </div>
 
           <div class="mb-3">
@@ -167,7 +166,7 @@ function handleCancel(): void {
           </div>
 
           <p class="mb-3">
-            <a :href="setup.qr_code_url" class="text-decoration-none">
+            <a v-if="qrCodeUrl" :href="qrCodeUrl" class="text-decoration-none">
               {{ t('web.auth.two_factor_qr_url_label') }}
             </a>
           </p>

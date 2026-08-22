@@ -23,6 +23,7 @@ import type {
   ProfileConnections,
 } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
+import { safeDiscordAuthorizeUrl, safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,6 +41,14 @@ const links = ref<VtualExternalLink[]>([])
 const platforms = ref<VtualPlatform[]>([])
 const discordSnapshot = ref<ProfileConnections | null>(null)
 const loading = ref(true)
+
+function externalUrl(value: string | null | undefined): string | null {
+  return safeHttpUrl(value)
+}
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
+}
 
 const canMutate = computed(() => hasPermission('edit vtual creator') || creator.value?.my_role === 'owner' || creator.value?.my_role === 'editor')
 const canAcceptAnyway = computed(() => hasPermission('manage any vtual resource'))
@@ -350,7 +359,12 @@ async function connectDiscordForChannelClaim(claim: VtualChannelClaim): Promise<
       claim_id: claim.id,
       return_path: `/apps/vtual/profiles/${creator.value.id}`,
     })
-    window.location.href = url
+    const safeUrl = safeDiscordAuthorizeUrl(url)
+    if (!safeUrl) {
+      await showError(t('web.identity-connections.authorization_failed'))
+      return
+    }
+    window.location.assign(safeUrl)
   } catch (e) {
     await showError(e instanceof Error ? e.message : t('web.identity-connections.discord_not_configured'))
   }
@@ -394,7 +408,7 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
           <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'vtual.profiles.index.view' })">
             <i class="bi bi-arrow-left me-1"></i> {{ t('web.vtual.profiles.page_title') }}
           </button>
-          <a v-if="creator.profile_url" :href="creator.profile_url" target="_blank" class="btn btn-outline-primary btn-sm ms-1">
+          <a v-if="externalUrl(creator.profile_url)" :href="externalUrl(creator.profile_url) ?? undefined" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm ms-1">
             <i class="bi bi-box-arrow-up-right me-1"></i> {{ t('web.vtual.profiles.view_profile') }}
           </a>
         </template>
@@ -463,7 +477,10 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
             <tbody>
               <tr v-for="link in links" :key="link.id">
                 <td class="small">{{ link.label }}</td>
-                <td class="small"><a :href="link.url" target="_blank">{{ link.url }}</a></td>
+                <td class="small">
+                  <a v-if="externalUrl(link.url)" :href="externalUrl(link.url) ?? undefined" target="_blank" rel="noopener noreferrer">{{ link.url }}</a>
+                  <span v-else>{{ link.url }}</span>
+                </td>
                 <td><span class="badge text-bg-light">{{ link.kind }}</span></td>
                 <td v-if="canMutate" class="text-end">
                   <button class="btn btn-outline-secondary btn-sm" @click="editLink(link)"><i class="bi bi-pencil"></i></button>
@@ -525,7 +542,7 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
         <div v-if="channels.length === 0" class="text-muted small">{{ t('web.vtual.profiles.no_active_channels') }}</div>
         <div v-for="ch in channels" :key="ch.id" class="border rounded p-2 mb-2">
           <div class="d-flex align-items-center gap-2">
-            <img v-if="ch.avatar_url" :src="ch.avatar_url" class="rounded" style="width: 32px; height: 32px;" />
+            <img v-if="imageUrl(ch.avatar_url)" :src="imageUrl(ch.avatar_url) ?? undefined" class="rounded" style="width: 32px; height: 32px;" />
             <i v-else class="bi bi-person-circle fs-4"></i>
             <div class="flex-grow-1">
               <div class="small fw-semibold">{{ ch.display_name ?? ch.handle ?? '—' }}</div>

@@ -5,6 +5,7 @@ import { useInvoices } from '@/composables/useInvoices'
 import { usePaymentRealtime } from '@/composables/usePaymentRealtime'
 import { useAlert } from '@/composables/useAlert'
 import type { Invoice, PaymentChannel, CheckoutResult, InvoiceStatusPayload } from '@/api/types'
+import { safeImageUrl, safePaymentUrl } from '@/utils/safeUrl'
 
 const props = defineProps<{
   invoice: Invoice
@@ -36,6 +37,14 @@ const kindIcons: Record<string, string> = {
   qris: 'bi-qr-code',
   va: 'bi-bank',
   ewallet: 'bi-wallet2',
+}
+
+function paymentUrl(value: string | null | undefined): string | null {
+  return safePaymentUrl(value)
+}
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
 }
 
 function copyToClipboard(text: string): void {
@@ -226,8 +235,8 @@ async function handleSyncStatus(): Promise<void> {
 
           <!-- QRIS -->
           <div v-if="checkoutResult.instructions.type === 'qris'" class="text-center">
-            <div v-if="checkoutResult.instructions.qr_url" class="mb-2">
-              <img :src="checkoutResult.instructions.qr_url" alt="QR Code" class="img-fluid" style="max-width: 250px;" />
+            <div v-if="imageUrl(checkoutResult.instructions.qr_url)" class="mb-2">
+              <img :src="imageUrl(checkoutResult.instructions.qr_url) ?? undefined" alt="QR Code" class="img-fluid" style="max-width: 250px;" />
             </div>
             <div v-if="checkoutResult.instructions.qr_string" class="input-group input-group-sm">
               <input type="text" class="form-control" :value="checkoutResult.instructions.qr_string" readonly />
@@ -255,15 +264,16 @@ async function handleSyncStatus(): Promise<void> {
           <!-- Ewallet -->
           <div v-else-if="checkoutResult.instructions.type === 'ewallet'">
             <a
-              v-if="checkoutResult.instructions.deeplink_url"
-              :href="checkoutResult.instructions.deeplink_url"
+              v-if="paymentUrl(checkoutResult.instructions.deeplink_url)"
+              :href="paymentUrl(checkoutResult.instructions.deeplink_url) ?? undefined"
               class="btn btn-primary btn-sm mb-2"
               target="_blank"
+              rel="noopener noreferrer"
             >
               <i class="bi bi-box-arrow-up-right me-1"></i> {{ t('web.payments.open_ewallet_app') }}
             </a>
-            <div v-if="checkoutResult.instructions.qr_url" class="text-center">
-              <img :src="checkoutResult.instructions.qr_url" alt="QR Code" class="img-fluid" style="max-width: 250px;" />
+            <div v-if="imageUrl(checkoutResult.instructions.qr_url)" class="text-center">
+              <img :src="imageUrl(checkoutResult.instructions.qr_url) ?? undefined" alt="QR Code" class="img-fluid" style="max-width: 250px;" />
             </div>
           </div>
         </div>

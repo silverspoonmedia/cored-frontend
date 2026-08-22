@@ -7,9 +7,9 @@ import type {
   VtualPublicProfile,
 } from '@/api/types'
 
-// Guest-safe payload is already edge-cached by the BFF (public, max-age=60). This
-// in-memory layer adds stale-while-revalidate on top so back/forward navigation
-// renders instantly from cache while a background refresh revalidates.
+// Guest-safe payload is cached in this tab for 60 seconds. The in-memory layer
+// adds stale-while-revalidate so back/forward navigation renders instantly while
+// a background refresh revalidates.
 const TTL_MS = 60_000
 
 interface CacheEntry<T> {

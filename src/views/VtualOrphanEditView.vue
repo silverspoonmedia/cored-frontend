@@ -14,6 +14,7 @@ import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 import type { VtualChannel, VtualPlatform } from '@/api/types'
 import { VTUAL_STATUS_BADGE, type BadgeColor } from '@/utils/statusBadge'
+import { safeImageUrl } from '@/utils/safeUrl'
 
 const ORPHAN_CHANNEL_BADGE: Record<string, BadgeColor> = {
   ...VTUAL_STATUS_BADGE,
@@ -61,6 +62,10 @@ const profileHelp = computed(() => {
   }
   return t('web.vtual-orphans.channels.profile_help_youtube')
 })
+
+function imageUrl(value: string | null | undefined): string | null {
+  return safeImageUrl(value)
+}
 
 function fieldError(bag: Record<string, string[]>, field: string): string | null {
   const list = bag[field]
@@ -364,8 +369,8 @@ watch([isEdit, orphanId], () => {
               <tr v-for="ch in channels" :key="ch.id" :data-channel-id="ch.id">
                 <td class="text-nowrap">
                   <img
-                    v-if="ch.avatar_url"
-                    :src="ch.avatar_url"
+                    v-if="imageUrl(ch.avatar_url)"
+                    :src="imageUrl(ch.avatar_url) ?? undefined"
                     :alt="ch.display_name || ch.handle || ''"
                     class="rounded-circle object-fit-cover"
                     width="36"
