@@ -8,6 +8,10 @@ import tailwindcss from '@tailwindcss/vite'
 import { cloudflare } from '@cloudflare/vite-plugin'
 
 export default defineConfig(({ command }) => ({
+	define: {
+		__INTLIFY_JIT_COMPILATION__: false,
+		__INTLIFY_DROP_MESSAGE_COMPILER__: true,
+	},
 	plugins: [
 		vue(),
 		...(command === 'serve' ? [vueDevTools()] : []),

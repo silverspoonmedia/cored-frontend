@@ -41,6 +41,8 @@ router.onError((error, to, from) => {
 // router.isReady() resolves after the first navigation completes, which
 // includes the beforeEach guard that hydrates auth via GET auth/me (cookie).
 // This ensures components mount with auth already populated.
-router.isReady().then(() => {
-  app.mount('#app')
+app.mount('#app')
+
+router.isReady().catch((error) => {
+  console.error('Initial router navigation failed', error)
 })
