@@ -10,7 +10,13 @@ declare namespace Cloudflare {
 	}
 	interface Env extends __BaseEnv_Env {}
 }
-interface Env extends __BaseEnv_Env {}
+interface Env extends __BaseEnv_Env {
+	// Cloudflare Zero Trust Access (server-to-server only, off when unset).
+	// Set via `wrangler secret put` (ID/SECRET) and wrangler.jsonc `vars` (URL).
+	CF_ACCESS_CLIENT_ID?: string;
+	CF_ACCESS_CLIENT_SECRET?: string;
+	CF_ACCESS_TOKEN_URL?: string;
+}
 type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
