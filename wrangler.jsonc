@@ -34,16 +34,7 @@
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
 	 */
-	"vars": {
-		"MONOLITH_API_ORIGIN": "https://monolith-sandbox-api.spnd.uk",
-		// Cloudflare Zero Trust Access token endpoint (non-secret), e.g.
-		// "https://<team>.cloudflareaccess.com/oauth/token". Leave empty to keep
-		// the cfAccess helper off. See server/cfAccess.ts.
-		"CF_ACCESS_TOKEN_URL": ""
-		// CF_ACCESS_CLIENT_ID / CF_ACCESS_CLIENT_SECRET are SECRETS — set them
-		// with `wrangler secret put CF_ACCESS_CLIENT_ID` (and ..._SECRET), never
-		// in `vars` (vars are bundled into the Worker and readable).
-	}
+	"vars": {}
 	/**
 	 * Service Bindings (communicate between multiple Workers)
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings

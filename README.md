@@ -64,8 +64,6 @@ Set `VITE_API_BASE_URL` to the Laravel API origin (e.g. `http://localhost:8000/a
 | `VITE_API_BASE_URL` | `.env` (local), `.env.production` (tracked, deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
 | `VITE_HCAPTCHA_SITE_KEY` | `.env` | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
 | `VITE_PUSHER_*` | `.env` | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
-| `CF_ACCESS_TOKEN_URL` | wrangler `vars` | No | Cloudflare Zero Trust Access token endpoint (server-to-server only). Empty = cfAccess helper off. |
-| `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` | `wrangler secret put` | No | Access service-token secret. Never in `vars`/browser bundle. Used only by `server/cfAccess.ts` for Worker→Monolith calls; the Access token is cached in-memory on the isolate (never `caches.default`, which would bill free static assets). Browser traffic stays direct with `__Host-spa_jwt` + CSRF and needs a separate Access bypass/allow policy. |
 
 Discord return is **not** a Vite var. Set Monolith `SPA_URL` to this SPA’s public origin.
 
