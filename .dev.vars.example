@@ -1,4 +1,3 @@
-# Retained for local Wrangler compatibility only. The deployed Worker does not
-# proxy API or auth requests; browser traffic uses VITE_API_BASE_URL directly.
-# NOT prefixed with VITE_ — never bundled into the browser.
-MONOLITH_API_ORIGIN="https://api.example.com"
+# Local Wrangler secrets/vars. The current Worker needs none: it serves static
+# assets and a 404 guard only, and never reads env. Add keys here only if a
+# future Worker feature actually reads them.

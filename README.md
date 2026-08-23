@@ -54,13 +54,12 @@ cp .env.example .env
 cp .dev.vars.example .dev.vars
 ```
 
-Set `VITE_API_BASE_URL` to the Laravel API origin (e.g. `http://localhost:8000/api/v1`) so all API calls go direct. Set Monolith `SPA_URL="http://localhost:5173"`. `MONOLITH_API_ORIGIN` is legacy and is not read by current Worker code.
+Set `VITE_API_BASE_URL` to the Laravel API origin (e.g. `http://localhost:8000/api/v1`) so all API calls go direct. Set Monolith `SPA_URL="http://localhost:5173"`.
 
 ## Environment
 
 | Var | Where | Bundled? | Notes |
 |-----|--------|----------|--------|
-| `MONOLITH_API_ORIGIN` | Wrangler `vars` / `.dev.vars` | No | Legacy local compatibility variable. Not read by current Worker. |
 | `VITE_API_BASE_URL` | `.env` (local), `.env.production` (tracked, deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
 | `VITE_HCAPTCHA_SITE_KEY` | `.env` | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
 | `VITE_PUSHER_*` | `.env` | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
