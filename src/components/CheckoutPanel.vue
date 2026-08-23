@@ -65,8 +65,13 @@ onMounted(async () => {
     selectedChannel.value = channels.value[0]!.code
   }
 
-  if (props.invoice.checkout_session) {
-    // Pre-existing checkout session — display it
+  const existingSession = props.invoice.checkout_session
+
+  if (existingSession?.instructions?.type) {
+    checkoutResult.value = existingSession
+    if (existingSession.channel_code) {
+      selectedChannel.value = existingSession.channel_code
+    }
   }
 
   if (isPayable.value) {

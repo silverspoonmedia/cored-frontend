@@ -787,7 +787,7 @@ export interface Invoice {
   updated_at: string | null
   updated_at_formatted: string | null
   updated_at_human: string | null
-  checkout_session?: Record<string, unknown> | null
+  checkout_session?: CheckoutResult | null
 }
 
 export interface InvoiceStatusPayload {
