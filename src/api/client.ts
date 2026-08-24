@@ -1,6 +1,7 @@
 import i18n from '@/i18n'
 import { apiUrl, isCrossOrigin } from './baseUrl'
 import { applyCsrfHeader, ensureCsrf, refreshCsrf } from './csrf'
+import { applySpaRequestHeader } from './requestHeaders'
 import { translateFallback } from '@/i18n/fallbacks'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
 
@@ -26,6 +27,7 @@ function buildHeaders(hasBody: boolean, isFormData: boolean, crossOrigin: boolea
   const headers = new Headers()
   headers.set('Accept', 'application/json')
   headers.set('X-Requested-With', 'XMLHttpRequest')
+  applySpaRequestHeader(headers)
 
   if (hasBody && !isFormData) {
     headers.set('Content-Type', 'application/json')
@@ -279,6 +281,7 @@ export async function getBlob(
     const h = new Headers()
     h.set('Accept', '*/*')
     h.set('X-Requested-With', 'XMLHttpRequest')
+    applySpaRequestHeader(h)
     return h
   }
 

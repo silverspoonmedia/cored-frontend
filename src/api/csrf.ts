@@ -1,4 +1,5 @@
 import { apiUrl } from './baseUrl'
+import { applySpaRequestHeader } from './requestHeaders'
 
 /**
  * Double-submit CSRF token for the SPA's cross-site cookie auth.
@@ -84,10 +85,12 @@ export function csrfToken(): string | null {
 
 async function fetchNonce(): Promise<void> {
   try {
+    const headers = new Headers({ Accept: 'application/json' })
+    applySpaRequestHeader(headers)
     const res = await fetch(apiUrl('csrf').toString(), {
       method: 'GET',
       credentials: 'include',
-      headers: { Accept: 'application/json' },
+      headers,
     })
     const json = (await res.json().catch(() => null)) as { data?: { token?: unknown } } | null
     const t = json?.data?.token

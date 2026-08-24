@@ -4,6 +4,7 @@ import type { ChannelAuthorizerGenerator } from 'pusher-js'
 import { ref, type Ref } from 'vue'
 import { resolveApiUrl, isCrossOrigin } from '@/api/baseUrl'
 import { applyCsrfHeader, ensureCsrf } from '@/api/csrf'
+import { applySpaRequestHeader } from '@/api/requestHeaders'
 
 type PusherEcho = Echo<'pusher'>
 type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
@@ -82,6 +83,7 @@ function createEcho(config: BroadcastConfig): PusherEcho {
           'X-Requested-With': 'XMLHttpRequest',
         }
         const headerObj = new Headers(headers)
+        applySpaRequestHeader(headerObj)
         if (crossOrigin) {
           applyCsrfHeader(headerObj)
         }

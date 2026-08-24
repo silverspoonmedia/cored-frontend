@@ -81,6 +81,7 @@ function buildAjaxConfig() {
     headers: {
       Accept: 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
+      'X-SPA-Origin': '1',
     },
     data(params: { term?: string; page?: number }) {
       const query: Record<string, unknown> = {
