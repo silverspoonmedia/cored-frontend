@@ -8,14 +8,19 @@ Monolith's in-repo Blade admin is **removed** — this SPA is the sole browser U
 
 ```
 Browser (SPA origin)
-  - static HTML/JS/CSS from the Worker (no invocation, free)
+  - static HTML/JS/CSS from the Worker (API traffic does not target this Worker)
   - all /api/v1/* requests -> direct cross-site to Laravel (VITE_API_BASE_URL):
         credentials:'include' -> HttpOnly __Host-spa_jwt cookie
         X-SPA-Origin: 1       -> Laravel anti-noise request marker
         X-CSRF-Token header   -> double-submit __Host-spa_csrf nonce
+
+Cloudflare Tunnel is the API network perimeter. It uses an outbound-only connector;
+VM/OCI inbound web ports stay closed and tunnel ingress must end in a 404 catch-all.
 ```
 
-`VITE_API_BASE_URL` **must be set** to absolute Laravel API origin (e.g. `https://api.example.com/api/v1`). All API calls go straight to it; Worker is not in request path, so API requests cost zero Worker invocations. Direct versioned API calls carry public `X-SPA-Origin: 1` for Laravel's anti-noise gate; this is not a secret or authentication. Leave it empty only for local same-origin development. CSP allows hCaptcha challenge resources and HTTPS API/CDN connections; external URLs are sanitized before use.
+`VITE_API_BASE_URL` **must be set** to absolute Laravel API origin (e.g. `https://api.example.com/api/v1`). All Laravel API calls go straight to it; this Worker is not in their request path. The API hostname is reached through Cloudflare Tunnel; the VM/OCI origin should have inbound web ports closed and the tunnel should expose only explicit SPA/API hostnames. Direct versioned API calls carry public `X-SPA-Origin: 1` for Laravel's anti-noise gate; this is not a secret or authentication. Leave it empty only for local same-origin development. CSP allows hCaptcha challenge resources and HTTPS API/CDN connections; external URLs are sanitized before use. Verify Cloudflare billing and static-asset invocation treatment against deployed account metrics.
+
+Cloudflare Access is optional for separate internal, admin, or debug surfaces. It authenticates users, devices, or server-side service tokens; it cannot prove that public JavaScript came from this SPA. Never put an Access service-token secret in `VITE_*`. Protecting this public cross-origin API with Access would require deliberate Access cookie/CORS/preflight handling; hiding a service token from the browser would require a Worker/BFF and change the current direct-API routing architecture.
 
 `vue-i18n` and `@intlify/unplugin-vue-i18n` must share the same major version (currently both v11). The unplugin precompiles locale JSON into a minified AST read by the `vue-i18n` runtime formatter; a major mismatch (unplugin v11 emitting node type 9 + runtime v9) makes `t()` throw `SyntaxError: unhandled minifier node type` on those messages.
 
