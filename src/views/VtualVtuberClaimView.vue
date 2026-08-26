@@ -245,9 +245,9 @@ function platformIcon(key: string): string {
   <div v-else-if="profile">
     <Card :title="t('web.vtual-vtuber.claim_page_title') + ': ' + profile.display_name">
       <template #actions>
-        <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'vtual.vtuber.show.view', params: { slug: profile.slug } })">
+        <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'vtual.vtuber.show.view', params: { slug: profile.slug } }">
           <i class="bi bi-arrow-left me-1"></i> {{ t('web.vtual-vtuber.claim_back_to_profile') }}
-        </button>
+        </router-link>
       </template>
 
       <!-- Blocked -->

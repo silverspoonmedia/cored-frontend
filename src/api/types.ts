@@ -293,6 +293,7 @@ export interface MenuListItem {
   description_translations: Record<string, string>
   icon: string | null
   route: string | null
+  hash: string | null
   type: string
   order: number | null
   is_authenticate: boolean

@@ -1,15 +1,34 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@/stores/auth'
 import { useVkStr1MobileMenu } from '@/valkivid3/composables/useVkStr1MobileMenu'
 import { useVkStr1Theme } from '@/valkivid3/composables/useVkStr1Theme'
+import { useVkNavigation, isVkNavActive } from '@/valkivid3/composables/useVkNavigation'
 import VkStr1Logo from '@/valkivid3/components/str1/VkStr1Logo.vue'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 
 const { t } = useI18n()
+const route = useRoute()
 const { isAuthenticated } = useAuth()
 const { toggle } = useVkStr1MobileMenu()
 const { theme, toggleTheme } = useVkStr1Theme()
+const { tree, load: loadNav, resolveRoute, resolveHref } = useVkNavigation()
+
+const openDropdown = ref<string | null>(null)
+
+const topLevel = computed(() =>
+  tree.value.filter((n) => n.type !== 'h'),
+)
+
+function toggleDropdown(id: string): void {
+  openDropdown.value = openDropdown.value === id ? null : id
+}
+
+onMounted(() => {
+  void loadNav()
+})
 </script>
 
 <template>
@@ -21,29 +40,46 @@ const { theme, toggleTheme } = useVkStr1Theme()
 
           <!-- Desktop nav -->
           <ul class="hidden text-sm font-bold lg:flex lg:gap-x-0 xl:gap-x-6">
-            <li>
-              <router-link
-                to="/vtual"
-                class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:left-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-left after:scale-x-100 after:bg-current-marker-dark after:transition-transform dark:text-white dark:after:bg-current-marker xl:px-4.5"
-              >
-                {{ t('web.vtual.public.nav.home') }}
-              </router-link>
-            </li>
-            <li>
-              <router-link
-                to="/vtual#vtubers"
+            <li v-for="node in topLevel" :key="node.id" class="relative">
+              <!-- Parent with children: dropdown trigger -->
+              <button
+                v-if="node.children.length > 0"
+                type="button"
                 class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:left-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-right after:scale-x-0 after:bg-current-marker-dark after:transition-transform hover:after:origin-left hover:after:scale-x-100 dark:text-white dark:after:bg-current-marker xl:px-4.5"
+                :class="isVkNavActive(node, route) ? 'after:origin-left after:scale-x-100 text-accent dark:text-accent' : ''"
+                @click="toggleDropdown(node.id)"
+                @blur="openDropdown = null"
               >
-                {{ t('web.vtual.public.nav.directory') }}
-              </router-link>
-            </li>
-            <li>
+                {{ node.name }}
+              </button>
+              <!-- Leaf: router-link -->
               <router-link
-                to="/vtual#contents"
+                v-else
+                :to="resolveRoute(node) ?? '#'"
                 class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:left-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-right after:scale-x-0 after:bg-current-marker-dark after:transition-transform hover:after:origin-left hover:after:scale-x-100 dark:text-white dark:after:bg-current-marker xl:px-4.5"
+                :class="isVkNavActive(node, route) ? 'after:origin-left after:scale-x-100 text-accent dark:text-accent' : ''"
+                :aria-current="isVkNavActive(node, route) ? 'page' : undefined"
               >
-                {{ t('web.vtual.public.nav.contents') }}
+                {{ node.name }}
               </router-link>
+
+              <!-- Dropdown panel -->
+              <ul
+                v-if="node.children.length > 0 && openDropdown === node.id"
+                class="absolute left-0 top-full z-50 min-w-[180px] border border-gray-150 bg-white py-2 text-sm font-medium dark:border-gray-600 dark:bg-gray-700"
+              >
+                <li v-for="child in node.children" :key="child.id">
+                  <router-link
+                    :to="resolveRoute(child) ?? '#'"
+                    class="block px-4 py-2 text-gray-900 hover:bg-gray-100 hover:text-accent dark:text-white dark:hover:bg-gray-600"
+                    :class="isVkNavActive(child, route) ? 'text-accent dark:text-accent bg-gray-100 dark:bg-gray-600' : ''"
+                    :aria-current="isVkNavActive(child, route) ? 'page' : undefined"
+                    @click="openDropdown = null"
+                  >
+                    {{ child.name }}
+                  </router-link>
+                </li>
+              </ul>
             </li>
           </ul>
 

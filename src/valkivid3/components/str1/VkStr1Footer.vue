@@ -1,8 +1,19 @@
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useVkNavigation } from '@/valkivid3/composables/useVkNavigation'
 import VkStr1Logo from '@/valkivid3/components/str1/VkStr1Logo.vue'
 
 const { t } = useI18n()
+const { tree, load: loadNav, resolveRoute } = useVkNavigation()
+
+const leafNodes = computed(() =>
+  tree.value.filter((n) => n.type !== 'h' && n.children.length === 0),
+)
+
+onMounted(() => {
+  void loadNav()
+})
 </script>
 
 <template>
@@ -18,19 +29,12 @@ const { t } = useI18n()
         <div class="col-span-full lg:col-span-6">
           <nav :aria-label="t('web.vtual.public.footer.nav_label')">
             <ul class="flex flex-wrap gap-x-8 gap-y-3 text-sm font-bold">
-              <li>
-                <router-link to="/vtual" class="text-gray-900 transition-colors hover:text-accent dark:text-white">
-                  {{ t('web.vtual.public.nav.home') }}
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/vtual#vtubers" class="text-gray-900 transition-colors hover:text-accent dark:text-white">
-                  {{ t('web.vtual.public.nav.directory') }}
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/vtual#contents" class="text-gray-900 transition-colors hover:text-accent dark:text-white">
-                  {{ t('web.vtual.public.nav.contents') }}
+              <li v-for="node in leafNodes" :key="node.id">
+                <router-link
+                  :to="resolveRoute(node) ?? '#'"
+                  class="text-gray-900 transition-colors hover:text-accent dark:text-white"
+                >
+                  {{ node.name }}
                 </router-link>
               </li>
             </ul>

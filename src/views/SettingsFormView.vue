@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -12,7 +12,6 @@ import type { SettingEntry } from '@/api/types'
 import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
 
 const route = useRoute()
-const router = useRouter()
 const { t, tm } = useI18n()
 const { fetchGroup, settings, loading, saving, saveGroup, error } = useSettings()
 const { success: showSuccess, error: showError } = useAlert()
@@ -186,9 +185,9 @@ onUnmounted(() => {
 <template>
   <Card :title="groupLabel">
     <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'settings.index.view' })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'settings.index.view' }">
         <i class="bi bi-arrow-left me-1"></i> {{ t('web.settings.back') }}
-      </button>
+      </router-link>
     </template>
 
     <div v-if="loading" class="text-center py-4">

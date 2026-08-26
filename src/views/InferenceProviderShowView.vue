@@ -3,6 +3,8 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useInferenceProviders } from '@/composables/useInferenceProviders'
 import { useInferenceModelCards } from '@/composables/useInferenceModelCards'
@@ -35,10 +37,12 @@ const {
 
 const provider = ref<InferenceProvider | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const canManage = computed(() => hasPermission('manage inference catalog'))
 
 async function load(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     const batchResult = await hydrateProviderShow(providerId.value).catch(() => null)
 
@@ -66,7 +70,7 @@ async function load(): Promise<void> {
       })))
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.inference.providers.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.inference.providers.load_failed')
   } finally {
     loading.value = false
   }
@@ -89,11 +93,14 @@ watch(providerId, load, { immediate: true })
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="card">
+    <div class="card-body">
+      <SkeletonBlock variant="line" :lines="1" width="35%" />
+      <SkeletonBlock variant="line" :lines="6" />
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
   <div v-else-if="provider">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">

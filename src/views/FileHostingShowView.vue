@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import { confirmDialog } from '@/lib/swal'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FhIcon from '@/components/FhIcon.vue'
 import FhShareModal from '@/components/FhShareModal.vue'
 import FhMicrostockReviewModal from '@/components/FhMicrostockReviewModal.vue'
@@ -26,6 +28,7 @@ const { subscribe, unsubscribe } = useFileHostingRealtime()
 
 const file = ref<HostedFile | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const isBusy = ref(false)
 
 const showRename = ref(false)
@@ -50,10 +53,11 @@ function ctxParams(): Record<string, unknown> {
 
 async function loadFile(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     file.value = await fh.fetchFile(route.params.id as string)
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_load_file'))
+    loadError.value = e instanceof Error ? e.message : t('web.file-hosting.failed_load_file')
   } finally {
     loading.value = false
   }
@@ -185,11 +189,15 @@ async function handleDownload(): Promise<void> {
       </div>
     </div>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="card">
+      <div class="card-body">
+        <SkeletonBlock variant="line" :lines="1" width="40%" />
+        <SkeletonBlock variant="block" height="8rem" />
+        <SkeletonBlock variant="line" :lines="4" />
       </div>
     </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="loadFile" />
 
     <div v-else-if="file" data-fh-panel="show">
       <div class="row g-3">

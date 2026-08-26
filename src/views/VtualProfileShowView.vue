@@ -3,6 +3,8 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormTextarea from '@/components/FormTextarea.vue'
 import FormSelect from '@/components/FormSelect.vue'
@@ -41,6 +43,7 @@ const links = ref<VtualExternalLink[]>([])
 const platforms = ref<VtualPlatform[]>([])
 const discordSnapshot = ref<ProfileConnections | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 
 function externalUrl(value: string | null | undefined): string | null {
   return safeHttpUrl(value)
@@ -91,6 +94,7 @@ const { hydrateProfileShow } = useVtualHydrate()
 
 async function loadAll(): Promise<void> {
   loading.value = true
+  loadError.value = null
   const id = route.params.id as string
   try {
     const batchResult = await hydrateProfileShow(id).catch(() => null)
@@ -129,7 +133,7 @@ async function loadAll(): Promise<void> {
       metaForm.avatar_url = creator.value.avatar_url ?? ''
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.vtual.profiles.errors.load_failed')
   } finally {
     loading.value = false
   }
@@ -394,20 +398,35 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="row g-3">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <SkeletonBlock variant="line" :lines="1" width="35%" />
+          <SkeletonBlock variant="line" :lines="6" />
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <SkeletonBlock variant="avatar" width="4rem" />
+          <SkeletonBlock variant="line" :lines="4" />
+        </div>
+      </div>
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="loadAll" />
 
   <div v-else-if="creator" class="row g-3">
     <div class="col-lg-8">
       <!-- Meta form -->
       <Card :title="t('web.vtual.profiles.profile_title')">
         <template #actions>
-          <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'vtual.profiles.index.view' })">
+          <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'vtual.profiles.index.view' }">
             <i class="bi bi-arrow-left me-1"></i> {{ t('web.vtual.profiles.page_title') }}
-          </button>
+          </router-link>
           <a v-if="externalUrl(creator.profile_url)" :href="externalUrl(creator.profile_url) ?? undefined" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm ms-1">
             <i class="bi bi-box-arrow-up-right me-1"></i> {{ t('web.vtual.profiles.view_profile') }}
           </a>

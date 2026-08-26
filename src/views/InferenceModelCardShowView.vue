@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useInferenceUsage } from '@/composables/useInferenceUsage'
 import { useInferenceHydrate } from '@/composables/useInferenceHydrate'
@@ -23,15 +25,17 @@ const { error: showError } = useAlert()
 const card = ref<AiModelCardDetail | null>(null)
 const events = ref<InferenceUsageEvent[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const eventsLoading = ref(false)
 const canManage = computed(() => hasPermission('manage inference catalog'))
 
 async function loadCard(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     card.value = await fetchModelCardDetail(route.params.id as string)
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.inference.model_cards.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.inference.model_cards.load_failed')
   } finally {
     loading.value = false
   }
@@ -67,11 +71,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="card">
+    <div class="card-body">
+      <SkeletonBlock variant="line" :lines="1" width="35%" />
+      <SkeletonBlock variant="line" :lines="6" />
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="loadCard" />
 
   <template v-else-if="card">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">

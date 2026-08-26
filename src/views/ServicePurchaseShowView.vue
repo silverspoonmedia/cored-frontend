@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import CheckoutPanel from '@/components/CheckoutPanel.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import PaymentStatusHero from '@/components/PaymentStatusHero.vue'
 import PaymentSteps from '@/components/PaymentSteps.vue'
 import { useServicePurchases } from '@/composables/useServicePurchases'
@@ -23,6 +25,7 @@ const { success: showSuccess, error: showError } = useAlert()
 
 const purchase = ref<ServicePurchase | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const updatingQty = ref(false)
 const quantity = ref(1)
 const maxPurchaseQuantity = ref(99)
@@ -97,8 +100,9 @@ const purchaseHandlers = {
   },
 }
 
-onMounted(async () => {
+async function loadPurchase(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     const batchResult = await hydratePurchaseShow(purchaseId).catch(() => null)
     if (batchResult?.purchase) {
@@ -120,11 +124,13 @@ onMounted(async () => {
     quantity.value = purchase.value.quantity
     subscribePurchase(purchaseId, purchaseHandlers)
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.services.purchases.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.services.purchases.load_failed')
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadPurchase)
 
 onUnmounted(() => {
   unsubscribePurchase(purchaseHandlers)
@@ -157,11 +163,25 @@ function entitlementLabel(): string {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="row g-3">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <SkeletonBlock variant="line" :lines="1" width="40%" />
+          <SkeletonBlock variant="line" :lines="6" />
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <SkeletonBlock variant="block" height="8rem" />
+        </div>
+      </div>
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="loadPurchase" />
 
   <div v-else-if="purchase" class="ois">
     <PaymentStatusHero

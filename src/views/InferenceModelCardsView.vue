@@ -17,7 +17,7 @@ import type { AiModelCard } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, pagination, destroy } = useInferenceModelCards()
+const { items, loading, error, fetchList, pagination, destroy } = useInferenceModelCards()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage inference catalog'))
@@ -47,10 +47,10 @@ function editCard(row: AiModelCard): void {
 
 function cardActions(row: AiModelCard): RowAction[] {
   const actions: RowAction[] = [
-    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', onClick: () => showCard(row) },
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', to: { name: 'inference.model-cards.show.view', params: { id: row.id } } },
   ]
   if (canManage.value) {
-    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editCard(row) })
+    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'inference.model-cards.edit.view', params: { id: row.id } } })
     actions.push({
       key: 'delete',
       icon: 'trash3',
@@ -94,15 +94,17 @@ onUnmounted(() => {
 <template>
   <Card :title="t('web.inference.model_cards.list_title')">
     <template #actions>
-      <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'inference.model-cards.create.view' })">
+      <router-link v-if="canManage" class="btn btn-primary btn-sm" :to="{ name: 'inference.model-cards.create.view' }">
         <i class="bi bi-plus-lg me-1"></i> {{ t('web.inference.model_cards.add_button') }}
-      </button>
+      </router-link>
     </template>
 
     <DataTable
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"

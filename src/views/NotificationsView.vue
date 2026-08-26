@@ -3,6 +3,8 @@ import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useNotifications } from '@/composables/useNotifications'
 import { useAlert } from '@/composables/useAlert'
 import type { AppNotification } from '@/api/types'
@@ -10,7 +12,7 @@ import { resolveNotificationLocation } from '@/utils/notificationTarget'
 
 const { t } = useI18n()
 const router = useRouter()
-const { items, loading, fetchList, markAllRead, markAsRead } = useNotifications()
+const { items, loading, error, fetchList, markAllRead, markAsRead } = useNotifications()
 const { success: showSuccess, error: showError } = useAlert()
 
 onMounted(() => fetchList())
@@ -56,11 +58,15 @@ function timeLabel(n: AppNotification): string {
       </button>
     </template>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="py-2">
+      <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+        <SkeletonBlock variant="avatar" width="1.75rem" />
+        <SkeletonBlock variant="line" :lines="1" width="60%" class="flex-grow-1 mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
       </div>
     </div>
+
+    <ErrorState v-else-if="error" :message="error" @retry="fetchList()" />
 
     <div v-else-if="items.length === 0" class="text-center text-muted py-5" role="status">
       <i class="bi bi-bell-slash" style="font-size: 2.5rem; opacity: 0.4;" aria-hidden="true"></i>

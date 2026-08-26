@@ -14,7 +14,7 @@ import { SUBSCRIPTION_STATUS_BADGE } from '@/utils/statusBadge'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, pagination } = useSubscriptions()
+const { items, loading, error, fetchList, pagination } = useSubscriptions()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage subscription'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
@@ -38,8 +38,8 @@ function editSub(row: Subscription): void {
 
 function subscriptionActions(row: Subscription): RowAction[] {
   return [
-    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', onClick: () => showSub(row) },
-    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editSub(row) },
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', to: { name: 'subscriptions.show.view', params: { id: row.id } } },
+    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'subscriptions.edit.view', params: { id: row.id } } },
   ]
 }
 </script>
@@ -47,15 +47,17 @@ function subscriptionActions(row: Subscription): RowAction[] {
 <template>
   <Card :title="t('web.payments.subscriptions.title')">
     <template #actions>
-      <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'subscriptions.create.view' })">
+      <router-link v-if="canManage" class="btn btn-primary btn-sm" :to="{ name: 'subscriptions.create.view' }">
         <i class="bi bi-plus-lg me-1"></i> {{ t('web.payments.subscriptions.add_button') }}
-      </button>
+      </router-link>
     </template>
 
     <DataTable
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"

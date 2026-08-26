@@ -1054,6 +1054,11 @@
       "default_title": "まだデータがありません",
       "default_message": "作成されるとここに表示されます。"
     },
+    "error_state": {
+      "title": "読み込みに失敗しました",
+      "message": "データの読み込み中に問題が発生しました。もう一度お試しください。",
+      "retry": "再試行"
+    },
     "breadcrumb": {
       "add": "追加",
       "edit": "編集"
@@ -2368,12 +2373,15 @@
         "layout_readonly_hint": "レイアウトは作成後に固定されます。別の領域には新しいメニューを追加してください。",
         "layouts": {
           "sidebar": "サイドバー",
-          "navbar": "ナビバー"
+          "navbar": "ナビバー",
+          "vtual": "Valkivid3（公開vTual）"
         },
         "parent_label": "親",
         "parent_placeholder": "なし（ルート）",
         "reference_label": "基準メニュー",
         "route_hint": "登録済みの Laravel ルート名（例: dashboard）。URL ではありません。",
+        "hash_label": "ハッシュアンカー",
+        "hash_hint": "解決済みルートに追加する任意のページ内アンカー（例: #vtubers）。",
         "icon_label": "アイコン",
         "icon_hint": "完全なアイコンクラス（例: bi bi-house）。",
         "authenticate": "認証済みユーザーのみ",

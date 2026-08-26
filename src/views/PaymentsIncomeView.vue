@@ -2,6 +2,8 @@
 import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
@@ -23,7 +25,9 @@ const exporting = ref(false)
 const overview = ref<PaymentIncomeOverview | null>(null)
 const invoices = ref<Invoice[]>([])
 const loading = ref(false)
+const overviewError = ref<string | null>(null)
 const invoicesLoading = ref(false)
+const invoicesError = ref<string | null>(null)
 const loadingMore = ref(false)
 const hasMorePages = ref(false)
 const currentPage = ref(1)
@@ -70,10 +74,11 @@ function buildParams(): Record<string, unknown> {
 
 async function loadOverview(): Promise<void> {
   loading.value = true
+  overviewError.value = null
   try {
     overview.value = await fetchOverview(buildParams())
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.payments.income.load_overview_failed'))
+    overviewError.value = e instanceof Error ? e.message : t('web.payments.income.load_overview_failed')
   } finally {
     loading.value = false
   }
@@ -82,6 +87,7 @@ async function loadOverview(): Promise<void> {
 async function loadInvoices(reset = true): Promise<void> {
   if (reset) {
     invoicesLoading.value = true
+    invoicesError.value = null
     currentPage.value = 1
     invoices.value = []
   } else {
@@ -99,7 +105,12 @@ async function loadInvoices(reset = true): Promise<void> {
     }
     hasMorePages.value = currentPage.value < res.pagination.last_page
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.payments.income.load_invoices_failed'))
+    const message = e instanceof Error ? e.message : t('web.payments.income.load_invoices_failed')
+    if (reset) {
+      invoicesError.value = message
+    } else {
+      showError(message)
+    }
   } finally {
     invoicesLoading.value = false
     loadingMore.value = false
@@ -174,11 +185,23 @@ onUnmounted(() => {
       </div>
     </form>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('web.payments.income.loading') }}</span>
+    <div v-if="loading" class="py-2">
+      <div class="row g-3 mb-4">
+        <div v-for="i in 5" :key="i" class="col-6 col-md">
+          <div class="border rounded p-3 text-center">
+            <SkeletonBlock variant="line" :lines="1" width="70%" class="mx-auto" />
+            <SkeletonBlock variant="line" :lines="1" width="50%" class="mx-auto mb-0" />
+          </div>
+        </div>
       </div>
+      <SkeletonBlock variant="block" height="6rem" />
     </div>
+
+    <ErrorState
+      v-else-if="overviewError"
+      :message="overviewError"
+      @retry="applyFilters"
+    />
 
     <template v-else-if="overview">
       <div class="row g-3 mb-4">
@@ -294,11 +317,17 @@ onUnmounted(() => {
       </Card>
 
       <Card :title="t('web.payments.income.invoices_title')">
-        <div v-if="invoicesLoading" class="text-center py-3">
-          <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">{{ t('web.payments.income.loading') }}</span>
+        <div v-if="invoicesLoading" class="py-2">
+          <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+            <SkeletonBlock variant="line" :lines="1" width="40%" class="mb-0" />
+            <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
           </div>
         </div>
+        <ErrorState
+          v-else-if="invoicesError"
+          :message="invoicesError"
+          @retry="loadInvoices(true)"
+        />
         <div v-else-if="invoices.length === 0" class="text-muted text-center py-3">
           {{ t('web.payments.income.no_invoices') }}
         </div>

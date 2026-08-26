@@ -1,8 +1,10 @@
 ﻿<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { confirmDialog } from '@/lib/swal'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FhIcon from '@/components/FhIcon.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
@@ -10,7 +12,6 @@ import { useAlert } from '@/composables/useAlert'
 import type { FhTrashPayload } from '@/api/types'
 
 const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
 const { success: showSuccess, error: showError } = useAlert()
@@ -18,6 +19,7 @@ const { subscribe, unsubscribe } = useFileHostingRealtime()
 
 const trash = ref<FhTrashPayload | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const isBusy = ref(false)
 const actionTarget = ref<{ type: 'folder' | 'file'; id: string; action: 'restore' | 'force-delete' } | null>(null)
 
@@ -32,10 +34,11 @@ function ctxParams(): Record<string, unknown> {
 
 async function loadTrash(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     trash.value = await fh.fetchTrash(ctxParams())
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.trash_failed_load'))
+    loadError.value = e instanceof Error ? e.message : t('web.file-hosting.trash_failed_load')
   } finally {
     loading.value = false
   }
@@ -109,17 +112,21 @@ async function handleAction(): Promise<void> {
     </div>
 
     <div class="fh-toolbar">
-      <button class="btn btn-outline-secondary btn-sm" type="button" @click="router.push({ name: 'file-hosting.index.view', query: route.query })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'file-hosting.index.view', query: route.query }">
         <i class="bi bi-arrow-left me-1"></i>{{ t('web.file-hosting.trash_back_to_files') }}
-      </button>
+      </router-link>
     </div>
 
     <div data-fh-panel="trash">
-      <div v-if="loading" class="text-center py-4">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">{{ t('ui.loading') }}</span>
+      <div v-if="loading" class="py-2">
+        <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+          <SkeletonBlock variant="avatar" width="1.5rem" />
+          <SkeletonBlock variant="line" :lines="1" width="45%" class="mb-0" />
+          <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
         </div>
       </div>
+
+      <ErrorState v-else-if="loadError" :message="loadError" @retry="loadTrash" />
 
       <div v-else class="table-responsive">
         <table class="table fh-table">

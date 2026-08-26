@@ -3,10 +3,17 @@ import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { usePageTitle } from '@/composables/usePageTitle'
+import { useChunkLoadError } from '@/composables/useChunkLoadError'
+import ErrorState from '@/components/ErrorState.vue'
 
 const route = useRoute()
 const { t } = useI18n()
 const { documentTitle, applyDocumentTitle } = usePageTitle()
+const { chunkLoadFailed } = useChunkLoadError()
+
+function reloadPage(): void {
+  window.location.reload()
+}
 
 const AUTH_BODY_CLASSES = ['login-page', 'bg-body-secondary'] as const
 const APP_BODY_CLASSES = ['layout-fixed', 'sidebar-expand-lg', 'bg-body-tertiary'] as const
@@ -38,5 +45,12 @@ watch(documentTitle, applyDocumentTitle)
   <a href="#main-content" class="visually-hidden-focusable skip-link p-2">
     {{ t('ui.skip_to_content') }}
   </a>
-  <router-view />
+  <ErrorState
+    v-if="chunkLoadFailed"
+    :title="t('ui.error_state.title')"
+    :message="t('ui.ajax.server_unreachable')"
+    :retry-label="t('ui.error_state.retry')"
+    @retry="reloadPage"
+  />
+  <router-view v-else />
 </template>

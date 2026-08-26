@@ -14,7 +14,7 @@ import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, exportCsv, pagination } = useInvoices()
+const { items, loading, error, fetchList, exportCsv, pagination } = useInvoices()
 const { error: showError } = useAlert()
 const exporting = ref(false)
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
@@ -57,6 +57,8 @@ function viewInvoice(row: Invoice): void {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"
@@ -95,7 +97,7 @@ function viewInvoice(row: Invoice): void {
 
       <template #actions="{ row }: { row: Invoice }">
         <RowActions
-          :actions="[{ key: 'view', icon: 'eye', label: t('actions.view'), variant: 'primary', onClick: () => viewInvoice(row) }]"
+          :actions="[{ key: 'view', icon: 'eye', label: t('actions.view'), variant: 'primary', to: { name: 'invoices.show.view', params: { id: row.id } } }]"
         />
       </template>
     </DataTable>

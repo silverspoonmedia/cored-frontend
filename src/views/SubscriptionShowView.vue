@@ -1,41 +1,34 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useSubscriptions } from '@/composables/useSubscriptions'
-import { useAlert } from '@/composables/useAlert'
-import type { Subscription } from '@/api/types'
+import { useDetailLoader } from '@/composables/useDetailLoader'
 import { SUBSCRIPTION_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
 const { fetchOne } = useSubscriptions()
-const { error: showError } = useAlert()
 const { t } = useI18n()
 
-const subscription = ref<Subscription | null>(null)
-const loading = ref(true)
-
-onMounted(async () => {
-  loading.value = true
-  try {
-    subscription.value = await fetchOne(route.params.id as string)
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.payments.subscriptions.failed_load'))
-  } finally {
-    loading.value = false
-  }
-})
+const { data: subscription, loading, error: loadError, load } = useDetailLoader(
+  () => fetchOne(route.params.id as string),
+  { fallbackMessage: t('web.payments.subscriptions.failed_load') },
+)
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="card">
+    <div class="card-body">
+      <SkeletonBlock variant="line" :lines="1" width="35%" />
+      <SkeletonBlock variant="line" :lines="6" />
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
   <Card
     v-else-if="subscription"

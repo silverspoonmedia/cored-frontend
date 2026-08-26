@@ -14,7 +14,7 @@ import { ERROR_LOG_LEVEL_BADGE, ERROR_LOG_STATUS_BADGE } from '@/utils/statusBad
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, pagination } = useErrorLogs()
+const { items, loading, error, fetchList, pagination } = useErrorLogs()
 
 const filters = ref({
   status: '',
@@ -111,6 +111,8 @@ onUnmounted(() => {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"
@@ -150,7 +152,7 @@ onUnmounted(() => {
 
       <template #actions="{ row }: { row: ErrorLog }">
         <RowActions
-          :actions="[{ key: 'view', icon: 'eye', label: t('web.error-log.view_detail'), variant: 'secondary', onClick: () => viewDetail(row) }]"
+          :actions="[{ key: 'view', icon: 'eye', label: t('web.error-log.view_detail'), variant: 'secondary', to: { name: 'error-logs.show.view', params: { id: row.id } } }]"
         />
       </template>
     </DataTable>

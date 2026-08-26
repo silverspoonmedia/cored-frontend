@@ -15,7 +15,7 @@ import type { VtualManagement } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { fetchList, destroy, pagination } = useVtualManagements()
+const { fetchList, destroy, pagination, error } = useVtualManagements()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
@@ -68,7 +68,7 @@ function managementActions(row: VtualManagement): RowAction[] {
       icon: 'pencil',
       label: t('ui.actions.edit'),
       variant: 'secondary',
-      onClick: () => editManagement(row),
+      to: { name: 'vtual.managements.edit.view', params: { id: row.id } },
     },
     {
       key: 'archive',
@@ -105,13 +105,13 @@ async function archiveManagement(row: VtualManagement): Promise<void> {
 <template>
   <Card :title="t('web.vtual-managements.list_title')">
     <template #actions>
-      <button
+      <router-link
         v-if="canManage"
         class="btn btn-primary btn-sm"
-        @click="router.push({ name: 'vtual.managements.create.view' })"
+        :to="{ name: 'vtual.managements.create.view' }"
       >
         <i class="bi bi-plus-lg me-1"></i> {{ t('web.vtual-managements.add_button') }}
-      </button>
+      </router-link>
     </template>
 
     <p class="text-muted small mb-3">{{ t('web.vtual-managements.subtitle') }}</p>
@@ -120,6 +120,8 @@ async function archiveManagement(row: VtualManagement): Promise<void> {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"

@@ -2,6 +2,8 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import Modal from '@/components/Modal.vue'
 import { confirmDialog } from '@/lib/swal'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -31,6 +33,7 @@ const { t } = useI18n()
 
 const workspaces = ref<FhWorkspace[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const selected = ref<FhWorkspace | null>(null)
 const members = ref<FhWorkspaceMember[]>([])
 const activity = ref<FhWorkspaceActivity[]>([])
@@ -81,6 +84,7 @@ onUnmounted(() => {
 
 async function loadWorkspaces(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     const batchResult = await hydrateWorkspaceDetail(null).catch(() => null)
     if (batchResult?.workspaces) {
@@ -93,7 +97,7 @@ async function loadWorkspaces(): Promise<void> {
       if (first) await selectWorkspace(first)
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_load_workspaces'))
+    loadError.value = e instanceof Error ? e.message : t('web.file-hosting.failed_load_workspaces')
   } finally {
     loading.value = false
   }
@@ -246,11 +250,28 @@ function roleBadgeClass(role: string): string {
       <p class="text-muted small mb-0">{{ t('web.file-hosting.collab.subtitle') }}</p>
     </header>
 
-    <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="row g-3">
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-body">
+            <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+              <SkeletonBlock variant="line" :lines="1" width="55%" class="mb-0" />
+              <SkeletonBlock variant="line" :lines="1" width="4rem" class="ms-auto mb-0" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-body">
+            <SkeletonBlock variant="line" :lines="1" width="35%" />
+            <SkeletonBlock variant="line" :lines="4" />
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="loadWorkspaces" />
 
   <div v-else class="row g-3">
     <!-- Workspace list -->

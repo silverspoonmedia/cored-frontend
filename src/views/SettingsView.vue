@@ -2,6 +2,8 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useSettings } from '@/composables/useSettings'
 import { isSettingsMenuGroup } from '@/utils/settingsGroup'
 
@@ -13,7 +15,7 @@ interface SettingsCard {
 }
 
 const { t } = useI18n()
-const { groups, fetchGroups, loading } = useSettings()
+const { groups, fetchGroups, loading, error } = useSettings()
 
 const iconMap: Record<string, string> = {
   platform: 'bi-sliders',
@@ -52,11 +54,17 @@ onMounted(fetchGroups)
 <template>
   <Card :title="t('web.settings.title')">
     <p class="text-muted">{{ t('web.settings.subtitle') }}</p>
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="row g-3">
+      <div v-for="i in 6" :key="i" class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex align-items-center gap-3">
+            <SkeletonBlock variant="avatar" width="1.5rem" />
+            <SkeletonBlock variant="line" :lines="1" width="50%" class="mb-0" />
+          </div>
+        </div>
       </div>
     </div>
+    <ErrorState v-else-if="error" :message="error" @retry="fetchGroups" />
     <div v-else class="row g-3">
       <div
         v-for="card in cards"

@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useErrorLogs } from '@/composables/useErrorLogs'
+import { useDetailLoader } from '@/composables/useDetailLoader'
 import { useAlert } from '@/composables/useAlert'
-import type { ErrorLog } from '@/api/types'
 
 const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
-const { fetchOne, updateStatus, error } = useErrorLogs()
+const { fetchOne, updateStatus } = useErrorLogs()
 const { success: showSuccess, error: showError } = useAlert()
 
-const entry = ref<ErrorLog | null>(null)
-const loading = ref(true)
+const { data: entry, loading, error: loadError, load } = useDetailLoader(
+  () => fetchOne(route.params.id as string),
+  { fallbackMessage: t('web.error-log.load_failed') },
+)
 const actionLoading = ref(false)
 
 const contextJson = computed(() => {
@@ -33,19 +36,6 @@ const location = computed(() => {
   return line ? `${entry.value.file}:${line}` : entry.value.file
 })
 
-async function load(): Promise<void> {
-  const id = route.params.id as string
-  loading.value = true
-  try {
-    entry.value = await fetchOne(id)
-  } catch {
-    if (error.value) showError(error.value)
-    else showError(t('web.error-log.load_failed'))
-  } finally {
-    loading.value = false
-  }
-}
-
 async function changeStatus(status: string): Promise<void> {
   if (!entry.value || actionLoading.value) return
   actionLoading.value = true
@@ -59,7 +49,6 @@ async function changeStatus(status: string): Promise<void> {
   }
 }
 
-onMounted(load)
 </script>
 
 <template>
@@ -90,17 +79,18 @@ onMounted(load)
         >
           {{ t('web.error-log.actions.reopen') }}
         </button>
-        <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'error-logs.index.view' })">
+        <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'error-logs.index.view' }">
           <i class="bi bi-arrow-left me-1"></i> {{ t('web.error-log.back_to_list_button') }}
-        </button>
+        </router-link>
       </div>
     </template>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
-      </div>
+    <div v-if="loading">
+      <SkeletonBlock variant="line" :lines="1" width="30%" />
+      <SkeletonBlock variant="line" :lines="8" />
     </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
     <div v-else-if="entry">
       <dl class="row mb-0">

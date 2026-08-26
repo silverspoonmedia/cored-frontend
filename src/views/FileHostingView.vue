@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { confirmDialog } from '@/lib/swal'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import Modal from '@/components/Modal.vue'
 import FhDropzone from '@/components/FhDropzone.vue'
 import FhIcon from '@/components/FhIcon.vue'
@@ -47,6 +49,7 @@ const { subscribe: subscribeFhRealtime, unsubscribe: unsubscribeFhRealtime } = u
 const browse = ref<FhBrowsePayload | null>(null)
 const quota = ref<FhQuota | null>(null)
 const loading = ref(true)
+const browseError = ref<string | null>(null)
 const isBusy = ref(false)
 const workspaces = ref<FhWorkspace[]>([])
 const slots = ref<MicrostockSlotStatus | null>(null)
@@ -296,13 +299,14 @@ function selectAllKeys(keys: string[], on: boolean): void {
 
 async function loadBrowse(opts?: { keepSelection?: boolean }): Promise<void> {
   loading.value = true
+  browseError.value = null
   try {
     const params: Record<string, unknown> = { ...ctxParams() }
     if (currentFolderId.value) params.folder_id = currentFolderId.value
     browse.value = await fh.fetchBrowse(params)
     if (!opts?.keepSelection) clearSelection()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.load_failed'))
+    browseError.value = e instanceof Error ? e.message : t('web.file-hosting.load_failed')
   } finally {
     loading.value = false
   }
@@ -1119,7 +1123,23 @@ watch(searchQ, (q) => {
       </div>
     </div>
 
-    <div data-fh-panel="browse">
+    <div v-if="loading && !browse" class="card">
+      <div class="card-body">
+        <div v-for="i in 6" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+          <SkeletonBlock variant="avatar" width="1.5rem" />
+          <SkeletonBlock variant="line" :lines="1" width="45%" class="mb-0" />
+          <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
+        </div>
+      </div>
+    </div>
+
+    <ErrorState
+      v-else-if="browseError && !browse"
+      :message="browseError"
+      @retry="loadAll"
+    />
+
+    <div v-else data-fh-panel="browse">
       <div v-show="viewMode === 'table'" class="table-responsive">
         <table class="table fh-table">
           <thead>

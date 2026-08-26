@@ -12,7 +12,7 @@ import type { MenuTrashedItem } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { trashedItems, loading, fetchTrashed, restoreMenu } = useMenus()
+const { trashedItems, loading, error, fetchTrashed, restoreMenu } = useMenus()
 const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
 
@@ -55,9 +55,9 @@ onMounted(load)
           <option value="sidebar">{{ t('web.menus.form.layouts.sidebar') }}</option>
           <option value="navbar">{{ t('web.menus.form.layouts.navbar') }}</option>
         </select>
-        <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'menus.index.view', query: { layout: layout } })">
+        <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'menus.index.view', query: { layout: layout } }">
           <i class="bi bi-arrow-left me-1"></i> {{ t('web.menus.back_to_list') }}
-        </button>
+        </router-link>
       </div>
     </template>
 
@@ -65,6 +65,8 @@ onMounted(load)
       :columns="columns"
       :rows="trashedItems"
       :loading="loading"
+      :error="error"
+      @retry="fetchTrashed()"
       :search-placeholder="t('web.menus.search_placeholder')"
       empty-icon="bi-trash3"
       :empty-title="t('web.menus.empty_trashed')"

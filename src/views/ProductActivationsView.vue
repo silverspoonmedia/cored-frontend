@@ -3,18 +3,19 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useProductActivations } from '@/composables/useProductActivations'
 import { useAdminRealtime } from '@/composables/useAdminRealtime'
-import { useAlert } from '@/composables/useAlert'
 import type { ProductActivationSummary } from '@/api/types'
 
 const router = useRouter()
 const { fetchProducts } = useProductActivations()
-const { error: showError } = useAlert()
 const { t } = useI18n()
 
 const products = ref<ProductActivationSummary[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 
 const { subscribe, unsubscribe } = useAdminRealtime()
 const realtimeHandlers = {
@@ -23,15 +24,20 @@ const realtimeHandlers = {
   },
 }
 
-onMounted(async () => {
+async function loadProducts(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     products.value = await fetchProducts()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.product-activations.failed_load'))
+    loadError.value = e instanceof Error ? e.message : t('web.product-activations.failed_load')
   } finally {
     loading.value = false
   }
+}
+
+onMounted(async () => {
+  await loadProducts()
   subscribe(realtimeHandlers)
 })
 
@@ -62,11 +68,19 @@ function isScalar(val: unknown): boolean {
 
 <template>
   <Card :title="t('web.product-activations.title')">
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="row g-3">
+      <div v-for="i in 6" :key="i" class="col-md-6 col-lg-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <SkeletonBlock variant="line" :lines="1" width="50%" />
+            <SkeletonBlock variant="line" :lines="2" />
+            <SkeletonBlock variant="button" width="6rem" />
+          </div>
+        </div>
       </div>
     </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="loadProducts" />
 
     <div v-else-if="products.length === 0" class="text-muted text-center py-4">
       <i class="bi bi-box-seam fs-1 d-block mb-2"></i>

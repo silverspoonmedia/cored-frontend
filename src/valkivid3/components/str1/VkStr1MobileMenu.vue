@@ -1,12 +1,31 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useVkStr1MobileMenu } from '@/valkivid3/composables/useVkStr1MobileMenu'
 import { useVkStr1Theme } from '@/valkivid3/composables/useVkStr1Theme'
+import { useVkNavigation, isVkNavActive } from '@/valkivid3/composables/useVkNavigation'
+import type { NavigationTreeNode } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 
 const { t } = useI18n()
+const route = useRoute()
 const { open, close } = useVkStr1MobileMenu()
 const { theme, toggleTheme } = useVkStr1Theme()
+const { tree, load: loadNav, resolveRoute } = useVkNavigation()
+
+const expanded = ref<Set<string>>(new Set())
+
+const topLevel = computed(() =>
+  tree.value.filter((n) => n.type !== 'h'),
+)
+
+function toggleExpand(id: string): void {
+  if (expanded.value.has(id)) expanded.value.delete(id)
+  else expanded.value.add(id)
+  // trigger reactivity
+  expanded.value = new Set(expanded.value)
+}
 </script>
 
 <template>
@@ -16,21 +35,45 @@ const { theme, toggleTheme } = useVkStr1Theme()
   >
     <div class="container">
       <ul class="flex flex-col gap-y-2 text-lg font-bold">
-        <li>
-          <router-link to="/vtual" class="block py-2" @click="close()">
-            {{ t('web.vtual.public.nav.home') }}
+        <li v-for="node in topLevel" :key="node.id">
+          <!-- Parent with children: expand/collapse -->
+          <div v-if="node.children.length > 0">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between py-2"
+              :class="isVkNavActive(node, route) ? 'text-accent' : ''"
+              @click="toggleExpand(node.id)"
+            >
+              <span>{{ node.name }}</span>
+              <span class="text-sm">{{ expanded.has(node.id) ? '−' : '+' }}</span>
+            </button>
+            <ul v-if="expanded.has(node.id)" class="ml-4 border-l border-gray-150 pl-3 dark:border-gray-600">
+              <li v-for="child in node.children" :key="child.id">
+                <router-link
+                  :to="resolveRoute(child) ?? '#'"
+                  class="block py-2 text-base font-medium"
+                  :class="isVkNavActive(child, route) ? 'text-accent' : ''"
+                  :aria-current="isVkNavActive(child, route) ? 'page' : undefined"
+                  @click="close()"
+                >
+                  {{ child.name }}
+                </router-link>
+              </li>
+            </ul>
+          </div>
+          <!-- Leaf: router-link -->
+          <router-link
+            v-else
+            :to="resolveRoute(node) ?? '#'"
+            class="block py-2"
+            :class="isVkNavActive(node, route) ? 'text-accent' : ''"
+            :aria-current="isVkNavActive(node, route) ? 'page' : undefined"
+            @click="close()"
+          >
+            {{ node.name }}
           </router-link>
         </li>
-        <li>
-          <router-link to="/vtual#vtubers" class="block py-2" @click="close()">
-            {{ t('web.vtual.public.nav.directory') }}
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/vtual#contents" class="block py-2" @click="close()">
-            {{ t('web.vtual.public.nav.contents') }}
-          </router-link>
-        </li>
+
         <li class="mt-4 border-t border-gray-150 pt-4 dark:border-gray-600">
           <button
             type="button"

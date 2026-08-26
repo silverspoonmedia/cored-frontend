@@ -17,7 +17,7 @@ import type { InferenceProvider } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, pagination, destroy } = useInferenceProviders()
+const { items, loading, error, fetchList, pagination, destroy } = useInferenceProviders()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage inference catalog'))
@@ -47,10 +47,10 @@ function viewProvider(row: InferenceProvider): void {
 
 function providerActions(row: InferenceProvider): RowAction[] {
   const actions: RowAction[] = [
-    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'secondary', onClick: () => viewProvider(row) },
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'secondary', to: { name: 'inference.providers.show.view', params: { id: row.id } } },
   ]
   if (canManage.value) {
-    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editProvider(row) })
+    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'inference.providers.edit.view', params: { id: row.id } } })
     actions.push({
       key: 'delete',
       icon: 'trash3',
@@ -94,15 +94,17 @@ onUnmounted(() => {
 <template>
   <Card :title="t('web.inference.providers.list_title')">
     <template #actions>
-      <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'inference.providers.create.view' })">
+      <router-link v-if="canManage" class="btn btn-primary btn-sm" :to="{ name: 'inference.providers.create.view' }">
         <i class="bi bi-plus-lg me-1"></i> {{ t('web.inference.providers.add_button') }}
-      </button>
+      </router-link>
     </template>
 
     <DataTable
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"

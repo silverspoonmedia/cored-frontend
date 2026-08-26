@@ -1054,6 +1054,11 @@
       "default_title": "Nothing here yet",
       "default_message": "Items will appear here once they are created."
     },
+    "error_state": {
+      "title": "Failed to load",
+      "message": "Something went wrong while loading the data. Please try again.",
+      "retry": "Try again"
+    },
     "breadcrumb": {
       "add": "Add",
       "edit": "Edit"
@@ -2368,12 +2373,15 @@
         "layout_readonly_hint": "Layout is fixed after create. Add a new menu to target another region.",
         "layouts": {
           "sidebar": "Sidebar",
-          "navbar": "Navbar"
+          "navbar": "Navbar",
+          "vtual": "Valkivid3 (Public vTual)"
         },
         "parent_label": "Parent",
         "parent_placeholder": "None (root)",
         "reference_label": "Reference menu",
         "route_hint": "Registered Laravel route name (e.g. dashboard), not a URL.",
+        "hash_label": "Hash Anchor",
+        "hash_hint": "Optional in-page anchor (e.g. #vtubers) appended to the resolved route.",
         "icon_label": "Icon",
         "icon_hint": "Full icon class, e.g. bi bi-house.",
         "authenticate": "Authenticated users only",

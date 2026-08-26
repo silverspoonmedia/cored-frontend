@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EmptyState from '@/components/EmptyState.vue'
+import ErrorState from '@/components/ErrorState.vue'
 
 export interface DataTableColumn {
   key: string
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<{
   columns: DataTableColumn[]
   rows: T[]
   loading?: boolean
+  error?: string | null
   searchable?: boolean
   searchPlaceholder?: string
   perPage?: number
@@ -34,6 +36,7 @@ const props = withDefaults(defineProps<{
   page?: number
 }>(), {
   loading: false,
+  error: null,
   searchable: true,
   perPage: 10,
   emptyIcon: 'bi-inbox',
@@ -53,6 +56,7 @@ const emit = defineEmits<{
   (e: 'update:page', page: number): void
   (e: 'update:perPage', perPage: number): void
   (e: 'update:search', search: string): void
+  (e: 'retry'): void
 }>()
 
 const search = ref('')
@@ -228,6 +232,12 @@ function getVal(row: T, key: string): unknown {
               <td v-if="$slots.actions"><span class="placeholder col-4"></span></td>
             </tr>
           </template>
+          <!-- Error -->
+          <tr v-else-if="error">
+            <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="p-0">
+              <ErrorState :message="error" @retry="emit('retry')" />
+            </td>
+          </tr>
           <!-- Empty -->
           <tr v-else-if="paged.length === 0">
             <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="p-0">
@@ -256,7 +266,7 @@ function getVal(row: T, key: string): unknown {
     </div>
 
     <!-- Footer -->
-    <div v-if="!loading && total > 0" class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+    <div v-if="!loading && !error && total > 0" class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
       <div class="text-muted small">
         {{ t('ui.datatable.info', { from, to, total }) }}
       </div>

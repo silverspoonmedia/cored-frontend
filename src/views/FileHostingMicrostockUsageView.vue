@@ -2,6 +2,8 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useMicrostockBilling } from '@/composables/useMicrostockBilling'
 import { useMicrostockHydrate } from '@/composables/useMicrostockHydrate'
 import { useFileHostingRealtime } from '@/composables/useFileHostingRealtime'
@@ -36,10 +38,15 @@ const platformOverview = ref<MicrostockPlatformOverview | null>(null)
 const platformEvents = ref<InferenceUsageEvent[]>([])
 
 const loading = ref(false)
+const billingError = ref<string | null>(null)
 const ledgerLoading = ref(false)
+const ledgerError = ref<string | null>(null)
 const usageLoading = ref(false)
+const usageError = ref<string | null>(null)
 const platformLoading = ref(false)
+const platformError = ref<string | null>(null)
 const platformEventsLoading = ref(false)
+const platformEventsError = ref<string | null>(null)
 
 const ledgerHasMore = ref(false)
 const usageHasMore = ref(false)
@@ -51,6 +58,7 @@ const platformEventsPage = ref(1)
 
 async function loadBilling(): Promise<void> {
   loading.value = true
+  billingError.value = null
   try {
     const batchResult = await hydrateUsage({ per_page: 20 }).catch(() => null)
     if (batchResult?.billing) {
@@ -63,7 +71,7 @@ async function loadBilling(): Promise<void> {
       billing.value = await fetchBilling()
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_billing'))
+    billingError.value = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_billing')
   } finally {
     loading.value = false
   }
@@ -74,6 +82,7 @@ async function loadLedger(reset = true): Promise<void> {
     ledgerPage.value = 1
     ledger.value = []
     ledgerLoading.value = true
+    ledgerError.value = null
   } else {
     ledgerPage.value++
   }
@@ -87,7 +96,12 @@ async function loadLedger(reset = true): Promise<void> {
     }
     ledgerHasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_ledger'))
+    const message = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_ledger')
+    if (reset) {
+      ledgerError.value = message
+    } else {
+      showError(message)
+    }
   } finally {
     ledgerLoading.value = false
   }
@@ -98,6 +112,7 @@ async function loadUsage(reset = true): Promise<void> {
     usagePage.value = 1
     usageEvents.value = []
     usageLoading.value = true
+    usageError.value = null
   } else {
     usagePage.value++
   }
@@ -111,7 +126,12 @@ async function loadUsage(reset = true): Promise<void> {
     }
     usageHasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_usage'))
+    const message = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_usage')
+    if (reset) {
+      usageError.value = message
+    } else {
+      showError(message)
+    }
   } finally {
     usageLoading.value = false
   }
@@ -119,6 +139,7 @@ async function loadUsage(reset = true): Promise<void> {
 
 async function loadPlatform(): Promise<void> {
   platformLoading.value = true
+  platformError.value = null
   try {
     const batchResult = await hydratePlatform({ per_page: 20 }).catch(() => null)
     if (batchResult?.overview) {
@@ -131,7 +152,7 @@ async function loadPlatform(): Promise<void> {
       platformOverview.value = await fetchAdminOverview()
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform'))
+    platformError.value = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform')
   } finally {
     platformLoading.value = false
   }
@@ -142,6 +163,7 @@ async function loadPlatformEvents(reset = true): Promise<void> {
     platformEventsPage.value = 1
     platformEvents.value = []
     platformEventsLoading.value = true
+    platformEventsError.value = null
   } else {
     platformEventsPage.value++
   }
@@ -155,7 +177,12 @@ async function loadPlatformEvents(reset = true): Promise<void> {
     }
     platformEventsHasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform_events'))
+    const message = e instanceof Error ? e.message : t('web.microstock.usage.load_failed_platform_events')
+    if (reset) {
+      platformEventsError.value = message
+    } else {
+      showError(message)
+    }
   } finally {
     platformEventsLoading.value = false
   }
@@ -203,11 +230,23 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
 
 <template>
   <Card :title="t('web.microstock.usage.title')">
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="py-2">
+      <div class="row g-3 mb-4">
+        <div v-for="i in 3" :key="i" class="col-md-4">
+          <div class="border rounded p-3 text-center">
+            <SkeletonBlock variant="line" :lines="1" width="60%" class="mx-auto" />
+            <SkeletonBlock variant="line" :lines="1" width="40%" class="mx-auto mb-0" />
+          </div>
+        </div>
       </div>
+      <SkeletonBlock variant="block" height="4rem" />
     </div>
+
+    <ErrorState
+      v-else-if="billingError"
+      :message="billingError"
+      @retry="loadBilling"
+    />
 
     <template v-else-if="billing">
       <div class="row g-3 mb-4">
@@ -245,11 +284,17 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
 
       <!-- Ledger Tab -->
       <div v-if="activeTab === 'ledger'">
-        <div v-if="ledgerLoading" class="text-center py-3">
-          <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">{{ t('ui.loading') }}</span>
+        <div v-if="ledgerLoading" class="py-2">
+          <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+            <SkeletonBlock variant="line" :lines="1" width="50%" class="mb-0" />
+            <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
           </div>
         </div>
+        <ErrorState
+          v-else-if="ledgerError"
+          :message="ledgerError"
+          @retry="loadLedger(true)"
+        />
         <div v-else-if="ledger.length === 0" class="text-muted text-center py-3">{{ t('web.microstock.usage.no_ledger') }}</div>
         <div v-else>
           <div class="table-responsive">
@@ -280,11 +325,17 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
 
       <!-- Usage Tab -->
       <div v-if="activeTab === 'usage'">
-        <div v-if="usageLoading" class="text-center py-3">
-          <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">{{ t('ui.loading') }}</span>
+        <div v-if="usageLoading" class="py-2">
+          <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+            <SkeletonBlock variant="line" :lines="1" width="50%" class="mb-0" />
+            <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
           </div>
         </div>
+        <ErrorState
+          v-else-if="usageError"
+          :message="usageError"
+          @retry="loadUsage(true)"
+        />
         <div v-else-if="usageEvents.length === 0" class="text-muted text-center py-3">{{ t('web.microstock.usage.no_usage_events') }}</div>
         <div v-else>
           <div class="table-responsive">
@@ -321,11 +372,14 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
 
       <!-- Platform Tab -->
       <div v-if="activeTab === 'platform' && canViewPlatform">
-        <div v-if="platformLoading" class="text-center py-3">
-          <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">{{ t('ui.loading') }}</span>
-          </div>
+        <div v-if="platformLoading" class="py-2">
+          <SkeletonBlock variant="block" height="6rem" />
         </div>
+        <ErrorState
+          v-else-if="platformError"
+          :message="platformError"
+          @retry="loadPlatform"
+        />
 
         <template v-else-if="platformOverview">
           <div class="row g-3 mb-4">
@@ -410,11 +464,17 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
           </div>
 
           <Card :title="t('web.microstock.usage.all_usage_events')">
-            <div v-if="platformEventsLoading" class="text-center py-3">
-              <div class="spinner-border spinner-border-sm text-primary" role="status">
-                <span class="visually-hidden">{{ t('ui.loading') }}</span>
+            <div v-if="platformEventsLoading" class="py-2">
+              <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+                <SkeletonBlock variant="line" :lines="1" width="50%" class="mb-0" />
+                <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
               </div>
             </div>
+            <ErrorState
+              v-else-if="platformEventsError"
+              :message="platformEventsError"
+              @retry="loadPlatformEvents(true)"
+            />
             <div v-else-if="platformEvents.length === 0" class="text-muted text-center py-3">
               {{ t('web.microstock.usage.no_events') }}
             </div>

@@ -94,9 +94,9 @@ onMounted(load)
 <template>
   <Card :title="isEdit ? t('web.payments.gateways.edit_title') : t('web.payments.gateways.create_title')">
     <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'payment-gateways.index.view' })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'payment-gateways.index.view' }">
         <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
-      </button>
+      </router-link>
     </template>
 
     <div v-if="loading" class="text-center py-4">
@@ -112,7 +112,13 @@ onMounted(load)
       <FormCheckbox name="is_active" :label="t('web.payments.gateways.form.is_active')" v-model="form.is_active" :error="fieldError('is_active')" :disabled="saving" />
       <div class="d-flex gap-2">
         <SubmitButton :label="t('ui.actions.save')" :loading="saving" variant="primary" />
-        <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'payment-gateways.index.view' })">{{ t('ui.actions.cancel') }}</button>
+        <router-link
+          class="btn btn-outline-secondary"
+          :class="{ disabled: saving }"
+          :to="{ name: 'payment-gateways.index.view' }"
+          :aria-disabled="saving ? 'true' : undefined"
+          :tabindex="saving ? -1 : undefined"
+        >{{ t('ui.actions.cancel') }}</router-link>
       </div>
     </form>
   </Card>

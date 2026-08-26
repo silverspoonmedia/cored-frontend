@@ -146,9 +146,9 @@ onMounted(load)
 <template>
   <Card :title="isEdit ? t('web.users.edit_title') : t('web.users.create_title')">
     <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'users.index.view' })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'users.index.view' }">
         <i class="bi bi-arrow-left me-1"></i> {{ t('web.users.back_to_list') }}
-      </button>
+      </router-link>
     </template>
 
     <div v-if="loading" class="text-center py-4">
@@ -215,9 +215,15 @@ onMounted(load)
 
           <div class="d-flex gap-2">
             <SubmitButton :label="isEdit ? t('web.users.save_changes') : t('web.users.create_submit')" :loading="saving" variant="primary" />
-            <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'users.index.view' })">
+            <router-link
+              class="btn btn-outline-secondary"
+              :class="{ disabled: saving }"
+              :to="{ name: 'users.index.view' }"
+              :aria-disabled="saving ? 'true' : undefined"
+              :tabindex="saving ? -1 : undefined"
+            >
               {{ t('actions.cancel') }}
-            </button>
+            </router-link>
           </div>
         </form>
       </div>

@@ -18,7 +18,7 @@ import { SERVICE_STATUS_BADGE } from '@/utils/statusBadge'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, pagination, destroy } = useServices()
+const { items, loading, error, fetchList, pagination, destroy } = useServices()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const canManage = computed(() => hasPermission('manage service'))
@@ -48,10 +48,10 @@ function editService(row: Service): void {
 
 function serviceActions(row: Service): RowAction[] {
   const actions: RowAction[] = [
-    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', onClick: () => showService(row) },
+    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', to: { name: 'services.show.view', params: { id: row.id } } },
   ]
   if (canManage.value) {
-    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', onClick: () => editService(row) })
+    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'services.edit.view', params: { id: row.id } } })
     actions.push({
       key: 'delete',
       icon: 'trash3',
@@ -95,15 +95,17 @@ onUnmounted(() => {
 <template>
   <Card :title="t('web.services.title')">
     <template #actions>
-      <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'services.create.view' })">
+      <router-link v-if="canManage" class="btn btn-primary btn-sm" :to="{ name: 'services.create.view' }">
         <i class="bi bi-plus-lg me-1"></i> {{ t('web.services.add_button') }}
-      </button>
+      </router-link>
     </template>
 
     <DataTable
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"

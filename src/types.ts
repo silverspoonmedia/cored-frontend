@@ -5,6 +5,7 @@ export interface NavNode {
   name: string
   icon?: string | null
   route?: string | null
+  hash?: string | null
   type: MenuNodeType
   order: number
   children: NavNode[]

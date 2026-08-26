@@ -11,6 +11,7 @@ import SubmitButton from '@/components/SubmitButton.vue'
 import { useMenus } from '@/composables/useMenus'
 import { useLookups } from '@/composables/useLookups'
 import { useNavigationHydrate } from '@/composables/useNavigationHydrate'
+import { useMenuLayouts } from '@/composables/useMenuLayouts'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 import type { SelectOption } from '@/components/FormSelect2.vue'
@@ -21,6 +22,7 @@ const { t } = useI18n()
 const { fetchOne, createMenu, updateMenu } = useMenus()
 const { fetchMenus, fetchRoles, fetchUsers } = useLookups()
 const { hydrateMenuEdit } = useNavigationHydrate()
+const { layouts: availableLayouts, loadLayouts } = useMenuLayouts()
 const { success: showSuccess, error: showError } = useAlert()
 
 const isEdit = computed(() => !!route.params.id)
@@ -43,6 +45,7 @@ const form = reactive({
   layout: layout.value,
   parent: '' as string | null,
   route: '',
+  hash: '',
   icon: '',
   authenticate: false,
   guest_only: false,
@@ -59,10 +62,18 @@ const typeOptions = computed<Record<string, string>>(() => ({
   c: t('web.menus.form.types.c'),
 }))
 
-const layoutOptions = computed<Record<string, string>>(() => ({
-  sidebar: t('web.menus.form.layouts.sidebar'),
-  navbar: t('web.menus.form.layouts.navbar'),
-}))
+const layoutOptions = computed<Record<string, string>>(() => {
+  const fallback: Record<string, string> = {
+    sidebar: t('web.menus.form.layouts.sidebar'),
+    navbar: t('web.menus.form.layouts.navbar'),
+    vtual: t('web.menus.form.layouts.vtual'),
+  }
+  const result: Record<string, string> = {}
+  for (const key of availableLayouts.value.length ? availableLayouts.value : Object.keys(fallback)) {
+    result[key] = fallback[key] ?? key
+  }
+  return result
+})
 
 const positionOptions = computed<Record<string, string>>(() => {
   if (isEdit.value) {
@@ -95,6 +106,7 @@ function fieldError(field: string): string | string[] | null {
 
 async function load(): Promise<void> {
   loading.value = true
+  loadLayouts().catch(() => {})
   try {
     if (isEdit.value && menuId.value) {
       const batchResult = await hydrateMenuEdit(menuId.value).catch(() => null)
@@ -105,6 +117,7 @@ async function load(): Promise<void> {
       form.type = menu.type
       form.layout = menu.layout
       form.route = menu.route ?? ''
+      form.hash = menu.hash ?? ''
       form.icon = menu.icon ?? ''
       form.authenticate = menu.is_authenticate
       form.guest_only = menu.is_guest_only
@@ -155,6 +168,7 @@ async function handleSubmit(): Promise<void> {
   }
 
   if (form.route) payload.route = form.route
+  if (form.hash) payload.hash = form.hash
   if (form.icon) payload.icon = form.icon
   payload.parent = form.parent || null
   payload.authenticate = form.authenticate
@@ -205,9 +219,9 @@ onMounted(load)
 <template>
   <Card :title="cardTitle">
     <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'menus.index.view', query: { layout: layout } })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'menus.index.view', query: { layout: layout } }">
         <i class="bi bi-arrow-left me-1"></i> {{ t('web.menus.back_to_list') }}
-      </button>
+      </router-link>
     </template>
 
     <div v-if="loading" class="text-center py-4">
@@ -295,6 +309,14 @@ onMounted(load)
             :error="fieldError('route')"
             :disabled="saving"
             :hint="t('web.menus.form.route_hint')"
+          />
+          <FormInput
+            name="hash"
+            :label="t('web.menus.form.hash_label')"
+            v-model="form.hash"
+            :error="fieldError('hash')"
+            :disabled="saving"
+            :hint="t('web.menus.form.hash_hint')"
           />
         </div>
         <div class="col-md-6">
@@ -402,9 +424,15 @@ onMounted(load)
 
       <div class="d-flex gap-2 mt-3">
         <SubmitButton :label="isEdit ? t('actions.update') : t('actions.save')" :loading="saving" variant="primary" />
-        <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'menus.index.view', query: { layout: form.layout } })">
+        <router-link
+          class="btn btn-outline-secondary"
+          :class="{ disabled: saving }"
+          :to="{ name: 'menus.index.view', query: { layout: form.layout } }"
+          :aria-disabled="saving ? 'true' : undefined"
+          :tabindex="saving ? -1 : undefined"
+        >
           {{ t('actions.cancel') }}
-        </button>
+        </router-link>
       </div>
     </form>
   </Card>

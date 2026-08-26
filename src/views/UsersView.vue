@@ -16,7 +16,7 @@ import type { UserManagement } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, pagination, deleteUser } = useUsers()
+const { items, loading, error, fetchList, pagination, deleteUser } = useUsers()
 const { hasPermission, user } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
@@ -44,7 +44,7 @@ function editUser(row: UserManagement): void {
 
 function userActions(row: UserManagement): RowAction[] {
   const actions: RowAction[] = [
-    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'secondary', onClick: () => editUser(row) },
+    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'secondary', to: { name: 'users.edit.view', params: { id: row.id } } },
   ]
   if (canDelete.value && String(row.id) !== String(user.value?.id)) {
     actions.push({
@@ -93,19 +93,21 @@ async function handleDelete(): Promise<void> {
 <template>
   <Card :title="t('web.users.list_title')">
     <template #actions>
-      <button
+      <router-link
         v-if="canCreate"
         class="btn btn-primary btn-sm"
-        @click="router.push({ name: 'users.create.view' })"
+        :to="{ name: 'users.create.view' }"
       >
         <i class="bi bi-plus-lg me-1"></i> {{ t('web.users.add_button') }}
-      </button>
+      </router-link>
     </template>
 
     <DataTable
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"

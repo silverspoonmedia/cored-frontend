@@ -2,13 +2,15 @@
 import { computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useDomainAccess } from '@/composables/useDomainAccess'
 import { useAdminRealtime } from '@/composables/useAdminRealtime'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { DomainAccess } from '@/api/types'
 
-const { items, loading, updatingKey, fetchList, toggleVisibility } = useDomainAccess()
+const { items, loading, updatingKey, error, fetchList, toggleVisibility } = useDomainAccess()
 const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
 const { t } = useI18n()
@@ -46,11 +48,18 @@ onUnmounted(() => {
   <Card :title="t('web.domain-access.card_title')">
     <p class="text-muted">{{ t('web.domain-access.card_subtitle') }}</p>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="row g-3">
+      <div v-for="i in 6" :key="i" class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <SkeletonBlock variant="line" :lines="1" width="45%" />
+            <SkeletonBlock variant="line" :lines="3" />
+          </div>
+        </div>
       </div>
     </div>
+
+    <ErrorState v-else-if="error && !items.length" :message="error" @retry="fetchList()" />
 
     <div v-else-if="items.length === 0" class="text-center text-muted py-5">
       <i class="bi bi-shield-lock" style="font-size: 2.5rem; opacity: 0.4;" aria-hidden="true"></i>

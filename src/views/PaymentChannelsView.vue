@@ -2,6 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { usePaymentChannels } from '@/composables/usePaymentChannels'
 import { useAuth } from '@/stores/auth'
@@ -27,6 +29,7 @@ const { success: showSuccess, error: showError } = useAlert()
 
 const channels = ref<PaymentChannel[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const syncing = ref(false)
 const canManage = computed(() => hasPermission('manage payment gateway'))
 const search = ref('')
@@ -97,16 +100,19 @@ function roleLabel(role: string | null): string {
   return te(key) ? t(key) : role
 }
 
-onMounted(async () => {
+async function loadChannels(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     channels.value = await fetchList()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.payments.channels.updated'))
+    loadError.value = e instanceof Error ? e.message : t('web.payments.channels.load_failed')
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadChannels)
 
 async function toggleChannel(ch: PaymentChannel): Promise<void> {
   try {
@@ -234,11 +240,18 @@ async function handleSyncPolicy(): Promise<void> {
         </div>
       </div>
 
-      <div v-if="loading" class="text-center py-4">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">{{ t('ui.loading') }}</span>
+      <div v-if="loading" class="d-grid gap-3 py-1">
+        <div v-for="i in 3" :key="i" class="border rounded p-3">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <SkeletonBlock variant="avatar" width="2.5rem" />
+            <SkeletonBlock variant="line" :lines="1" width="40%" class="mb-0" />
+            <SkeletonBlock variant="button" width="5rem" class="ms-auto mb-0" />
+          </div>
+          <SkeletonBlock variant="line" :lines="2" />
         </div>
       </div>
+
+      <ErrorState v-else-if="loadError" :message="loadError" @retry="loadChannels" />
 
       <div v-else-if="channels.length === 0" class="pc-admin__empty">
         <i class="bi bi-credit-card-2-front fs-2 d-block mb-2"></i>

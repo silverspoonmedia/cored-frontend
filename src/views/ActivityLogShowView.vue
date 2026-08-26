@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useActivityLogs } from '@/composables/useActivityLogs'
-import { useAlert } from '@/composables/useAlert'
-import type { ActivityLog } from '@/api/types'
+import { useDetailLoader } from '@/composables/useDetailLoader'
 
 const route = useRoute()
-const router = useRouter()
-const { fetchOne, error } = useActivityLogs()
-const { error: showError } = useAlert()
+const { fetchOne } = useActivityLogs()
 const { t } = useI18n()
 
-const entry = ref<ActivityLog | null>(null)
-const loading = ref(true)
+const { data: entry, loading, error: loadError, load } = useDetailLoader(
+  () => fetchOne(route.params.id as string),
+)
 
 const attributes = computed<string[]>(() => {
   const changes = entry.value?.attribute_changes
@@ -42,31 +42,22 @@ function formatValue(val: unknown): string {
   return String(val)
 }
 
-onMounted(async () => {
-  const id = route.params.id as string
-  try {
-    entry.value = await fetchOne(id)
-  } catch {
-    if (error.value) showError(error.value)
-  } finally {
-    loading.value = false
-  }
-})
 </script>
 
 <template>
   <Card :title="t('web.activity-log.show_card_title', { id: entry?.id ?? '' })">
     <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'activity-logs.index.view' })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'activity-logs.index.view' }">
         <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
-      </button>
+      </router-link>
     </template>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
-      </div>
+    <div v-if="loading">
+      <SkeletonBlock variant="line" :lines="1" width="30%" />
+      <SkeletonBlock variant="line" :lines="8" />
     </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
     <div v-else-if="entry">
       <dl class="row mb-0">

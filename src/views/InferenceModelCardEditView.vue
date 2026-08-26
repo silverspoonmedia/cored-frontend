@@ -91,9 +91,9 @@ onMounted(load)
 <template>
   <Card :title="isEdit ? t('web.inference.model_cards.edit_title') : t('web.inference.model_cards.create_title')">
     <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'inference.model-cards.index.view' })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'inference.model-cards.index.view' }">
         <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
-      </button>
+      </router-link>
     </template>
 
     <div v-if="loading" class="text-center py-4">
@@ -108,7 +108,13 @@ onMounted(load)
       <FormCheckbox name="is_active" :label="t('web.inference.model_cards.fields.is_active')" v-model="form.is_active" :error="fieldError('is_active')" :disabled="saving" />
       <div class="d-flex gap-2">
         <SubmitButton :label="isEdit ? t('web.inference.model_cards.save_changes') : t('web.inference.model_cards.create_submit')" :loading="saving" variant="primary" />
-        <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'inference.model-cards.index.view' })">{{ t('actions.cancel') }}</button>
+        <router-link
+          class="btn btn-outline-secondary"
+          :class="{ disabled: saving }"
+          :to="{ name: 'inference.model-cards.index.view' }"
+          :aria-disabled="saving ? 'true' : undefined"
+          :tabindex="saving ? -1 : undefined"
+        >{{ t('actions.cancel') }}</router-link>
       </div>
     </form>
   </Card>

@@ -1054,6 +1054,11 @@
       "default_title": "Belum ada data",
       "default_message": "Item akan muncul di sini setelah dibuat."
     },
+    "error_state": {
+      "title": "Gagal memuat",
+      "message": "Terjadi kesalahan saat memuat data. Silakan coba lagi.",
+      "retry": "Coba lagi"
+    },
     "breadcrumb": {
       "add": "Tambah",
       "edit": "Ubah"
@@ -2368,12 +2373,15 @@
         "layout_readonly_hint": "Layout dikunci setelah dibuat. Tambah menu baru untuk region lain.",
         "layouts": {
           "sidebar": "Sidebar",
-          "navbar": "Navbar"
+          "navbar": "Navbar",
+          "vtual": "Valkivid3 (vTual Publik)"
         },
         "parent_label": "Induk (parent)",
         "parent_placeholder": "Tidak ada (root)",
         "reference_label": "Menu referensi",
         "route_hint": "Nama route Laravel yang terdaftar (mis. dashboard), bukan URL.",
+        "hash_label": "Anchor Hash",
+        "hash_hint": "Anchor halaman opsional (mis. #vtubers) ditambahkan ke route yang diresolve.",
         "icon_label": "Ikon",
         "icon_hint": "Kelas ikon lengkap, mis. bi bi-house.",
         "authenticate": "Hanya untuk pengguna terautentikasi",

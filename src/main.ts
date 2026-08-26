@@ -13,6 +13,7 @@ import i18n from './i18n'
 import { applyHtmlLang } from './i18n'
 import { initTheme } from '@/composables/useTheme'
 import { showErrorDialog } from '@/lib/swal'
+import { markChunkLoadFailed } from '@/composables/useChunkLoadError'
 
 // Apply theme before mount to prevent FOUC (matches Monolith's theme-scroll.js).
 initTheme()
@@ -35,7 +36,16 @@ window.addEventListener('unhandledrejection', (event) => {
 
 router.onError((error, to, from) => {
   console.error('Router navigation failed', { error, to, from })
-  void showErrorDialog(i18n.global.t('ui.ajax.unexpected_error'))
+  const message = error instanceof Error ? error.message.toLowerCase() : ''
+  const isChunkLoad =
+    message.includes('failed to fetch dynamically imported module') ||
+    message.includes('importing a module script failed') ||
+    message.includes('error loading dynamically imported module')
+  if (isChunkLoad) {
+    markChunkLoadFailed()
+  } else {
+    void showErrorDialog(i18n.global.t('ui.ajax.unexpected_error'))
+  }
 })
 
 // router.isReady() resolves after the first navigation completes, which

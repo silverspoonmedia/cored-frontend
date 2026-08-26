@@ -10,7 +10,7 @@ import type { ActivityLog } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, pagination } = useActivityLogs()
+const { items, loading, error, fetchList, pagination } = useActivityLogs()
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 
 const columns: DataTableColumn[] = [
@@ -35,6 +35,8 @@ function timeLabel(row: ActivityLog): string {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="error"
+      @retry="fetchList()"
       server
       :total="pagination.total"
       :page="pagination.current_page"
@@ -69,7 +71,7 @@ function timeLabel(row: ActivityLog): string {
 
       <template #actions="{ row }: { row: ActivityLog }">
         <RowActions
-          :actions="[{ key: 'view', icon: 'eye', label: t('web.activity-log.view_detail'), variant: 'secondary', onClick: () => viewDetail(row) }]"
+          :actions="[{ key: 'view', icon: 'eye', label: t('web.activity-log.view_detail'), variant: 'secondary', to: { name: 'activity-logs.show.view', params: { id: row.id } } }]"
         />
       </template>
     </DataTable>

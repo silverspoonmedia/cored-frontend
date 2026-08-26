@@ -2,27 +2,29 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FhIcon from '@/components/FhIcon.vue'
 import { useFileHosting } from '@/composables/useFileHosting'
-import { useAlert } from '@/composables/useAlert'
 import type { FhPublicBrowsePayload } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
-const { error: showError } = useAlert()
 
 const browse = ref<FhPublicBrowsePayload | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 
 async function loadFolder(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     browse.value = await fh.fetchPublicFolder(route.params.id as string)
   } catch (e) {
     browse.value = null
-    showError(e instanceof Error ? e.message : t('web.file-hosting.public.folder_not_found'))
+    loadError.value = e instanceof Error ? e.message : t('web.file-hosting.public.folder_not_found')
   } finally {
     loading.value = false
   }
@@ -54,11 +56,20 @@ function openFile(fileId: string): void {
 </script>
 
 <template>
-  <div v-if="loading" class="fh-public is-fh-loading text-center py-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('web.file-hosting.public.loading') }}</span>
+  <div v-if="loading" class="fh-public is-fh-loading py-5">
+    <div class="card" style="max-width: 800px; width: 100%; margin: 0 auto;">
+      <div class="card-body p-4">
+        <SkeletonBlock variant="line" :lines="1" width="50%" />
+        <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+          <SkeletonBlock variant="avatar" width="1.5rem" />
+          <SkeletonBlock variant="line" :lines="1" width="45%" class="mb-0" />
+          <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
+        </div>
+      </div>
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="loadFolder" />
 
   <div v-else-if="browse" class="fh-public">
     <div class="fh-public__card card" style="max-width: 800px; width: 100%;">

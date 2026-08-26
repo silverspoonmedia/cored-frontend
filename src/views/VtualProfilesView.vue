@@ -2,17 +2,18 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useVtual } from '@/composables/useVtual'
-import { useAlert } from '@/composables/useAlert'
 import type { VtualCreator } from '@/api/types'
 import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const { fetchOwned } = useVtual()
-const { error: showError } = useAlert()
 const { t } = useI18n()
 
 const profiles = ref<VtualCreator[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 
 function externalUrl(value: string | null | undefined): string | null {
   return safeHttpUrl(value)
@@ -22,25 +23,32 @@ function imageUrl(value: string | null | undefined): string | null {
   return safeImageUrl(value)
 }
 
-onMounted(async () => {
+async function loadProfiles(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     profiles.value = await fetchOwned()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual.failed_load_profiles'))
+    loadError.value = e instanceof Error ? e.message : t('web.vtual.failed_load_profiles')
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadProfiles)
 </script>
 
 <template>
   <Card :title="t('web.vtual.my_creator_profiles')">
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="py-2">
+      <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+        <SkeletonBlock variant="avatar" width="2rem" />
+        <SkeletonBlock variant="line" :lines="1" width="40%" class="mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
       </div>
     </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="loadProfiles" />
 
     <div v-else-if="profiles.length === 0" class="text-muted text-center py-4">
       {{ t('web.vtual.no_creator_profiles') }}

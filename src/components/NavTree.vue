@@ -20,17 +20,23 @@ function isActive(node: NavNode): boolean {
 
 function resolveHref(node: NavNode): string {
   if (!node.route || node.route === '#') return '#'
-  return '#'
+  const target = node.route.endsWith('.view') ? node.route : `${node.route}.view`
+  let href = '#'
+  if (router.hasRoute(target)) href = router.resolve({ name: target }).href
+  else if (router.hasRoute(node.route)) href = router.resolve({ name: node.route }).href
+  if (href !== '#' && node.hash) href += node.hash
+  return href
 }
 
 function handleClick(node: NavNode): void {
   if (!node.route || node.route === '#') return
   if (node.children.length > 0) return
   const target = node.route.endsWith('.view') ? node.route : `${node.route}.view`
+  const hash = node.hash ?? undefined
   if (router.hasRoute(target)) {
-    router.push({ name: target })
+    router.push({ name: target, hash })
   } else if (router.hasRoute(node.route)) {
-    router.push({ name: node.route })
+    router.push({ name: node.route, hash })
   }
 }
 </script>

@@ -3,23 +3,25 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useVtual } from '@/composables/useVtual'
 import { useVtualHydrate } from '@/composables/useVtualHydrate'
-import { useAlert } from '@/composables/useAlert'
-import type { VtualPlatform, VtualPlatformCredential } from '@/api/types'
+import type { VtualPlatform } from '@/api/types'
 
 const router = useRouter()
 const { fetchPlatforms, fetchCredentials } = useVtual()
 const { hydrateCredentials } = useVtualHydrate()
-const { error: showError } = useAlert()
 const { t } = useI18n()
 
 const platforms = ref<VtualPlatform[]>([])
 const credentialCounts = ref<Record<string, { active: number; pending: number; total: number }>>({})
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 
-onMounted(async () => {
+async function loadPlatforms(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     platforms.value = await fetchPlatforms()
 
@@ -58,11 +60,13 @@ onMounted(async () => {
       )
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual.failed_load_platforms'))
+    loadError.value = e instanceof Error ? e.message : t('web.vtual.failed_load_platforms')
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadPlatforms)
 </script>
 
 <template>
@@ -76,11 +80,15 @@ onMounted(async () => {
       </button>
     </template>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="py-2">
+      <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+        <SkeletonBlock variant="line" :lines="1" width="30%" class="mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="15%" class="mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
       </div>
     </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="loadPlatforms" />
 
     <div v-else-if="platforms.length === 0" class="text-muted text-center py-4">
       {{ t('web.vtual.no_platforms') }}

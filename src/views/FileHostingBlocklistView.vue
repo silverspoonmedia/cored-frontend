@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { confirmDialog } from '@/lib/swal'
@@ -14,6 +16,7 @@ const { t } = useI18n()
 
 const entries = ref<FhHashBlocklistEntry[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const submitting = ref(false)
 const deleteTarget = ref<FhHashBlocklistEntry | null>(null)
 
@@ -24,10 +27,11 @@ const form = ref({
 
 async function loadEntries(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     entries.value = await fh.fetchBlocklist()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.blocklist_failed_load'))
+    loadError.value = e instanceof Error ? e.message : t('web.file-hosting.blocklist_failed_load')
   } finally {
     loading.value = false
   }
@@ -121,11 +125,13 @@ async function handleDelete(): Promise<void> {
         <strong>{{ t('web.file-hosting.blocklist_entries') }}</strong>
       </div>
       <div class="card-body">
-        <div v-if="loading" class="text-center py-3">
-          <div class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">{{ t('ui.loading') }}</span>
+        <div v-if="loading" class="py-2">
+          <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+            <SkeletonBlock variant="line" :lines="1" width="50%" class="mb-0" />
+            <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
           </div>
         </div>
+        <ErrorState v-else-if="loadError" :message="loadError" @retry="loadEntries" />
         <div v-else-if="entries.length === 0" class="text-muted text-center py-3">
           {{ t('web.file-hosting.blocklist_empty') }}
         </div>

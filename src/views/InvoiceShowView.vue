@@ -1,34 +1,25 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import CheckoutPanel from '@/components/CheckoutPanel.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useInvoices } from '@/composables/useInvoices'
-import { useAlert } from '@/composables/useAlert'
-import type { Invoice, InvoiceStatusPayload } from '@/api/types'
+import { useDetailLoader } from '@/composables/useDetailLoader'
+import type { InvoiceStatusPayload } from '@/api/types'
 import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const { fetchOne } = useInvoices()
-const { error: showError } = useAlert()
 
-const invoice = ref<Invoice | null>(null)
-const loading = ref(true)
-
-onMounted(async () => {
-  loading.value = true
-  try {
-    invoice.value = await fetchOne(route.params.id as string)
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.payments.invoices.load_failed'))
-  } finally {
-    loading.value = false
-  }
-})
+const { data: invoice, loading, error: loadError, load } = useDetailLoader(
+  () => fetchOne(route.params.id as string),
+  { fallbackMessage: t('web.payments.invoices.load_failed') },
+)
 
 function onStatusUpdated(status: string): void {
   if (invoice.value) {
@@ -49,11 +40,27 @@ function onInvoiceUpdated(payload: InvoiceStatusPayload): void {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="row g-3">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <SkeletonBlock variant="line" :lines="1" width="30%" />
+          <SkeletonBlock variant="line" :lines="8" />
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <SkeletonBlock variant="line" :lines="1" width="50%" />
+          <SkeletonBlock variant="block" height="6rem" />
+          <SkeletonBlock variant="button" width="8rem" />
+        </div>
+      </div>
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
   <div v-else-if="invoice" class="row g-3">
     <div class="col-lg-8">

@@ -1,24 +1,46 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
-import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import { confirmDialog } from '@/lib/swal'
 import { useMenus } from '@/composables/useMenus'
+import { useMenuLayouts } from '@/composables/useMenuLayouts'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { MenuListItem } from '@/api/types'
 
-const router = useRouter()
 const { t } = useI18n()
-const { items, loading, fetchList, deleteMenu } = useMenus()
+const { items, loading, error, fetchList, deleteMenu } = useMenus()
+const { layouts: availableLayouts, loadLayouts } = useMenuLayouts()
 const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
 
 const layout = ref('sidebar')
+const layoutLabel = (key: string): string => {
+  const fallback: Record<string, string> = {
+    sidebar: t('web.menus.form.layouts.sidebar'),
+    navbar: t('web.menus.form.layouts.navbar'),
+    vtual: t('web.menus.form.layouts.vtual'),
+  }
+  return fallback[key] ?? key
+}
 const canManage = computed(() => hasPermission('manage menu'))
+
+const searchQuery = ref('')
+
+const filtered = computed<MenuListItem[]>(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return items.value
+  return items.value.filter((row) => {
+    const name = String(row.name ?? '').toLowerCase()
+    const route = String(row.route ?? '').toLowerCase()
+    return name.includes(q) || route.includes(q)
+  })
+})
 
 const deleteTarget = ref<MenuListItem | null>(null)
 const cascade = ref(false)
@@ -28,14 +50,6 @@ function escapeHtml(value: unknown): string {
   return String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch] ?? ch)
 }
 
-const columns: DataTableColumn[] = [
-  { key: 'name', label: t('web.menus.columns.name'), sortable: true },
-  { key: 'type', label: t('web.menus.columns.type'), sortable: true, align: 'center' },
-  { key: 'route', label: t('web.menus.columns.route'), sortable: false },
-  { key: 'order', label: t('web.menus.columns.order'), sortable: true, align: 'center' },
-  { key: 'attributes', label: t('web.menus.columns.attributes'), sortable: false },
-]
-
 function menuActions(row: MenuListItem): RowAction[] {
   return [
     {
@@ -43,7 +57,7 @@ function menuActions(row: MenuListItem): RowAction[] {
       icon: 'pencil',
       label: t('ui.actions.edit'),
       variant: 'primary',
-      onClick: () => router.push({ name: 'menus.edit.view', params: { id: row.id }, query: { layout: layout.value } }),
+      to: { name: 'menus.edit.view', params: { id: row.id }, query: { layout: layout.value } },
     },
     {
       key: 'delete',
@@ -83,6 +97,7 @@ async function handleDelete(): Promise<void> {
 }
 
 async function load(): Promise<void> {
+  loadLayouts().catch(() => {})
   await fetchList(layout.value)
 }
 
@@ -94,58 +109,74 @@ onMounted(load)
     <template #actions>
       <div class="d-flex gap-2">
         <select v-model="layout" class="form-select form-select-sm" style="width: auto;" @change="load">
-          <option value="sidebar">{{ t('web.menus.form.layouts.sidebar') }}</option>
-          <option value="navbar">{{ t('web.menus.form.layouts.navbar') }}</option>
+          <option v-for="key in (availableLayouts.length ? availableLayouts : ['sidebar', 'navbar'])" :key="key" :value="key">{{ layoutLabel(key) }}</option>
         </select>
-        <button v-if="canManage" class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'menus.trashed.view', query: { layout: layout } })">
+        <router-link v-if="canManage" class="btn btn-outline-secondary btn-sm" :to="{ name: 'menus.trashed.view', query: { layout: layout } }">
           <i class="bi bi-trash3 me-1"></i> Trashed
-        </button>
-        <button v-if="canManage" class="btn btn-primary btn-sm" @click="router.push({ name: 'menus.create.view', query: { layout: layout } })">
+        </router-link>
+        <router-link v-if="canManage" class="btn btn-primary btn-sm" :to="{ name: 'menus.create.view', query: { layout: layout } }">
           <i class="bi bi-plus-lg me-1"></i> Add Menu
-        </button>
+        </router-link>
       </div>
     </template>
 
-    <DataTable
-      :columns="columns"
-      :rows="items"
-      :loading="loading"
-      :searchable="true"
-      :search-placeholder="t('web.menus.search_placeholder')"
-      empty-icon="bi-list-nested"
-      :empty-title="t('web.menus.empty_list')"
-    >
-      <template #cell-name="{ row }: { row: MenuListItem }">
-        <span :class="{ 'ps-3': row.type === 'p', 'ps-4': row.type === 'c' }">
-          <i v-if="row.icon" class="bi me-1" :class="row.icon" aria-hidden="true"></i>
-          <span :class="{ 'fw-bold': (row.children_count ?? 0) > 0 }">{{ row.name }}</span>
-          <span v-if="(row.children_count ?? 0) > 0" class="badge text-bg-light border ms-1" :title="`${row.children_count} children`">
-            <i class="bi bi-diagram-3" aria-hidden="true"></i> {{ row.children_count }}
-          </span>
-        </span>
-      </template>
+    <SkeletonBlock v-if="loading" variant="line" :lines="10" />
+    <ErrorState v-else-if="error" :message="error" @retry="fetchList(layout.value)" />
+    <div v-else>
+      <div class="mb-3">
+        <input
+          v-model="searchQuery"
+          type="search"
+          class="form-control form-control-sm"
+          :placeholder="t('web.menus.search_placeholder')"
+          aria-label="Search menus"
+        />
+      </div>
 
-      <template #cell-type="{ row }: { row: MenuListItem }">
-        <code>{{ row.type }}</code>
-      </template>
+      <EmptyState
+        v-if="filtered.length === 0"
+        icon="bi-list-nested"
+        :title="t('web.menus.empty_list')"
+      />
 
-      <template #cell-route="{ row }: { row: MenuListItem }">
-        {{ row.route ?? '—' }}
-      </template>
-
-      <template #cell-order="{ row }: { row: MenuListItem }">
-        {{ row.order ?? '—' }}
-      </template>
-
-      <template #cell-attributes="{ row }: { row: MenuListItem }">
-        <span v-if="row.is_authenticate" class="badge text-bg-info me-1">auth</span>
-        <span v-if="row.is_guest_only" class="badge text-bg-secondary me-1">guest</span>
-        <span v-if="!row.is_authenticate && !row.is_guest_only" class="text-muted">—</span>
-      </template>
-
-      <template v-if="canManage" #actions="{ row }: { row: MenuListItem }">
-        <RowActions :actions="menuActions(row)" />
-      </template>
-    </DataTable>
+      <div v-else class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{{ t('web.menus.columns.name') }}</th>
+              <th class="text-center" style="width: 60px;">{{ t('web.menus.columns.type') }}</th>
+              <th style="width: 25%;">{{ t('web.menus.columns.route') }}</th>
+              <th class="text-center" style="width: 60px;">{{ t('web.menus.columns.order') }}</th>
+              <th style="width: 120px;">{{ t('web.menus.columns.attributes') }}</th>
+              <th v-if="canManage" class="text-end" style="width: 100px;">{{ t('ui.labels.actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in filtered" :key="row.id">
+              <td>
+                <span :class="{ 'ps-3': row.type === 'p', 'ps-4': row.type === 'c' }">
+                  <i v-if="row.icon" class="bi me-1" :class="row.icon" aria-hidden="true"></i>
+                  <span :class="{ 'fw-bold': (row.children_count ?? 0) > 0 }">{{ row.name }}</span>
+                  <span v-if="(row.children_count ?? 0) > 0" class="badge text-bg-light border ms-1" :title="`${row.children_count} children`">
+                    <i class="bi bi-diagram-3" aria-hidden="true"></i> {{ row.children_count }}
+                  </span>
+                </span>
+              </td>
+              <td class="text-center"><code>{{ row.type }}</code></td>
+              <td>{{ row.route ?? '—' }}</td>
+              <td class="text-center">{{ row.order ?? '—' }}</td>
+              <td>
+                <span v-if="row.is_authenticate" class="badge text-bg-info me-1">auth</span>
+                <span v-if="row.is_guest_only" class="badge text-bg-secondary me-1">guest</span>
+                <span v-if="!row.is_authenticate && !row.is_guest_only" class="text-muted">—</span>
+              </td>
+              <td v-if="canManage" class="text-end">
+                <RowActions :actions="menuActions(row)" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </Card>
 </template>

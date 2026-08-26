@@ -10,7 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 
-const { tree: sidebarNavigation, loading, load } = useNavigation()
+const { sidebarTree: sidebarNavigation, loading, load } = useNavigation()
 
 const searchQuery = ref('')
 

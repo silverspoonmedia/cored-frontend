@@ -3,6 +3,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useProductActivations } from '@/composables/useProductActivations'
@@ -24,6 +26,7 @@ const productKey = computed(() => route.params.productKey as string)
 
 const data = ref<ProductActivationShowPayload | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const stateFilter = ref('')
 const actionLoading = ref<string | null>(null)
 
@@ -37,6 +40,7 @@ const stateOptions = [
 
 async function load(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     data.value = await fetchProductShow(
       productKey.value,
@@ -44,7 +48,7 @@ async function load(): Promise<void> {
       undefined,
     )
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.product-activations.failed_load'))
+    loadError.value = e instanceof Error ? e.message : t('web.product-activations.failed_load')
   } finally {
     loading.value = false
   }
@@ -129,11 +133,12 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
       </button>
     </template>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
-      </div>
+    <div v-if="loading">
+      <SkeletonBlock variant="line" :lines="1" width="30%" />
+      <SkeletonBlock variant="line" :lines="6" />
     </div>
+
+    <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
     <div v-else-if="data">
       <dl class="row mb-3">

@@ -3,10 +3,12 @@ import { onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import EmptyState from '@/components/EmptyState.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useNotificationAudiences } from '@/composables/useNotificationAudiences'
 import { useAuth } from '@/stores/auth'
 
-const { items, loading, load } = useNotificationAudiences()
+const { items, loading, error, load } = useNotificationAudiences()
 const { hasPermission } = useAuth()
 const { t } = useI18n()
 
@@ -34,10 +36,19 @@ onMounted(() => {
       {{ t('web.notification-audiences.index_subtitle') }}
     </p>
 
-    <div v-if="loading && !items.length" class="text-center py-4">
-      <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-      {{ t('web.notification-audiences.loading') }}
+    <div v-if="loading && !items.length" class="py-2">
+      <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+        <SkeletonBlock variant="line" :lines="1" width="30%" class="mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="20%" class="mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="10%" class="ms-auto mb-0" />
+      </div>
     </div>
+
+    <ErrorState
+      v-else-if="error && !items.length"
+      :message="error"
+      @retry="load(true)"
+    />
 
     <EmptyState
       v-else-if="!items.length"

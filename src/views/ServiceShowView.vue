@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useServices } from '@/composables/useServices'
 import { useServicesHydrate } from '@/composables/useServicesHydrate'
 import { useAuth } from '@/stores/auth'
@@ -19,6 +21,7 @@ const { success: showSuccess, error: showError } = useAlert()
 
 const service = ref<Service | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const submitting = ref(false)
 
 const checkoutCurrency = ref('')
@@ -29,8 +32,9 @@ const isAddonPlan = computed(() => service.value?.plan_kind === 'addon')
 const canCheckout = computed(() => canInitiatePayment.value && service.value?.status === 'active' && (service.value?.prices?.length ?? 0) > 0)
 const maxPurchaseQuantity = ref(99)
 
-onMounted(async () => {
+async function loadService(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     const batchResult = await hydrateServiceShow(route.params.id as string).catch(() => null)
     if (batchResult?.service) {
@@ -54,11 +58,13 @@ onMounted(async () => {
       checkoutCurrency.value = firstPrice.currency
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.services.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.services.load_failed')
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadService)
 
 async function handleCheckout(): Promise<void> {
   if (!service.value || submitting.value) return
@@ -76,11 +82,14 @@ async function handleCheckout(): Promise<void> {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="card">
+    <div class="card-body">
+      <SkeletonBlock variant="line" :lines="1" width="35%" />
+      <SkeletonBlock variant="line" :lines="6" />
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="loadService" />
 
   <Card v-else-if="service" :title="service.name">
     <template #actions>

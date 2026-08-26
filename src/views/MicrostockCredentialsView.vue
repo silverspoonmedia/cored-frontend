@@ -2,6 +2,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -13,7 +15,7 @@ import { ApiError } from '@/api/types'
 import type { MicrostockCredential } from '@/api/types'
 
 const { t } = useI18n()
-const { items, loading, fetchList, create, destroy } = useMicrostockCredentials()
+const { items, loading, error: loadError, fetchList, create, destroy } = useMicrostockCredentials()
 const { success: showSuccess, error: showError } = useAlert()
 
 const saving = ref(false)
@@ -168,11 +170,15 @@ onMounted(() => {
 
     <div class="col-lg-7">
       <Card :title="t('web.microstock-credentials.list_title')">
-        <div v-if="loading" class="text-center py-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">{{ t('ui.loading') }}</span>
+        <div v-if="loading" class="py-2">
+          <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+            <SkeletonBlock variant="line" :lines="1" width="25%" class="mb-0" />
+            <SkeletonBlock variant="line" :lines="1" width="35%" class="mb-0" />
+            <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
           </div>
         </div>
+
+        <ErrorState v-else-if="loadError" :message="loadError" @retry="fetchList()" />
 
         <div v-else class="table-responsive">
           <table class="table table-sm table-hover align-middle mb-0" :aria-label="t('web.microstock-credentials.table_caption')">

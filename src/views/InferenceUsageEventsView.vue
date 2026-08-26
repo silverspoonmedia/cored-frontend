@@ -2,6 +2,8 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import { useInferenceUsage } from '@/composables/useInferenceUsage'
@@ -21,7 +23,9 @@ const formatNumber = (value: number): string => new Intl.NumberFormat(locale.val
 const overview = ref<InferenceUsageOverview | null>(null)
 const events = ref<InferenceUsageEvent[]>([])
 const loading = ref(false)
+const overviewError = ref<string | null>(null)
 const eventsLoading = ref(false)
+const eventsError = ref<string | null>(null)
 const loadingMore = ref(false)
 const hasMore = ref(false)
 const currentPage = ref(1)
@@ -51,10 +55,11 @@ function buildParams(): Record<string, unknown> {
 
 async function loadOverview(): Promise<void> {
   loading.value = true
+  overviewError.value = null
   try {
     overview.value = await fetchOverview(buildParams())
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.inference.usage.overview_load_failed'))
+    overviewError.value = e instanceof Error ? e.message : t('web.inference.usage.overview_load_failed')
   } finally {
     loading.value = false
   }
@@ -63,6 +68,7 @@ async function loadOverview(): Promise<void> {
 async function loadEvents(reset = true): Promise<void> {
   if (reset) {
     eventsLoading.value = true
+    eventsError.value = null
     currentPage.value = 1
     events.value = []
   } else {
@@ -80,7 +86,12 @@ async function loadEvents(reset = true): Promise<void> {
     }
     hasMore.value = res.pagination.has_more
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.inference.usage.events_load_failed'))
+    const message = e instanceof Error ? e.message : t('web.inference.usage.events_load_failed')
+    if (reset) {
+      eventsError.value = message
+    } else {
+      showError(message)
+    }
   } finally {
     eventsLoading.value = false
     loadingMore.value = false
@@ -136,11 +147,22 @@ onMounted(async () => {
       </div>
     </form>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
+    <div v-if="loading" class="py-2">
+      <div class="row g-3 mb-4">
+        <div v-for="i in 5" :key="i" class="col-6 col-md-2">
+          <div class="border rounded p-3 text-center">
+            <SkeletonBlock variant="line" :lines="1" width="70%" class="mx-auto" />
+            <SkeletonBlock variant="line" :lines="1" width="50%" class="mx-auto mb-0" />
+          </div>
+        </div>
       </div>
     </div>
+
+    <ErrorState
+      v-else-if="overviewError"
+      :message="overviewError"
+      @retry="applyFilters"
+    />
 
     <template v-else-if="overview">
       <div class="row g-3 mb-4">
@@ -251,11 +273,17 @@ onMounted(async () => {
     </template>
 
     <Card :title="t('web.inference.usage.events_table_title')" class="mt-4">
-      <div v-if="eventsLoading" class="text-center py-3">
-        <div class="spinner-border spinner-border-sm text-primary" role="status">
-          <span class="visually-hidden">{{ t('ui.loading') }}</span>
+      <div v-if="eventsLoading" class="py-2">
+        <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+          <SkeletonBlock variant="line" :lines="1" width="45%" class="mb-0" />
+          <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
         </div>
       </div>
+      <ErrorState
+        v-else-if="eventsError"
+        :message="eventsError"
+        @retry="loadEvents(true)"
+      />
       <div v-else-if="events.length === 0" class="text-muted text-center py-3">
         {{ t('web.inference.usage.no_events') }}
       </div>

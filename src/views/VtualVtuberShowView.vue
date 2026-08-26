@@ -3,8 +3,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useVtual } from '@/composables/useVtual'
-import { useAlert } from '@/composables/useAlert'
 import type { VtualVtuberProfile } from '@/api/types'
 import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
@@ -12,13 +13,14 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const vtual = useVtual()
-const { error: showError } = useAlert()
 
 const profile = ref<VtualVtuberProfile | null>(null)
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 
-onMounted(async () => {
+async function load(): Promise<void> {
   loading.value = true
+  loadError.value = null
   try {
     const key = typeof route.params.slug === 'string' ? route.params.slug : ''
     profile.value = await vtual.fetchVtuberProfile(key)
@@ -29,11 +31,13 @@ onMounted(async () => {
       })
     }
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual-vtuber.show.errors.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.vtual-vtuber.show.errors.load_failed')
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 
 function platformIcon(key: string): string {
   if (key === 'youtube') return 'bi-youtube'
@@ -52,11 +56,26 @@ function imageUrl(value: string | null | undefined): string | null {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">{{ t('ui.loading') }}</span>
+  <div v-if="loading" class="row g-3">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <SkeletonBlock variant="avatar" width="7rem" />
+          <SkeletonBlock variant="line" :lines="2" />
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <SkeletonBlock variant="line" :lines="1" width="40%" />
+          <SkeletonBlock variant="line" :lines="6" />
+        </div>
+      </div>
     </div>
   </div>
+
+  <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
   <div v-else-if="profile" class="row g-3">
     <!-- Sidebar -->

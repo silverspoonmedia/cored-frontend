@@ -1,22 +1,29 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import i18n from '@/i18n'
 import { get } from '@/api/client'
 import { getEcho } from '@/composables/useEcho'
 import type { ApiResponse, NavigationTreeNode } from '@/api/types'
 
-type Layout = 'sidebar' | 'navbar'
+const treeMap: Record<string, NavigationTreeNode[]> = {}
+const loadedMap: Record<string, boolean> = {}
+const fetchPromises: Record<string, Promise<void> | null> = {}
 
-const trees: Record<Layout, NavigationTreeNode[]> = { sidebar: [], navbar: [] }
-const loadedMap: Record<Layout, boolean> = { sidebar: false, navbar: false }
-const fetchPromises: Record<Layout, Promise<void> | null> = { sidebar: null, navbar: null }
-
-const sidebarTree = ref<NavigationTreeNode[]>([])
-const navbarTree = ref<NavigationTreeNode[]>([])
+const reactiveTrees = ref<Record<string, NavigationTreeNode[]>>({})
 const loading = ref(false)
 const error = ref<string | null>(null)
 let echoListener: (() => void) | null = null
 
-async function load(layout: Layout = 'sidebar'): Promise<void> {
+function ensureLayoutBucket(layout: string): void {
+  if (!(layout in treeMap)) {
+    treeMap[layout] = []
+    loadedMap[layout] = false
+    fetchPromises[layout] = null
+    reactiveTrees.value[layout] = []
+  }
+}
+
+async function load(layout = 'sidebar'): Promise<void> {
+  ensureLayoutBucket(layout)
   if (loadedMap[layout] || fetchPromises[layout]) return fetchPromises[layout] ?? Promise.resolve()
 
   loading.value = true
@@ -26,10 +33,9 @@ async function load(layout: Layout = 'sidebar'): Promise<void> {
     try {
       const res = await get<ApiResponse<NavigationTreeNode[]>>(`navigation/menus?layout=${layout}`)
       if (res.status === 'success' && Array.isArray(res.data)) {
-        trees[layout] = res.data
+        treeMap[layout] = res.data
         loadedMap[layout] = true
-        if (layout === 'sidebar') sidebarTree.value = res.data
-        else navbarTree.value = res.data
+        reactiveTrees.value = { ...reactiveTrees.value, [layout]: res.data }
       } else {
         error.value = res.message ?? i18n.global.t('web.navigation.load_failed')
       }
@@ -44,23 +50,32 @@ async function load(layout: Layout = 'sidebar'): Promise<void> {
   return fetchPromises[layout]
 }
 
-async function refetch(layout: Layout = 'sidebar'): Promise<void> {
+async function refetch(layout = 'sidebar'): Promise<void> {
+  ensureLayoutBucket(layout)
   loadedMap[layout] = false
   fetchPromises[layout] = null
   return load(layout)
 }
 
-/** Seed a layout tree from a shell-hydrate batch payload, marking it loaded so load() will not refetch. */
-function seedTree(layout: Layout, nodes: NavigationTreeNode[]): void {
-  trees[layout] = nodes
+function seedTree(layout: string, nodes: NavigationTreeNode[]): void {
+  ensureLayoutBucket(layout)
+  treeMap[layout] = nodes
   loadedMap[layout] = true
-  if (layout === 'sidebar') sidebarTree.value = nodes
-  else navbarTree.value = nodes
+  reactiveTrees.value = { ...reactiveTrees.value, [layout]: nodes }
 }
 
-function isTreeLoaded(layout: Layout): boolean {
+function isTreeLoaded(layout: string): boolean {
+  ensureLayoutBucket(layout)
   return loadedMap[layout]
 }
+
+function tree(layout: string): NavigationTreeNode[] {
+  ensureLayoutBucket(layout)
+  return reactiveTrees.value[layout] ?? []
+}
+
+const sidebarTree = computed(() => tree('sidebar'))
+const navbarTree = computed(() => tree('navbar'))
 
 function startRealtime(): void {
   if (echoListener) return
@@ -70,8 +85,8 @@ function startRealtime(): void {
   try {
     const channel = echo.private('navigation.menus')
     channel.listen('.menu.tree.changed', (e: { layout?: string }) => {
-      const layout = e.layout as Layout | undefined
-      if (layout === 'sidebar' || layout === 'navbar') {
+      const layout = e.layout
+      if (layout) {
         refetch(layout)
       } else {
         refetch('sidebar')
@@ -93,7 +108,7 @@ function stopRealtime(): void {
 
 export function useNavigation() {
   return {
-    tree: sidebarTree,
+    tree,
     sidebarTree,
     navbarTree,
     loading,

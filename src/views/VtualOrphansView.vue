@@ -21,6 +21,7 @@ const { success: showSuccess, error: showError } = useAlert()
 
 const items = ref<VtualCreator[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const searchQuery = ref('')
 const canManage = computed(() => hasPermission('manage any vtual resource'))
 const emptyTitle = computed(() =>
@@ -31,11 +32,12 @@ const emptyTitle = computed(() =>
 
 async function fetchList(params?: ListParams): Promise<VtualCreator[]> {
   loading.value = true
+  loadError.value = null
   try {
     items.value = await fetchOrphans(params)
     return items.value
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual-orphans.errors.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.vtual-orphans.errors.load_failed')
     items.value = []
     return []
   } finally {
@@ -68,7 +70,7 @@ function orphanActions(row: VtualCreator): RowAction[] {
       icon: 'pencil',
       label: t('ui.actions.edit'),
       variant: 'secondary',
-      onClick: () => editOrphan(row),
+      to: { name: 'vtual.orphans.edit.view', params: { id: row.id } },
     },
     {
       key: 'delete',
@@ -105,13 +107,13 @@ async function archiveOrphan(row: VtualCreator): Promise<void> {
 <template>
   <Card :title="t('web.vtual-orphans.list_title')">
     <template #actions>
-      <button
+      <router-link
         v-if="canManage"
         class="btn btn-primary btn-sm"
-        @click="router.push({ name: 'vtual.orphans.create.view' })"
+        :to="{ name: 'vtual.orphans.create.view' }"
       >
         <i class="bi bi-plus-lg me-1"></i> {{ t('web.vtual-orphans.add_button') }}
-      </button>
+      </router-link>
     </template>
 
     <p class="text-muted small mb-3">{{ t('web.vtual-orphans.subtitle') }}</p>
@@ -120,6 +122,8 @@ async function archiveOrphan(row: VtualCreator): Promise<void> {
       :columns="columns"
       :rows="items"
       :loading="loading"
+      :error="loadError"
+      @retry="load()"
       server
       :total="orphanPagination.total"
       :page="orphanPagination.current_page"

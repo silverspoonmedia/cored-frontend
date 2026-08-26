@@ -164,9 +164,9 @@ onMounted(load)
 <template>
   <Card :title="isEdit ? t('web.services.edit_title') : t('web.services.create_title')">
     <template #actions>
-      <button class="btn btn-outline-secondary btn-sm" @click="router.push({ name: 'services.index.view' })">
+      <router-link class="btn btn-outline-secondary btn-sm" :to="{ name: 'services.index.view' }">
         <i class="bi bi-arrow-left me-1"></i> {{ t('ui.actions.back') }}
-      </button>
+      </router-link>
     </template>
 
     <div v-if="loading" class="text-center py-4">
@@ -234,7 +234,13 @@ onMounted(load)
       <div class="col-12">
         <div class="d-flex gap-2">
           <SubmitButton :label="isEdit ? t('web.services.form.save_changes') : t('ui.actions.create')" :loading="saving" variant="primary" />
-          <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="router.push({ name: 'services.index.view' })">{{ t('ui.actions.cancel') }}</button>
+          <router-link
+            class="btn btn-outline-secondary"
+            :class="{ disabled: saving }"
+            :to="{ name: 'services.index.view' }"
+            :aria-disabled="saving ? 'true' : undefined"
+            :tabindex="saving ? -1 : undefined"
+          >{{ t('ui.actions.cancel') }}</router-link>
         </div>
       </div>
     </form>

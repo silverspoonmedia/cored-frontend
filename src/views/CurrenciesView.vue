@@ -3,11 +3,13 @@ import { onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import EmptyState from '@/components/EmptyState.vue'
+import ErrorState from '@/components/ErrorState.vue'
+import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useCurrencies } from '@/composables/useCurrencies'
 import { useAuth } from '@/stores/auth'
 
-const { currencies, loading, updating, load, toggleActive, setSettlement } = useCurrencies()
+const { currencies, loading, updating, error, load, toggleActive, setSettlement } = useCurrencies()
 const { hasPermission } = useAuth()
 const { t } = useI18n()
 
@@ -32,10 +34,19 @@ onMounted(() => {
       </button>
     </template>
 
-    <div v-if="loading && !currencies.length" class="text-center py-4">
-      <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-      {{ t('ui.loading') }}
+    <div v-if="loading && !currencies.length" class="py-2">
+      <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
+        <SkeletonBlock variant="line" :lines="1" width="4rem" class="mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="30%" class="mb-0" />
+        <SkeletonBlock variant="line" :lines="1" width="8rem" class="ms-auto mb-0" />
+      </div>
     </div>
+
+    <ErrorState
+      v-else-if="error && !currencies.length"
+      :message="error"
+      @retry="load(true)"
+    />
 
     <EmptyState
       v-else-if="!currencies.length"
