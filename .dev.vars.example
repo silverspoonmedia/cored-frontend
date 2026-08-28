@@ -1,3 +1,6 @@
-# Local Wrangler secrets/vars. The current Worker needs none: it serves static
-# assets and a 404 guard only, and never reads env. Add keys here only if a
-# future Worker feature actually reads them.
+# Copy to .dev.vars for `wrangler dev` local runtime vars/secrets.
+# The current Worker handler (server/index.ts) reads no runtime vars or
+# secrets — it only returns hardened 404s for stray /api/* hits. This file
+# exists to keep the setup step (`cp .dev.vars.example .dev.vars`) working.
+# VITE_* values do NOT belong here; they are baked at build time via the
+# Vite env files (.env, .env.production, .env.sandbox).
