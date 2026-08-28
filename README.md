@@ -75,6 +75,8 @@ One codebase deploys as **two separate Workers**, split at the Wrangler environm
 
 Top-level `wrangler.jsonc` config is the shared base (and the bare `wrangler deploy` default, which targets production); `env.production` / `env.sandbox` only override `name`. Both workers publish a `<name>.<account>.workers.dev` URL by default; attach custom domains per worker in the Cloudflare dashboard (or `routes`) when the domains are decided. The sandbox backend must set Monolith `SPA_URL` to the sandbox SPA origin so CORS and SPA-minted URLs point at the right Worker.
 
+Both the npm scripts and the CI workflow set `CLOUDFLARE_ENV=<env>` during the build — `@cloudflare/vite-plugin` bakes the environment's worker name into the redirected deploy config, and wrangler hard-fails a `deploy --env` that mismatches it. Never run a bare `vite build` + `wrangler deploy` pair without it; a sandbox build without `CLOUDFLARE_ENV` would deploy onto the production Worker.
+
 Pushes to `main` / `sandbox` also auto-deploy through GitHub Actions (`.github/workflows/deploy.yml`) using the same mode↔env pairing. Full operational guide (required secrets, workflow reference, day-to-day flow, troubleshooting): [docs/deployment.md](docs/deployment.md).
 
 ## Environment

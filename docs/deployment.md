@@ -71,6 +71,8 @@ jobs:
       - run: npm run check:i18n
       - run: npm test
       - run: npx vite build --mode ${{ env.DEPLOY_ENV }}
+        env:
+          CLOUDFLARE_ENV: ${{ env.DEPLOY_ENV }}
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -81,7 +83,8 @@ jobs:
 The YAML above must always match the file. Design decisions:
 
 - Quality gates (`type-check`, `check:i18n`, `test`) re-run inside the deploy job — a deploy never bypasses the CI gate.
-- `cloudflare/wrangler-action@v3` is the official action; it reads `wrangler.jsonc` at the repo root and recognizes the `@cloudflare/vite-plugin` redirected config automatically.
+- **`CLOUDFLARE_ENV` must be set on the build step.** `@cloudflare/vite-plugin` resolves the Wrangler environment at build time and writes a redirected config (`dist/<name>/wrangler.json`) carrying `targetEnvironment` and the environment's worker `name`. Without `CLOUDFLARE_ENV` the output config falls back to the top-level name (`monolith-spa-prod`) regardless of `--mode`/`--env`, so a sandbox deploy would silently **overwrite the production Worker**. With `CLOUDFLARE_ENV` set, wrangler additionally hard-fails any `deploy --env` that mismatches the built `targetEnvironment`, so a mode/env mixup can no longer deploy at all.
+- `cloudflare/wrangler-action@v3` is the official action; it reads `wrangler.jsonc` at the repo root and follows the plugin's redirected config automatically (the `--env` flag must still be passed so wrangler can verify it against the built `targetEnvironment`).
 - `concurrency` is per-branch so a production and a sandbox deploy may run in parallel, but two pushes to the same branch queue instead of overwriting each other.
 - CI calls `vite build` and `wrangler deploy` as separate steps (not `npm run deploy:*`) so a failure is attributable to exactly one stage in the Actions log.
 
@@ -111,6 +114,8 @@ The backend is deployed manually on the VPS and is out of scope here. Each backe
 
 | Symptom | Likely cause |
 |---------|--------------|
+| Sandbox deploy overwrote production (log shows `Uploaded monolith-spa-prod` on a sandbox run) | `CLOUDFLARE_ENV` missing on the build step — the plugin baked the top-level worker name into the redirected config |
+| Deploy fails with `does not match the target environment ... used when building` | `--env` mismatches the `CLOUDFLARE_ENV` used at build — rebuild with the matching `CLOUDFLARE_ENV` (this guard is intentional; never bypass it) |
 | Every API call 404s on the SPA origin | `VITE_API_BASE_URL` empty/placeholder in the baked env file, or the build ran without `--mode` |
 | Bundle points at the wrong API origin | Build/deploy pairing broken (`--mode` ≠ `--env`), or the wrong branch deployed |
 | Actions fails with auth error code 10000 | `CLOUDFLARE_API_TOKEN` missing/expired or lacks `Workers Scripts:Edit` |
