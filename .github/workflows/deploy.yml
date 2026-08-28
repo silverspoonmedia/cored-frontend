@@ -1,0 +1,31 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, sandbox]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_ENV: ${{ github.ref_name == 'sandbox' && 'sandbox' || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run check:i18n
+      - run: npm test
+      - run: npx vite build --mode ${{ env.DEPLOY_ENV }}
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env ${{ env.DEPLOY_ENV }}

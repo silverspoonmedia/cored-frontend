@@ -48,7 +48,9 @@ Never import `valkivid3.css` (or `main.css`) from the other namespace; the two b
 | `npm run build` | Type-check + production build |
 | `npm run build-only` | Vite production build |
 | `npm run preview` | Build + `wrangler dev` |
-| `npm run deploy` | Build + `wrangler deploy` |
+| `npm run deploy` | Alias for `deploy:production` |
+| `npm run deploy:production` | `vite build --mode production` + `wrangler deploy --env production` (worker `monolith-spa-prod`) |
+| `npm run deploy:sandbox` | `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
 
 CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`.
 
@@ -62,13 +64,28 @@ cp .dev.vars.example .dev.vars
 
 Set `VITE_API_BASE_URL` to the Laravel API origin (e.g. `http://localhost:8000/api/v1`) so all API calls go direct. Set Monolith `SPA_URL="http://localhost:5173"`.
 
+## Deployment environments
+
+One codebase deploys as **two separate Workers**, split at the Wrangler environment level. Each deploy script pairs a Vite mode (which env file gets baked into the browser bundle) with the same-named Wrangler env (which Worker receives the deploy) — the two names must stay aligned or the bundle would bake the wrong API origin:
+
+| Wrangler env (`-e`) | Vite mode (`--mode`) | Env file baked | Worker name |
+|---------------------|----------------------|----------------|-------------|
+| `production` | `production` | `.env.production` | `monolith-spa-prod` |
+| `sandbox` | `sandbox` | `.env.sandbox` | `monolith-spa-sandbox` |
+
+Top-level `wrangler.jsonc` config is the shared base (and the bare `wrangler deploy` default, which targets production); `env.production` / `env.sandbox` only override `name`. Both workers publish a `<name>.<account>.workers.dev` URL by default; attach custom domains per worker in the Cloudflare dashboard (or `routes`) when the domains are decided. The sandbox backend must set Monolith `SPA_URL` to the sandbox SPA origin so CORS and SPA-minted URLs point at the right Worker.
+
+Pushes to `main` / `sandbox` also auto-deploy through GitHub Actions (`.github/workflows/deploy.yml`) using the same mode↔env pairing. Full operational guide (required secrets, workflow reference, day-to-day flow, troubleshooting): [docs/deployment.md](docs/deployment.md).
+
 ## Environment
+
+Vite stacks env files by mode: `.env` (baseline) → `.env.local` (dev) → `.env.<mode>` (build target). During `vite build --mode <env>` the tracked mode file (`.env.production` / `.env.sandbox`) **wins over `.env.local`** (verified on Vite 8 — a stray absolute `VITE_API_BASE_URL` in `.env.local` does not leak into deploy builds).
 
 | Var | Where | Bundled? | Notes |
 |-----|--------|----------|--------|
-| `VITE_API_BASE_URL` | `.env` (baseline), `.env.local` (local override), `.env.production` (tracked deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
-| `VITE_HCAPTCHA_SITE_KEY` | `.env` (baseline), `.env.local` (local override), `.env.production` (tracked deploy) | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
-| `VITE_PUSHER_*` | `.env` (baseline), `.env.local` (local override), `.env.production` (tracked deploy) | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
+| `VITE_API_BASE_URL` | `.env` (baseline), `.env.local` (dev override), `.env.production` / `.env.sandbox` (tracked, per-environment deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
+| `VITE_HCAPTCHA_SITE_KEY` | Same file matrix as above | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
+| `VITE_PUSHER_*` | Same file matrix as above | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
 
 Discord return is **not** a Vite var. Set Monolith `SPA_URL` to this SPA’s public origin.
 
@@ -82,11 +99,13 @@ On **Monolith** (`APP_ENV=production`):
 4. File Hosting bucket / Gateway CORS includes the SPA origin and **exposes `ETag`**.
 5. Pusher or Sockudo: `PUSHER_*` on Laravel + matching `VITE_PUSHER_*` in the SPA build.
 
+The same five points apply to the **sandbox** Monolith instance with its own `SPA_URL` (the `monolith-spa-sandbox` origin) and sandbox credential sets.
+
 On **Vue-Workers**:
 
-1. Custom domain on the Worker; `npm run deploy`.
-2. `VITE_API_BASE_URL` set to the production API origin over HTTPS via the **tracked** `.env.production` (Vite auto-loads it for `vite build`, and `.env.local` does not override it). Never rely on `wrangler.jsonc` `vars` for `VITE_*` — those are runtime isolate env and never reach the browser bundle; a build without `.env.production` bakes an empty base and every API call 404s on the SPA origin.
-3. Monolith `SPA_URL` and CORS allowlist include the Worker origin; CORS must allow `X-SPA-Origin` for cross-origin preflights. Provider webhook paths do not use this browser marker.
+1. Custom domain on each Worker (or the default `<name>.<account>.workers.dev`); deploy per environment: `npm run deploy:production` (worker `monolith-spa-prod`) or `npm run deploy:sandbox` (worker `monolith-spa-sandbox`). Each script pairs `vite build --mode <env>` with `wrangler deploy --env <env>` — never mix a mode with a different env.
+2. `VITE_API_BASE_URL` set to that environment's API origin over HTTPS via the **tracked** `.env.production` / `.env.sandbox`. Never rely on `wrangler.jsonc` `vars` for `VITE_*` — those are runtime isolate env and never reach the browser bundle; a build without the env file bakes an empty base and every API call 404s on the SPA origin. During builds the mode file wins over `.env.local` (verified on Vite 8), so deploy builds stay reproducible on any machine.
+3. Monolith `SPA_URL` and CORS allowlist include the Worker origin of the matching environment; CORS must allow `X-SPA-Origin` for cross-origin preflights. Provider webhook paths do not use this browser marker.
 4. Static security headers live in `public/_headers` (CSP, frame deny, HSTS). Worker-generated JSON/404 responses also stamp `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`. **Do not add API proxy paths to the Worker.** The marker is browser metadata; adding it does not invoke or bill the Worker.
 
 When `SPA_URL` is set, Laravel mints password-reset, email-verify, public share, and iPaymu hosted return/cancel URLs onto the SPA. Email verify signs the **API** route (HMAC on `APP_URL`); the browser lands on `/verify-email/{id}/{hash}?expires=&signature=` and the SPA GETs the API directly (cross-site cookie).
