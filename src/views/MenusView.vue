@@ -121,7 +121,7 @@ onMounted(load)
     </template>
 
     <SkeletonBlock v-if="loading" variant="line" :lines="10" />
-    <ErrorState v-else-if="error" :message="error" @retry="fetchList(layout.value)" />
+    <ErrorState v-else-if="error" :message="error" @retry="fetchList(layout)" />
     <div v-else>
       <div class="mb-3">
         <input

@@ -66,7 +66,7 @@ function seedTree(layout: string, nodes: NavigationTreeNode[]): void {
 
 function isTreeLoaded(layout: string): boolean {
   ensureLayoutBucket(layout)
-  return loadedMap[layout]
+  return loadedMap[layout] ?? false
 }
 
 function tree(layout: string): NavigationTreeNode[] {
