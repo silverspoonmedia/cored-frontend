@@ -37,7 +37,7 @@ Repo **Settings → Secrets and variables → Actions**:
 ### Branches
 
 - `main` exists and deploys production.
-- Create `sandbox` from `main` once (`git checkout -b sandbox main && git push -u origin sandbox`); keep it merge-synchronized afterwards.
+- Create `sandbox` from `main` once (`git checkout -b sandbox main && git push -u origin sandbox`); keep it merge-synchronized afterwards. Gotcha: if the first push only creates the branch from a commit that was already pushed elsewhere, the Actions tab may stay empty for the new branch — push a fresh commit to trigger the deploy (`git commit --allow-empty -m "trigger sandbox deploy" && git push`).
 - The Workers themselves do not need to exist in advance — the first CI deploy creates `monolith-spa-prod` / `monolith-spa-sandbox` (a local `npm run deploy:<env>` works too).
 
 ## Workflow

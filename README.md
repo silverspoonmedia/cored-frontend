@@ -49,8 +49,8 @@ Never import `valkivid3.css` (or `main.css`) from the other namespace; the two b
 | `npm run build-only` | Vite production build |
 | `npm run preview` | Build + `wrangler dev` |
 | `npm run deploy` | Alias for `deploy:production` |
-| `npm run deploy:production` | `vite build --mode production` + `wrangler deploy --env production` (worker `monolith-spa-prod`) |
-| `npm run deploy:sandbox` | `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
+| `npm run deploy:production` | `cross-env CLOUDFLARE_ENV=production` + `vite build --mode production` + `wrangler deploy --env production` (worker `monolith-spa-prod`) |
+| `npm run deploy:sandbox` | `cross-env CLOUDFLARE_ENV=sandbox` + `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
 
 CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`.
 
@@ -105,7 +105,7 @@ The same five points apply to the **sandbox** Monolith instance with its own `SP
 
 On **Vue-Workers**:
 
-1. Custom domain on each Worker (or the default `<name>.<account>.workers.dev`); deploy per environment: `npm run deploy:production` (worker `monolith-spa-prod`) or `npm run deploy:sandbox` (worker `monolith-spa-sandbox`). Each script pairs `vite build --mode <env>` with `wrangler deploy --env <env>` — never mix a mode with a different env.
+1. Custom domain on each Worker (or the default `<name>.<account>.workers.dev`); deploy per environment: `npm run deploy:production` (worker `monolith-spa-prod`) or `npm run deploy:sandbox` (worker `monolith-spa-sandbox`). Each script pairs `vite build --mode <env>` with `wrangler deploy --env <env>` and sets `CLOUDFLARE_ENV=<env>` on the build — wrangler **hard-fails** any `deploy --env` that mismatches the built `targetEnvironment`, so a mode/env mixup cannot deploy at all.
 2. `VITE_API_BASE_URL` set to that environment's API origin over HTTPS via the **tracked** `.env.production` / `.env.sandbox`. Never rely on `wrangler.jsonc` `vars` for `VITE_*` — those are runtime isolate env and never reach the browser bundle; a build without the env file bakes an empty base and every API call 404s on the SPA origin. During builds the mode file wins over `.env.local` (verified on Vite 8), so deploy builds stay reproducible on any machine.
 3. Monolith `SPA_URL` and CORS allowlist include the Worker origin of the matching environment; CORS must allow `X-SPA-Origin` for cross-origin preflights. Provider webhook paths do not use this browser marker.
 4. Static security headers live in `public/_headers` (CSP, frame deny, HSTS). Worker-generated JSON/404 responses also stamp `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`. **Do not add API proxy paths to the Worker.** The marker is browser metadata; adding it does not invoke or bill the Worker.
