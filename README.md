@@ -18,6 +18,8 @@ Cloudflare Tunnel is the API network perimeter. It uses an outbound-only connect
 VM/OCI inbound web ports stay closed and tunnel ingress must end in a 404 catch-all.
 ```
 
+AdminLTE screens live under type-then-domain folders (`src/views/{domain}/`, plus domain-specific `components/` and `composables/`). Shared chrome (`AppNavbar`, `DataTable`, `useEcho`) stays at the type root. Vue Router records are in `src/router/routes/*.ts`; `src/router/index.ts` keeps guards. Valkivid3 stays in `src/valkivid3/`. URLs and route names do not change.
+
 `VITE_API_BASE_URL` **must be set** to absolute Laravel API origin (e.g. `https://api.example.com/api/v1`). All Laravel API calls go straight to it; this Worker is not in their request path. The API hostname is reached through Cloudflare Tunnel; the VM/OCI origin should have inbound web ports closed and the tunnel should expose only explicit SPA/API hostnames. Direct versioned API calls carry public `X-SPA-Origin: 1` for Laravel's anti-noise gate; this is not a secret or authentication. Leave it empty only for local same-origin development. CSP allows hCaptcha challenge resources and HTTPS API/CDN connections; external URLs are sanitized before use. Verify Cloudflare billing and static-asset invocation treatment against deployed account metrics.
 
 Cloudflare Access is optional for separate internal, admin, or debug surfaces. It authenticates users, devices, or server-side service tokens; it cannot prove that public JavaScript came from this SPA. Never put an Access service-token secret in `VITE_*`. Protecting this public cross-origin API with Access would require deliberate Access cookie/CORS/preflight handling; hiding a service token from the browser would require a Worker/BFF and change the current direct-API routing architecture.
@@ -44,7 +46,7 @@ Never import `valkivid3.css` (or `main.css`) from the other namespace; the two b
 | `npm run dev` | Vite development server (`http://localhost:5173`) |
 | `npm run type-check` | `vue-tsc --build` |
 | `npm run check:i18n` | Locale key/placeholder parity + hardcoded-copy heuristics |
-| `npm test` | Vitest (`client.ts` CSRF/419/settle, Echo authorizer, request headers, notification deep-link resolver) |
+| `npm test` | Vitest (`client.ts` CSRF/419/settle/TypeError/cookie-write gate, shell hydrate retry + terminal fallback, Echo authorizer, request headers, notification deep-link resolver) |
 | `npm run build` | Type-check + production build |
 | `npm run build-only` | Vite production build |
 | `npm run preview` | Build + `wrangler dev` |

@@ -83,6 +83,19 @@ export function csrfToken(): string | null {
   return token
 }
 
+/**
+ * Wait until any in-flight CSRF nonce fetch (and its Set-Cookie) has settled.
+ *
+ * Credentialed API calls that do not mint a nonce themselves (GET menus,
+ * POST /batch after a 419 refresh, Echo broadcasting/auth) must not overlap
+ * that cookie write — Chrome reports the collision as a CORS TypeError.
+ */
+export async function whenCsrfCookieQuiet(): Promise<void> {
+  while (pendingFetch) {
+    await pendingFetch.catch(() => undefined)
+  }
+}
+
 async function fetchNonce(): Promise<void> {
   try {
     const headers = new Headers({ Accept: 'application/json' })

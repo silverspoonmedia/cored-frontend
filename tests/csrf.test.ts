@@ -135,6 +135,30 @@ describe('csrf nonce multi-tab sync', () => {
     expect(csrf.csrfToken()).toBe('nonce-shared')
   })
 
+  it('whenCsrfCookieQuiet waits until an in-flight nonce fetch settles', async () => {
+    let resolveFetch: ((r: Response) => void) | null = null
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise<Response>((res) => (resolveFetch = res)),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+    const fetchP = csrf.ensureCsrf()
+    let quiet = false
+    const quietP = csrf.whenCsrfCookieQuiet().then(() => {
+      quiet = true
+    })
+
+    await Promise.resolve()
+    expect(quiet).toBe(false)
+
+    resolveFetch?.(nonceResponse('nonce-wait'))
+    await fetchP
+    await quietP
+    expect(quiet).toBe(true)
+    expect(csrf.csrfToken()).toBe('nonce-wait')
+  })
+
   it('applyCsrfHeader writes the X-CSRF-Token header when a token exists', async () => {
     const fetchMock = vi.fn().mockResolvedValue(nonceResponse('nonce-A'))
     vi.stubGlobal('fetch', fetchMock)

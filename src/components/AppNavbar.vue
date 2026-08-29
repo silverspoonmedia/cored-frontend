@@ -2,13 +2,13 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useNavigation } from '@/composables/useNavigation'
+import { useNavigation } from '@/composables/navigation/useNavigation'
 import type { NavNode } from '@/types'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTheme } from '@/composables/useTheme'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
-import { useNotifications } from '@/composables/useNotifications'
+import { useNotifications } from '@/composables/notification/useNotifications'
 import { useEcho, onEchoResync } from '@/composables/useEcho'
 import { useShellHydrate } from '@/composables/useShellHydrate'
 import { csrfToken, ensureCsrf } from '@/api/csrf'
@@ -28,7 +28,7 @@ const { success: showSuccess } = useAlert()
 const { unreadCount, items: recentNotifications, hasSeededUnread, hasSeededList, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
 const { navbarTree, load: loadNavigation, isTreeLoaded, startRealtime: startNavRealtime } = useNavigation()
 const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho()
-const { hydrateShell } = useShellHydrate()
+const { hydrateShell, isShellFallbackBlocked } = useShellHydrate()
 
 const currentLocale = computed<AppLocale>(() => locale.value as AppLocale)
 const supportedLocales = SUPPORTED_LOCALES
@@ -117,38 +117,29 @@ onMounted(() => {
   // AppNavbar mounts before AppLayout. Calling hydrateShell() here starts (or
   // joins) the shell batch so fallback GETs do not race POST /batch — a child
   // GET notifications 401 used to POST /auth/refresh and tear down the session.
+  // Echo (POST /broadcasting/auth) waits until that batch settles: a parallel
+  // CSRF cookie write used to surface as a CORS TypeError on GET menus.
   void (async () => {
     await hydrateShell()
-    if (!hasSeededList.value) {
+    if (!hasSeededList.value && !isShellFallbackBlocked('list')) {
       fetchList(5)
     }
-    if (!hasSeededUnread.value) {
+    if (!hasSeededUnread.value && !isShellFallbackBlocked('unread')) {
       fetchUnreadCount()
     }
-    if (!isTreeLoaded('navbar')) {
+    if (!isTreeLoaded('navbar') && !isShellFallbackBlocked('navbar')) {
       loadNavigation('navbar')
     }
-  })()
 
-  // Private-channel auth is POST /broadcasting/auth (cookie + CSRF). Mint a
-  // nonce first when missing so the first subscribe does not POST with an empty
-  // X-CSRF-Token while __Host-spa_jwt is already set. When login already minted
-  // one, keep init synchronous so sibling views that call getEcho() in onMounted
-  // still see the singleton. AppLayout may have called startNavRealtime while
-  // Echo was still null — call it again after init (useNavigation no-ops if
-  // already listening).
-  const bootEcho = (): void => {
+    if (csrfToken() === null) {
+      await ensureCsrf()
+    }
     const echoStarted = initEcho()
     if (echoStarted) {
       startRealtime()
       startNavRealtime()
     }
-  }
-  if (csrfToken() !== null) {
-    bootEcho()
-  } else {
-    void ensureCsrf().then(() => bootEcho())
-  }
+  })()
 
   // Re-pull state after a socket outage: events during the gap are lost, so
   // refresh the bell and every registered listing when the socket recovers.

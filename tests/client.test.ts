@@ -177,4 +177,100 @@ describe('client 401 sequencing', () => {
     expect(urls.some((u) => u.includes('/auth/refresh'))).toBe(false)
     expect(urls.filter((u) => u.includes('/notifications')).length).toBe(2)
   })
+
+  it('does not POST /auth/refresh when GET navigation/menus returns 401', async () => {
+    const refresh = vi.fn().mockResolvedValue(false)
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse(401, { status: 'error', message: 'Unauthenticated.' }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = await importClient()
+    client.setRefreshHandler(refresh)
+
+    await expect(client.get('navigation/menus?layout=sidebar')).rejects.toMatchObject({ status: 401 })
+
+    expect(refresh).not.toHaveBeenCalled()
+    const urls = fetchMock.mock.calls.map((c) => String(c[0]))
+    expect(urls.some((u) => u.includes('/auth/refresh'))).toBe(false)
+  })
+
+  it('retries Failed to fetch during settle without refreshing', async () => {
+    const refresh = vi.fn().mockResolvedValue(false)
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(jsonResponse(200, { status: 'success', message: 'ok', data: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = await importClient()
+    client.setRefreshHandler(refresh)
+    client.markSessionIssued()
+
+    const out = await client.get<{ status: string; data: unknown[] }>('notifications')
+
+    expect(out.data).toEqual([])
+    expect(refresh).not.toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries getBlob Failed to fetch during settle without refreshing', async () => {
+    const refresh = vi.fn().mockResolvedValue(false)
+    const blob = new Blob(['a,b'], { type: 'text/csv' })
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response(blob, { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = await importClient()
+    client.setRefreshHandler(refresh)
+    client.markSessionIssued()
+
+    const out = await client.getBlob('invoices/export')
+
+    expect(out.blob.size).toBe(blob.size)
+    expect(refresh).not.toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('client CSRF cookie-write gate', () => {
+  it('waits for an in-flight CSRF nonce fetch before other credentialed requests', async () => {
+    let resolveCsrf: ((r: Response) => void) | null = null
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/csrf')) {
+        return new Promise<Response>((res) => {
+          resolveCsrf = res
+        })
+      }
+      if (url.includes('/notifications')) {
+        return Promise.resolve(jsonResponse(200, { status: 'success', message: 'ok', data: [] }))
+      }
+      return Promise.resolve(jsonResponse(500, { status: 'error', message: 'unexpected' }))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await import('../src/api/csrf')
+    const client = await importClient()
+
+    const csrfP = csrf.ensureCsrf()
+    await Promise.resolve()
+    const getP = client.get('notifications')
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(fetchMock.mock.calls.some((c) => String(c[0]).includes('/notifications'))).toBe(false)
+
+    resolveCsrf?.(jsonResponse(200, { status: 'success', data: { token: 'nonce-gate' } }))
+    await csrfP
+    await getP
+
+    const urls = fetchMock.mock.calls.map((c) => String(c[0]))
+    const csrfIdx = urls.findIndex((u) => u.includes('/csrf'))
+    const notifIdx = urls.findIndex((u) => u.includes('/notifications'))
+    expect(csrfIdx).toBeGreaterThanOrEqual(0)
+    expect(notifIdx).toBeGreaterThan(csrfIdx)
+  })
 })

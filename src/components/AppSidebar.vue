@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import NavTree from '@/components/NavTree.vue'
-import { useNavigation } from '@/composables/useNavigation'
+import { useNavigation } from '@/composables/navigation/useNavigation'
 import type { NavNode } from '@/types'
 
 const route = useRoute()
