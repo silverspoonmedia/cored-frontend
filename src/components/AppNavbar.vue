@@ -10,6 +10,8 @@ import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useNotifications } from '@/composables/useNotifications'
 import { useEcho, onEchoResync } from '@/composables/useEcho'
+import { useShellHydrate } from '@/composables/useShellHydrate'
+import { csrfToken, ensureCsrf } from '@/api/csrf'
 import { triggerAllListingsReload } from '@/composables/useListingReload'
 import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 import { isNavNodeActive } from '@/utils/navActive'
@@ -24,8 +26,9 @@ const { mode, setMode } = useTheme()
 const { user, logout, switchLocale: switchLocaleApi } = useAuth()
 const { success: showSuccess } = useAlert()
 const { unreadCount, items: recentNotifications, hasSeededUnread, hasSeededList, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
-const { navbarTree, load: loadNavigation, isTreeLoaded } = useNavigation()
+const { navbarTree, load: loadNavigation, isTreeLoaded, startRealtime: startNavRealtime } = useNavigation()
 const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho()
+const { hydrateShell } = useShellHydrate()
 
 const currentLocale = computed<AppLocale>(() => locale.value as AppLocale)
 const supportedLocales = SUPPORTED_LOCALES
@@ -111,23 +114,40 @@ function notificationTime(n: { created_at_human: string | null; created_at_forma
 }
 
 onMounted(() => {
-  // The shell-hydrate batch (AppLayout) may already have seeded the unread
-  // count and navbar tree; only fetch what is still missing.
-  if (!hasSeededList.value) {
-    fetchList(5)
-  }
-  if (!hasSeededUnread.value) {
-    fetchUnreadCount()
-  }
-  if (!isTreeLoaded('navbar')) {
-    loadNavigation('navbar')
-  }
+  // AppNavbar mounts before AppLayout. Calling hydrateShell() here starts (or
+  // joins) the shell batch so fallback GETs do not race POST /batch — a child
+  // GET notifications 401 used to POST /auth/refresh and tear down the session.
+  void (async () => {
+    await hydrateShell()
+    if (!hasSeededList.value) {
+      fetchList(5)
+    }
+    if (!hasSeededUnread.value) {
+      fetchUnreadCount()
+    }
+    if (!isTreeLoaded('navbar')) {
+      loadNavigation('navbar')
+    }
+  })()
 
-  // Live updates arrive only over the websocket; Echo auto-reconnect is the
-  // recovery path, so there is no polling fallback.
-  const echoStarted = initEcho()
-  if (echoStarted) {
-    startRealtime()
+  // Private-channel auth is POST /broadcasting/auth (cookie + CSRF). Mint a
+  // nonce first when missing so the first subscribe does not POST with an empty
+  // X-CSRF-Token while __Host-spa_jwt is already set. When login already minted
+  // one, keep init synchronous so sibling views that call getEcho() in onMounted
+  // still see the singleton. AppLayout may have called startNavRealtime while
+  // Echo was still null — call it again after init (useNavigation no-ops if
+  // already listening).
+  const bootEcho = (): void => {
+    const echoStarted = initEcho()
+    if (echoStarted) {
+      startRealtime()
+      startNavRealtime()
+    }
+  }
+  if (csrfToken() !== null) {
+    bootEcho()
+  } else {
+    void ensureCsrf().then(() => bootEcho())
   }
 
   // Re-pull state after a socket outage: events during the gap are lost, so

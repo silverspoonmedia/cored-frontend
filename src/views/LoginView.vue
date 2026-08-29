@@ -12,7 +12,7 @@ import { safeInternalRedirect } from '@/lib/safeRedirect'
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
-const { login, fetchMe } = useAuth()
+const { login, confirmSession } = useAuth()
 const { error: showError } = useAlert()
 const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
@@ -42,10 +42,14 @@ async function handleSubmit(): Promise<void> {
         query: { token: result.token },
       })
     } else {
-      // Serialize against cookie-settle: confirm the cross-site session cookie is
-      // attached (auth/me round-trip) before navigating, so the shell hydrate on
-      // the target route does not fire before the browser commits Set-Cookie.
-      await fetchMe().catch(() => null)
+      // Serialize against cookie-settle: confirm the cross-site session cookie
+      // is attached (auth/me, retry once) before navigating. Do not swallow a
+      // failed probe — that used to router.push on a torn-down session.
+      const ok = await confirmSession()
+      if (!ok) {
+        showError(t('web.auth.fetch_user_failed'))
+        return
+      }
       router.push(getRedirectTarget())
     }
   } catch (e) {

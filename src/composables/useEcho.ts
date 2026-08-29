@@ -2,12 +2,48 @@ import Echo, { type EchoOptions } from 'laravel-echo'
 import Pusher from 'pusher-js'
 import type { ChannelAuthorizerGenerator } from 'pusher-js'
 import { ref, type Ref } from 'vue'
-import { resolveApiUrl, isCrossOrigin } from '@/api/baseUrl'
-import { applyCsrfHeader, ensureCsrf } from '@/api/csrf'
-import { applySpaRequestHeader } from '@/api/requestHeaders'
+import { post } from '@/api/client'
+import { resolveApiUrl } from '@/api/baseUrl'
 
 type PusherEcho = Echo<'pusher'>
 type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
+
+export interface BroadcastAuthPayload {
+  auth: string
+  channel_data?: string
+  shared_secret?: string
+}
+
+/**
+ * Private-channel auth via the same fetch wrapper as /batch: CSRF mint,
+ * 419 refresh+retry, and 401 session refresh. A raw fetch here used to
+ * surface CSRF mismatches as a browser CORS error because it never retried.
+ */
+export async function authorizeBroadcastChannel(
+  channelName: string,
+  socketId: string,
+): Promise<BroadcastAuthPayload> {
+  const data = await post<unknown>('broadcasting/auth', {
+    socket_id: socketId,
+    channel_name: channelName,
+  })
+
+  if (
+    typeof data !== 'object'
+    || data === null
+    || !('auth' in data)
+    || typeof (data as { auth: unknown }).auth !== 'string'
+  ) {
+    throw new Error('Invalid broadcast auth response')
+  }
+
+  const payload = data as { auth: string; channel_data?: unknown; shared_secret?: unknown }
+  return {
+    auth: payload.auth,
+    ...(typeof payload.channel_data === 'string' ? { channel_data: payload.channel_data } : {}),
+    ...(typeof payload.shared_secret === 'string' ? { shared_secret: payload.shared_secret } : {}),
+  }
+}
 
 let echoInstance: PusherEcho | null = null
 let stopConnectionWatch: (() => void) | null = null
@@ -72,57 +108,8 @@ function readConfig(): BroadcastConfig | null {
 function createEcho(config: BroadcastConfig): PusherEcho {
   const authorizer: ChannelAuthorizerGenerator = (channel) => ({
     authorize: (socketId, callback) => {
-      const crossOrigin = isCrossOrigin(config.authEndpoint)
-      const run = async (): Promise<Response> => {
-        if (crossOrigin) {
-          await ensureCsrf()
-        }
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        }
-        const headerObj = new Headers(headers)
-        applySpaRequestHeader(headerObj)
-        if (crossOrigin) {
-          applyCsrfHeader(headerObj)
-        }
-        return fetch(config.authEndpoint, {
-          method: 'POST',
-          credentials: crossOrigin ? 'include' : 'same-origin',
-          headers: headerObj,
-          body: JSON.stringify({
-            socket_id: socketId,
-            channel_name: channel.name,
-          }),
-        })
-      }
-      run()
-        .then(async (res) => {
-          const data: unknown = await res.json()
-          if (!res.ok) {
-            callback(new Error('Broadcast auth failed'), null)
-            return
-          }
-          if (
-            typeof data !== 'object'
-            || data === null
-            || !('auth' in data)
-            || typeof data.auth !== 'string'
-          ) {
-            callback(new Error('Invalid broadcast auth response'), null)
-            return
-          }
-          callback(null, {
-            auth: data.auth,
-            ...('channel_data' in data && typeof data.channel_data === 'string'
-              ? { channel_data: data.channel_data }
-              : {}),
-            ...('shared_secret' in data && typeof data.shared_secret === 'string'
-              ? { shared_secret: data.shared_secret }
-              : {}),
-          })
-        })
+      authorizeBroadcastChannel(channel.name, socketId)
+        .then((auth) => callback(null, auth))
         .catch((err: unknown) => {
           callback(err instanceof Error ? err : new Error(String(err)), null)
         })

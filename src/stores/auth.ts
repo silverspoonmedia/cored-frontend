@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import i18n from '@/i18n'
-import { post, get, setRefreshHandler, setUnauthorizedHandler } from '@/api/client'
-import { clearCsrf } from '@/api/csrf'
+import { post, get, setRefreshHandler, setUnauthorizedHandler, markSessionIssued, clearSessionIssued, isSessionSettling } from '@/api/client'
+import { clearCsrf, refreshCsrf } from '@/api/csrf'
 import type { ApiResponse, AuthPayload, LoginResult, TwoFactorChallengePayload, User } from '@/api/types'
 
 const STORAGE_KEY = 'mw_auth'
@@ -102,6 +102,7 @@ function applyAuth(payload: AuthPayload): void {
   user.value = payload.user
   expiresAt.value = Date.now() + payload.expires_in * 1000
   remember.value = payload.remember
+  markSessionIssued()
   scheduleRefresh()
 }
 
@@ -109,6 +110,7 @@ function clearAuth(): void {
   user.value = null
   expiresAt.value = null
   clearCsrf()
+  clearSessionIssued()
   remember.value = false
   clearLeftoverTokenStorage()
   if (refreshTimer) {
@@ -218,8 +220,15 @@ async function doRefresh(): Promise<boolean> {
 setRefreshHandler(refreshSession)
 setUnauthorizedHandler(() => {
   const wasAuth = !!user.value
+  // A guest 401 (cold-boot GET auth/me, no session cookie) is not session death.
+  // clearAuth() would drop a CSRF nonce and reset hydration flags, which races
+  // the first post-login POST /batch against a second minted cookie.
+  if (!wasAuth) return
+  // Failed refresh in the post-login cookie-settle window is not logout —
+  // the JWT was just minted; the cookie is still committing.
+  if (isSessionSettling()) return
   clearAuth()
-  if (wasAuth && typeof window !== 'undefined' && window.location.pathname !== '/login') {
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
     window.location.assign('/login')
   }
 })
@@ -235,6 +244,7 @@ export function useAuth() {
     verifyTwoFactor,
     logout,
     fetchMe,
+    confirmSession,
     hydrate,
     hydrateShell,
     hasPermission,
@@ -272,6 +282,9 @@ async function login(
       }
     }
     applyAuth(data as AuthPayload)
+    // Mint CSRF after the JWT Set-Cookie is processed so the nonce shares the
+    // same cookie jar as the session. Guest hydrates must not have minted one.
+    await refreshCsrf()
     return { type: 'authenticated', user: (data as AuthPayload).user }
   }
 
@@ -291,6 +304,7 @@ async function verifyTwoFactor(
 
   if (res.status === 'success' && res.data) {
     applyAuth(res.data)
+    await refreshCsrf()
     return res.data.user
   }
 
@@ -314,6 +328,7 @@ async function register(
 
   if (res.status === 'success' && res.data) {
     applyAuth(res.data)
+    await refreshCsrf()
     return res.data.user
   }
 
@@ -371,6 +386,24 @@ async function fetchMe(): Promise<User> {
   throw new Error(res.message ?? translated('web.auth.fetch_user_failed'))
 }
 
+/**
+ * Post-login cookie-settle: GET auth/me once, retry once if the Set-Cookie
+ * has not landed. Callers must not navigate until this returns true.
+ */
+async function confirmSession(): Promise<boolean> {
+  try {
+    await fetchMe()
+    return true
+  } catch {
+    try {
+      await fetchMe()
+      return true
+    } catch {
+      return false
+    }
+  }
+}
+
 let hydrated = false
 
 async function hydrate(): Promise<void> {
@@ -389,16 +422,26 @@ async function hydrate(): Promise<void> {
 }
 
 /**
- * Cold-boot hydrate via the shell batch — one Worker invocation covers
- * auth/me + nav trees + notification bell. Falls back to the legacy
- * single-fetch hydrate when the batch itself fails.
+ * Cold-boot: probe the session with GET auth/me (safe method, no CSRF), then
+ * fan-in shell widgets via POST /batch only when a session exists. A guest
+ * must not POST /batch — that mutation mints a CSRF nonce before the JWT
+ * cookie exists and races the first authenticated batch after login.
  */
 async function hydrateShell(): Promise<void> {
   if (hydrated) return
-  const { hydrateShell: shellHydrate } = await import('@/composables/useShellHydrate')
-  await shellHydrate()
   hydrated = true
   clearLeftoverTokenStorage()
+
+  try {
+    const res = await get<ApiResponse<User>>('auth/me')
+    if (res.status === 'success' && res.data) {
+      user.value = res.data
+      const { hydrateShell: shellHydrate } = await import('@/composables/useShellHydrate')
+      await shellHydrate()
+    }
+  } catch {
+    user.value = null
+  }
 }
 
 function hasPermission(permission: string): boolean {

@@ -9,7 +9,11 @@ let hydrated = false
 let inflight: Promise<void> | null = null
 
 /**
- * Fan the authenticated shell's bootstrap reads into one Worker invocation.
+ * Fan the authenticated shell's bootstrap reads into one HTTP batch.
+ *
+ * Callers must already have a session: the route guard probes GET auth/me
+ * first and only then invokes this. A guest POST /batch would mint CSRF
+ * before the JWT cookie exists and race the first authenticated batch.
  *
  * Each entry is checked independently: a sub-response only seeds its store when
  * it is a 200 success envelope, and anything that fails leaves the owning
@@ -51,9 +55,9 @@ export async function hydrateShell(): Promise<void> {
 
       hydrated = true
     } catch {
-      // Batch itself failed (401 handled by the client's refresh path, or a
-      // network/Worker error). Leave every store untouched — the per-feature
-      // loaders in AppLayout/AppNavbar remain the source of truth.
+      // Batch itself failed (settle 401 retry, network). Leave every store
+      // untouched — the per-feature loaders in AppLayout/AppNavbar remain
+      // the source of truth.
     } finally {
       inflight = null
     }

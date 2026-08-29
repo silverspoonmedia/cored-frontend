@@ -11,7 +11,7 @@ import { ApiError } from '@/api/types'
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
-const { verifyTwoFactor } = useAuth()
+const { verifyTwoFactor, confirmSession } = useAuth()
 const { error: showError } = useAlert()
 const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
@@ -35,6 +35,11 @@ async function handleSubmit(): Promise<void> {
   try {
     const captcha = await captchaToken()
     await verifyTwoFactor(token.value, code.value, captcha)
+    const ok = await confirmSession()
+    if (!ok) {
+      error.value = t('web.auth.fetch_user_failed')
+      return
+    }
     router.push({ name: 'dashboard.view' })
   } catch (e) {
     resetCaptcha()

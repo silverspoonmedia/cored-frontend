@@ -44,7 +44,7 @@ Never import `valkivid3.css` (or `main.css`) from the other namespace; the two b
 | `npm run dev` | Vite development server (`http://localhost:5173`) |
 | `npm run type-check` | `vue-tsc --build` |
 | `npm run check:i18n` | Locale key/placeholder parity + hardcoded-copy heuristics |
-| `npm test` | Vitest (client helpers + notification deep-link resolver) |
+| `npm test` | Vitest (`client.ts` CSRF/419/settle, Echo authorizer, request headers, notification deep-link resolver) |
 | `npm run build` | Type-check + production build |
 | `npm run build-only` | Vite production build |
 | `npm run preview` | Build + `wrangler dev` |

@@ -15,12 +15,29 @@ let refreshHandler: RefreshHandler | null = null
 let unauthorizedHandler: UnauthorizedHandler | null = null
 let refreshPromise: Promise<boolean> | null = null
 
+/** Window after login/register/refresh where a 401 is cookie-settle, not expiry. */
+const SESSION_SETTLE_MS = 5_000
+let sessionIssuedAt = 0
+
 export function setRefreshHandler(handler: RefreshHandler): void {
   refreshHandler = handler
 }
 
 export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
   unauthorizedHandler = handler
+}
+
+/** Call from applyAuth after a new JWT cookie is minted (login/register/2FA/refresh). */
+export function markSessionIssued(): void {
+  sessionIssuedAt = Date.now()
+}
+
+export function clearSessionIssued(): void {
+  sessionIssuedAt = 0
+}
+
+export function isSessionSettling(): boolean {
+  return sessionIssuedAt > 0 && Date.now() - sessionIssuedAt < SESSION_SETTLE_MS
 }
 
 function buildHeaders(hasBody: boolean, isFormData: boolean, crossOrigin: boolean, mutating: boolean): Headers {
@@ -119,7 +136,14 @@ function ensureRefresh(): Promise<boolean> {
 }
 
 function skipAuthRefresh(uri: string): boolean {
-  return uri === 'auth/refresh' || uri === 'auth/logout'
+  // auth/me 401 means no session cookie, not an expired JWT. Guest cold-boot
+  // and post-login settle must not POST /auth/refresh (that 401s without a
+  // cookie and used to clearAuth the session that login just created).
+  return uri === 'auth/refresh' || uri === 'auth/logout' || uri === 'auth/me'
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 // Auth-session endpoints are CSRF-skipped server-side (a guest has no nonce
@@ -148,7 +172,10 @@ async function request<T>(
   const mutating = isMutating(method)
 
   // Cross-origin mutations need the double-submit CSRF nonce before they run.
-  if (crossOrigin && mutating) {
+  // Auth-session paths skip it server-side (no session to ride yet); fetching
+  // a nonce here would mint __Host-spa_csrf before login and race the first
+  // authenticated POST /batch against a second cookie.
+  if (crossOrigin && mutating && !isAuthSessionPath(uri)) {
     await ensureCsrf()
   }
 
@@ -177,18 +204,33 @@ async function request<T>(
     return json as T
   }
 
-  if (response.status === 401 && refreshHandler && !skipAuthRefresh(uri)) {
-    const refreshed = await ensureRefresh()
-    if (refreshed) {
-      const retryRes = await doFetch()
-      const retryJson = await readJson(retryRes)
-      if (retryRes.ok) {
-        return retryJson as T
+  if (response.status === 401 && !skipAuthRefresh(uri)) {
+    // Brand-new session: the JWT Set-Cookie may not be in the jar yet.
+    // Retry the original request once; do not POST /auth/refresh (no cookie
+    // → 401, and a successful refresh would blacklist the login token).
+    if (isSessionSettling()) {
+      await sleep(50)
+      const settleRes = await doFetch()
+      const settleJson = await readJson(settleRes)
+      if (settleRes.ok) {
+        return settleJson as T
       }
-      throwForStatus(retryRes, retryJson)
-    } else {
-      unauthorizedHandler?.()
-      throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+      throwForStatus(settleRes, settleJson)
+    }
+
+    if (refreshHandler) {
+      const refreshed = await ensureRefresh()
+      if (refreshed) {
+        const retryRes = await doFetch()
+        const retryJson = await readJson(retryRes)
+        if (retryRes.ok) {
+          return retryJson as T
+        }
+        throwForStatus(retryRes, retryJson)
+      } else {
+        unauthorizedHandler?.()
+        throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+      }
     }
   }
 
@@ -290,13 +332,18 @@ export async function getBlob(
 
   let response = await doFetch()
 
-  if (response.status === 401 && refreshHandler) {
-    const refreshed = await ensureRefresh()
-    if (refreshed) {
+  if (response.status === 401) {
+    if (isSessionSettling()) {
+      await sleep(50)
       response = await doFetch()
-    } else {
-      unauthorizedHandler?.()
-      throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+    } else if (refreshHandler) {
+      const refreshed = await ensureRefresh()
+      if (refreshed) {
+        response = await doFetch()
+      } else {
+        unauthorizedHandler?.()
+        throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+      }
     }
   }
 

@@ -12,7 +12,7 @@ import { safeInternalRedirect } from '@/lib/safeRedirect'
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
-const { register } = useAuth()
+const { register, confirmSession } = useAuth()
 const { error: showError } = useAlert()
 const { widget, captchaToken, resetCaptcha } = useHcaptcha()
 
@@ -33,6 +33,11 @@ async function handleSubmit(): Promise<void> {
   try {
     const captcha = await captchaToken()
     await register(name.value, email.value, password.value, passwordConfirmation.value, captcha)
+    const ok = await confirmSession()
+    if (!ok) {
+      showError(t('web.auth.fetch_user_failed'))
+      return
+    }
     router.push(safeInternalRedirect(route.query.redirect))
   } catch (e) {
     resetCaptcha()
