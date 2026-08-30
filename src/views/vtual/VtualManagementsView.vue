@@ -4,14 +4,14 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
-import { confirmDialog } from '@/lib/swal'
+import RowActions from '@/components/RowActions.vue'
 import { useVtualManagements } from '@/composables/vtual/useVtualManagements'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { ListParams } from '@/composables/useResource'
-import type { VtualManagement } from '@/api/types'
+import type { QueryRowAction, VtualManagement } from '@/api/types'
+import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -58,36 +58,20 @@ const columns = computed<DataTableColumn[]>(() => [
 ])
 
 function editManagement(row: VtualManagement): void {
-  router.push({ name: 'vtual.managements.edit.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'edit'))
+  if (to) void router.push(to)
 }
 
-function managementActions(row: VtualManagement): RowAction[] {
-  return [
-    {
-      key: 'edit',
-      icon: 'pencil',
-      label: t('ui.actions.edit'),
-      variant: 'secondary',
-      to: { name: 'vtual.managements.edit.view', params: { id: row.id } },
+function managementActions(row: VtualManagement) {
+  return mapQueryRowActions(row.actions, {
+    archive: (action) => {
+      void archiveManagement(row, action)
     },
-    {
-      key: 'archive',
-      icon: 'trash3',
-      label: t('ui.actions.delete'),
-      variant: 'danger',
-      onClick: () => {
-        void archiveManagement(row)
-      },
-    },
-  ]
-}
-
-async function archiveManagement(row: VtualManagement): Promise<void> {
-  const confirmed = await confirmDialog({
-    title: t('ui.datatable.delete'),
-    text: t('web.vtual-managements.datatable.confirm_delete'),
-    confirmText: t('ui.actions.delete'),
   })
+}
+
+async function archiveManagement(row: VtualManagement, action: QueryRowAction): Promise<void> {
+  const confirmed = await confirmQueryMutate(action, t('ui.actions.delete'))
   if (!confirmed) {
     return
   }

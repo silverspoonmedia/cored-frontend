@@ -278,15 +278,6 @@ async function openConfirm(title: string, message: string, action: () => Promise
   if (confirmed) await action()
 }
 
-async function handleRefreshChannel(channelId: string): Promise<void> {
-  try {
-    await vtual.refreshChannel(channelId)
-    showSuccess(t('web.vtual.profiles.ajax.refresh_queued'))
-  } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual.profiles.errors.refresh_failed'))
-  }
-}
-
 async function handleArchiveChannel(channelId: string): Promise<void> {
   try {
     const updated = await vtual.archiveChannel(channelId)
@@ -592,7 +583,6 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
           </div>
           <div v-if="canMutate" class="mt-2 d-flex flex-wrap gap-1">
             <button v-if="ch.visibility === 'private' && ch.discovery_source === 'discord_connection'" class="btn btn-outline-primary btn-sm" @click="handlePromoteChannel(ch.id)">{{ t('web.vtual.actions.promote') }}</button>
-            <button class="btn btn-outline-secondary btn-sm" @click="handleRefreshChannel(ch.id)">{{ t('web.vtual.actions.refresh') }}</button>
             <button class="btn btn-outline-danger btn-sm" @click="openConfirm(t('web.vtual.confirm.archive_channel_title'), t('web.vtual.confirm.archive_channel_body'), () => handleArchiveChannel(ch.id), t('web.vtual.actions.archive'), 'warning')">{{ t('web.vtual.actions.archive') }}</button>
           </div>
         </div>

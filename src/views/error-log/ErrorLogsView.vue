@@ -11,6 +11,7 @@ import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useLogsRealtime } from '@/composables/error-log/useLogsRealtime'
 import type { ErrorLog } from '@/api/types'
 import { ERROR_LOG_LEVEL_BADGE, ERROR_LOG_STATUS_BADGE } from '@/utils/statusBadge'
+import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -45,7 +46,8 @@ const columns: DataTableColumn[] = [
 ]
 
 function viewDetail(row: ErrorLog): void {
-  router.push({ name: 'error-logs.show.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'view'))
+  if (to) void router.push(to)
 }
 
 function resetFilters(): void {
@@ -151,9 +153,7 @@ onUnmounted(() => {
       </template>
 
       <template #actions="{ row }: { row: ErrorLog }">
-        <RowActions
-          :actions="[{ key: 'view', icon: 'eye', label: t('web.error-log.view_detail'), variant: 'secondary', to: { name: 'error-logs.show.view', params: { id: row.id } } }]"
-        />
+        <RowActions :actions="mapQueryRowActions(row.actions)" />
       </template>
     </DataTable>
   </Card>

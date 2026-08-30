@@ -4,14 +4,14 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import { confirmDialog } from '@/lib/swal'
 import { usePaymentGateways } from '@/composables/payment-gateway/usePaymentGateways'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import type { PaymentGateway } from '@/api/types'
+import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -31,28 +31,19 @@ const columns: DataTableColumn[] = [
 ]
 
 function editGateway(row: PaymentGateway): void {
-  router.push({ name: 'payment-gateways.edit.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'edit'))
+  if (to) void router.push(to)
 }
 
-function gatewayActions(row: PaymentGateway): RowAction[] {
-  return [
-    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'payment-gateways.edit.view', params: { id: row.id } } },
-    {
-      key: 'delete',
-      icon: 'trash3',
-      label: t('ui.actions.delete'),
-      variant: 'danger',
-      onClick: async () => {
+function gatewayActions(row: PaymentGateway) {
+  return mapQueryRowActions(row.actions, {
+    delete: (action) => {
+      void (async () => {
         deleteTarget.value = row
-        const confirmed = await confirmDialog({
-          title: t('ui.datatable.delete'),
-          text: t('web.payments.gateways.confirm_delete'),
-          confirmText: t('ui.actions.delete'),
-        })
-        if (confirmed) await handleDelete()
-      },
+        if (await confirmQueryMutate(action, t('ui.actions.delete'))) await handleDelete()
+      })()
     },
-  ]
+  })
 }
 
 async function handleDelete(): Promise<void> {

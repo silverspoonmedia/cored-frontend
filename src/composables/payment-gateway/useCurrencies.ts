@@ -85,12 +85,8 @@ async function setSettlement(code: string): Promise<void> {
       is_settlement: true,
     })
     if (res.status === 'success' && res.data) {
-      const updated = res.data
-      currencies.value = currencies.value.map((c) => ({
-        ...c,
-        is_settlement: c.code === updated.code ? true : false,
-      }))
-      showSuccess(translated('web.currencies.settlement_updated', { code: updated.code }))
+      await refetch()
+      showSuccess(translated('web.currencies.settlement_updated', { code: res.data.code }))
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : translated('web.currencies.settlement_failed'))

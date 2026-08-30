@@ -4,9 +4,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import { confirmDialog } from '@/lib/swal'
 import { useServices } from '@/composables/service/useServices'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
@@ -15,6 +14,7 @@ import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
 import type { Service } from '@/api/types'
 import { SERVICE_STATUS_BADGE } from '@/utils/statusBadge'
+import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -39,36 +39,19 @@ const columns: DataTableColumn[] = [
 ]
 
 function showService(row: Service): void {
-  router.push({ name: 'services.show.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'view'))
+  if (to) void router.push(to)
 }
 
-function editService(row: Service): void {
-  router.push({ name: 'services.edit.view', params: { id: row.id } })
-}
-
-function serviceActions(row: Service): RowAction[] {
-  const actions: RowAction[] = [
-    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', to: { name: 'services.show.view', params: { id: row.id } } },
-  ]
-  if (canManage.value) {
-    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'services.edit.view', params: { id: row.id } } })
-    actions.push({
-      key: 'delete',
-      icon: 'trash3',
-      label: t('ui.actions.delete'),
-      variant: 'danger',
-      onClick: async () => {
+function serviceActions(row: Service) {
+  return mapQueryRowActions(row.actions, {
+    delete: (action) => {
+      void (async () => {
         deleteTarget.value = row
-        const confirmed = await confirmDialog({
-          title: t('ui.datatable.delete'),
-          text: t('web.services.confirm_delete'),
-          confirmText: t('ui.actions.delete'),
-        })
-        if (confirmed) await handleDelete()
-      },
-    })
-  }
-  return actions
+        if (await confirmQueryMutate(action, t('ui.actions.delete'))) await handleDelete()
+      })()
+    },
+  })
 }
 
 async function handleDelete(): Promise<void> {

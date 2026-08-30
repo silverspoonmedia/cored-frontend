@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, type RouteLocationRaw } from 'vue-router'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useNotificationAudiences } from '@/composables/notification/useNotificationAudiences'
 import { useAuth } from '@/stores/auth'
 import type { NotificationAudience } from '@/api/types'
+import { findQueryRowAction, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const { items, loading, error, load } = useNotificationAudiences()
 const { hasPermission } = useAuth()
@@ -21,9 +22,17 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'notify_subject_user', label: t('web.notification-audiences.include_subject_col'), sortable: true },
 ])
 
+function audienceEditTo(row: NotificationAudience): RouteLocationRaw | undefined {
+  return queryRowActionTo(findQueryRowAction(row.actions, 'edit'))
+}
+
+function audienceEditLink(row: NotificationAudience): RouteLocationRaw {
+  return audienceEditTo(row) ?? { name: 'notification-audiences.index.view' }
+}
+
 function editAudience(row: NotificationAudience): void {
-  if (!canManage.value) return
-  router.push({ name: 'notification-audiences.edit.view', params: { type: row.type } })
+  const to = audienceEditTo(row)
+  if (to) void router.push(to)
 }
 
 onMounted(() => {
@@ -79,10 +88,11 @@ onMounted(() => {
 
       <template v-if="canManage" #actions="{ row }: { row: NotificationAudience }">
         <router-link
-          :to="{ name: 'notification-audiences.edit.view', params: { type: row.type } }"
+          v-if="audienceEditTo(row)"
+          :to="audienceEditLink(row)"
           class="btn btn-sm btn-outline-primary"
         >
-          <i class="bi bi-pencil" aria-hidden="true"></i> {{ t('actions.edit') }}
+          <i class="bi bi-pencil" aria-hidden="true"></i> {{ findQueryRowAction(row.actions, 'edit')?.label }}
         </router-link>
       </template>
     </DataTable>

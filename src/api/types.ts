@@ -19,6 +19,27 @@ export interface PagedList<T> {
   pagination: ListPagination
 }
 
+export interface QueryRowActionConfirm {
+  title: string
+  text: string
+}
+
+/** Query-mode list row action emitted by Monolith. Views must not invent keys. */
+export interface QueryRowAction {
+  key: string
+  label: string
+  icon: string
+  variant: string
+  route?: string
+  params?: Record<string, string | number>
+  query?: Record<string, string | number>
+  href?: string
+  target?: string
+  method?: string
+  path?: string
+  confirm?: QueryRowActionConfirm
+}
+
 export interface ValidationErrors {
   [field: string]: string[]
 }
@@ -90,6 +111,7 @@ export type LoginResult =
   | { type: 'two_factor_challenge'; token: string; expiresInSeconds: number }
 
 export interface Currency {
+  actions?: QueryRowAction[]
   code: string
   name: string
   symbol: string | null
@@ -99,6 +121,7 @@ export interface Currency {
 }
 
 export interface NotificationAudience {
+  actions?: QueryRowAction[]
   type: string
   label: string
   icon: string
@@ -127,6 +150,7 @@ export interface ActivityLogCauser {
 }
 
 export interface ActivityLog {
+  actions?: QueryRowAction[]
   id: number
   log_name: string | null
   description: string | null
@@ -154,6 +178,7 @@ export interface ErrorLogResolver {
 }
 
 export interface ErrorLog {
+  actions?: QueryRowAction[]
   id: number
   fingerprint: string | null
   type: string | null
@@ -246,6 +271,7 @@ export interface UserAssignableRole {
 }
 
 export interface UserManagement {
+  actions?: QueryRowAction[]
   id: string
   name: string
   email: string
@@ -290,6 +316,7 @@ export interface DiscordAuthorizeUrl {
 
 // --- Navigation/Menus ---
 export interface MenuListItem {
+  actions?: QueryRowAction[]
   id: string
   parent_id: string | null
   layout: string
@@ -333,6 +360,7 @@ export interface MenuTrashedItem extends MenuListItem {
 
 // --- Inference Model Cards ---
 export interface AiModelCard {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   display_name: string | null
@@ -525,6 +553,7 @@ export interface PaymentIncomeInvoicesPayload {
 
 // --- Microstock Usage ---
 export interface MicrostockCredential {
+  actions?: QueryRowAction[]
   id: string
   marketplace: string
   label: string
@@ -701,6 +730,7 @@ export interface SyncStatusResult {
 
 // --- Inference Providers ---
 export interface InferenceProvider {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   name: string
@@ -730,6 +760,7 @@ export interface ProviderModelRate {
 
 // --- Payment Gateways ---
 export interface PaymentGateway {
+  actions?: QueryRowAction[]
   id: string
   name: string
   display_name: string
@@ -751,6 +782,7 @@ export interface InvoicePaymentGateway {
 }
 
 export interface Invoice {
+  actions?: QueryRowAction[]
   id: string
   invoiceable_id: string | null
   invoiceable_type?: string | null
@@ -966,6 +998,7 @@ export interface VtualExternalLink {
 }
 
 export interface VtualPlatform {
+  actions?: QueryRowAction[]
   id: string
   key: string
   name: string
@@ -975,6 +1008,7 @@ export interface VtualPlatform {
 }
 
 export interface VtualCreator {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   display_name: string
@@ -996,6 +1030,7 @@ export interface VtualCreator {
 }
 
 export interface VtualPlatformCredential {
+  actions?: QueryRowAction[]
   id: string
   platform_id: string
   platform_key?: string
@@ -1040,6 +1075,7 @@ export interface VtualPlatformCredentialTestPayload {
 
 // --- Subscriptions ---
 export interface Subscription {
+  actions?: QueryRowAction[]
   id: string
   subscription_number: string
   subscriber_name: string
@@ -1082,6 +1118,7 @@ export interface ServicePrice {
 }
 
 export interface Service {
+  actions?: QueryRowAction[]
   id: string
   code: string
   name: string
@@ -1257,6 +1294,7 @@ export interface FhPublicBrowsePayload {
 }
 
 export interface FhHashBlocklistEntry {
+  actions?: QueryRowAction[]
   id: string
   sha256: string
   reason: string | null
@@ -1353,6 +1391,7 @@ export interface VtualManagementCreatorAssignment {
 }
 
 export interface VtualManagement {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   name: string

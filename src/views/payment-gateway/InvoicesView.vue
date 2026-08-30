@@ -11,6 +11,7 @@ import { useAlert } from '@/composables/useAlert'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { Invoice } from '@/api/types'
 import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
+import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -41,7 +42,8 @@ async function handleExport(): Promise<void> {
 }
 
 function viewInvoice(row: Invoice): void {
-  router.push({ name: 'invoices.show.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'view'))
+  if (to) void router.push(to)
 }
 </script>
 
@@ -96,9 +98,7 @@ function viewInvoice(row: Invoice): void {
       </template>
 
       <template #actions="{ row }: { row: Invoice }">
-        <RowActions
-          :actions="[{ key: 'view', icon: 'eye', label: t('actions.view'), variant: 'primary', to: { name: 'invoices.show.view', params: { id: row.id } } }]"
-        />
+        <RowActions :actions="mapQueryRowActions(row.actions)" />
       </template>
     </DataTable>
   </Card>

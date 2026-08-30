@@ -9,6 +9,7 @@ import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useVtualRealtime } from '@/composables/vtual/useVtualRealtime'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import type { VtualPlatform } from '@/api/types'
+import { findQueryRowAction, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { fetchPlatforms, fetchCredentials } = useVtual()
@@ -87,7 +88,8 @@ onUnmounted(() => {
 })
 
 function managePlatform(row: VtualPlatform): void {
-  router.push({ name: 'vtual.platform-credentials.platform.view', params: { platformId: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'manage'))
+  if (to) void router.push(to)
 }
 
 const columns = computed<DataTableColumn[]>(() => [
@@ -141,10 +143,11 @@ const columns = computed<DataTableColumn[]>(() => [
 
       <template #actions="{ row }: { row: VtualPlatform }">
         <button
+          v-if="findQueryRowAction(row.actions, 'manage')"
           class="btn btn-outline-primary btn-sm"
           @click.stop="managePlatform(row)"
         >
-          <i class="bi bi-gear me-1"></i> {{ t('web.vtual.manage_button') }}
+          <i class="bi bi-gear me-1"></i> {{ findQueryRowAction(row.actions, 'manage')?.label }}
         </button>
       </template>
     </DataTable>

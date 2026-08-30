@@ -4,9 +4,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import { confirmDialog } from '@/lib/swal'
 import { useInferenceModelCards } from '@/composables/inference/useInferenceModelCards'
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
@@ -14,6 +13,7 @@ import { useInferenceRealtime } from '@/composables/inference/useInferenceRealti
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import type { AiModelCard } from '@/api/types'
+import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -38,36 +38,19 @@ const { subscribe, unsubscribe } = useInferenceRealtime()
 const realtimeHandlers = { onCatalogChanged: () => fetchList() }
 
 function showCard(row: AiModelCard): void {
-  router.push({ name: 'inference.model-cards.show.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'view'))
+  if (to) void router.push(to)
 }
 
-function editCard(row: AiModelCard): void {
-  router.push({ name: 'inference.model-cards.edit.view', params: { id: row.id } })
-}
-
-function cardActions(row: AiModelCard): RowAction[] {
-  const actions: RowAction[] = [
-    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', to: { name: 'inference.model-cards.show.view', params: { id: row.id } } },
-  ]
-  if (canManage.value) {
-    actions.push({ key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'inference.model-cards.edit.view', params: { id: row.id } } })
-    actions.push({
-      key: 'delete',
-      icon: 'trash3',
-      label: t('ui.actions.delete'),
-      variant: 'danger',
-      onClick: async () => {
+function cardActions(row: AiModelCard) {
+  return mapQueryRowActions(row.actions, {
+    delete: (action) => {
+      void (async () => {
         deleteTarget.value = row
-        const confirmed = await confirmDialog({
-          title: t('ui.datatable.delete'),
-          text: t('web.inference.confirm.delete'),
-          confirmText: t('ui.actions.delete'),
-        })
-        if (confirmed) await handleDelete()
-      },
-    })
-  }
-  return actions
+        if (await confirmQueryMutate(action, t('ui.actions.delete'))) await handleDelete()
+      })()
+    },
+  })
 }
 
 async function handleDelete(): Promise<void> {

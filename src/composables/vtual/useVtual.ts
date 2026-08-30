@@ -202,12 +202,6 @@ export function useVtual() {
   }
 
   // Channel actions
-  async function refreshChannel(channelId: string): Promise<VtualChannel> {
-    const res = await post<ApiResponse<VtualChannel>>(`vtual/channels/${channelId}/refresh`)
-    if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? t('web.vtual.errors.refresh_failed'))
-  }
-
   async function archiveChannel(channelId: string): Promise<VtualChannel> {
     const res = await post<ApiResponse<VtualChannel>>(`vtual/channels/${channelId}/archive`)
     if (res.status === 'success' && res.data) return res.data
@@ -360,7 +354,6 @@ export function useVtual() {
     fetchArchivedChannels,
     fetchChannelClaims,
     fetchLinks,
-    refreshChannel,
     archiveChannel,
     restoreChannel,
     promoteChannel,

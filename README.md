@@ -164,7 +164,7 @@ The valkivid3 public template (`/vtual`) already had its own retry-panel pattern
 
 Any button whose only effect is SPA navigation (`router.push(...)`) is a `<router-link :to="...">` so the browser reveals the destination URL on hover. Real actions (delete, save, export, probe, restore) and `router.back()` (history-dependent, not resolvable) stay `<button>`.
 
-- `RowActions.vue`: each `RowAction` is either nav (`to: RouteLocationRaw` → `<router-link>`) or action (`onClick` → `<button>`). Both use `@click.stop` so clicks don't bubble to `DataTable` row-click.
+- `RowActions.vue`: each `RowAction` is in-app nav (`to: RouteLocationRaw` → `<router-link>`), external URL (`href` + optional `target` → `<a>`), or action (`onClick` → `<button>`). All three use `@click.stop` so clicks don't bubble to `DataTable` row-click. Keys, destinations, RBAC visibility, and mutate confirm copy come from Monolith query-mode `row.actions[]`. Map with `src/utils/mapQueryRowActions.ts` — do not invent keys in the view. Put every row control in the mapped `actions` array — do not add a sibling button next to `RowActions`. Lists that already use labeled chrome stay labeled and still read `row.actions`.
 - Standalone create/back/cancel buttons use `<router-link>` with Bootstrap button classes. A disabled nav (e.g. cancel while saving) uses `<router-link>` + `class="disabled"` + `aria-disabled="true"` + `tabindex="-1"` (the native `:disabled` attribute only works on `<button>`).
 
 ## Notifications & confirmations

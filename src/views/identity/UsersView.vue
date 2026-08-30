@@ -4,8 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
-import { confirmDialog } from '@/lib/swal'
+import RowActions from '@/components/RowActions.vue'
 import { useUsers } from '@/composables/identity/useUsers'
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
@@ -13,16 +12,16 @@ import { useAdminRealtime } from '@/composables/useAdminRealtime'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import type { UserManagement } from '@/api/types'
+import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
 const { items, loading, error, fetchList, pagination, deleteUser } = useUsers()
-const { hasPermission, user } = useAuth()
+const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 
 const canCreate = computed(() => hasPermission('create user'))
-const canDelete = computed(() => hasPermission('delete user'))
 const deleteTarget = ref<UserManagement | null>(null)
 const deleting = ref(false)
 
@@ -39,31 +38,19 @@ const { subscribe: subscribeAdmin, unsubscribe: unsubscribeAdmin } = useAdminRea
 const adminHandlers = { onRbacChanged: () => fetchList() }
 
 function editUser(row: UserManagement): void {
-  router.push({ name: 'users.edit.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'edit'))
+  if (to) void router.push(to)
 }
 
-function userActions(row: UserManagement): RowAction[] {
-  const actions: RowAction[] = [
-    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'secondary', to: { name: 'users.edit.view', params: { id: row.id } } },
-  ]
-  if (canDelete.value && String(row.id) !== String(user.value?.id)) {
-    actions.push({
-      key: 'delete',
-      icon: 'trash3',
-      label: t('ui.actions.delete'),
-      variant: 'danger',
-      onClick: async () => {
+function userActions(row: UserManagement) {
+  return mapQueryRowActions(row.actions, {
+    delete: (action) => {
+      void (async () => {
         deleteTarget.value = row
-        const confirmed = await confirmDialog({
-          title: t('ui.datatable.delete'),
-          text: t('ui.datatable.confirm.delete_user'),
-          confirmText: t('ui.actions.delete'),
-        })
-        if (confirmed) await handleDelete()
-      },
-    })
-  }
-  return actions
+        if (await confirmQueryMutate(action, t('ui.actions.delete'))) await handleDelete()
+      })()
+    },
+  })
 }
 
 onMounted(() => {

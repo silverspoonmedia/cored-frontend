@@ -9,6 +9,7 @@ import { useMenus } from '@/composables/navigation/useMenus'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { MenuTrashedItem } from '@/api/types'
+import { mapQueryRowActions } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -42,6 +43,15 @@ async function handleRestore(row: MenuTrashedItem): Promise<void> {
   } finally {
     restoringId.value = null
   }
+}
+
+function trashedActions(row: MenuTrashedItem) {
+  return mapQueryRowActions(row.actions, {
+    restore: () => { void handleRestore(row) },
+  }).map((action) => ({
+    ...action,
+    disabled: action.key === 'restore' && restoringId.value === row.id,
+  }))
 }
 
 onMounted(load)
@@ -93,16 +103,7 @@ onMounted(load)
       </template>
 
       <template v-if="canRestore" #actions="{ row }: { row: MenuTrashedItem }">
-        <RowActions
-          :actions="[{
-            key: 'restore',
-            icon: 'arrow-counterclockwise',
-            label: t('actions.restore'),
-            variant: 'success',
-            disabled: restoringId === row.id,
-            onClick: () => handleRestore(row),
-          }]"
-        />
+        <RowActions :actions="trashedActions(row)" />
       </template>
     </DataTable>
   </Card>

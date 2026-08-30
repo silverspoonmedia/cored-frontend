@@ -2,16 +2,16 @@
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import RowActions from '@/components/RowActions.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
-import { confirmDialog } from '@/lib/swal'
 import { useMenus } from '@/composables/navigation/useMenus'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
-import type { MenuListItem } from '@/api/types'
+import type { MenuListItem, QueryRowAction } from '@/api/types'
+import { confirmQueryMutate, mapQueryRowActions } from '@/utils/mapQueryRowActions'
 
 const { t } = useI18n()
 const { items, loading, error, fetchList, deleteMenu } = useMenus()
@@ -46,37 +46,18 @@ const deleteTarget = ref<MenuListItem | null>(null)
 const cascade = ref(false)
 const deleting = ref(false)
 
-function escapeHtml(value: unknown): string {
-  return String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch] ?? ch)
+function menuActions(row: MenuListItem) {
+  return mapQueryRowActions(row.actions, {
+    delete: (action) => {
+      void confirmDelete(row, action)
+    },
+  })
 }
 
-function menuActions(row: MenuListItem): RowAction[] {
-  return [
-    {
-      key: 'edit',
-      icon: 'pencil',
-      label: t('ui.actions.edit'),
-      variant: 'primary',
-      to: { name: 'menus.edit.view', params: { id: row.id }, query: { layout: layout.value } },
-    },
-    {
-      key: 'delete',
-      icon: 'trash3',
-      label: t('ui.actions.delete'),
-      variant: 'danger',
-      onClick: () => confirmDelete(row),
-    },
-  ]
-}
-
-async function confirmDelete(row: MenuListItem): Promise<void> {
+async function confirmDelete(row: MenuListItem, action: QueryRowAction): Promise<void> {
   deleteTarget.value = row
   cascade.value = (row.children_count ?? 0) > 0
-  const confirmed = await confirmDialog({
-    title: `Delete &quot;${escapeHtml(row.name)}&quot;`,
-    text: t('web.menus.delete_confirm_question', { name: row.name }),
-    confirmText: t('ui.actions.delete'),
-  })
+  const confirmed = await confirmQueryMutate(action, t('ui.actions.delete'))
   if (confirmed) await handleDelete()
   else deleteTarget.value = null
 }

@@ -10,9 +10,9 @@ import { useVtualRealtime, type PlatformCredentialChangedPayload } from '@/compo
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
-import { confirmDialog } from '@/lib/swal'
 import type { VtualPlatformCredential } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
+import { confirmQueryMutate, findQueryRowAction, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const route = useRoute()
 const router = useRouter()
@@ -64,7 +64,9 @@ onUnmounted(() => {
 })
 
 async function handleDelete(cred: VtualPlatformCredential): Promise<void> {
-  if (!(await confirmDialog({ text: t('web.vtual.confirm.delete_credential_body') }))) return
+  const action = findQueryRowAction(cred.actions, 'delete')
+  if (!action) return
+  if (!(await confirmQueryMutate(action, t('web.vtual.credentials.delete')))) return
   setAction(cred.id, true)
   try {
     await vtual.deleteCredential(cred.id)
@@ -78,7 +80,9 @@ async function handleDelete(cred: VtualPlatformCredential): Promise<void> {
 }
 
 async function handleRevoke(cred: VtualPlatformCredential): Promise<void> {
-  if (!(await confirmDialog({ text: t('web.vtual.confirm.revoke_credential_body') }))) return
+  const action = findQueryRowAction(cred.actions, 'revoke')
+  if (!action) return
+  if (!(await confirmQueryMutate(action, t('web.vtual.credentials.revoke')))) return
   setAction(cred.id, true)
   try {
     const updated = await vtual.revokeCredential(cred.id)
@@ -110,6 +114,11 @@ function updateCredentialInList(updated: VtualPlatformCredential): void {
 
 function setAction(id: string, on: boolean): void {
   actionLoading.value = { ...actionLoading.value, [id]: on }
+}
+
+function editCredential(row: VtualPlatformCredential): void {
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'edit'))
+  if (to) void router.push(to)
 }
 
 const columns = computed<DataTableColumn[]>(() => [
@@ -166,34 +175,38 @@ const columns = computed<DataTableColumn[]>(() => [
       <template v-if="canManage" #actions="{ row }: { row: VtualPlatformCredential }">
         <div class="btn-group btn-group-sm">
           <button
+            v-if="findQueryRowAction(row.actions, 'test')"
             class="btn btn-outline-success"
             :disabled="actionLoading[row.id]"
             @click="handleTest(row)"
-            :title="t('web.vtual.credentials.test')"
+            :title="findQueryRowAction(row.actions, 'test')?.label"
           >
             <span v-if="actionLoading[row.id]" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <i v-else class="bi bi-lightning" aria-hidden="true"></i>
           </button>
           <button
+            v-if="findQueryRowAction(row.actions, 'revoke')"
             class="btn btn-outline-warning"
             :disabled="actionLoading[row.id]"
             @click="handleRevoke(row)"
-            :title="t('web.vtual.credentials.revoke')"
+            :title="findQueryRowAction(row.actions, 'revoke')?.label"
           >
             <i class="bi bi-shield-x" aria-hidden="true"></i>
           </button>
           <button
+            v-if="findQueryRowAction(row.actions, 'edit')"
             class="btn btn-outline-primary"
-            @click="router.push({ name: 'vtual.platform-credentials.edit.view', params: { id: row.id } })"
-            :title="t('web.vtual.admin.credentials.edit_action')"
+            @click="editCredential(row)"
+            :title="findQueryRowAction(row.actions, 'edit')?.label"
           >
             <i class="bi bi-pencil" aria-hidden="true"></i>
           </button>
           <button
+            v-if="findQueryRowAction(row.actions, 'delete')"
             class="btn btn-outline-danger"
             :disabled="actionLoading[row.id]"
             @click="handleDelete(row)"
-            :title="t('web.vtual.credentials.delete')"
+            :title="findQueryRowAction(row.actions, 'delete')?.label"
           >
             <i class="bi bi-trash" aria-hidden="true"></i>
           </button>

@@ -7,6 +7,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useCurrencies } from '@/composables/payment-gateway/useCurrencies'
 import { useAuth } from '@/stores/auth'
 import type { Currency } from '@/api/types'
+import { findQueryRowAction } from '@/utils/mapQueryRowActions'
 
 const { currencies, loading, updating, error, load, toggleActive, setSettlement } = useCurrencies()
 const { hasPermission } = useAuth()
@@ -75,6 +76,7 @@ onMounted(() => {
 
       <template v-if="canManage" #actions="{ row }: { row: Currency }">
         <button
+          v-if="findQueryRowAction(row.actions, 'toggle')"
           type="button"
           class="btn btn-sm btn-outline-secondary"
           :disabled="updating.has(row.code)"
@@ -86,17 +88,17 @@ onMounted(() => {
             role="status"
             aria-hidden="true"
           ></span>
-          {{ row.is_active ? t('web.currencies.deactivate_button') : t('web.currencies.activate_button') }}
+          {{ findQueryRowAction(row.actions, 'toggle')?.label }}
         </button>
 
         <button
-          v-if="!row.is_settlement"
+          v-if="findQueryRowAction(row.actions, 'set_settlement')"
           type="button"
           class="btn btn-sm btn-outline-primary ms-1"
           :disabled="updating.has(row.code)"
           @click="setSettlement(row.code)"
         >
-          {{ t('web.currencies.set_settlement_button') }}
+          {{ findQueryRowAction(row.actions, 'set_settlement')?.label }}
         </button>
       </template>
     </DataTable>

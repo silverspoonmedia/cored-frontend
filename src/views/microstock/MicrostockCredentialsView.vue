@@ -6,12 +6,12 @@ import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
-import { confirmDialog } from '@/lib/swal'
+import RowActions from '@/components/RowActions.vue'
 import { useMicrostockCredentials } from '@/composables/microstock/useMicrostockCredentials'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
-import type { MicrostockCredential } from '@/api/types'
+import type { MicrostockCredential, QueryRowAction } from '@/api/types'
+import { confirmQueryMutate, mapQueryRowActions } from '@/utils/mapQueryRowActions'
 
 const { t } = useI18n()
 const { items, loading, error: loadError, fetchList, create, destroy } = useMicrostockCredentials()
@@ -80,26 +80,16 @@ async function handleSubmit(): Promise<void> {
   }
 }
 
-function credentialActions(row: MicrostockCredential): RowAction[] {
-  return [
-    {
-      key: 'delete',
-      icon: 'trash3',
-      label: t('ui.actions.delete'),
-      variant: 'danger',
-      onClick: () => {
-        void handleDelete(row)
-      },
+function credentialActions(row: MicrostockCredential) {
+  return mapQueryRowActions(row.actions, {
+    delete: (action) => {
+      void handleDelete(row, action)
     },
-  ]
+  })
 }
 
-async function handleDelete(row: MicrostockCredential): Promise<void> {
-  const confirmed = await confirmDialog({
-    title: t('ui.datatable.delete'),
-    text: t('web.microstock-credentials.confirm_delete'),
-    confirmText: t('ui.actions.delete'),
-  })
+async function handleDelete(row: MicrostockCredential, action: QueryRowAction): Promise<void> {
+  const confirmed = await confirmQueryMutate(action, t('ui.actions.delete'))
   if (!confirmed) return
 
   try {

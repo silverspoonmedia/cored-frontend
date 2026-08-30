@@ -7,6 +7,7 @@ import RowActions from '@/components/RowActions.vue'
 import { useActivityLogs } from '@/composables/activity-log/useActivityLogs'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { ActivityLog } from '@/api/types'
+import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -21,7 +22,8 @@ const columns: DataTableColumn[] = [
 ]
 
 function viewDetail(row: ActivityLog): void {
-  router.push({ name: 'activity-logs.show.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'view'))
+  if (to) void router.push(to)
 }
 
 function timeLabel(row: ActivityLog): string {
@@ -70,9 +72,7 @@ function timeLabel(row: ActivityLog): string {
       </template>
 
       <template #actions="{ row }: { row: ActivityLog }">
-        <RowActions
-          :actions="[{ key: 'view', icon: 'eye', label: t('web.activity-log.view_detail'), variant: 'secondary', to: { name: 'activity-logs.show.view', params: { id: row.id } } }]"
-        />
+        <RowActions :actions="mapQueryRowActions(row.actions)" />
       </template>
     </DataTable>
   </Card>

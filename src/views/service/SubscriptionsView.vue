@@ -4,13 +4,14 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
-import RowActions, { type RowAction } from '@/components/RowActions.vue'
+import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useSubscriptions } from '@/composables/service/useSubscriptions'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { Subscription } from '@/api/types'
 import { SUBSCRIPTION_STATUS_BADGE } from '@/utils/statusBadge'
+import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -29,18 +30,12 @@ const columns = computed<DataTableColumn[]>(() => [
 ])
 
 function showSub(row: Subscription): void {
-  router.push({ name: 'subscriptions.show.view', params: { id: row.id } })
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'view'))
+  if (to) void router.push(to)
 }
 
-function editSub(row: Subscription): void {
-  router.push({ name: 'subscriptions.edit.view', params: { id: row.id } })
-}
-
-function subscriptionActions(row: Subscription): RowAction[] {
-  return [
-    { key: 'view', icon: 'eye', label: t('actions.view'), variant: 'info', to: { name: 'subscriptions.show.view', params: { id: row.id } } },
-    { key: 'edit', icon: 'pencil', label: t('ui.actions.edit'), variant: 'primary', to: { name: 'subscriptions.edit.view', params: { id: row.id } } },
-  ]
+function subscriptionActions(row: Subscription) {
+  return mapQueryRowActions(row.actions)
 }
 </script>
 

@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
+import RowActions from '@/components/RowActions.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
 import type { VtualCreator } from '@/api/types'
-import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
+import { safeImageUrl } from '@/utils/safeUrl'
+import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
 const { fetchOwned } = useVtual()
 const { t } = useI18n()
+const router = useRouter()
 
 const profiles = ref<VtualCreator[]>([])
 const loading = ref(true)
 const loadError = ref<string | null>(null)
-
-function externalUrl(value: string | null | undefined): string | null {
-  return safeHttpUrl(value)
-}
 
 function imageUrl(value: string | null | undefined): string | null {
   return safeImageUrl(value)
@@ -32,6 +32,15 @@ async function loadProfiles(): Promise<void> {
   } finally {
     loading.value = false
   }
+}
+
+function editProfile(row: VtualCreator): void {
+  const to = queryRowActionTo(findQueryRowAction(row.actions, 'edit'))
+  if (to) void router.push(to)
+}
+
+function profileActions(row: VtualCreator) {
+  return mapQueryRowActions(row.actions)
 }
 
 const columns = computed<DataTableColumn[]>(() => [
@@ -53,6 +62,7 @@ onMounted(loadProfiles)
       empty-icon="bi-person-badge"
       :empty-title="t('web.vtual.no_creator_profiles')"
       @retry="loadProfiles"
+      @row-click="editProfile"
     >
       <template #cell-display_name="{ row }: { row: VtualCreator }">
         <div class="d-flex align-items-center gap-2">
@@ -80,15 +90,7 @@ onMounted(loadProfiles)
       </template>
 
       <template #actions="{ row }: { row: VtualCreator }">
-        <a
-          v-if="externalUrl(row.profile_url)"
-          :href="externalUrl(row.profile_url) ?? undefined"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn btn-outline-info btn-sm"
-        >
-          <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
-        </a>
+        <RowActions :actions="profileActions(row)" />
       </template>
     </DataTable>
   </Card>

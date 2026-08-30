@@ -4,10 +4,10 @@ import { useI18n } from 'vue-i18n'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
-import { confirmDialog } from '@/lib/swal'
 import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
 import { useAlert } from '@/composables/useAlert'
 import type { FhHashBlocklistEntry } from '@/api/types'
+import { confirmQueryMutate, findQueryRowAction } from '@/utils/mapQueryRowActions'
 
 const fh = useFileHosting()
 const { success: showSuccess, error: showError } = useAlert()
@@ -55,12 +55,10 @@ async function handleSubmit(): Promise<void> {
 }
 
 async function openDelete(entry: FhHashBlocklistEntry): Promise<void> {
+  const action = findQueryRowAction(entry.actions, 'remove')
+  if (!action) return
   deleteTarget.value = entry
-  const confirmed = await confirmDialog({
-    title: t('web.file-hosting.blocklist_remove_title'),
-    text: t('web.file-hosting.blocklist_remove_message'),
-    confirmText: t('web.file-hosting.blocklist_remove_button'),
-  })
+  const confirmed = await confirmQueryMutate(action, t('web.file-hosting.blocklist_remove_button'))
   if (confirmed) {
     await handleDelete()
   } else {
@@ -152,9 +150,14 @@ const columns = computed<DataTableColumn[]>(() => [
           </template>
 
           <template #actions="{ row }: { row: FhHashBlocklistEntry }">
-            <button type="button" class="btn btn-outline-danger btn-sm" @click="openDelete(row)">
+            <button
+              v-if="findQueryRowAction(row.actions, 'remove')"
+              type="button"
+              class="btn btn-outline-danger btn-sm"
+              @click="openDelete(row)"
+            >
               <i class="bi bi-trash"></i>
-              <span class="visually-hidden">{{ t('web.file-hosting.blocklist_remove') }}</span>
+              <span class="visually-hidden">{{ findQueryRowAction(row.actions, 'remove')?.label }}</span>
             </button>
           </template>
         </DataTable>
