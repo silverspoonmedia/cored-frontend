@@ -5,12 +5,12 @@ import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
-import { useConnections } from '@/composables/identity/useConnections'
+import { useConnections, providerByKey } from '@/composables/identity/useConnections'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useAlert } from '@/composables/useAlert'
 import { confirmDialog } from '@/lib/swal'
 import { getEcho } from '@/composables/useEcho'
-import type { VtualVtuberProfile, VtualCreatorClaim } from '@/api/types'
+import type { VtualVtuberProfile, VtualCreatorClaim, ProfileConnections } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 import { safeDiscordAuthorizeUrl, safeHttpUrl } from '@/utils/safeUrl'
 
@@ -24,6 +24,8 @@ const { success: showSuccess, error: showError } = useAlert()
 
 const profile = ref<VtualVtuberProfile | null>(null)
 const activeClaim = ref<VtualCreatorClaim | null>(null)
+const discordSnapshot = ref<ProfileConnections | null>(null)
+const discordConnected = computed(() => providerByKey(discordSnapshot.value, 'discord')?.connected === true)
 const loading = ref(true)
 const actionLoading = ref(false)
 let echoChannel: string | null = null
@@ -58,6 +60,7 @@ onMounted(async () => {
 
     if (batchResult?.profile) {
       profile.value = batchResult.profile
+      discordSnapshot.value = batchResult.connections ?? await connections.fetchConnections().catch(() => null)
       const myClaims = batchResult.myClaims ?? await vtual.fetchMyClaims()
       const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
       if (existing) {
@@ -66,7 +69,11 @@ onMounted(async () => {
       }
     } else {
       profile.value = await vtual.fetchVtuberProfile(slug)
-      const myClaims = await vtual.fetchMyClaims()
+      const [myClaims, discord] = await Promise.all([
+        vtual.fetchMyClaims(),
+        connections.fetchConnections().catch(() => null),
+      ])
+      discordSnapshot.value = discord
       const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
       if (existing) {
         activeClaim.value = existing
@@ -305,11 +312,11 @@ function platformIcon(key: string): string {
               </button>
               <button class="btn btn-outline-danger" :disabled="actionLoading" @click="handleCancel">{{ t('ui.actions.cancel') }}</button>
               <button class="btn btn-outline-warning" :disabled="actionLoading" @click="handleAcceptAnyway">{{ t('web.vtual.claims.accept_anyway') }}</button>
-              <button class="btn btn-outline-secondary" :disabled="actionLoading" @click="handleVerifyDiscord">{{ t('web.vtual-vtuber.claim_discord_verify_button') }}</button>
+              <button v-if="discordConnected" class="btn btn-outline-secondary" :disabled="actionLoading" @click="handleVerifyDiscord">{{ t('web.vtual-vtuber.claim_discord_verify_button') }}</button>
             </div>
 
             <!-- Discord connect hint -->
-            <div class="mt-2 small text-muted">
+            <div v-if="!discordConnected" class="mt-2 small text-muted">
               {{ t('web.vtual-vtuber.claim_no_discord') }}
               <button type="button" class="btn btn-link btn-sm p-0 align-baseline" :disabled="discordConnecting" @click="connectDiscord">
                 <i class="bi bi-discord me-1"></i>{{ t('web.vtual-vtuber.claim_discord_connect_cta') }}

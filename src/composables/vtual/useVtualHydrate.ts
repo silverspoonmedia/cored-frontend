@@ -45,6 +45,7 @@ interface VtualOrphanEditResult {
 interface VtualVtuberClaimResult {
   profile: VtualVtuberProfile | null
   myClaims: VtualCreatorClaim[] | null
+  connections: ProfileConnections | null
 }
 
 function listData<T>(body: ApiResponse<T[] | PagedList<T>> | null): T[] | null {
@@ -112,14 +113,16 @@ async function hydrateOrphanEdit(orphanId: string): Promise<VtualOrphanEditResul
 }
 
 async function hydrateVtuberClaim(slug: string): Promise<VtualVtuberClaimResult> {
-  const [profileRes, myClaimsRes] = await batch<unknown>([
+  const [profileRes, myClaimsRes, connectionsRes] = await batch<unknown>([
     { path: `vtual/vtubers/${slug}` },
     { path: 'vtual/claims/mine' },
+    { path: 'profile/connections' },
   ])
 
   return {
     profile: bodyOf<VtualVtuberProfile>(profileRes)?.data ?? null,
     myClaims: listData(bodyOf<VtualCreatorClaim[]>(myClaimsRes)),
+    connections: bodyOf<ProfileConnections>(connectionsRes)?.data ?? null,
   }
 }
 
