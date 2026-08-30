@@ -208,6 +208,14 @@ export function useVtual() {
     throw new Error(res.message ?? t('web.vtual.errors.archive_failed'))
   }
 
+  async function deletePendingChannel(channelId: string): Promise<void> {
+    const res = await del<ApiResponse<null>>(`vtual/channels/${channelId}`)
+    if (res.status === 'success') {
+      return
+    }
+    throw new Error(res.message ?? t('web.vtual.profiles.errors.channel_delete_failed'))
+  }
+
   async function restoreChannel(channelId: string): Promise<VtualChannel> {
     const res = await post<ApiResponse<VtualChannel>>(`vtual/channels/${channelId}/restore`)
     if (res.status === 'success' && res.data) return res.data
@@ -355,6 +363,7 @@ export function useVtual() {
     fetchChannelClaims,
     fetchLinks,
     archiveChannel,
+    deletePendingChannel,
     restoreChannel,
     promoteChannel,
     addChannel,
