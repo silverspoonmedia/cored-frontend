@@ -158,7 +158,7 @@ onMounted(load)
     </div>
 
     <div v-else class="row">
-      <div class="col-lg-8">
+      <div :class="isEdit ? 'col-lg-8' : 'col-12'">
         <form @submit.prevent="handleSubmit">
           <FormInput
             name="name"

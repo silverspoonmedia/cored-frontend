@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useInferenceProviders } from '@/composables/inference/useInferenceProviders'
 import { useInferenceModelCards } from '@/composables/inference/useInferenceModelCards'
 import { useInferenceHydrate } from '@/composables/inference/useInferenceHydrate'
@@ -165,11 +166,12 @@ watch(providerId, load, { immediate: true })
             </tr>
           </thead>
           <tbody>
-            <tr v-if="entries.length === 0">
-              <td :colspan="canManage ? 4 : 3" class="text-muted">
-                {{ t('web.inference.providers.no_rates') }}
-              </td>
-            </tr>
+            <TableEmptyRow
+              v-if="entries.length === 0"
+              :colspan="canManage ? 4 : 3"
+              icon="bi-cpu"
+              :title="t('web.inference.providers.no_rates')"
+            />
             <tr v-for="(entry, idx) in entries" :key="`${entry.model_card_id}-${idx}`">
               <td>
                 <select

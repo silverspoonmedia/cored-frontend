@@ -11,8 +11,9 @@ import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { confirmDialog } from '@/lib/swal'
 import StatusBadge from '@/components/StatusBadge.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
-import { useConnections } from '@/composables/identity/useConnections'
+import { useConnections, providerByKey } from '@/composables/identity/useConnections'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
@@ -42,6 +43,7 @@ const channelClaims = ref<VtualChannelClaim[]>([])
 const links = ref<VtualExternalLink[]>([])
 const platforms = ref<VtualPlatform[]>([])
 const discordSnapshot = ref<ProfileConnections | null>(null)
+const discordConnected = computed(() => providerByKey(discordSnapshot.value, 'discord')?.connected === true)
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 
@@ -482,8 +484,7 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
           </div>
         </form>
 
-        <div v-if="links.length === 0" class="text-muted small">{{ t('web.vtual.profiles.no_links') }}</div>
-        <div v-else class="table-responsive">
+        <div class="table-responsive">
           <table class="table table-sm align-middle mb-0">
             <thead>
               <tr>
@@ -494,6 +495,12 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
               </tr>
             </thead>
             <tbody>
+              <TableEmptyRow
+                v-if="links.length === 0"
+                :colspan="canMutate ? 4 : 3"
+                icon="bi-link-45deg"
+                :title="t('web.vtual.profiles.no_links')"
+              />
               <tr v-for="link in links" :key="link.id">
                 <td class="small">{{ link.label }}</td>
                 <td class="small">
@@ -531,7 +538,7 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
             <button class="btn btn-primary btn-sm" @click="handleVerifyChannelClaim(claim.id)">{{ t('web.vtual.actions.verify') }}</button>
             <template v-if="showDiscordVerify(claim)">
               <button
-                v-if="discordSnapshot?.discord_connected"
+                v-if="discordConnected"
                 class="btn btn-outline-primary btn-sm"
                 @click="handleVerifyDiscordChannelClaim(claim)"
               >{{ t('web.vtual-vtuber.claim_discord_verify_button') }}</button>

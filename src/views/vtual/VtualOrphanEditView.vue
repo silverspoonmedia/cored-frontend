@@ -8,6 +8,7 @@ import FormTextarea from '@/components/FormTextarea.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useAlert } from '@/composables/useAlert'
@@ -309,7 +310,7 @@ watch([isEdit, orphanId], () => {
           class="border rounded p-3 mb-3"
           @submit.prevent="handleAddChannel"
         >
-          <div class="row g-2 align-items-end">
+          <div class="row g-2 align-items-start">
             <div class="col-md-3">
               <FormSelect
                 name="platform_key"
@@ -334,13 +335,16 @@ watch([isEdit, orphanId], () => {
               />
             </div>
             <div class="col-md-3">
-              <label class="form-label invisible" aria-hidden="true">&nbsp;</label>
-              <div class="d-grid">
-                <SubmitButton
-                  :loading="addingChannel"
-                  :label="t('web.vtual-orphans.channels.add_button')"
-                  size="sm"
-                />
+              <div class="mb-3">
+                <label class="form-label" aria-hidden="true">
+                  &nbsp;<span class="text-danger invisible">*</span>
+                </label>
+                <div class="d-grid">
+                  <SubmitButton
+                    :loading="addingChannel"
+                    :label="t('web.vtual-orphans.channels.add_button')"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -363,9 +367,12 @@ watch([isEdit, orphanId], () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-if="channels.length === 0">
-                <td colspan="5" class="text-muted">{{ t('web.vtual-orphans.channels.empty') }}</td>
-              </tr>
+              <TableEmptyRow
+                v-if="channels.length === 0"
+                :colspan="5"
+                icon="bi-broadcast-pin"
+                :title="t('web.vtual-orphans.channels.empty')"
+              />
               <tr v-for="ch in channels" :key="ch.id" :data-channel-id="ch.id">
                 <td class="text-nowrap">
                   <img

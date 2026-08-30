@@ -1,26 +1,28 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
-import ErrorState from '@/components/ErrorState.vue'
-import SkeletonBlock from '@/components/SkeletonBlock.vue'
+import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
+import { useVtualRealtime } from '@/composables/vtual/useVtualRealtime'
+import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import type { VtualPlatform } from '@/api/types'
 
 const router = useRouter()
 const { fetchPlatforms, fetchCredentials } = useVtual()
 const { hydrateCredentials } = useVtualHydrate()
 const { t } = useI18n()
+const { subscribe, unsubscribe } = useVtualRealtime()
 
 const platforms = ref<VtualPlatform[]>([])
 const credentialCounts = ref<Record<string, { active: number; pending: number; total: number }>>({})
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 
-async function loadPlatforms(): Promise<void> {
-  loading.value = true
+async function loadPlatforms(silent = false): Promise<void> {
+  if (!silent) loading.value = true
   loadError.value = null
   try {
     platforms.value = await fetchPlatforms()
@@ -41,7 +43,6 @@ async function loadPlatforms(): Promise<void> {
       })
     }
 
-    // Fallback for platforms the batch missed
     const missing = platformIds.filter((id) => !(id in credentialCounts.value))
     if (missing.length > 0) {
       await Promise.all(
@@ -62,11 +63,41 @@ async function loadPlatforms(): Promise<void> {
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : t('web.vtual.failed_load_platforms')
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 
-onMounted(loadPlatforms)
+useListingLiveUpdate('vtual-platform-credentials-index', () => {
+  void loadPlatforms(true)
+})
+
+const realtimeHandlers = {
+  onCredentialChanged: () => {
+    void loadPlatforms(true)
+  },
+}
+
+onMounted(() => {
+  void loadPlatforms()
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
+
+function managePlatform(row: VtualPlatform): void {
+  router.push({ name: 'vtual.platform-credentials.platform.view', params: { platformId: row.id } })
+}
+
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'name', label: t('web.vtual.platform_col'), sortable: true },
+  { key: 'key', label: t('web.vtual.key_col'), sortable: true },
+  { key: 'enabled', label: t('web.vtual.enabled_col'), sortable: true, align: 'center' },
+  { key: 'active', label: t('web.vtual.active_col'), sortable: false, align: 'center' },
+  { key: 'pending', label: t('web.vtual.pending_col'), sortable: false, align: 'center' },
+])
+
 </script>
 
 <template>
@@ -80,54 +111,42 @@ onMounted(loadPlatforms)
       </button>
     </template>
 
-    <div v-if="loading" class="py-2">
-      <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
-        <SkeletonBlock variant="line" :lines="1" width="30%" class="mb-0" />
-        <SkeletonBlock variant="line" :lines="1" width="15%" class="mb-0" />
-        <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
-      </div>
-    </div>
+    <DataTable
+      :columns="columns"
+      :rows="platforms"
+      :loading="loading"
+      :error="loadError"
+      empty-icon="bi-broadcast"
+      :empty-title="t('web.vtual.no_platforms')"
+      @retry="loadPlatforms()"
+      @row-click="managePlatform"
+    >
+      <template #cell-key="{ row }: { row: VtualPlatform }">
+        <code>{{ row.key }}</code>
+      </template>
 
-    <ErrorState v-else-if="loadError" :message="loadError" @retry="loadPlatforms" />
+      <template #cell-enabled="{ row }: { row: VtualPlatform }">
+        <span class="badge" :class="row.enabled ? 'text-bg-success' : 'text-bg-secondary'">
+          {{ row.enabled ? t('web.currencies.yes') : t('web.currencies.no') }}
+        </span>
+      </template>
 
-    <div v-else-if="platforms.length === 0" class="text-muted text-center py-4">
-      {{ t('web.vtual.no_platforms') }}
-    </div>
+      <template #cell-active="{ row }: { row: VtualPlatform }">
+        {{ credentialCounts[row.id]?.active ?? 0 }}
+      </template>
 
-    <div v-else class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th>{{ t('web.vtual.platform_col') }}</th>
-            <th>{{ t('web.vtual.key_col') }}</th>
-            <th class="text-center">{{ t('web.vtual.enabled_col') }}</th>
-            <th class="text-center">{{ t('web.vtual.active_col') }}</th>
-            <th class="text-center">{{ t('web.vtual.pending_col') }}</th>
-            <th class="text-end">{{ t('web.vtual.actions_col') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in platforms" :key="p.id">
-            <td>{{ p.name }}</td>
-            <td><code>{{ p.key }}</code></td>
-            <td class="text-center">
-              <span class="badge" :class="p.enabled ? 'text-bg-success' : 'text-bg-secondary'">
-                {{ p.enabled ? t('web.currencies.yes') : t('web.currencies.no') }}
-              </span>
-            </td>
-            <td class="text-center">{{ credentialCounts[p.id]?.active ?? 0 }}</td>
-            <td class="text-center">{{ credentialCounts[p.id]?.pending ?? 0 }}</td>
-            <td class="text-end">
-              <button
-                class="btn btn-outline-primary btn-sm"
-                @click="router.push({ name: 'vtual.platform-credentials.platform.view', params: { platformId: p.id } })"
-              >
-                <i class="bi bi-gear me-1"></i> {{ t('web.vtual.manage_button') }}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <template #cell-pending="{ row }: { row: VtualPlatform }">
+        {{ credentialCounts[row.id]?.pending ?? 0 }}
+      </template>
+
+      <template #actions="{ row }: { row: VtualPlatform }">
+        <button
+          class="btn btn-outline-primary btn-sm"
+          @click.stop="managePlatform(row)"
+        >
+          <i class="bi bi-gear me-1"></i> {{ t('web.vtual.manage_button') }}
+        </button>
+      </template>
+    </DataTable>
   </Card>
 </template>

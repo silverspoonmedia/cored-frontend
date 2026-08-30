@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useMicrostockBilling } from '@/composables/microstock/useMicrostockBilling'
 import { useMicrostockHydrate } from '@/composables/microstock/useMicrostockHydrate'
 import { useFileHostingRealtime } from '@/composables/file-hosting/useFileHostingRealtime'
@@ -295,7 +296,6 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
           :message="ledgerError"
           @retry="loadLedger(true)"
         />
-        <div v-else-if="ledger.length === 0" class="text-muted text-center py-3">{{ t('web.microstock.usage.no_ledger') }}</div>
         <div v-else>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
@@ -308,6 +308,12 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
                 </tr>
               </thead>
               <tbody>
+                <TableEmptyRow
+                  v-if="ledger.length === 0"
+                  :colspan="4"
+                  icon="bi-journal-text"
+                  :title="t('web.microstock.usage.no_ledger')"
+                />
                 <tr v-for="entry in ledger" :key="entry.id">
                   <td class="small">{{ entry.created_at_formatted ?? entry.created_at ?? '—' }}</td>
                   <td class="small">{{ entry.description }}</td>
@@ -336,7 +342,6 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
           :message="usageError"
           @retry="loadUsage(true)"
         />
-        <div v-else-if="usageEvents.length === 0" class="text-muted text-center py-3">{{ t('web.microstock.usage.no_usage_events') }}</div>
         <div v-else>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
@@ -352,6 +357,12 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
                 </tr>
               </thead>
               <tbody>
+                <TableEmptyRow
+                  v-if="usageEvents.length === 0"
+                  :colspan="7"
+                  icon="bi-graph-up"
+                  :title="t('web.microstock.usage.no_usage_events')"
+                />
                 <tr v-for="ev in usageEvents" :key="ev.id">
                   <td class="small">{{ ev.created_at_formatted ?? ev.created_at ?? '—' }}</td>
                   <td class="small">{{ ev.file_name ?? '—' }}</td>
@@ -475,9 +486,6 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
               :message="platformEventsError"
               @retry="loadPlatformEvents(true)"
             />
-            <div v-else-if="platformEvents.length === 0" class="text-muted text-center py-3">
-              {{ t('web.microstock.usage.no_events') }}
-            </div>
             <div v-else>
               <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle mb-0">
@@ -493,6 +501,12 @@ async function switchTab(tab: 'ledger' | 'usage' | 'platform'): Promise<void> {
                     </tr>
                   </thead>
                   <tbody>
+                    <TableEmptyRow
+                      v-if="platformEvents.length === 0"
+                      :colspan="7"
+                      icon="bi-graph-up"
+                      :title="t('web.microstock.usage.no_events')"
+                    />
                     <tr v-for="ev in platformEvents" :key="ev.id">
                       <td class="small">{{ ev.created_at ?? '—' }}</td>
                       <td class="small">{{ ev.user?.name ?? '—' }}</td>

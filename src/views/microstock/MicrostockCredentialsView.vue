@@ -2,8 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
-import ErrorState from '@/components/ErrorState.vue'
-import SkeletonBlock from '@/components/SkeletonBlock.vue'
+import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -112,6 +111,12 @@ async function handleDelete(row: MicrostockCredential): Promise<void> {
   }
 }
 
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'marketplace', label: t('web.microstock-credentials.columns.marketplace'), sortable: true },
+  { key: 'label', label: t('web.microstock-credentials.columns.label'), sortable: true },
+  { key: 'created_at', label: t('web.microstock-credentials.columns.created_at'), sortable: true },
+])
+
 onMounted(() => {
   void fetchList()
 })
@@ -170,42 +175,27 @@ onMounted(() => {
 
     <div class="col-lg-7">
       <Card :title="t('web.microstock-credentials.list_title')">
-        <div v-if="loading" class="py-2">
-          <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
-            <SkeletonBlock variant="line" :lines="1" width="25%" class="mb-0" />
-            <SkeletonBlock variant="line" :lines="1" width="35%" class="mb-0" />
-            <SkeletonBlock variant="line" :lines="1" width="5rem" class="ms-auto mb-0" />
-          </div>
-        </div>
+        <DataTable
+          :columns="columns"
+          :rows="items"
+          :loading="loading"
+          :error="loadError"
+          empty-icon="bi-shop"
+          :empty-title="t('web.microstock-credentials.empty')"
+          @retry="fetchList()"
+        >
+          <template #cell-marketplace="{ row }: { row: MicrostockCredential }">
+            <code>{{ row.marketplace }}</code>
+          </template>
 
-        <ErrorState v-else-if="loadError" :message="loadError" @retry="fetchList()" />
+          <template #cell-created_at="{ row }: { row: MicrostockCredential }">
+            <span class="text-muted small">{{ row.created_at ?? '-' }}</span>
+          </template>
 
-        <div v-else class="table-responsive">
-          <table class="table table-sm table-hover align-middle mb-0" :aria-label="t('web.microstock-credentials.table_caption')">
-            <caption class="visually-hidden">{{ t('web.microstock-credentials.table_caption') }}</caption>
-            <thead>
-              <tr>
-                <th>{{ t('web.microstock-credentials.columns.marketplace') }}</th>
-                <th>{{ t('web.microstock-credentials.columns.label') }}</th>
-                <th>{{ t('web.microstock-credentials.columns.created_at') }}</th>
-                <th class="text-end">{{ t('ui.actions') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="items.length === 0">
-                <td colspan="4" class="text-muted">{{ t('web.microstock-credentials.empty') }}</td>
-              </tr>
-              <tr v-for="row in items" :key="row.id">
-                <td><code>{{ row.marketplace }}</code></td>
-                <td>{{ row.label }}</td>
-                <td><span class="text-muted small">{{ row.created_at ?? '-' }}</span></td>
-                <td class="text-end">
-                  <RowActions :actions="credentialActions(row)" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <template #actions="{ row }: { row: MicrostockCredential }">
+            <RowActions :actions="credentialActions(row)" />
+          </template>
+        </DataTable>
       </Card>
     </div>
   </div>

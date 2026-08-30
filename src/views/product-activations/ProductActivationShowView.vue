@@ -7,6 +7,7 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useProductActivations } from '@/composables/product-activations/useProductActivations'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
@@ -199,12 +200,7 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
         />
       </div>
 
-      <div v-if="data.activations.length === 0" class="text-muted text-center py-4">
-        <i class="bi bi-people fs-1 d-block mb-2"></i>
-        {{ t('product-activations.no_activations') }}
-      </div>
-
-      <div v-else class="table-responsive">
+      <div class="table-responsive">
         <table class="table table-hover align-middle">
           <thead>
             <tr>
@@ -217,6 +213,12 @@ async function handleReactivate(act: ProductActivation): Promise<void> {
             </tr>
           </thead>
           <tbody>
+            <TableEmptyRow
+              v-if="data.activations.length === 0"
+              :colspan="canManage ? 6 : 5"
+              icon="bi-people"
+              :title="t('product-activations.no_activations')"
+            />
             <tr v-for="act in data.activations" :key="act.id">
               <td>
                 <div v-if="act.user">

@@ -70,57 +70,53 @@ function handleCancel(): void {
 </script>
 
 <template>
-  <div class="row">
-    <div class="col-lg-6">
-      <Card :title="t('web.profile.password_card')">
-        <form novalidate @submit.prevent="handleSubmit">
-          <FormInput
-            name="current_password"
-            type="password"
-            :label="t('web.profile.current_password')"
-            v-model="form.current_password"
-            :error="fieldError('current_password')"
-            autocomplete="current-password"
-            required
-            :disabled="loading"
-          />
+  <Card :title="t('web.profile.password_card')">
+    <form novalidate @submit.prevent="handleSubmit">
+      <FormInput
+        name="current_password"
+        type="password"
+        :label="t('web.profile.current_password')"
+        v-model="form.current_password"
+        :error="fieldError('current_password')"
+        autocomplete="current-password"
+        required
+        :disabled="loading"
+      />
 
-          <FormInput
-            name="password"
-            type="password"
-            :label="t('web.profile.new_password')"
-            v-model="form.password"
-            :error="fieldError('password')"
-            autocomplete="new-password"
-            required
-            :disabled="loading"
-            hint="Minimum 8 characters with letters and numbers."
-          />
+      <FormInput
+        name="password"
+        type="password"
+        :label="t('web.profile.new_password')"
+        v-model="form.password"
+        :error="fieldError('password')"
+        autocomplete="new-password"
+        required
+        :disabled="loading"
+        hint="Minimum 8 characters with letters and numbers."
+      />
 
-          <FormInput
-            name="password_confirmation"
-            type="password"
-            :label="t('web.profile.confirm_password')"
-            v-model="form.password_confirmation"
-            :error="fieldError('password_confirmation')"
-            autocomplete="new-password"
-            required
-            :disabled="loading"
-          />
+      <FormInput
+        name="password_confirmation"
+        type="password"
+        :label="t('web.profile.confirm_password')"
+        v-model="form.password_confirmation"
+        :error="fieldError('password_confirmation')"
+        autocomplete="new-password"
+        required
+        :disabled="loading"
+      />
 
-          <div class="d-flex gap-2">
-            <SubmitButton :label="t('ui.actions.save')" :loading="loading" variant="primary" />
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              :disabled="loading"
-              @click="handleCancel"
-            >
-              {{ t('ui.actions.cancel') }}
-            </button>
-          </div>
-        </form>
-      </Card>
-    </div>
-  </div>
+      <div class="d-flex gap-2">
+        <SubmitButton :label="t('ui.actions.save')" :loading="loading" variant="primary" />
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          :disabled="loading"
+          @click="handleCancel"
+        >
+          {{ t('ui.actions.cancel') }}
+        </button>
+      </div>
+    </form>
+  </Card>
 </template>

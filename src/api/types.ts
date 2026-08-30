@@ -269,13 +269,19 @@ export interface DiscordConnection {
   revoked: boolean
 }
 
-export interface ProfileConnections {
-  discord_connected: boolean
-  discord_oauth_configured: boolean
-  discord_synced_at: string | null
-  discord_synced_at_formatted: string | null
-  discord_synced_at_human: string | null
+export interface OAuthProviderConnection {
+  key: string
+  connected: boolean
+  oauth_configured: boolean
+  supports_sync: boolean
+  synced_at: string | null
+  synced_at_formatted: string | null
+  synced_at_human: string | null
   connections: DiscordConnection[]
+}
+
+export interface ProfileConnections {
+  providers: OAuthProviderConnection[]
 }
 
 export interface DiscordAuthorizeUrl {
@@ -1025,6 +1031,11 @@ export interface VtualPlatformCredential {
   updated_at: string | null
   updated_at_formatted: string | null
   updated_at_human: string | null
+}
+
+export interface VtualPlatformCredentialTestPayload {
+  credential: VtualPlatformCredential
+  test: { ok: boolean; message: string; platform: string }
 }
 
 // --- Subscriptions ---

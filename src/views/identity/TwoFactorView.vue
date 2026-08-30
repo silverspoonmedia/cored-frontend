@@ -130,133 +130,129 @@ function handleCancel(): void {
 </script>
 
 <template>
-  <div class="row">
-    <div class="col-lg-6">
-      <Card :title="t('web.auth.two_factor_title')">
-        <!-- State: idle (not enabled) -->
-        <div v-if="status === 'idle'">
-          <p class="text-muted">{{ t('web.auth.two_factor_not_enabled') }}</p>
-          <p class="text-muted small">
-            {{ t('web.auth.two_factor_idle_help') }}
-          </p>
+  <Card :title="t('web.auth.two_factor_title')">
+    <!-- State: idle (not enabled) -->
+    <div v-if="status === 'idle'">
+      <p class="text-muted">{{ t('web.auth.two_factor_not_enabled') }}</p>
+      <p class="text-muted small">
+        {{ t('web.auth.two_factor_idle_help') }}
+      </p>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        :disabled="loading"
+        @click="startSetup"
+      >
+        <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        {{ t('web.auth.two_factor_setup_button') }}
+      </button>
+    </div>
+
+    <!-- State: setup in progress -->
+    <div v-else-if="status === 'setup' && setup">
+      <p class="text-muted">
+        {{ t('web.auth.two_factor_setup_qr_help') }}
+      </p>
+
+      <div class="text-center my-3">
+        <img v-if="qrInfo" :src="qrInfo.content" :alt="t('web.auth.two_factor_qr_alt')" class="img-fluid p-2 bg-white rounded" style="max-width: 200px;" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">{{ t('web.auth.two_factor_secret_label') }}</label>
+        <p class="fw-bold font-monospace user-select-all">{{ setup.secret }}</p>
+      </div>
+
+      <p class="mb-3">
+        <a v-if="qrCodeUrl" :href="qrCodeUrl" class="text-decoration-none">
+          {{ t('web.auth.two_factor_qr_url_label') }}
+        </a>
+      </p>
+
+      <div
+        v-if="error"
+        class="alert alert-danger"
+        role="alert"
+      >
+        {{ error }}
+      </div>
+
+      <form @submit.prevent="confirmSetup">
+        <FormInput
+          name="code"
+          type="text"
+          :label="t('web.auth.two_factor_code_label')"
+          v-model="code"
+          placeholder="123456"
+          required
+          autofocus
+          autocomplete="one-time-code"
+          :disabled="loading"
+        />
+
+        <div class="d-flex gap-2">
+          <SubmitButton :label="t('web.auth.two_factor_confirm_button')" :loading="loading" variant="primary" />
           <button
             type="button"
-            class="btn btn-outline-primary"
+            class="btn btn-outline-secondary"
             :disabled="loading"
-            @click="startSetup"
+            @click="handleCancel"
           >
-            <span v-if="loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            {{ t('web.auth.two_factor_setup_button') }}
+            {{ t('ui.actions.cancel') }}
           </button>
         </div>
+      </form>
 
-        <!-- State: setup in progress -->
-        <div v-else-if="status === 'setup' && setup">
-          <p class="text-muted">
-            {{ t('web.auth.two_factor_setup_qr_help') }}
-          </p>
+      <hr class="my-3">
 
-          <div class="text-center my-3">
-            <img v-if="qrInfo" :src="qrInfo.content" :alt="t('web.auth.two_factor_qr_alt')" class="img-fluid p-2 bg-white rounded" style="max-width: 200px;" />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">{{ t('web.auth.two_factor_secret_label') }}</label>
-            <p class="fw-bold font-monospace user-select-all">{{ setup.secret }}</p>
-          </div>
-
-          <p class="mb-3">
-            <a v-if="qrCodeUrl" :href="qrCodeUrl" class="text-decoration-none">
-              {{ t('web.auth.two_factor_qr_url_label') }}
-            </a>
-          </p>
-
-          <div
-            v-if="error"
-            class="alert alert-danger"
-            role="alert"
-          >
-            {{ error }}
-          </div>
-
-          <form @submit.prevent="confirmSetup">
-            <FormInput
-              name="code"
-              type="text"
-              :label="t('web.auth.two_factor_code_label')"
-              v-model="code"
-              placeholder="123456"
-              required
-              autofocus
-              autocomplete="one-time-code"
-              :disabled="loading"
-            />
-
-            <div class="d-flex gap-2">
-              <SubmitButton :label="t('web.auth.two_factor_confirm_button')" :loading="loading" variant="primary" />
-              <button
-                type="button"
-                class="btn btn-outline-secondary"
-                :disabled="loading"
-                @click="handleCancel"
-              >
-                {{ t('ui.actions.cancel') }}
-              </button>
-            </div>
-          </form>
-
-          <hr class="my-3">
-
-          <form @submit.prevent="startSetup">
-            <SubmitButton :label="t('web.auth.two_factor_restart_setup')" :loading="loading" variant="outline-secondary" />
-          </form>
-        </div>
-
-        <!-- State: enabled -->
-        <div v-else-if="status === 'enabled'">
-          <div class="alert alert-success" role="alert">
-            <i class="bi bi-check-circle me-1" aria-hidden="true"></i>
-            {{ t('web.auth.two_factor_is_enabled') }}
-          </div>
-
-          <div
-            v-if="error"
-            class="alert alert-danger"
-            role="alert"
-          >
-            {{ error }}
-          </div>
-
-          <p class="text-muted small mb-3">
-            {{ t('web.auth.two_factor_challenge_help') }}
-          </p>
-
-          <form @submit.prevent="disableTwoFactor">
-            <FormInput
-              name="code"
-              type="text"
-              :label="t('web.auth.two_factor_code_label')"
-              v-model="code"
-              placeholder="123456"
-              required
-              autocomplete="one-time-code"
-              :disabled="loading"
-            />
-
-            <div class="d-flex gap-2">
-              <SubmitButton :label="t('web.auth.two_factor_disable_button')" :loading="loading" variant="danger" />
-              <button
-                type="button"
-                class="btn btn-outline-secondary"
-                :disabled="loading"
-                @click="handleCancel"
-              >
-                {{ t('ui.actions.cancel') }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </Card>
+      <form @submit.prevent="startSetup">
+        <SubmitButton :label="t('web.auth.two_factor_restart_setup')" :loading="loading" variant="outline-secondary" />
+      </form>
     </div>
-  </div>
+
+    <!-- State: enabled -->
+    <div v-else-if="status === 'enabled'">
+      <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle me-1" aria-hidden="true"></i>
+        {{ t('web.auth.two_factor_is_enabled') }}
+      </div>
+
+      <div
+        v-if="error"
+        class="alert alert-danger"
+        role="alert"
+      >
+        {{ error }}
+      </div>
+
+      <p class="text-muted small mb-3">
+        {{ t('web.auth.two_factor_challenge_help') }}
+      </p>
+
+      <form @submit.prevent="disableTwoFactor">
+        <FormInput
+          name="code"
+          type="text"
+          :label="t('web.auth.two_factor_code_label')"
+          v-model="code"
+          placeholder="123456"
+          required
+          autocomplete="one-time-code"
+          :disabled="loading"
+        />
+
+        <div class="d-flex gap-2">
+          <SubmitButton :label="t('web.auth.two_factor_disable_button')" :loading="loading" variant="danger" />
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            :disabled="loading"
+            @click="handleCancel"
+          >
+            {{ t('ui.actions.cancel') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </Card>
 </template>

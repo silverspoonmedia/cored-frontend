@@ -1,6 +1,11 @@
 import { useI18n } from 'vue-i18n'
-import { get, del } from '@/api/client'
-import type { ApiResponse, DiscordAuthorizeUrl, ProfileConnections } from '@/api/types'
+import { get, post, del } from '@/api/client'
+import type {
+  ApiResponse,
+  DiscordAuthorizeUrl,
+  OAuthProviderConnection,
+  ProfileConnections,
+} from '@/api/types'
 import { safeDiscordAuthorizeUrl } from '@/utils/safeUrl'
 
 export type DiscordAuthorizeIntent =
@@ -8,6 +13,13 @@ export type DiscordAuthorizeIntent =
   | 'claim_verify'
   | 'claim_channel'
   | 'channel_claim_verify'
+
+export function providerByKey(
+  snapshot: ProfileConnections | null | undefined,
+  key: string,
+): OAuthProviderConnection | undefined {
+  return snapshot?.providers.find((row) => row.key === key)
+}
 
 export function useConnections() {
   const { t } = useI18n()
@@ -20,8 +32,20 @@ export function useConnections() {
     throw new Error(res.message ?? t('web.identity-connections.load_failed'))
   }
 
-  async function disconnectDiscord(): Promise<void> {
-    const res = await del<ApiResponse<null>>('profile/connections/discord')
+  async function syncProvider(provider: string): Promise<ProfileConnections> {
+    const res = await post<ApiResponse<ProfileConnections>>(
+      `profile/connections/${encodeURIComponent(provider)}/sync`,
+    )
+    if (res.status === 'success' && res.data) {
+      return res.data
+    }
+    throw new Error(res.message ?? t('web.identity-connections.sync_failed'))
+  }
+
+  async function disconnectProvider(provider: string): Promise<void> {
+    const res = await del<ApiResponse<null>>(
+      `profile/connections/${encodeURIComponent(provider)}`,
+    )
     if (res.status !== 'success') {
       throw new Error(res.message ?? t('web.identity-connections.disconnect_failed'))
     }
@@ -46,7 +70,8 @@ export function useConnections() {
 
   return {
     fetchConnections,
-    disconnectDiscord,
+    syncProvider,
+    disconnectProvider,
     authorizeUrl,
   }
 }

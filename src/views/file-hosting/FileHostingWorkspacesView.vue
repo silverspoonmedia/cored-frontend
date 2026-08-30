@@ -7,6 +7,7 @@ import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import Modal from '@/components/Modal.vue'
 import { confirmDialog } from '@/lib/swal'
 import StatusBadge from '@/components/StatusBadge.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
 import { useFhHydrate } from '@/composables/file-hosting/useFhHydrate'
 import { useFileHostingRealtime } from '@/composables/file-hosting/useFileHostingRealtime'
@@ -401,10 +402,7 @@ function roleBadgeClass(role: string): string {
               </div>
             </div>
 
-            <div v-if="!members.length" class="text-muted text-center py-3">
-              {{ t('web.file-hosting.no_active_members') }}
-            </div>
-            <div v-else class="table-responsive">
+            <div class="table-responsive">
               <table class="table table-sm align-middle mb-0">
                 <thead>
                   <tr>
@@ -416,6 +414,12 @@ function roleBadgeClass(role: string): string {
                   </tr>
                 </thead>
                 <tbody>
+                  <TableEmptyRow
+                    v-if="!members.length"
+                    :colspan="selected.is_owner && canManage ? 5 : 4"
+                    icon="bi-people"
+                    :title="t('web.file-hosting.no_active_members')"
+                  />
                   <tr v-for="m in members" :key="m.id">
                     <td>{{ m.user?.name ?? m.user_id }}</td>
                     <td class="text-muted small">{{ m.user?.email ?? '—' }}</td>

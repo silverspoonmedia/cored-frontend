@@ -277,6 +277,7 @@ function platformIcon(key: string): string {
                 </a>
                 <span v-else>{{ activeClaim.channel.display_name ?? activeClaim.channel.handle ?? '—' }}</span>
               </div>
+              <p class="small text-muted mb-0 mt-1">{{ t('web.vtual-vtuber.claim_one_channel_covers_profile') }}</p>
             </div>
 
             <!-- Token -->
@@ -333,6 +334,9 @@ function platformIcon(key: string): string {
       <!-- Pre-claim: channel list -->
       <div v-else-if="showChannelsSection">
         <p class="text-muted">{{ t('web.vtual-vtuber.claim_select_channel_hint') }}</p>
+        <div class="alert alert-info">
+          {{ t('web.vtual-vtuber.claim_one_channel_covers_profile') }}
+        </div>
         <div v-if="!profile.channels || profile.channels.length === 0" class="text-muted text-center py-3">
           {{ t('web.vtual-vtuber.claim_no_channels_for_verify') }}
         </div>

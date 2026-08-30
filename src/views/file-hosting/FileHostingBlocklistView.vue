@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ErrorState from '@/components/ErrorState.vue'
-import SkeletonBlock from '@/components/SkeletonBlock.vue'
+import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { confirmDialog } from '@/lib/swal'
@@ -80,6 +79,12 @@ async function handleDelete(): Promise<void> {
     showError(e instanceof Error ? e.message : t('web.file-hosting.blocklist_failed_remove'))
   }
 }
+
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'sha256', label: t('web.file-hosting.blocklist_sha256'), sortable: true },
+  { key: 'reason', label: t('web.file-hosting.blocklist_reason'), sortable: true },
+  { key: 'created_at', label: t('web.file-hosting.blocklist_added'), sortable: true },
+])
 </script>
 
 <template>
@@ -125,41 +130,34 @@ async function handleDelete(): Promise<void> {
         <strong>{{ t('web.file-hosting.blocklist_entries') }}</strong>
       </div>
       <div class="card-body">
-        <div v-if="loading" class="py-2">
-          <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
-            <SkeletonBlock variant="line" :lines="1" width="50%" class="mb-0" />
-            <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
-          </div>
-        </div>
-        <ErrorState v-else-if="loadError" :message="loadError" @retry="loadEntries" />
-        <div v-else-if="entries.length === 0" class="text-muted text-center py-3">
-          {{ t('web.file-hosting.blocklist_empty') }}
-        </div>
-        <div v-else class="table-responsive">
-          <table class="table table-sm table-striped table-hover align-middle mb-0 fh-table">
-            <thead>
-              <tr>
-                <th>{{ t('web.file-hosting.blocklist_sha256') }}</th>
-                <th>{{ t('web.file-hosting.blocklist_reason') }}</th>
-                <th>{{ t('web.file-hosting.blocklist_added') }}</th>
-                <th>{{ t('web.file-hosting.blocklist_actions') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="entry in entries" :key="entry.id">
-                <td><code class="small text-break font-monospace">{{ entry.sha256 }}</code></td>
-                <td class="small">{{ entry.reason ?? '—' }}</td>
-                <td class="small">{{ entry.created_at_formatted ?? entry.created_at ?? '—' }}</td>
-                <td class="text-end">
-                  <button type="button" class="btn btn-outline-danger btn-sm" @click="openDelete(entry)">
-                    <i class="bi bi-trash"></i>
-                    <span class="visually-hidden">{{ t('web.file-hosting.blocklist_remove') }}</span>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          :columns="columns"
+          :rows="entries"
+          :loading="loading"
+          :error="loadError"
+          empty-icon="bi-shield-x"
+          :empty-title="t('web.file-hosting.blocklist_empty')"
+          @retry="loadEntries"
+        >
+          <template #cell-sha256="{ row }: { row: FhHashBlocklistEntry }">
+            <code class="small text-break font-monospace">{{ row.sha256 }}</code>
+          </template>
+
+          <template #cell-reason="{ row }: { row: FhHashBlocklistEntry }">
+            <span class="small">{{ row.reason ?? '—' }}</span>
+          </template>
+
+          <template #cell-created_at="{ row }: { row: FhHashBlocklistEntry }">
+            <span class="small">{{ row.created_at_formatted ?? row.created_at ?? '—' }}</span>
+          </template>
+
+          <template #actions="{ row }: { row: FhHashBlocklistEntry }">
+            <button type="button" class="btn btn-outline-danger btn-sm" @click="openDelete(row)">
+              <i class="bi bi-trash"></i>
+              <span class="visually-hidden">{{ t('web.file-hosting.blocklist_remove') }}</span>
+            </button>
+          </template>
+        </DataTable>
       </div>
     </div>
   </div>

@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useInferenceUsage } from '@/composables/inference/useInferenceUsage'
 import { useInferenceHydrate } from '@/composables/inference/useInferenceHydrate'
 import { useAuth } from '@/stores/auth'
@@ -156,10 +157,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-else-if="events.length === 0" class="text-muted text-center py-3">
-        {{ t('web.inference.model_cards.no_events') }}
-      </div>
-
       <div v-else class="table-responsive">
         <table class="table table-sm table-hover align-middle mb-0">
           <thead>
@@ -173,6 +170,12 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
+            <TableEmptyRow
+              v-if="events.length === 0"
+              :colspan="6"
+              icon="bi-activity"
+              :title="t('web.inference.model_cards.no_events')"
+            />
             <tr v-for="ev in events" :key="ev.id">
               <td class="small">{{ ev.created_at ?? '—' }}</td>
               <td class="small">

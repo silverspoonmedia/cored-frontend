@@ -445,8 +445,8 @@ async function hydrateShell(): Promise<void> {
 }
 
 function hasPermission(permission: string): boolean {
-  if (!user.value) return false
-  return user.value.permissions.includes(permission)
+  const perms = user.value?.permissions
+  return Array.isArray(perms) && perms.includes(permission)
 }
 
 /**

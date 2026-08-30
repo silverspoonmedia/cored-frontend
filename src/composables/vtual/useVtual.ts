@@ -5,6 +5,7 @@ import type {
   VtualCreator,
   VtualPlatform,
   VtualPlatformCredential,
+  VtualPlatformCredentialTestPayload,
   VtualChannel,
   VtualChannelClaim,
   VtualCreatorClaim,
@@ -15,6 +16,16 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ListParams } from '@/composables/useResource'
 import { emptyListPagination, unwrapListPayload } from '@/composables/useResource'
+
+export function credentialFromTestResponse(
+  res: ApiResponse<VtualPlatformCredentialTestPayload>,
+  fallbackMessage: string,
+): VtualPlatformCredential {
+  if (res.status === 'success' && res.data?.credential) {
+    return res.data.credential
+  }
+  throw new Error(res.message ?? fallbackMessage)
+}
 
 export function useVtual() {
   const { t } = useI18n()
@@ -144,9 +155,8 @@ export function useVtual() {
   }
 
   async function testCredential(id: string): Promise<VtualPlatformCredential> {
-    const res = await post<ApiResponse<VtualPlatformCredential>>(`vtual/admin/credentials/${id}/test`)
-    if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? t('web.vtual.credentials.test_failed'))
+    const res = await post<ApiResponse<VtualPlatformCredentialTestPayload>>(`vtual/admin/credentials/${id}/test`)
+    return credentialFromTestResponse(res, t('web.vtual.credentials.test_failed'))
   }
 
   // --- Profile show ---

@@ -1,21 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import FormCheckbox from '@/components/FormCheckbox.vue'
+import FormInput from '@/components/FormInput.vue'
+import FormSelect, { type SelectOption } from '@/components/FormSelect.vue'
+import FormTextarea from '@/components/FormTextarea.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useSettings } from '@/composables/settings/useSettings'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import { useSettingsRealtime } from '@/composables/settings/useSettingsRealtime'
 import type { SettingEntry } from '@/api/types'
+import { lookupDotted } from '@/utils/settingsI18n'
 import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
 
 const route = useRoute()
-const { t, tm } = useI18n()
+const { t, tm, rt } = useI18n()
 const { fetchGroup, settings, loading, saving, saveGroup, error } = useSettings()
 const { success: showSuccess, error: showError } = useAlert()
-const { hasPermission } = useAuth()
+const { user, hasPermission } = useAuth()
 
 const canManage = computed(() => hasPermission('manage settings'))
 
@@ -23,44 +28,30 @@ const group = computed(() => settingsGroupFromRoute(route))
 
 const groupLabel = computed(() => t(settingsGroupLabelKey(group.value || 'platform')))
 
-const fieldLabels = computed<Record<string, string>>(() => {
-  const obj = tm('web.settings.fields') as Record<string, string>
-  return obj ?? {}
-})
-
-const hints = computed<Record<string, string>>(() => {
-  const obj = tm('web.settings.hints') as Record<string, string>
-  return obj ?? {}
-})
-
-const optionLabels = computed<Record<string, Record<string, string>>>(() => {
-  const obj = tm('web.settings.options') as Record<string, Record<string, string>>
-  return obj ?? {}
-})
+const fieldsTree = computed(() => tm('web.settings.fields'))
+const hintsTree = computed(() => tm('web.settings.hints'))
+const optionsTree = computed(() => tm('web.settings.options'))
 
 function fieldLabel(key: string): string {
-  return fieldLabels.value[key] ?? key
+  return lookupDotted(fieldsTree.value, key, rt) ?? key
 }
 
 function fieldHint(key: string): string | null {
-  const h = hints.value[key]
-  return h && h.length > 0 ? h : null
+  return lookupDotted(hintsTree.value, key, rt)
+}
+
+function fieldMetaHint(key: string, entry: SettingEntry): string {
+  const human = fieldHint(key)
+  const meta = `${key} · ${t('web.settings.source', { source: entry.source })}`
+  return human ? `${human} — ${meta}` : meta
 }
 
 function optionLabel(key: string, opt: string): string {
-  const parts = key.split('.')
-  let node: unknown = optionLabels.value
-  for (const part of parts) {
-    if (node && typeof node === 'object' && part in (node as Record<string, unknown>)) {
-      node = (node as Record<string, unknown>)[part]
-    } else {
-      return opt
-    }
-  }
-  if (node && typeof node === 'object' && opt in (node as Record<string, string>)) {
-    return (node as Record<string, string>)[opt] ?? opt
-  }
-  return opt
+  return lookupDotted(optionsTree.value, `${key}.${opt}`, rt) ?? opt
+}
+
+function selectOptions(key: string, opts: string[]): SelectOption[] {
+  return opts.map((opt) => ({ value: opt, label: optionLabel(key, opt) }))
 }
 
 const entries = computed<Array<[string, SettingEntry]>>(() => {
@@ -110,8 +101,8 @@ function numVal(key: string): number {
   return Number(form.value[fieldId(key)] ?? 0)
 }
 
-function setNum(key: string, val: number): void {
-  form.value[fieldId(key)] = val
+function setNum(key: string, val: string | number): void {
+  form.value[fieldId(key)] = Number(val)
 }
 
 function boolVal(key: string): boolean {
@@ -141,15 +132,15 @@ async function handleSubmit(): Promise<void> {
     const id = fieldId(key)
     const val = form.value[id]
     if (entry.type === 'array' && typeof val === 'string') {
-      payload[key] = val.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
+      payload[id] = val.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
     } else if (entry.type === 'int') {
-      payload[key] = parseInt(String(val), 10)
+      payload[id] = parseInt(String(val), 10)
     } else if (entry.type === 'float') {
-      payload[key] = parseFloat(String(val))
+      payload[id] = parseFloat(String(val))
     } else if (entry.type === 'bool') {
-      payload[key] = val ? 1 : 0
+      payload[id] = val ? 1 : 0
     } else {
-      payload[key] = String(val ?? '')
+      payload[id] = String(val ?? '')
     }
   }
 
@@ -197,112 +188,68 @@ onUnmounted(() => {
     </div>
 
     <div v-else>
-      <div v-if="!canManage" class="alert alert-info">
+      <div v-if="user && !canManage" class="alert alert-info">
         {{ t('web.settings.read_only') }}
       </div>
 
       <form v-if="canManage" @submit.prevent="handleSubmit">
-        <div v-for="[key, entry] in entries" :key="key" class="mb-3">
-          <!-- Boolean -->
-          <div v-if="entry.type === 'bool'" class="form-check form-switch">
-            <input
-              :id="fieldId(key)"
-              :checked="boolVal(key)"
-              class="form-check-input"
-              type="checkbox"
-              role="switch"
-              @change="setBool(key, ($event.target as HTMLInputElement).checked)"
-            >
-            <label class="form-check-label" :for="fieldId(key)">
-              {{ fieldLabel(key) }}
-            </label>
-            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
-            <div class="text-muted small">
-              <code>{{ key }}</code>
-              <span class="ms-2">{{ t('web.settings.source', { source: entry.source }) }}</span>
-            </div>
-          </div>
+        <template v-for="[key, entry] in entries" :key="key">
+          <FormCheckbox
+            v-if="entry.type === 'bool'"
+            :name="fieldId(key)"
+            :label="fieldLabel(key)"
+            switch
+            :model-value="boolVal(key)"
+            :hint="fieldMetaHint(key, entry)"
+            @update:model-value="setBool(key, $event)"
+          />
 
-          <!-- Array -->
-          <div v-else-if="entry.type === 'array'">
-            <label class="form-label" :for="fieldId(key)">
-              {{ fieldLabel(key) }}
-            </label>
-            <textarea
-              :id="fieldId(key)"
-              :value="strVal(key)"
-              class="form-control"
-              rows="2"
-              @input="setStr(key, ($event.target as HTMLTextAreaElement).value)"
-            ></textarea>
-            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
-            <div class="text-muted small">
-              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
-            </div>
-          </div>
+          <FormTextarea
+            v-else-if="entry.type === 'array'"
+            :name="fieldId(key)"
+            :label="fieldLabel(key)"
+            :model-value="strVal(key)"
+            :hint="fieldMetaHint(key, entry)"
+            :rows="2"
+            @update:model-value="setStr(key, $event)"
+          />
 
-          <!-- Select (options present) -->
-          <div v-else-if="entry.options && entry.options.length > 0">
-            <label class="form-label" :for="fieldId(key)">
-              {{ fieldLabel(key) }}
-            </label>
-            <select
-              :id="fieldId(key)"
-              :value="selectVal(key)"
-              class="form-select"
-              @change="setSelect(key, ($event.target as HTMLSelectElement).value)"
-            >
-              <option v-for="opt in entry.options" :key="opt" :value="opt">{{ optionLabel(key, opt) }}</option>
-            </select>
-            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
-            <div class="text-muted small">
-              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
-            </div>
-          </div>
+          <FormSelect
+            v-else-if="entry.options && entry.options.length > 0"
+            :name="fieldId(key)"
+            :label="fieldLabel(key)"
+            :model-value="selectVal(key)"
+            :options="selectOptions(key, entry.options)"
+            :hint="fieldMetaHint(key, entry)"
+            @update:model-value="setSelect(key, $event)"
+          />
 
-          <!-- Number (int/float) -->
-          <div v-else-if="entry.type === 'int' || entry.type === 'float'">
-            <label class="form-label" :for="fieldId(key)">
-              {{ fieldLabel(key) }}
-            </label>
-            <input
-              :id="fieldId(key)"
-              :value="numVal(key)"
-              type="number"
-              :step="entry.type === 'float' ? '0.01' : '1'"
-              class="form-control"
-              @input="setNum(key, Number(($event.target as HTMLInputElement).value))"
-            >
-            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
-            <div class="text-muted small">
-              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
-            </div>
-          </div>
+          <FormInput
+            v-else-if="entry.type === 'int' || entry.type === 'float'"
+            :name="fieldId(key)"
+            :label="fieldLabel(key)"
+            type="number"
+            :step="entry.type === 'float' ? '0.01' : '1'"
+            :model-value="numVal(key)"
+            :hint="fieldMetaHint(key, entry)"
+            @update:model-value="setNum(key, $event)"
+          />
 
-          <!-- String (default) -->
-          <div v-else>
-            <label class="form-label" :for="fieldId(key)">
-              {{ fieldLabel(key) }}
-            </label>
-            <input
-              :id="fieldId(key)"
-              :value="strVal(key)"
-              type="text"
-              class="form-control"
-              @input="setStr(key, ($event.target as HTMLInputElement).value)"
-            >
-            <div v-if="fieldHint(key)" class="form-text">{{ fieldHint(key) }}</div>
-            <div class="text-muted small">
-              <code>{{ key }}</code> · {{ t('web.settings.source', { source: entry.source }) }}
-            </div>
-          </div>
-        </div>
+          <FormInput
+            v-else
+            :name="fieldId(key)"
+            :label="fieldLabel(key)"
+            type="text"
+            :model-value="strVal(key)"
+            :hint="fieldMetaHint(key, entry)"
+            @update:model-value="setStr(key, $event)"
+          />
+        </template>
 
         <SubmitButton :label="t('actions.save')" :loading="saving" variant="primary" />
       </form>
 
-      <!-- Read-only -->
-      <dl v-else class="row mb-0">
+      <dl v-else-if="user" class="row mb-0">
         <template v-for="[key, entry] in entries" :key="key">
           <dt class="col-sm-4">
             {{ fieldLabel(key) }}

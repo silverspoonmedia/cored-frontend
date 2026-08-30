@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Card from '@/components/Card.vue'
-import ErrorState from '@/components/ErrorState.vue'
-import SkeletonBlock from '@/components/SkeletonBlock.vue'
+import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useNotifications } from '@/composables/notification/useNotifications'
 import { useAlert } from '@/composables/useAlert'
 import type { AppNotification } from '@/api/types'
@@ -43,6 +42,12 @@ async function handleClick(n: AppNotification): Promise<void> {
 function timeLabel(n: AppNotification): string {
   return n.created_at_human ?? n.created_at_formatted ?? n.created_at ?? '—'
 }
+
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'message', label: t('web.notifications.columns.message'), sortable: true },
+  { key: 'is_read', label: t('web.notifications.columns.status'), sortable: true },
+  { key: 'created_at', label: t('web.notifications.columns.time'), sortable: true, align: 'end' },
+])
 </script>
 
 <template>
@@ -58,52 +63,31 @@ function timeLabel(n: AppNotification): string {
       </button>
     </template>
 
-    <div v-if="loading" class="py-2">
-      <div v-for="i in 4" :key="i" class="d-flex align-items-center gap-3 py-2 border-bottom">
-        <SkeletonBlock variant="avatar" width="1.75rem" />
-        <SkeletonBlock variant="line" :lines="1" width="60%" class="flex-grow-1 mb-0" />
-        <SkeletonBlock variant="line" :lines="1" width="6rem" class="ms-auto mb-0" />
-      </div>
-    </div>
+    <DataTable
+      :columns="columns"
+      :rows="items"
+      :loading="loading"
+      :error="error"
+      empty-icon="bi-bell-slash"
+      :empty-title="t('web.notifications.empty')"
+      @retry="fetchList()"
+      @row-click="handleClick"
+    >
+      <template #cell-message="{ row }: { row: AppNotification }">
+        <span :class="{ 'fw-semibold': !row.is_read }">
+          <i :class="row.icon || 'bi bi-bell'" class="me-2" aria-hidden="true"></i>
+          {{ row.message }}
+        </span>
+      </template>
 
-    <ErrorState v-else-if="error" :message="error" @retry="fetchList()" />
+      <template #cell-is_read="{ row }: { row: AppNotification }">
+        <span v-if="row.is_read" class="badge text-bg-light border text-muted">{{ t('web.notifications.status.read') }}</span>
+        <span v-else class="badge text-bg-primary">{{ t('web.notifications.status.unread') }}</span>
+      </template>
 
-    <div v-else-if="items.length === 0" class="text-center text-muted py-5" role="status">
-      <i class="bi bi-bell-slash" style="font-size: 2.5rem; opacity: 0.4;" aria-hidden="true"></i>
-      <p class="fw-semibold mb-1 d-block mt-2">{{ t('web.notifications.empty') }}</p>
-    </div>
-
-    <div v-else class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th>{{ t('web.notifications.columns.message') }}</th>
-            <th>{{ t('web.notifications.columns.status') }}</th>
-            <th class="text-end">{{ t('web.notifications.columns.time') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="n in items"
-            :key="n.id"
-            :class="{ 'fw-semibold': !n.is_read }"
-            style="cursor: pointer;"
-            @click="handleClick(n)"
-          >
-            <td>
-              <i :class="n.icon || 'bi bi-bell'" class="me-2" aria-hidden="true"></i>
-              <span>{{ n.message }}</span>
-            </td>
-            <td>
-              <span v-if="n.is_read" class="badge text-bg-light border text-muted">{{ t('web.notifications.status.read') }}</span>
-              <span v-else class="badge text-bg-primary">{{ t('web.notifications.status.unread') }}</span>
-            </td>
-            <td class="text-end">
-              <span class="text-muted small">{{ timeLabel(n) }}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <template #cell-created_at="{ row }: { row: AppNotification }">
+        <span class="text-muted small">{{ timeLabel(row) }}</span>
+      </template>
+    </DataTable>
   </Card>
 </template>

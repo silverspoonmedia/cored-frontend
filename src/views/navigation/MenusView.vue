@@ -5,7 +5,7 @@ import Card from '@/components/Card.vue'
 import RowActions, { type RowAction } from '@/components/RowActions.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import ErrorState from '@/components/ErrorState.vue'
-import EmptyState from '@/components/EmptyState.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { confirmDialog } from '@/lib/swal'
 import { useMenus } from '@/composables/navigation/useMenus'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
@@ -133,13 +133,7 @@ onMounted(load)
         />
       </div>
 
-      <EmptyState
-        v-if="filtered.length === 0"
-        icon="bi-list-nested"
-        :title="t('web.menus.empty_list')"
-      />
-
-      <div v-else class="table-responsive">
+      <div class="table-responsive">
         <table class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
@@ -152,6 +146,12 @@ onMounted(load)
             </tr>
           </thead>
           <tbody>
+            <TableEmptyRow
+              v-if="filtered.length === 0"
+              :colspan="canManage ? 6 : 5"
+              icon="bi-list-nested"
+              :title="t('web.menus.empty_list')"
+            />
             <tr v-for="row in filtered" :key="row.id">
               <td>
                 <span :class="{ 'ps-3': row.type === 'p', 'ps-4': row.type === 'c' }">

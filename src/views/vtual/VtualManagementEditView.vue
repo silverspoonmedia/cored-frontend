@@ -7,6 +7,7 @@ import FormInput from '@/components/FormInput.vue'
 import FormTextarea from '@/components/FormTextarea.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { get } from '@/api/client'
 import { useVtualManagements } from '@/composables/vtual/useVtualManagements'
 import { useAlert } from '@/composables/useAlert'
@@ -277,9 +278,12 @@ watch([isEdit, managementId], () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-if="creators.length === 0">
-                <td colspan="3" class="text-muted">{{ t('web.vtual-managements.creators.empty') }}</td>
-              </tr>
+              <TableEmptyRow
+                v-if="creators.length === 0"
+                :colspan="3"
+                icon="bi-people"
+                :title="t('web.vtual-managements.creators.empty')"
+              />
               <tr v-for="a in creators" :key="a.assignment_id">
                 <td>{{ a.creator.display_name }}</td>
                 <td><span class="text-muted small">{{ a.joined_at_formatted ?? a.joined_at ?? '-' }}</span></td>

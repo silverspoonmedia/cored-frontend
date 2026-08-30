@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
+import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
+import { useVtualRealtime, type PlatformCredentialChangedPayload } from '@/composables/vtual/useVtualRealtime'
+import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { confirmDialog } from '@/lib/swal'
@@ -17,25 +20,48 @@ const { t } = useI18n()
 const vtual = useVtual()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { subscribe, unsubscribe } = useVtualRealtime()
 
 const credentials = ref<VtualPlatformCredential[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const actionLoading = ref<Record<string, boolean>>({})
 const canManage = computed(() => hasPermission('manage vtual platform credentials'))
 const platformId = computed(() => route.params.platformId as string)
 
-async function loadCredentials(): Promise<void> {
-  loading.value = true
+async function loadCredentials(silent = false): Promise<void> {
+  if (!silent) loading.value = true
+  loadError.value = null
   try {
     credentials.value = await vtual.fetchCredentials(platformId.value)
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.vtual.credentials.load_failed'))
+    loadError.value = e instanceof Error ? e.message : t('web.vtual.credentials.load_failed')
+    showError(loadError.value)
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 
-onMounted(loadCredentials)
+useListingLiveUpdate('vtual-platform-credentials', () => {
+  void loadCredentials(true)
+})
+
+const realtimeHandlers = {
+  onCredentialChanged: (payload: PlatformCredentialChangedPayload) => {
+    if (payload.platform_id === platformId.value) {
+      void loadCredentials(true)
+    }
+  },
+}
+
+onMounted(() => {
+  void loadCredentials()
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 
 async function handleDelete(cred: VtualPlatformCredential): Promise<void> {
   if (!(await confirmDialog({ text: t('web.vtual.confirm.delete_credential_body') }))) return
@@ -79,15 +105,21 @@ async function handleTest(cred: VtualPlatformCredential): Promise<void> {
 }
 
 function updateCredentialInList(updated: VtualPlatformCredential): void {
-  const idx = credentials.value.findIndex((c) => c.id === updated.id)
-  if (idx >= 0) {
-    credentials.value[idx] = updated
-  }
+  credentials.value = credentials.value.map((c) => (c.id === updated.id ? updated : c))
 }
 
 function setAction(id: string, on: boolean): void {
   actionLoading.value = { ...actionLoading.value, [id]: on }
 }
+
+const columns = computed<DataTableColumn[]>(() => [
+  { key: 'label', label: t('web.vtual.credentials.label'), sortable: true },
+  { key: 'type', label: t('web.vtual.credentials.type'), sortable: true },
+  { key: 'status', label: t('web.vtual.credentials.status_active'), sortable: true, align: 'center' },
+  { key: 'priority', label: t('web.vtual.credentials.priority'), sortable: true, align: 'center' },
+  { key: 'secret_hint', label: t('web.vtual.credentials.hint'), sortable: false },
+  { key: 'verified_at', label: t('web.vtual.credentials.verified_at'), sortable: true },
+])
 </script>
 
 <template>
@@ -102,78 +134,71 @@ function setAction(id: string, on: boolean): void {
       </button>
     </template>
 
-    <div v-if="loading" class="text-center py-4">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">{{ t('ui.loading') }}</span>
-      </div>
-    </div>
+    <DataTable
+      :columns="columns"
+      :rows="credentials"
+      :loading="loading"
+      :error="loadError"
+      empty-icon="bi-key"
+      :empty-title="t('web.vtual.credentials.empty')"
+      @retry="loadCredentials()"
+    >
+      <template #cell-type="{ row }: { row: VtualPlatformCredential }">
+        <code>{{ row.type }}</code>
+      </template>
 
-    <div v-else-if="credentials.length === 0" class="text-muted text-center py-4">
-      {{ t('web.vtual.credentials.empty') }}
-    </div>
+      <template #cell-status="{ row }: { row: VtualPlatformCredential }">
+        <StatusBadge :status="row.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
+      </template>
 
-    <div v-else class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th>{{ t('web.vtual.credentials.label') }}</th>
-            <th>{{ t('web.vtual.credentials.type') }}</th>
-            <th class="text-center">{{ t('web.vtual.credentials.status_active') }}</th>
-            <th class="text-center">{{ t('web.vtual.credentials.priority') }}</th>
-            <th>{{ t('web.vtual.credentials.hint') }}</th>
-            <th>{{ t('web.vtual.credentials.verified_at') }}</th>
-            <th class="text-end">{{ t('web.vtual.table.label_actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="cred in credentials" :key="cred.id">
-            <td>{{ cred.label }}</td>
-            <td><code>{{ cred.type }}</code></td>
-            <td class="text-center">
-              <StatusBadge :status="cred.status" :mapping="VTUAL_STATUS_BADGE" fallback="light" />
-            </td>
-            <td class="text-center">{{ cred.priority ?? '—' }}</td>
-            <td class="small text-muted">{{ cred.secret_hint ?? '—' }}</td>
-            <td class="small">{{ cred.verified_at_formatted ?? '—' }}</td>
-            <td class="text-end">
-              <div v-if="canManage" class="btn-group btn-group-sm">
-                <button
-                  class="btn btn-outline-success"
-                  :disabled="actionLoading[cred.id]"
-                  @click="handleTest(cred)"
-                  :title="t('web.vtual.credentials.test')"
-                >
-                  <span v-if="actionLoading[cred.id]" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  <i v-else class="bi bi-lightning" aria-hidden="true"></i>
-                </button>
-                <button
-                  class="btn btn-outline-warning"
-                  :disabled="actionLoading[cred.id]"
-                  @click="handleRevoke(cred)"
-                  :title="t('web.vtual.credentials.revoke')"
-                >
-                  <i class="bi bi-shield-x" aria-hidden="true"></i>
-                </button>
-                <button
-                  class="btn btn-outline-primary"
-                  @click="router.push({ name: 'vtual.platform-credentials.edit.view', params: { id: cred.id } })"
-                  :title="t('web.vtual.admin.credentials.edit_action')"
-                >
-                  <i class="bi bi-pencil" aria-hidden="true"></i>
-                </button>
-                <button
-                  class="btn btn-outline-danger"
-                  :disabled="actionLoading[cred.id]"
-                  @click="handleDelete(cred)"
-                  :title="t('web.vtual.credentials.delete')"
-                >
-                  <i class="bi bi-trash" aria-hidden="true"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <template #cell-priority="{ row }: { row: VtualPlatformCredential }">
+        {{ row.priority ?? '—' }}
+      </template>
+
+      <template #cell-secret_hint="{ row }: { row: VtualPlatformCredential }">
+        <span class="small text-muted">{{ row.secret_hint ?? '—' }}</span>
+      </template>
+
+      <template #cell-verified_at="{ row }: { row: VtualPlatformCredential }">
+        <span class="small">{{ row.verified_at_formatted ?? '—' }}</span>
+      </template>
+
+      <template v-if="canManage" #actions="{ row }: { row: VtualPlatformCredential }">
+        <div class="btn-group btn-group-sm">
+          <button
+            class="btn btn-outline-success"
+            :disabled="actionLoading[row.id]"
+            @click="handleTest(row)"
+            :title="t('web.vtual.credentials.test')"
+          >
+            <span v-if="actionLoading[row.id]" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <i v-else class="bi bi-lightning" aria-hidden="true"></i>
+          </button>
+          <button
+            class="btn btn-outline-warning"
+            :disabled="actionLoading[row.id]"
+            @click="handleRevoke(row)"
+            :title="t('web.vtual.credentials.revoke')"
+          >
+            <i class="bi bi-shield-x" aria-hidden="true"></i>
+          </button>
+          <button
+            class="btn btn-outline-primary"
+            @click="router.push({ name: 'vtual.platform-credentials.edit.view', params: { id: row.id } })"
+            :title="t('web.vtual.admin.credentials.edit_action')"
+          >
+            <i class="bi bi-pencil" aria-hidden="true"></i>
+          </button>
+          <button
+            class="btn btn-outline-danger"
+            :disabled="actionLoading[row.id]"
+            @click="handleDelete(row)"
+            :title="t('web.vtual.credentials.delete')"
+          >
+            <i class="bi bi-trash" aria-hidden="true"></i>
+          </button>
+        </div>
+      </template>
+    </DataTable>
   </Card>
 </template>

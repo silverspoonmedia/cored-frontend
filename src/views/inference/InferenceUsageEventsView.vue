@@ -6,6 +6,7 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useInferenceUsage } from '@/composables/inference/useInferenceUsage'
 import { useInferenceModelCards } from '@/composables/inference/useInferenceModelCards'
 import { useInferenceHydrate } from '@/composables/inference/useInferenceHydrate'
@@ -284,9 +285,6 @@ onMounted(async () => {
         :message="eventsError"
         @retry="loadEvents(true)"
       />
-      <div v-else-if="events.length === 0" class="text-muted text-center py-3">
-        {{ t('web.inference.usage.no_events') }}
-      </div>
       <div v-else>
         <div class="table-responsive">
           <table class="table table-sm table-hover align-middle mb-0">
@@ -303,6 +301,12 @@ onMounted(async () => {
               </tr>
             </thead>
             <tbody>
+              <TableEmptyRow
+                v-if="events.length === 0"
+                :colspan="8"
+                icon="bi-activity"
+                :title="t('web.inference.usage.no_events')"
+              />
               <tr v-for="ev in events" :key="ev.id">
                 <td class="small">{{ ev.created_at ?? '—' }}</td>
                 <td class="small">{{ ev.user?.name ?? '—' }}</td>

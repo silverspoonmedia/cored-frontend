@@ -7,6 +7,7 @@ import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
+import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { usePaymentsIncome } from '@/composables/payment-gateway/usePaymentsIncome'
 import { useInvoices } from '@/composables/payment-gateway/useInvoices'
 import { usePaymentsHydrate } from '@/composables/payment-gateway/usePaymentsHydrate'
@@ -328,9 +329,6 @@ onUnmounted(() => {
           :message="invoicesError"
           @retry="loadInvoices(true)"
         />
-        <div v-else-if="invoices.length === 0" class="text-muted text-center py-3">
-          {{ t('web.payments.income.no_invoices') }}
-        </div>
         <div v-else>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
@@ -345,6 +343,12 @@ onUnmounted(() => {
                 </tr>
               </thead>
               <tbody>
+                <TableEmptyRow
+                  v-if="invoices.length === 0"
+                  :colspan="6"
+                  icon="bi-receipt"
+                  :title="t('web.payments.income.no_invoices')"
+                />
                 <tr v-for="inv in invoices" :key="inv.id">
                   <td><code class="small">{{ inv.invoice_number }}</code></td>
                   <td class="text-center">
