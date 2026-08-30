@@ -456,19 +456,26 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
       <!-- Merge form -->
       <Card :title="t('web.vtual.profiles.merge_title')" class="mt-3" v-if="canMutate">
         <p class="text-muted small">{{ t('web.vtual.profiles.merge_desc_short') }}</p>
-        <form @submit.prevent="handleMerge" class="row g-2 align-items-end">
+        <form @submit.prevent="handleMerge" class="row g-2 align-items-start">
           <div class="col-md-8">
             <FormInput name="destination_id" :label="t('web.vtual.profiles.fields.destination_id')" v-model="mergeDestinationId" :placeholder="t('web.vtual.profiles.uuid_placeholder')" />
           </div>
           <div class="col-md-4">
-            <SubmitButton :loading="merging" :label="t('web.vtual.profiles.merge_button')" variant="danger" />
+            <div class="mb-3">
+              <label class="form-label" aria-hidden="true">
+                &nbsp;<span class="text-danger invisible">*</span>
+              </label>
+              <div class="d-grid">
+                <SubmitButton :loading="merging" :label="t('web.vtual.profiles.merge_button')" variant="danger" />
+              </div>
+            </div>
           </div>
         </form>
       </Card>
 
       <!-- Links -->
       <Card :title="t('web.vtual.profiles.links_title')" class="mt-3">
-        <form v-if="canMutate" @submit.prevent="handleSaveLink" class="row g-2 mb-3 align-items-end">
+        <form v-if="canMutate" @submit.prevent="handleSaveLink" class="row g-2 mb-3 align-items-start">
           <div class="col-md-3">
             <FormInput name="link_label" :label="t('web.vtual.profiles.fields.link_label')" v-model="linkForm.label" required />
           </div>
@@ -479,8 +486,15 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
             <FormSelect name="link_kind" :label="t('web.vtual.profiles.fields.link_kind')" v-model="linkForm.kind" :options="linkKindOptions" />
           </div>
           <div class="col-md-2">
-            <SubmitButton :loading="savingLink" :label="editingLinkId ? t('ui.actions.update') : t('ui.actions.add')" />
-            <button v-if="editingLinkId" type="button" class="btn btn-outline-secondary btn-sm ms-1" @click="resetLinkForm">{{ t('ui.actions.cancel') }}</button>
+            <div class="mb-3">
+              <label class="form-label" aria-hidden="true">
+                &nbsp;<span class="text-danger invisible">*</span>
+              </label>
+              <div class="d-grid gap-2">
+                <SubmitButton :loading="savingLink" :label="editingLinkId ? t('ui.actions.update') : t('ui.actions.add')" />
+                <button v-if="editingLinkId" type="button" class="btn btn-outline-secondary" @click="resetLinkForm">{{ t('ui.actions.cancel') }}</button>
+              </div>
+            </div>
           </div>
         </form>
 
