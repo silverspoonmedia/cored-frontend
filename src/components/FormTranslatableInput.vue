@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-
-const SUPPORTED_LOCALES = ['en', 'id', 'ja'] as const
+import { SUPPORTED_LOCALES } from '@/i18n'
 
 const props = withDefaults(defineProps<{
   name: string

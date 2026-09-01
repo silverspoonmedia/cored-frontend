@@ -39,7 +39,7 @@ describe('authorizeBroadcastChannel', () => {
     const { authorizeBroadcastChannel } = await import('../src/composables/useEcho')
 
     await expect(authorizeBroadcastChannel('private-x', '1.1')).rejects.toThrow(
-      'Invalid broadcast auth response',
+      'Could not authorize the realtime connection.',
     )
   })
 })

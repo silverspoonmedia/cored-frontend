@@ -20,14 +20,7 @@ const { success: showSuccess, error: showError } = useAlert()
 const { hasPermission } = useAuth()
 
 const layout = ref('sidebar')
-const layoutLabel = (key: string): string => {
-  const fallback: Record<string, string> = {
-    sidebar: t('web.menus.form.layouts.sidebar'),
-    navbar: t('web.menus.form.layouts.navbar'),
-    vtual: t('web.menus.form.layouts.vtual'),
-  }
-  return fallback[key] ?? key
-}
+const layoutLabel = (key: string): string => t(`web.menus.form.layouts.${key}`)
 const canManage = computed(() => hasPermission('manage menu'))
 
 const searchQuery = ref('')
@@ -93,10 +86,10 @@ onMounted(load)
           <option v-for="key in (availableLayouts.length ? availableLayouts : ['sidebar', 'navbar'])" :key="key" :value="key">{{ layoutLabel(key) }}</option>
         </select>
         <router-link v-if="canManage" class="btn btn-outline-secondary btn-sm" :to="{ name: 'menus.trashed.view', query: { layout: layout } }">
-          <i class="bi bi-trash3 me-1"></i> Trashed
+          <i class="bi bi-trash3 me-1"></i> {{ t('web.menus.trashed_breadcrumb') }}
         </router-link>
         <router-link v-if="canManage" class="btn btn-primary btn-sm" :to="{ name: 'menus.create.view', query: { layout: layout } }">
-          <i class="bi bi-plus-lg me-1"></i> Add Menu
+          <i class="bi bi-plus-lg me-1"></i> {{ t('web.menus.add_button') }}
         </router-link>
       </div>
     </template>
@@ -110,7 +103,7 @@ onMounted(load)
           type="search"
           class="form-control form-control-sm"
           :placeholder="t('web.menus.search_placeholder')"
-          aria-label="Search menus"
+          :aria-label="t('web.menus.search_aria_label')"
         />
       </div>
 
@@ -138,7 +131,7 @@ onMounted(load)
                 <span :class="{ 'ps-3': row.type === 'p', 'ps-4': row.type === 'c' }">
                   <i v-if="row.icon" class="bi me-1" :class="row.icon" aria-hidden="true"></i>
                   <span :class="{ 'fw-bold': (row.children_count ?? 0) > 0 }">{{ row.name }}</span>
-                  <span v-if="(row.children_count ?? 0) > 0" class="badge text-bg-light border ms-1" :title="`${row.children_count} children`">
+                  <span v-if="(row.children_count ?? 0) > 0" class="badge text-bg-light border ms-1" :title="t('web.menus.has_children_title', { count: row.children_count })">
                     <i class="bi bi-diagram-3" aria-hidden="true"></i> {{ row.children_count }}
                   </span>
                 </span>
@@ -147,8 +140,8 @@ onMounted(load)
               <td>{{ row.route ?? '—' }}</td>
               <td class="text-center">{{ row.order ?? '—' }}</td>
               <td>
-                <span v-if="row.is_authenticate" class="badge text-bg-info me-1">auth</span>
-                <span v-if="row.is_guest_only" class="badge text-bg-secondary me-1">guest</span>
+                <span v-if="row.is_authenticate" class="badge text-bg-info me-1">{{ t('web.menus.attributes.auth') }}</span>
+                <span v-if="row.is_guest_only" class="badge text-bg-secondary me-1">{{ t('web.menus.attributes.guest') }}</span>
                 <span v-if="!row.is_authenticate && !row.is_guest_only" class="text-muted">—</span>
               </td>
               <td v-if="canManage" class="text-end">

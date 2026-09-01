@@ -20,6 +20,10 @@ const { error: showError } = useAlert()
 const { t, locale } = useI18n()
 
 const formatNumber = (value: number): string => new Intl.NumberFormat(locale.value).format(value)
+const formatUsd = (value: number): string => new Intl.NumberFormat(locale.value, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}).format(value)
 
 const overview = ref<InferenceUsageOverview | null>(null)
 const events = ref<InferenceUsageEvent[]>([])
@@ -317,7 +321,7 @@ onMounted(async () => {
                 <td class="text-end small">{{ ev.billable_usd }}</td>
                 <td class="small">
                   <span v-if="ev.rate_snapshot">
-                    ${{ ev.rate_snapshot.input_per_million_usd.toFixed(2) }} / ${{ ev.rate_snapshot.output_per_million_usd.toFixed(2) }}
+                    ${{ formatUsd(ev.rate_snapshot.input_per_million_usd) }} / ${{ formatUsd(ev.rate_snapshot.output_per_million_usd) }}
                   </span>
                   <span v-else>—</span>
                 </td>

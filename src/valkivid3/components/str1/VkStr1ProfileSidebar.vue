@@ -45,7 +45,7 @@ function externalUrl(value: string | null | undefined): string | null {
       </div>
       <span
         v-if="profile.is_live"
-        class="absolute -right-1 top-0 rounded-full bg-danger px-2 py-1 text-2xs font-bold uppercase text-white"
+        class="absolute -end-1 top-0 rounded-full bg-danger px-2 py-1 text-2xs font-bold uppercase text-white"
       >
         {{ t('web.vtual.public.profile.live') }}
       </span>

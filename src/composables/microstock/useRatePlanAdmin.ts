@@ -1,4 +1,5 @@
 import { ref, type Ref } from 'vue'
+import i18n from '@/i18n'
 import { put } from '@/api/client'
 import type { ApiResponse, ProviderModelRate } from '@/api/types'
 
@@ -76,7 +77,7 @@ export function useRatePlanAdmin(providerId: Ref<string>) {
         return true
       }
 
-      throw new Error(res.message ?? 'Save failed')
+      throw new Error(res.message ?? i18n.global.t('web.inference.providers.save_failed'))
     } finally {
       saving.value = false
     }

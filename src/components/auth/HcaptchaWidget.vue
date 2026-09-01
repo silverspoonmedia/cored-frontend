@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   siteKey?: string
 }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   verified: [token: string]
@@ -53,15 +56,15 @@ function renderWidget(): void {
     },
     'error-callback': () => {
       errored.value = true
-      const error = new Error('hCaptcha challenge failed')
+      const error = new Error(t('ui.hcaptcha.challenge_failed'))
       emit('error', error)
       failPending(error)
     },
     'close-callback': () => {
-      failPending(new Error('hCaptcha challenge closed'))
+      failPending(new Error(t('ui.hcaptcha.challenge_closed')))
     },
     'chalexpired-callback': () => {
-      failPending(new Error('hCaptcha challenge expired'))
+      failPending(new Error(t('ui.hcaptcha.challenge_expired')))
     },
   }) as string
 }
@@ -90,7 +93,7 @@ function execute(): Promise<string> {
     }
     const hcaptcha = (window as unknown as { hcaptcha?: { execute: (id: string) => void } }).hcaptcha
     if (!widgetId.value || typeof hcaptcha === 'undefined') {
-      reject(new Error('hCaptcha not ready'))
+      reject(new Error(t('ui.hcaptcha.not_ready')))
       return
     }
     pendingResolve = resolve
@@ -98,7 +101,7 @@ function execute(): Promise<string> {
     try {
       hcaptcha.execute(widgetId.value)
     } catch (e) {
-      failPending(e instanceof Error ? e : new Error('hCaptcha execute failed'))
+      failPending(e instanceof Error ? e : new Error(t('ui.hcaptcha.execute_failed')))
     }
   })
 }

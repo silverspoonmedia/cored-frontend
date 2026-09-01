@@ -63,16 +63,8 @@ const typeOptions = computed<Record<string, string>>(() => ({
 }))
 
 const layoutOptions = computed<Record<string, string>>(() => {
-  const fallback: Record<string, string> = {
-    sidebar: t('web.menus.form.layouts.sidebar'),
-    navbar: t('web.menus.form.layouts.navbar'),
-    vtual: t('web.menus.form.layouts.vtual'),
-  }
-  const result: Record<string, string> = {}
-  for (const key of availableLayouts.value.length ? availableLayouts.value : Object.keys(fallback)) {
-    result[key] = fallback[key] ?? key
-  }
-  return result
+  const keys = availableLayouts.value.length ? availableLayouts.value : ['sidebar', 'navbar', 'vtual']
+  return Object.fromEntries(keys.map((key) => [key, t(`web.menus.form.layouts.${key}`)]))
 })
 
 const positionOptions = computed<Record<string, string>>(() => {

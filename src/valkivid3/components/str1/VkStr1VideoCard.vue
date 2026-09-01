@@ -110,7 +110,7 @@ watch(
         />
         <div class="absolute inset-0 bg-black/60"></div>
         <span
-          class="absolute left-3.5 top-3 px-1.5 py-1 text-xs font-bold uppercase leading-none"
+          class="absolute start-3.5 top-3 px-1.5 py-1 text-xs font-bold uppercase leading-none"
           :class="isLive ? 'bg-danger text-white' : 'bg-primary text-white dark:text-gray-900'"
         >
           {{ badge }}
@@ -121,7 +121,7 @@ watch(
         >
           <svg
             role="img"
-            class="ml-[2px] fill-white"
+            class="ms-[2px] fill-white"
             :class="featured ? 'aspect-[18/22] w-9' : 'aspect-[18/22] w-7'"
           >
             <use :href="`${spriteUrl}#play`"></use>

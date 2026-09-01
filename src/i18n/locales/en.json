@@ -1032,6 +1032,16 @@
       "datatable_load_failed": "Could not load the table data. Please try again.",
       "unexpected_error": "Something went wrong. Please try again."
     },
+    "hcaptcha": {
+      "challenge_failed": "Captcha verification failed. Please try again.",
+      "challenge_closed": "Captcha challenge was closed.",
+      "challenge_expired": "Captcha challenge expired.",
+      "not_ready": "Captcha is not ready yet.",
+      "execute_failed": "Captcha could not be completed."
+    },
+    "realtime": {
+      "broadcast_auth_invalid": "Could not authorize the realtime connection."
+    },
     "shared": {
       "load_failed": "Could not load the data.",
       "create_failed": "Could not create the item.",
@@ -1940,6 +1950,11 @@
       "upload": {
         "start": "Start upload",
         "browse": "Browse files",
+        "invalid_url": "The upload URL is invalid.",
+        "part_missing": "Upload part {part} is unavailable.",
+        "part_list_missing": "The upload did not return a part.",
+        "put_failed": "Upload failed with status {status}.",
+        "network_error": "A network error interrupted the upload.",
         "region": "Upload region",
         "too_many": "Too many files selected.",
         "wait": "Please wait for uploads to finish.",
@@ -2072,6 +2087,12 @@
       "failed_update_role": "Could not update the member's role.",
       "failed_remove_member": "Could not remove the member.",
       "failed_archive_workspace": "Could not archive the workspace.",
+      "roles": {
+        "Owner": "Owner",
+        "admin": "Admin",
+        "editor": "Editor",
+        "viewer": "Viewer"
+      },
       "system": "System",
       "activity": "activity",
       "blocklist_title_card": "Hash Blocklist",
@@ -2361,6 +2382,11 @@
         "layout_hint": "Show menus for the selected shell region only."
       },
       "has_children_title": "Has {count} child item(s)",
+      "search_aria_label": "Search menus",
+      "attributes": {
+        "auth": "auth",
+        "guest": "guest"
+      },
       "trashed_card_title": "Deleted menus",
       "new_card_title": "New menu details",
       "edit_card_title": "Edit menu: {name}",
@@ -2958,6 +2984,7 @@
         "sync_policy_done": "Routing policy synced ({channels} channels, {routes} routes). Reloading…"
       },
       "checkout_panel_title": "Payment Checkout",
+      "qr_code_alt": "Payment QR code",
       "invoice_status_label": "Invoice status:",
       "select_payment_channel": "Select Payment Channel",
       "checkout_initiated": "Checkout initiated. Follow the instructions below.",

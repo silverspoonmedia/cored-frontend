@@ -4,6 +4,7 @@ import type { ChannelAuthorizerGenerator } from 'pusher-js'
 import { ref, type Ref } from 'vue'
 import { post } from '@/api/client'
 import { resolveApiUrl } from '@/api/baseUrl'
+import i18n from '@/i18n'
 
 type PusherEcho = Echo<'pusher'>
 type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
@@ -34,7 +35,7 @@ export async function authorizeBroadcastChannel(
     || !('auth' in data)
     || typeof (data as { auth: unknown }).auth !== 'string'
   ) {
-    throw new Error('Invalid broadcast auth response')
+    throw new Error(i18n.global.t('ui.realtime.broadcast_auth_invalid'))
   }
 
   const payload = data as { auth: string; channel_data?: unknown; shared_secret?: unknown }

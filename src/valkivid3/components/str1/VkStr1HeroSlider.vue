@@ -23,13 +23,17 @@ const heroTone = ref<'light' | 'dark'>('light')
 onMounted(() => {
   if (!swiperEl.value) return
 
-  swiper = new Swiper(swiperEl.value, {
+  // `rtl` lives on a private options extension, not the core SwiperOptions
+  // type; fade is direction-agnostic but pin it defensively in case the
+  // effect ever changes to a directional one.
+  const options = {
     modules: [Autoplay, EffectFade, Navigation, Pagination],
     slidesPerView: 1,
     loop: true,
     speed: 400,
     effect: 'fade',
     fadeEffect: { crossFade: true },
+    rtl: document.documentElement.dir === 'rtl',
     autoplay: { delay: 8000, disableOnInteraction: false },
     pagination: {
       el: '.js-vk-hero-pagination',
@@ -39,7 +43,9 @@ onMounted(() => {
       nextEl: '.js-vk-hero-next',
       prevEl: '.js-vk-hero-prev',
     },
-  })
+  }
+
+  swiper = new Swiper(swiperEl.value, options)
 
   const syncTone = () => {
     heroTone.value = swiper && swiper.realIndex === 0 ? 'light' : 'dark'
@@ -72,7 +78,7 @@ onBeforeUnmount(() => {
                       {{ t('web.vtual.public.hero.one.title_b') }}
                     </div>
                     <div class="mt-3 md:mt-1 lg:pb-9 xl:-mt-2.5 xl:pb-12">
-                      <p class="mb-7 text-base font-medium leading-8 text-gray-600 dark:text-white lg:mb-10 lg:text-lg xl:mb-12 xl:pr-20">
+                      <p class="mb-7 text-base font-medium leading-8 text-gray-600 dark:text-white lg:mb-10 lg:text-lg xl:mb-12 xl:pe-20">
                         {{ t('web.vtual.public.hero.one.text') }}
                       </p>
                       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -132,7 +138,7 @@ onBeforeUnmount(() => {
               <div class="container h-full">
                 <div class="grid h-full grid-cols-12 items-end md:gap-x-6 lg:gap-x-7.5">
                   <div class="col-span-full pb-8 sm:pb-10 md:col-span-6 md:pb-12">
-                    <div class="text-left">
+                    <div class="text-start">
                       <div class="mb-1 flex flex-wrap gap-1 font-bold uppercase text-accent lg:mb-2">
                         <div>{{ t('web.vtual.public.hero.three.kicker') }}</div>
                       </div>
@@ -157,12 +163,12 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !right-2 sm:!right-4 2xl:!-right-16 top-1/2 !left-auto -translate-y-1/2 !bottom-auto z-20 flex !w-[34px] flex-col items-end gap-0.5"></div>
+      <div class="js-vk-hero-pagination vv-hero-swiper-pagination absolute !end-2 sm:!end-4 2xl:!-end-16 top-1/2 !start-auto -translate-y-1/2 !bottom-auto z-20 flex !w-[34px] flex-col items-end gap-0.5"></div>
 
-      <div class="absolute bottom-0 right-0 z-10 flex justify-center gap-y-4 2xl:-right-16 xl:flex-col">
+      <div class="absolute bottom-0 end-0 z-10 flex justify-center gap-y-4 2xl:-end-16 xl:flex-col">
         <button
           type="button"
-          class="js-vk-hero-prev flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
+          class="js-vk-hero-prev flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent rtl:rotate-180"
           :aria-label="t('web.vtual.public.hero.prev')"
         >
           <svg class="h-2.5 w-1.5" fill="currentColor">
@@ -172,7 +178,7 @@ onBeforeUnmount(() => {
 
         <button
           type="button"
-          class="js-vk-hero-next flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent"
+          class="js-vk-hero-next flex aspect-square w-8 items-center justify-center text-white hover:cursor-pointer hover:text-accent xl:rotate-90 bg-gray-900 xl:bg-transparent dark:bg-gray-900 dark:xl:bg-transparent rtl:rotate-180"
           :aria-label="t('web.vtual.public.hero.next')"
         >
           <svg class="h-2.5 w-1.5" fill="currentColor">

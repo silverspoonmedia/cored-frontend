@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { isRtl } from '@/i18n'
 import { confirmDialog } from '@/lib/swal'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
@@ -103,6 +104,18 @@ type ContextMenuState = {
 }
 
 const contextMenu = ref<ContextMenuState | null>(null)
+
+// Mirror the popup under RTL and keep it on-screen near the viewport edge.
+const CONTEXT_MENU_WIDTH = 220
+
+const contextMenuStyle = computed(() => {
+  if (!contextMenu.value) return {}
+  const x = Math.min(contextMenu.value.x, window.innerWidth - CONTEXT_MENU_WIDTH)
+  if (isRtl()) {
+    return { insetInlineStart: `${Math.max(0, window.innerWidth - contextMenu.value.x - CONTEXT_MENU_WIDTH)}px`, top: `${contextMenu.value.y}px` }
+  }
+  return { insetInlineStart: `${Math.max(0, x)}px`, top: `${contextMenu.value.y}px` }
+})
 
 const currentFolderId = computed(() => {
   const id = route.params.folderId
@@ -1416,7 +1429,7 @@ watch(searchQ, (q) => {
       v-if="contextMenu"
       class="fh-context-menu"
       role="menu"
-      :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+      :style="contextMenuStyle"
       @click.stop
     >
       <button type="button" class="fh-context-menu__item" @click="ctxAction('open')"><i class="bi bi-folder2-open"></i>{{ t('web.file-hosting.open') }}</button>

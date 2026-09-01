@@ -29,7 +29,7 @@ const emit = defineEmits<{
   lock: [payload: { hint: string | null; billingMode: string | null }]
 }>()
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 
 const sections = reactive<DescribeSections>(emptyDescribeSections())
 const errors = ref<string[]>([])
@@ -54,7 +54,7 @@ const billingLine = computed(() => {
   return t('web.file-hosting.microstock.billing_line', {
     balance: b.balance_usd,
     estimate: b.estimated_per_analysis_usd,
-    total: analysisEstimateUsd(props.fileCount, b.estimated_per_analysis_micro_usd),
+    total: analysisEstimateUsd(props.fileCount, b.estimated_per_analysis_micro_usd, locale.value),
   })
 })
 

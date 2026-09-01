@@ -57,6 +57,10 @@ async function refetch(layout = 'sidebar'): Promise<void> {
   return load(layout)
 }
 
+async function refetchAll(): Promise<void> {
+  await Promise.all([refetch('sidebar'), refetch('navbar')])
+}
+
 function seedTree(layout: string, nodes: NavigationTreeNode[]): void {
   ensureLayoutBucket(layout)
   treeMap[layout] = nodes
@@ -115,6 +119,7 @@ export function useNavigation() {
     error,
     load,
     refetch,
+    refetchAll,
     seedTree,
     isTreeLoaded,
     startRealtime,

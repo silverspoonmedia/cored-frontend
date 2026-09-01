@@ -1,3 +1,4 @@
+import i18n from '@/i18n'
 import { useResource } from '@/composables/useResource'
 import { get, post } from '@/api/client'
 import type { ApiResponse, Service, ServiceOptions, ServicePurchase } from '@/api/types'
@@ -21,7 +22,7 @@ export function useServices() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Checkout failed')
+    throw new Error(res.message ?? i18n.global.t('web.services.checkout_failed'))
   }
 
   return {

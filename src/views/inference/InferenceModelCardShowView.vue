@@ -18,6 +18,10 @@ const router = useRouter()
 const { t, locale } = useI18n()
 
 const formatNumber = (value: number): string => new Intl.NumberFormat(locale.value).format(value)
+const formatUsd = (value: number): string => new Intl.NumberFormat(locale.value, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}).format(value)
 const { fetchModelCardDetail, fetchUsageEvents } = useInferenceUsage()
 const { hydrateModelCardShow } = useInferenceHydrate()
 const { hasPermission } = useAuth()
@@ -115,8 +119,8 @@ onMounted(async () => {
           <div class="card-body">
             <div class="text-muted small">{{ t('web.inference.model_cards.provider_rate_label') }}</div>
             <div class="small fw-semibold">
-              {{ t('web.inference.model_cards.in_short') }} ${{ card.provider_rate.input_per_million_usd.toFixed(2) }}
-              · {{ t('web.inference.model_cards.out_short') }} ${{ card.provider_rate.output_per_million_usd.toFixed(2) }}
+              {{ t('web.inference.model_cards.in_short') }} ${{ formatUsd(card.provider_rate.input_per_million_usd) }}
+              · {{ t('web.inference.model_cards.out_short') }} ${{ formatUsd(card.provider_rate.output_per_million_usd) }}
             </div>
             <div v-if="card.provider_rate.provider_slug" class="text-muted small mt-1">
               <code>{{ card.provider_rate.provider_slug }}</code>
@@ -187,8 +191,8 @@ onMounted(async () => {
               <td class="small">{{ ev.billable_usd }}</td>
               <td class="small">
                 <span v-if="ev.rate_snapshot">
-                  ${{ ev.rate_snapshot.input_per_million_usd.toFixed(2) }} /
-                  ${{ ev.rate_snapshot.output_per_million_usd.toFixed(2) }}
+                  ${{ formatUsd(ev.rate_snapshot.input_per_million_usd) }} /
+                  ${{ formatUsd(ev.rate_snapshot.output_per_million_usd) }}
                 </span>
                 <span v-else>—</span>
               </td>

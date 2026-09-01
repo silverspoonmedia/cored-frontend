@@ -11,7 +11,7 @@ import type { ProductActivationSummary } from '@/api/types'
 
 const router = useRouter()
 const { fetchProducts } = useProductActivations()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const products = ref<ProductActivationSummary[]>([])
 const loading = ref(true)
@@ -54,7 +54,10 @@ function formatBytes(bytes: unknown): string {
     val /= 1024
     i++
   }
-  return `${val.toFixed(1)} ${units[i]}`
+  return `${new Intl.NumberFormat(locale.value, {
+    minimumFractionDigits: i === 0 ? 0 : 1,
+    maximumFractionDigits: i === 0 ? 0 : 1,
+  }).format(val)} ${units[i]}`
 }
 
 function isBytesKey(key: string): boolean {

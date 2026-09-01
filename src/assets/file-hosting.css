@@ -151,12 +151,12 @@
 }
 
 .fh-toolbar__search-input {
-    padding-left: 2.25rem;
+    padding-inline-start: 2.25rem;
 }
 
 .fh-toolbar__search-icon {
     position: absolute;
-    left: 0.625rem;
+    inset-inline-start: 0.625rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--fh-muted);
@@ -166,9 +166,8 @@
 
 .fh-toolbar__search-results {
     position: absolute;
-    top: calc(100% + 0.25rem);
-    left: 0;
-    right: 0;
+    inset-block-start: calc(100% + 0.25rem);
+    inset-inline: 0;
     background: var(--fh-surface);
     border: 1px solid var(--fh-border);
     border-radius: var(--fh-radius-sm);
@@ -258,7 +257,7 @@
 }
 
 .fh-toolbar__view-btn + .fh-toolbar__view-btn {
-    border-left: 1px solid var(--fh-border);
+    border-inline-start: 1px solid var(--fh-border);
 }
 
 /* ---- Breadcrumb ---- */
@@ -524,7 +523,7 @@
 }
 
 .fh-table__actions {
-    text-align: right;
+    text-align: end;
 }
 
 .fh-action-group {
@@ -582,7 +581,7 @@
 .fh-bulk-bar__actions {
     display: flex;
     gap: 0.5rem;
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .fh-table__select-cell {
@@ -672,7 +671,7 @@
     border: 0;
     background: transparent;
     color: var(--bs-body-color, inherit);
-    text-align: left;
+    text-align: start;
     padding: 0.45rem 0.9rem;
     font-size: 0.875rem;
     line-height: 1.25;
@@ -701,8 +700,8 @@
 
 .fh-file-card__select {
     position: absolute;
-    top: 0.5rem;
-    left: 0.5rem;
+    inset-block-start: 0.5rem;
+    inset-inline-start: 0.5rem;
     z-index: 2;
 }
 
@@ -762,8 +761,8 @@
 
 .fh-file-card__badge {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    inset-block-start: 0.5rem;
+    inset-inline-end: 0.5rem;
 }
 
 /* ---- File type icons ---- */

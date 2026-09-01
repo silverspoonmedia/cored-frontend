@@ -1,0 +1,20 @@
+/* Monolith Vue Workers — global stylesheet (RTL entry).
+   Loaded by main.ts when the resolved locale is RTL (Arabic).
+   Same layers as main-ltr.css but vendor-rtl.css ships the official RTL builds. */
+@import './vendor-rtl.css';
+@import './monolith-overrides.css';
+@import './order-invoice-show.css';
+@import './file-hosting.css';
+@import './channels-admin.css';
+
+/* Source Sans 3 + Bootstrap Icons are bundled (see vendor.css). No CDN. */
+
+body {
+  font-family: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  direction: rtl;
+  text-align: start;
+}
+
+#app {
+  width: 100%;
+}

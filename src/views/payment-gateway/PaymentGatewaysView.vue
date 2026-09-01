@@ -22,13 +22,13 @@ const canManage = computed(() => hasPermission('manage payment gateway'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
 const deleteTarget = ref<PaymentGateway | null>(null)
 
-const columns: DataTableColumn[] = [
+const columns = computed<DataTableColumn[]>(() => [
   { key: 'name', label: t('web.payments.gateways.datatable.columns.name'), sortable: true },
   { key: 'display_name', label: t('web.payments.gateways.datatable.columns.display_name'), sortable: true },
   { key: 'priority', label: t('web.payments.gateways.datatable.columns.priority'), sortable: true, align: 'center' },
   { key: 'is_active', label: t('web.payments.gateways.datatable.columns.is_active'), sortable: true, align: 'center' },
   { key: 'updated_at', label: t('web.file-hosting.updated'), sortable: true, align: 'end' },
-]
+])
 
 function editGateway(row: PaymentGateway): void {
   const to = queryRowActionTo(findQueryRowAction(row.actions, 'edit'))
@@ -96,7 +96,7 @@ async function handleDelete(): Promise<void> {
       <template #cell-is_active="{ row }: { row: PaymentGateway }">
         <StatusBadge
           :status="row.is_active ? 'active' : 'inactive'"
-          :label="row.is_active ? 'Active' : 'Inactive'"
+          :label="row.is_active ? t('web.payments.gateways.status.active') : t('web.payments.gateways.status.inactive')"
         />
       </template>
 

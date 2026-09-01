@@ -204,7 +204,7 @@ onUnmounted(() => {
           aria-hidden="true"
         ></div>
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
-        <div class="absolute bottom-0 left-0 flex w-full items-end gap-x-4 p-5 lg:p-8">
+        <div class="absolute bottom-0 start-0 flex w-full items-end gap-x-4 p-5 lg:p-8">
           <img
             v-if="avatarUrl"
             class="h-16 w-16 rounded-full object-cover ring-4 ring-white/20 lg:h-24 lg:w-24"
@@ -295,7 +295,7 @@ onUnmounted(() => {
                 :aria-label="t('web.vtual.public.contents.prev')"
                 @click="goTo(-1)"
               >
-                <svg class="h-2.5 w-1.5" fill="currentColor">
+                <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
                   <use :href="`${spriteUrl}#arrow-left-pixel-alt`"></use>
                 </svg>
               </button>
@@ -309,7 +309,7 @@ onUnmounted(() => {
                 :aria-label="t('web.vtual.public.contents.next')"
                 @click="goTo(1)"
               >
-                <svg class="h-2.5 w-1.5" fill="currentColor">
+                <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
                   <use :href="`${spriteUrl}#arrow-right-pixel-alt`"></use>
                 </svg>
               </button>

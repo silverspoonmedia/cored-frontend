@@ -1,5 +1,5 @@
-/* Monolith Vue Workers — global stylesheet.
-   Mirrors Monolith's Blade asset-head: vendor CSS bundle + overrides layer. */
+/* Monolith Vue Workers — global stylesheet (LTR entry).
+   Loaded by main.ts when the resolved locale is not RTL. */
 @import './vendor.css';
 @import './monolith-overrides.css';
 @import './order-invoice-show.css';

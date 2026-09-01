@@ -86,9 +86,9 @@ function goTo(delta: number): void {
             v-model="search"
             type="search"
             :placeholder="t('web.vtual.public.directory.search_placeholder')"
-            class="w-full border-b border-gray-500/40 bg-transparent py-2 pr-8 text-sm font-medium text-gray-900 outline-none transition-colors placeholder:text-gray-500/60 focus:border-accent dark:border-white/30 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-accent"
+            class="w-full border-b border-gray-500/40 bg-transparent py-2 pe-8 text-sm font-medium text-gray-900 outline-none transition-colors placeholder:text-gray-500/60 focus:border-accent dark:border-white/30 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-accent"
           />
-          <svg class="pointer-events-none absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 fill-gray-500" viewBox="0 0 24 24">
+          <svg class="pointer-events-none absolute end-0 top-1/2 h-4 w-4 -translate-y-1/2 fill-gray-500" viewBox="0 0 24 24">
             <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" />
           </svg>
         </div>
@@ -160,7 +160,7 @@ function goTo(delta: number): void {
                   </div>
                   <span
                     v-if="vtuber.is_live"
-                    class="absolute -right-1 -top-1 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none text-white"
+                    class="absolute -end-1 -top-1 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none text-white"
                   >
                     {{ t('web.vtual.public.directory.live') }}
                   </span>
@@ -209,7 +209,7 @@ function goTo(delta: number): void {
             :aria-label="t('web.vtual.public.directory.prev')"
             @click="goTo(-1)"
           >
-            <svg class="h-2.5 w-1.5" fill="currentColor">
+            <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
               <use :href="`${spriteUrl}#arrow-left-pixel-alt`"></use>
             </svg>
           </button>
@@ -223,7 +223,7 @@ function goTo(delta: number): void {
             :aria-label="t('web.vtual.public.directory.next')"
             @click="goTo(1)"
           >
-            <svg class="h-2.5 w-1.5" fill="currentColor">
+            <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
               <use :href="`${spriteUrl}#arrow-right-pixel-alt`"></use>
             </svg>
           </button>

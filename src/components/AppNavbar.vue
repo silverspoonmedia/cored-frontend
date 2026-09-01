@@ -13,7 +13,7 @@ import { useEcho, onEchoResync } from '@/composables/useEcho'
 import { useShellHydrate } from '@/composables/useShellHydrate'
 import { csrfToken, ensureCsrf } from '@/api/csrf'
 import { triggerAllListingsReload } from '@/composables/useListingReload'
-import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
+import { LOCALE_LABELS, reloadForDirection, setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 import { isNavNodeActive } from '@/utils/navActive'
 import { resolveNotificationLocation } from '@/utils/notificationTarget'
 import type { AppNotification } from '@/api/types'
@@ -26,7 +26,7 @@ const { mode, setMode } = useTheme()
 const { user, logout, switchLocale: switchLocaleApi } = useAuth()
 const { success: showSuccess } = useAlert()
 const { unreadCount, items: recentNotifications, hasSeededUnread, hasSeededList, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
-const { navbarTree, load: loadNavigation, isTreeLoaded, startRealtime: startNavRealtime } = useNavigation()
+const { navbarTree, load: loadNavigation, refetchAll: refetchNavigation, isTreeLoaded, startRealtime: startNavRealtime } = useNavigation()
 const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho()
 const { hydrateShell, isShellFallbackBlocked } = useShellHydrate()
 
@@ -60,13 +60,23 @@ function navigate(node: NavNode): void {
   }
 }
 
-function switchLocale(locale: AppLocale): void {
-  setLocale(locale)
-  switchLocaleApi(locale).then(() => {
+async function switchLocale(nextLocale: AppLocale): Promise<void> {
+  // Capture the current locale BEFORE setLocale mutates it. On a direction swap
+  // (ar <-> non-ar) a hard reload is needed to load the other vendor CSS — but
+  // it must happen AFTER auth/locale persists, otherwise the reload aborts the
+  // in-flight POST and the dynamic menu stays on the old locale.
+  const previousLocale = locale.value as AppLocale
+  setLocale(nextLocale, { reload: false })
+
+  try {
+    await switchLocaleApi(nextLocale)
+    await refetchNavigation()
     showSuccess(t('web.navbar.language_updated'))
-  }).catch(() => {
-    // locale already switched client-side, API sync is best-effort
-  })
+  } catch {
+    // Keep client locale active when preference sync or menu refresh fails.
+  }
+
+  reloadForDirection(previousLocale, nextLocale)
 }
 
 const loggingOut = computed(() => false)
@@ -260,7 +270,7 @@ onUnmounted(() => {
             aria-expanded="false"
           >
             <i class="bi bi-translate" aria-hidden="true"></i>
-            <span class="d-none d-md-inline ms-1 text-uppercase">{{ currentLocale }}</span>
+            <span class="d-none d-md-inline ms-1">{{ LOCALE_LABELS[currentLocale] }}</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li v-for="locale in supportedLocales" :key="locale">
@@ -270,7 +280,7 @@ onUnmounted(() => {
                 href="#"
                 @click.prevent="switchLocale(locale)"
               >
-                {{ locale.toUpperCase() }}
+                {{ LOCALE_LABELS[locale] }}
               </a>
             </li>
           </ul>

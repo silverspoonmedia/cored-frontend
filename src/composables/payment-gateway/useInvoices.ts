@@ -1,3 +1,4 @@
+import i18n from '@/i18n'
 import { useResource } from '@/composables/useResource'
 import { get, post, getBlob } from '@/api/client'
 import { saveBlob } from '@/utils/download'
@@ -37,7 +38,7 @@ export function useInvoices() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Checkout failed')
+    throw new Error(res.message ?? i18n.global.t('web.payments.checkout_failed'))
   }
 
   async function syncStatus(invoiceId: string, provider: string): Promise<SyncStatusResult> {
@@ -47,7 +48,7 @@ export function useInvoices() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? 'Sync failed')
+    throw new Error(res.message ?? i18n.global.t('web.payments.sync_failed'))
   }
 
   async function exportCsv(query?: Record<string, unknown>): Promise<void> {

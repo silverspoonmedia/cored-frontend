@@ -104,8 +104,13 @@ export function validateCollectionDescribe(
 export function analysisEstimateUsd(
   fileCount: number,
   perFileMicroUsd: number,
+  locale = 'en',
 ): string {
-  return (Math.max(0, fileCount) * perFileMicroUsd / 1_000_000).toFixed(2)
+  const estimate = Math.max(0, fileCount) * perFileMicroUsd / 1_000_000
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(estimate)
 }
 
 export function i18nOptionMap(raw: unknown): Record<string, string> {

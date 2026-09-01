@@ -241,7 +241,7 @@ async function handleSyncStatus(): Promise<void> {
           <!-- QRIS -->
           <div v-if="checkoutResult.instructions.type === 'qris'" class="text-center">
             <div v-if="imageUrl(checkoutResult.instructions.qr_url)" class="mb-2">
-              <img :src="imageUrl(checkoutResult.instructions.qr_url) ?? undefined" alt="QR Code" class="img-fluid" style="max-width: 250px;" />
+              <img :src="imageUrl(checkoutResult.instructions.qr_url) ?? undefined" :alt="t('web.payments.qr_code_alt')" class="img-fluid" style="max-width: 250px;" />
             </div>
             <div v-if="checkoutResult.instructions.qr_string" class="input-group input-group-sm">
               <input type="text" class="form-control" :value="checkoutResult.instructions.qr_string" readonly />
@@ -278,7 +278,7 @@ async function handleSyncStatus(): Promise<void> {
               <i class="bi bi-box-arrow-up-right me-1"></i> {{ t('web.payments.open_ewallet_app') }}
             </a>
             <div v-if="imageUrl(checkoutResult.instructions.qr_url)" class="text-center">
-              <img :src="imageUrl(checkoutResult.instructions.qr_url) ?? undefined" alt="QR Code" class="img-fluid" style="max-width: 250px;" />
+              <img :src="imageUrl(checkoutResult.instructions.qr_url) ?? undefined" :alt="t('web.payments.qr_code_alt')" class="img-fluid" style="max-width: 250px;" />
             </div>
           </div>
         </div>

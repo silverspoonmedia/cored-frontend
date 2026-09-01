@@ -61,7 +61,7 @@ function isTooManyConcurrent(err: unknown): boolean {
 
 function isRetriablePutError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err)
-  return /network error|status 5\d\d|status 520/i.test(msg)
+  return /network error|status 5\d\d|status 520|network error interrupted the upload/i.test(msg)
 }
 
 function isAuthExpired(err: unknown): boolean {
@@ -139,7 +139,7 @@ async function putPart(
     try {
       parsedUrl = new URL(url)
     } catch {
-      reject(new Error('Invalid upload URL'))
+      reject(new Error(i18n.global.t('web.file-hosting.upload.invalid_url')))
       return
     }
     if (
@@ -147,7 +147,7 @@ async function putPart(
       || parsedUrl.username
       || parsedUrl.password
     ) {
-      reject(new Error('Invalid upload URL'))
+      reject(new Error(i18n.global.t('web.file-hosting.upload.invalid_url')))
       return
     }
 
@@ -172,12 +172,12 @@ async function putPart(
         const etag = xhr.getResponseHeader('ETag')?.replace(/"/g, '') ?? ''
         resolve({ etag, size: blob.size })
       } else {
-        reject(new Error(`PUT failed: status ${xhr.status}`))
+        reject(new Error(i18n.global.t('web.file-hosting.upload.put_failed', { status: xhr.status })))
       }
     }
 
-    xhr.onerror = () => reject(new Error('network error'))
-    xhr.ontimeout = () => reject(new Error('network error'))
+    xhr.onerror = () => reject(new Error(i18n.global.t('web.file-hosting.upload.network_error')))
+    xhr.ontimeout = () => reject(new Error(i18n.global.t('web.file-hosting.upload.network_error')))
     xhr.send(blob)
   })
 }
@@ -269,18 +269,25 @@ export interface UploadRow {
   error: string
 }
 
+function formatLocalized(value: number, fractionDigits: number): string {
+  return new Intl.NumberFormat(i18n.global.locale.value, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(value)
+}
+
 export function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+  if (bytes < 1024) return `${formatLocalized(bytes, 0)} B`
+  if (bytes < 1024 * 1024) return `${formatLocalized(bytes / 1024, 1)} KB`
+  if (bytes < 1024 * 1024 * 1024) return `${formatLocalized(bytes / (1024 * 1024), 1)} MB`
+  return `${formatLocalized(bytes / (1024 * 1024 * 1024), 2)} GB`
 }
 
 export function formatTransferRate(bytesPerSecond: number): string {
   if (bytesPerSecond <= 0) return ''
-  if (bytesPerSecond < 1024) return `${Math.round(bytesPerSecond)} B/s`
-  if (bytesPerSecond < 1024 * 1024) return `${(bytesPerSecond / 1024).toFixed(1)} KB/s`
-  return `${(bytesPerSecond / (1024 * 1024)).toFixed(1)} MB/s`
+  if (bytesPerSecond < 1024) return `${formatLocalized(bytesPerSecond, 0)} B/s`
+  if (bytesPerSecond < 1024 * 1024) return `${formatLocalized(bytesPerSecond / 1024, 1)} KB/s`
+  return `${formatLocalized(bytesPerSecond / (1024 * 1024), 1)} MB/s`
 }
 
 export interface FhUploadResult {
@@ -304,7 +311,7 @@ export async function uploadFile(
 
     if (session.strategy === 'single') {
       const part = session.parts[0]
-      if (!part) throw new Error('No upload part returned')
+      if (!part) throw new Error(i18n.global.t('web.file-hosting.upload.part_list_missing'))
 
       const putResult = await putPartWithRetry(part, file, session.upload_id, session.strategy, (l) => {
         const percent = Math.min(100, Math.round((l / totalBytes) * 100))
@@ -333,7 +340,7 @@ export async function uploadFile(
       const blob = file.slice(start, end)
       const part = session!.parts.find((p) => p.part_number === n)
 
-      if (!part) throw new Error(`Missing part ${n}`)
+      if (!part) throw new Error(i18n.global.t('web.file-hosting.upload.part_missing', { part: n }))
 
       const result = await putPartWithRetry(part, blob, session!.upload_id, session!.strategy, (l) => {
         partProgress.set(n, l)

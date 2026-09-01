@@ -242,6 +242,12 @@ function roleBadgeClass(role: string): string {
   if (role === 'editor') return 'text-bg-success'
   return 'text-bg-secondary'
 }
+
+function roleLabel(role: string | null | undefined): string {
+  if (!role) return '—'
+  const key = `web.file-hosting.roles.${role}`
+  return t(key) === key ? role : t(key)
+}
 </script>
 
 <template>
@@ -306,7 +312,7 @@ function roleBadgeClass(role: string): string {
             </div>
             <div class="small d-flex gap-2 mt-1">
               <span class="badge text-bg-light">{{ ws.kind }}</span>
-              <span class="badge" :class="roleBadgeClass(ws.my_role ?? '')">{{ ws.my_role ?? '—' }}</span>
+              <span class="badge" :class="roleBadgeClass(ws.my_role ?? '')">{{ roleLabel(ws.my_role) }}</span>
               <span v-if="ws.is_owner" class="badge text-bg-warning">{{ t('web.file-hosting.owner') }}</span>
             </div>
           </button>
@@ -364,7 +370,7 @@ function roleBadgeClass(role: string): string {
             <dd class="col-sm-9">{{ selected.owner?.name ?? '—' }} <span class="text-muted">&lt;{{ selected.owner?.email ?? '—' }}&gt;</span></dd>
 
             <dt class="col-sm-3">{{ t('web.file-hosting.my_role') }}</dt>
-            <dd class="col-sm-9"><span class="badge" :class="roleBadgeClass(selected.my_role ?? '')">{{ selected.my_role ?? '—' }}</span></dd>
+            <dd class="col-sm-9"><span class="badge" :class="roleBadgeClass(selected.my_role ?? '')">{{ roleLabel(selected.my_role) }}</span></dd>
 
             <dt class="col-sm-3">{{ t('web.file-hosting.created') }}</dt>
             <dd class="col-sm-9">{{ selected.created_at_formatted ?? selected.created_at ?? '—' }}</dd>
@@ -424,7 +430,7 @@ function roleBadgeClass(role: string): string {
                     <td>{{ m.user?.name ?? m.user_id }}</td>
                     <td class="text-muted small">{{ m.user?.email ?? '—' }}</td>
                     <td>
-                      <span class="badge" :class="roleBadgeClass(m.role)">{{ m.role }}</span>
+                      <span class="badge" :class="roleBadgeClass(m.role)">{{ roleLabel(m.role) }}</span>
                     </td>
                     <td class="text-muted small">{{ m.joined_at_formatted ?? m.joined_at ?? '—' }}</td>
                     <td v-if="selected.is_owner && canManage" class="text-end text-nowrap">
@@ -435,7 +441,7 @@ function roleBadgeClass(role: string): string {
                         :value="m.role"
                         @change="handleRoleChange(m, ($event.target as HTMLSelectElement).value)"
                       >
-                        <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+                        <option v-for="r in roles" :key="r" :value="r">{{ roleLabel(r) }}</option>
                       </select>
                       <button
                         v-if="m.role !== 'Owner'"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isRtl } from '@/i18n'
 import Modal from '@/components/Modal.vue'
 import { useMicrostock } from '@/composables/microstock/useMicrostock'
 import { useMicrostockHydrate } from '@/composables/microstock/useMicrostockHydrate'
@@ -49,6 +50,10 @@ const fileIndex = computed(() => {
 
 const canPrev = computed(() => fileIndex.value > 0)
 const canNext = computed(() => fileIndex.value >= 0 && fileIndex.value < props.fileIds.length - 1)
+
+// Asset prev/next is list movement: under RTL the chevrons swap sides.
+const prevIcon = computed(() => (isRtl() ? 'bi-chevron-right' : 'bi-chevron-left'))
+const nextIcon = computed(() => (isRtl() ? 'bi-chevron-left' : 'bi-chevron-right'))
 
 const stages = computed<MicrostockAssetStages>(() => meta.value?.stages ?? {
   vision: 'pending',
@@ -208,11 +213,11 @@ async function reanalyze(): Promise<void> {
         </div>
         <div v-if="fileIds.length > 1" class="d-flex justify-content-between mt-2">
           <button type="button" class="btn btn-outline-secondary btn-sm" :disabled="!canPrev" @click="go(-1)">
-            <i class="bi bi-chevron-left"></i>
+            <i class="bi" :class="prevIcon"></i>
           </button>
           <span class="small text-muted align-self-center">{{ fileIndex + 1 }} / {{ fileIds.length }}</span>
           <button type="button" class="btn btn-outline-secondary btn-sm" :disabled="!canNext" @click="go(1)">
-            <i class="bi bi-chevron-right"></i>
+            <i class="bi" :class="nextIcon"></i>
           </button>
         </div>
       </div>
