@@ -2,7 +2,7 @@
 
 Leading Vue 3 SPA for the Monolith `/api/v1/*` API. Deployed to Cloudflare Workers as static assets; the Worker is not an API or auth proxy. Browser requests go directly to the Laravel API origin, authenticated by the cross-site HttpOnly `__Host-spa_jwt` cookie (`credentials: 'include'`) plus public `X-SPA-Origin: 1` marker and double-submit `X-CSRF-Token` on mutations.
 
-Monolith's in-repo Blade admin is **removed** — this SPA is the sole browser UI. Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
+Monolith's in-repo Blade admin is **removed** — this SPA is sole browser UI. Logout sets persistent local barrier before API request, revokes mounted protected routes including `/apps/dashboard`, and blocks cold-boot rehydration until `applyAuth()` receives successful login, registration, or 2FA session. Logout sync uses token-free `{ type: 'logout', epoch }` over `BroadcastChannel`, with `localStorage` `storage` event fallback. Receiver teardown nulls reactive user, cancels refresh state, clears CSRF/shell/menus/notifications, revokes protected route, and does not rebroadcast. Epoch plus barrier rejects delayed hydrate, refresh, and shell-batch responses. Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
 
 ## Architecture
 
@@ -46,7 +46,7 @@ Never import `valkivid3.css` (or `main-ltr.css`/`main-rtl.css`) from the other n
 | `npm run dev` | Vite development server (`http://localhost:5173`) |
 | `npm run type-check` | `vue-tsc --build` |
 | `npm run check:i18n` | Locale key/placeholder parity + hardcoded-copy heuristics |
-| `npm test` | Vitest (`client.ts` CSRF/419/settle/TypeError/cookie-write gate, shell hydrate retry + terminal fallback, Echo authorizer, request headers, notification deep-link resolver) |
+| `npm test` | Vitest (`client.ts` CSRF/419/settle/TypeError/cookie-write gate, cross-tab logout BroadcastChannel + storage fallback receiver teardown, shell hydrate retry + terminal fallback + revoked-session stale-response discard, Echo authorizer, request headers, notification deep-link resolver) |
 | `npm run build` | Type-check + production build |
 | `npm run build-only` | Vite production build |
 | `npm run preview` | Build + `wrangler dev` |

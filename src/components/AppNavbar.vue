@@ -23,7 +23,7 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const { toggle: toggleSidebar } = useSidebar()
 const { mode, setMode } = useTheme()
-const { user, logout, switchLocale: switchLocaleApi } = useAuth()
+const { user, logout, loggingOut, switchLocale: switchLocaleApi } = useAuth()
 const { success: showSuccess } = useAlert()
 const { unreadCount, items: recentNotifications, hasSeededUnread, hasSeededList, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
 const { navbarTree, load: loadNavigation, refetchAll: refetchNavigation, isTreeLoaded, startRealtime: startNavRealtime } = useNavigation()
@@ -79,12 +79,12 @@ async function switchLocale(nextLocale: AppLocale): Promise<void> {
   reloadForDirection(previousLocale, nextLocale)
 }
 
-const loggingOut = computed(() => false)
-
 async function handleLogout(): Promise<void> {
   await logout()
+  if (router.currentRoute.value.name !== 'login.view') {
+    await router.replace({ name: 'login.view' })
+  }
   showSuccess(t('web.navbar.logged_out'))
-  router.push({ name: 'login.view' })
 }
 
 async function loadBellData(): Promise<void> {

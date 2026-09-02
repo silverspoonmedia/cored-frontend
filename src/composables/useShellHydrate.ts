@@ -30,7 +30,8 @@ export async function hydrateShell(): Promise<void> {
   if (inflight) return inflight
 
   inflight = (async () => {
-    const { setUser } = useAuth()
+    const { setUser, getSessionEpoch } = useAuth()
+    const epoch = getSessionEpoch()
     const { seedTree } = useNavigation()
     const { seedUnreadCount, seedList } = useNotifications()
 
@@ -45,6 +46,10 @@ export async function hydrateShell(): Promise<void> {
           { path: 'notifications/unread-count' },
           { path: 'notifications', query: { display_mode: 'query', limit: '5' } },
         ])
+
+        if (getSessionEpoch() !== epoch) {
+          return
+        }
 
         const meBody = bodyOf<User>(me)
         if (meBody?.data) setUser(meBody.data)

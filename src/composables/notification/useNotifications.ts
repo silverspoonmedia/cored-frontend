@@ -15,6 +15,14 @@ const hasSeededList = ref(false)
 let echoListener: (() => void) | null = null
 let notifChannel: BroadcastChannel | null = null
 
+export function resetNotificationState(): void {
+  items.value = []
+  unreadCount.value = 0
+  hasSeededUnread.value = false
+  hasSeededList.value = false
+  error.value = null
+}
+
 export function useNotifications() {
   async function fetchList(limit = 50): Promise<AppNotification[]> {
     loading.value = true
@@ -151,5 +159,6 @@ export function useNotifications() {
     stopRealtime,
     seedUnreadCount,
     seedList,
+    resetNotificationState,
   }
 }

@@ -9,15 +9,23 @@ const STORAGE_KEY = 'mw_auth'
 type AuthChannelMessage =
   | { type: 'refresh-request'; id: string }
   | { type: 'refresh-response' }
-  | { type: 'refresh-done'; ok: boolean; user?: User; expiresAt?: number; remember?: boolean }
-  | { type: 'logout' }
+  | { type: 'refresh-done'; ok: boolean; user?: User; expiresAt?: number; remember?: boolean; epoch?: number }
+  | { type: 'logout'; epoch?: number }
+
+const LOGOUT_BARRIER_KEY = 'mw_logout_barrier'
+const LOGOUT_EVENT_KEY = 'mw_logout_event'
 
 const user = ref<User | null>(null)
 const expiresAt = ref<number | null>(null)
 const remember = ref(false)
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
+let sessionEpoch = 0
+let logoutBarrier = false
+let isLoggingOut = ref(false)
+let logoutPromise: Promise<void> | null = null
 
 const isAuthenticated = computed(() => !!user.value)
+const loggingOut = computed(() => isLoggingOut.value)
 const translated = (key: string): string => i18n.global.t(key)
 
 function clearLeftoverTokenStorage(): void {
@@ -46,6 +54,29 @@ function broadcast(msg: AuthChannelMessage): void {
   }
 }
 
+export function getSessionEpoch(): number {
+  return sessionEpoch
+}
+
+function setLogoutBarrier(): void {
+  logoutBarrier = true
+  try { localStorage.setItem(LOGOUT_BARRIER_KEY, '1') } catch { /* storage unavailable */ }
+}
+
+function clearLogoutBarrier(): void {
+  logoutBarrier = false
+  try { localStorage.removeItem(LOGOUT_BARRIER_KEY) } catch { /* storage unavailable */ }
+}
+
+function hasLogoutBarrier(): boolean {
+  if (logoutBarrier) return true
+  try { return localStorage.getItem(LOGOUT_BARRIER_KEY) === '1' } catch { return false }
+}
+
+function isCurrentSession(epoch: number): boolean {
+  return epoch === sessionEpoch && !isLoggingOut.value && !hasLogoutBarrier()
+}
+
 function generateId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
@@ -72,6 +103,9 @@ if (authChannel) {
         break
 
       case 'refresh-done':
+        if (data.epoch !== undefined && data.epoch !== sessionEpoch) {
+          break
+        }
         if (data.ok && data.user && data.expiresAt) {
           user.value = data.user
           expiresAt.value = data.expiresAt
@@ -83,22 +117,30 @@ if (authChannel) {
         break
 
       case 'logout':
-        user.value = null
-        expiresAt.value = null
-        remember.value = false
-        if (refreshTimer) {
-          clearTimeout(refreshTimer)
-          refreshTimer = null
-        }
-        // Session nonce died with the session; drop it here too (the tab that
-        // initiated logout already cleared + broadcast its own clear).
-        clearCsrf()
+        receiveLogout(data.epoch)
         break
     }
   }
 }
 
+function receiveLogout(epoch?: number): void {
+  if (epoch !== undefined) {
+    sessionEpoch = Math.max(sessionEpoch, epoch)
+  }
+  setLogoutBarrier()
+  clearAuth(true, false)
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== LOGOUT_EVENT_KEY || !event.newValue) return
+    const epoch = Number(event.newValue)
+    receiveLogout(Number.isFinite(epoch) ? epoch : undefined)
+  })
+}
+
 function applyAuth(payload: AuthPayload): void {
+  clearLogoutBarrier()
   user.value = payload.user
   expiresAt.value = Date.now() + payload.expires_in * 1000
   remember.value = payload.remember
@@ -106,22 +148,37 @@ function applyAuth(payload: AuthPayload): void {
   scheduleRefresh()
 }
 
-function clearAuth(): void {
+function clearAuth(preserveLogoutBarrier = false, shouldBroadcast = true): void {
+  sessionEpoch += 1
+  isLoggingOut.value = false
+  if (!preserveLogoutBarrier) {
+    clearLogoutBarrier()
+  }
   user.value = null
   expiresAt.value = null
   clearCsrf()
   clearSessionIssued()
   remember.value = false
   clearLeftoverTokenStorage()
+  waitingResolvers.forEach((resolve) => resolve(false))
+  waitingResolvers = []
+  shouldYield = false
+  pendingRequestId = null
   if (refreshTimer) {
     clearTimeout(refreshTimer)
     refreshTimer = null
   }
-  // Reset shell/router hydration so the next login re-bootstraps from a clean
-  // state. Dynamic imports avoid a circular dep (router imports this store).
   void import('@/composables/useShellHydrate').then((m) => m.resetShellHydration())
-  void import('@/router').then((m) => m.resetRouterHydration())
-  broadcast({ type: 'logout' })
+  void import('@/router').then(async (m) => {
+    m.resetRouterHydration()
+    await m.revokeCurrentProtectedRoute()
+  })
+  void import('@/composables/navigation/useNavigation').then((m) => m.resetNavigationState())
+  void import('@/composables/notification/useNotifications').then((m) => m.resetNotificationState())
+  if (shouldBroadcast) {
+    broadcast({ type: 'logout', epoch: sessionEpoch })
+    try { localStorage.setItem(LOGOUT_EVENT_KEY, String(sessionEpoch)) } catch { /* storage unavailable */ }
+  }
 }
 
 function scheduleRefresh(): void {
@@ -146,6 +203,7 @@ function scheduleRefresh(): void {
 }
 
 async function refreshSession(): Promise<boolean> {
+  if (hasLogoutBarrier()) return false
   if (authRefreshPromise) {
     return authRefreshPromise
   }
@@ -159,6 +217,7 @@ async function refreshSession(): Promise<boolean> {
 }
 
 async function doRefresh(): Promise<boolean> {
+  const epoch = sessionEpoch
   if (authChannel) {
     pendingRequestId = generateId()
     shouldYield = false
@@ -166,13 +225,18 @@ async function doRefresh(): Promise<boolean> {
 
     await new Promise((resolve) => setTimeout(resolve, 50))
 
+    if (!isCurrentSession(epoch)) {
+      pendingRequestId = null
+      return false
+    }
+
     if (shouldYield) {
       const result = await new Promise<boolean>((resolve) => {
         waitingResolvers.push(resolve)
         setTimeout(() => resolve(false), 10_000)
       })
       pendingRequestId = null
-      return result
+      return isCurrentSession(epoch) ? result : false
     }
 
     isRefreshing = true
@@ -180,6 +244,10 @@ async function doRefresh(): Promise<boolean> {
       const res = await post<ApiResponse<AuthPayload>>('auth/refresh', {
         remember: remember.value,
       })
+      if (!isCurrentSession(epoch)) {
+        broadcast({ type: 'refresh-done', ok: false, epoch })
+        return false
+      }
       if (res.status === 'success' && res.data?.user && typeof res.data.expires_in === 'number') {
         applyAuth(res.data)
         const expiresAtMs = Date.now() + res.data.expires_in * 1000
@@ -189,14 +257,15 @@ async function doRefresh(): Promise<boolean> {
           user: res.data.user,
           expiresAt: expiresAtMs,
           remember: res.data.remember,
+          epoch,
         })
         return true
       }
-      broadcast({ type: 'refresh-done', ok: false })
-      return false
+        broadcast({ type: 'refresh-done', ok: false, epoch })
+        return false
     } catch {
-      broadcast({ type: 'refresh-done', ok: false })
-      return false
+        broadcast({ type: 'refresh-done', ok: false, epoch })
+        return false
     } finally {
       isRefreshing = false
       pendingRequestId = null
@@ -207,6 +276,9 @@ async function doRefresh(): Promise<boolean> {
     const res = await post<ApiResponse<AuthPayload>>('auth/refresh', {
       remember: remember.value,
     })
+    if (!isCurrentSession(epoch)) {
+      return false
+    }
     if (res.status === 'success' && res.data?.user && typeof res.data.expires_in === 'number') {
       applyAuth(res.data)
       return true
@@ -251,6 +323,8 @@ export function useAuth() {
     resendVerification,
     switchLocale,
     setUser,
+    getSessionEpoch,
+    loggingOut,
   }
 }
 
@@ -367,16 +441,34 @@ async function resetPassword(
 }
 
 async function logout(): Promise<void> {
-  try {
-    await post<ApiResponse<null>>('auth/logout')
-  } catch {
-    // Cookie expire is Worker-side; still clear local state.
-  }
-  clearAuth()
+  if (logoutPromise) return logoutPromise
+
+  sessionEpoch += 1
+  setLogoutBarrier()
+  isLoggingOut.value = true
+  logoutPromise = (async () => {
+    try {
+      await post<ApiResponse<null>>('auth/logout')
+    } catch {
+      // Local teardown remains mandatory when server logout fails.
+    } finally {
+      clearAuth(true)
+    }
+  })()
+
+  return logoutPromise
 }
 
 async function fetchMe(): Promise<User> {
+  if (hasLogoutBarrier()) {
+    throw new Error(translated('web.auth.fetch_user_failed'))
+  }
+  const epoch = sessionEpoch
   const res = await get<ApiResponse<User>>('auth/me')
+
+  if (!isCurrentSession(epoch)) {
+    throw new Error(translated('web.auth.fetch_user_failed'))
+  }
 
   if (res.status === 'success' && res.data) {
     user.value = res.data
@@ -391,13 +483,15 @@ async function fetchMe(): Promise<User> {
  * has not landed. Callers must not navigate until this returns true.
  */
 async function confirmSession(): Promise<boolean> {
+  const epoch = sessionEpoch
   try {
     await fetchMe()
-    return true
+    return isCurrentSession(epoch)
   } catch {
+    if (!isCurrentSession(epoch)) return false
     try {
       await fetchMe()
-      return true
+      return isCurrentSession(epoch)
     } catch {
       return false
     }
@@ -407,17 +501,25 @@ async function confirmSession(): Promise<boolean> {
 let hydrated = false
 
 async function hydrate(): Promise<void> {
+  if (hasLogoutBarrier()) return
   if (hydrated) return
   hydrated = true
   clearLeftoverTokenStorage()
 
+  const epoch = sessionEpoch
   try {
     const res = await get<ApiResponse<User>>('auth/me')
+    if (!isCurrentSession(epoch)) {
+      user.value = null
+      return
+    }
     if (res.status === 'success' && res.data) {
       user.value = res.data
     }
   } catch {
-    user.value = null
+    if (isCurrentSession(epoch)) {
+      user.value = null
+    }
   }
 }
 
@@ -428,19 +530,29 @@ async function hydrate(): Promise<void> {
  * cookie exists and races the first authenticated batch after login.
  */
 async function hydrateShell(): Promise<void> {
+  if (hasLogoutBarrier()) return
   if (hydrated) return
   hydrated = true
   clearLeftoverTokenStorage()
+  const epoch = sessionEpoch
 
   try {
     const res = await get<ApiResponse<User>>('auth/me')
+    if (!isCurrentSession(epoch)) {
+      user.value = null
+      return
+    }
     if (res.status === 'success' && res.data) {
       user.value = res.data
       const { hydrateShell: shellHydrate } = await import('@/composables/useShellHydrate')
-      await shellHydrate()
+      if (isCurrentSession(epoch)) {
+        await shellHydrate()
+      }
     }
   } catch {
-    user.value = null
+    if (isCurrentSession(epoch)) {
+      user.value = null
+    }
   }
 }
 
@@ -456,6 +568,9 @@ function hasPermission(permission: string): boolean {
  * profile the batch already fetched.
  */
 function setUser(u: User | null): void {
+  if (isLoggingOut.value) {
+    return
+  }
   user.value = u
 }
 

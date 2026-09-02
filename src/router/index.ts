@@ -77,6 +77,17 @@ export function resetRouterHydration(): void {
   hydrated = false
 }
 
+export async function revokeCurrentProtectedRoute(): Promise<void> {
+  const current = router.currentRoute.value
+  const requiresAuth = current.matched.some((record) => record.meta.requiresAuth === true)
+  if (!requiresAuth || current.name === 'login.view') return
+
+  await router.replace({
+    name: 'login.view',
+    query: { redirect: current.fullPath },
+  })
+}
+
 router.beforeEach(async (to) => {
   let probedThisNavigation = false
   if (!hydrated) {

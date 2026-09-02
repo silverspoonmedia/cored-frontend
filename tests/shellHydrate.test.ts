@@ -4,6 +4,7 @@ const batch = vi.fn()
 const isSessionSettling = vi.fn(() => false)
 const settleBackoff = vi.fn(async () => undefined)
 const setUser = vi.fn()
+const getSessionEpoch = vi.fn(() => 0)
 const seedTree = vi.fn()
 const seedUnreadCount = vi.fn()
 const seedList = vi.fn()
@@ -15,7 +16,7 @@ vi.mock('@/api/client', () => ({
 }))
 
 vi.mock('@/stores/auth', () => ({
-  useAuth: () => ({ setUser }),
+  useAuth: () => ({ setUser, getSessionEpoch: () => getSessionEpoch() }),
 }))
 
 vi.mock('@/composables/navigation/useNavigation', () => ({
@@ -55,6 +56,8 @@ beforeEach(() => {
   settleBackoff.mockReset()
   settleBackoff.mockResolvedValue(undefined)
   setUser.mockReset()
+  getSessionEpoch.mockReset()
+  getSessionEpoch.mockReturnValue(0)
   seedTree.mockReset()
   seedUnreadCount.mockReset()
   seedList.mockReset()
@@ -94,6 +97,23 @@ describe('hydrateShell', () => {
     expect(seedTree).not.toHaveBeenCalledWith('sidebar', expect.anything())
     expect(seedTree).toHaveBeenCalledWith('navbar', [{ id: 'nav' }])
     expect(shell.isShellHydrated()).toBe(true)
+  })
+
+  it('discards a batch response from a revoked session', async () => {
+    let resolveBatch: ((value: ReturnType<typeof okShellBatch>) => void) | null = null
+    batch.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveBatch = resolve
+    }))
+
+    const shell = await importShell()
+    const pending = shell.hydrateShell()
+    getSessionEpoch.mockReturnValue(1)
+    resolveBatch?.(okShellBatch())
+    await pending
+
+    expect(setUser).not.toHaveBeenCalled()
+    expect(seedTree).not.toHaveBeenCalled()
+    expect(shell.isShellHydrated()).toBe(false)
   })
 
   it('does not retry a failed batch after the settle window', async () => {

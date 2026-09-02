@@ -7,10 +7,12 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
 import { useConnections, providerByKey } from '@/composables/identity/useConnections'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
+import { useAuth } from '@/stores/auth'
+import { useNavigation } from '@/composables/navigation/useNavigation'
 import { useAlert } from '@/composables/useAlert'
 import { confirmDialog } from '@/lib/swal'
 import { getEcho } from '@/composables/useEcho'
-import type { VtualVtuberProfile, VtualCreatorClaim, ProfileConnections } from '@/api/types'
+import { ApiError, type VtualVtuberProfile, type VtualCreatorClaim, type ProfileConnections } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 import { safeDiscordAuthorizeUrl, safeHttpUrl } from '@/utils/safeUrl'
 
@@ -20,6 +22,8 @@ const { t } = useI18n()
 const vtual = useVtual()
 const connections = useConnections()
 const { hydrateVtuberClaim } = useVtualHydrate()
+const { confirmSession } = useAuth()
+const { refetchAll: refetchNavigation } = useNavigation()
 const { success: showSuccess, error: showError } = useAlert()
 
 const profile = ref<VtualVtuberProfile | null>(null)
@@ -36,6 +40,25 @@ const isBlocked = computed(() => {
   return !!profile.value?.claim_blocked_until
 })
 const showChannelsSection = computed(() => !hasActiveClaim.value && !isBlocked.value)
+let redirectingAfterClaim = false
+
+async function redirectAfterClaim(creatorId: string): Promise<void> {
+  if (redirectingAfterClaim) return
+  redirectingAfterClaim = true
+  unsubscribeClaimRealtime()
+  await confirmSession()
+  await refetchNavigation()
+  await router.push({ name: 'vtual.profiles.show.view', params: { id: creatorId } })
+}
+
+async function handleNonClaimableProfile(currentProfile: VtualVtuberProfile, claims: VtualCreatorClaim[]): Promise<void> {
+  const ownedClaim = claims.find((claim) => claim.creator_id === currentProfile.id && claim.status === 'verified')
+  if (ownedClaim) {
+    await router.replace({ name: 'vtual.profiles.show.view', params: { id: currentProfile.id } })
+  } else {
+    await router.replace({ name: 'vtual.vtuber.show.view', params: { slug: currentProfile.slug } })
+  }
+}
 
 onMounted(async () => {
   const params = new URLSearchParams(window.location.search)
@@ -62,6 +85,10 @@ onMounted(async () => {
       profile.value = batchResult.profile
       discordSnapshot.value = batchResult.connections ?? await connections.fetchConnections().catch(() => null)
       const myClaims = batchResult.myClaims ?? await vtual.fetchMyClaims()
+      if (!profile.value.is_claimable) {
+        await handleNonClaimableProfile(profile.value, myClaims)
+        return
+      }
       const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
       if (existing) {
         activeClaim.value = existing
@@ -73,6 +100,10 @@ onMounted(async () => {
         vtual.fetchMyClaims(),
         connections.fetchConnections().catch(() => null),
       ])
+      if (!profile.value.is_claimable) {
+        await handleNonClaimableProfile(profile.value, myClaims)
+        return
+      }
       discordSnapshot.value = discord
       const existing = myClaims.find((c) => c.creator_id === profile.value?.id && c.status === 'pending')
       if (existing) {
@@ -81,6 +112,10 @@ onMounted(async () => {
       }
     }
   } catch (e) {
+    if (e instanceof ApiError && e.isForbidden) {
+      await router.replace({ name: 'vtual.vtuber.show.view', params: { slug: route.params.slug as string } })
+      return
+    }
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.load_failed'))
   } finally {
     loading.value = false
@@ -106,7 +141,7 @@ function subscribeClaimRealtime(claimId: string): void {
       if (payload.phase === 'verified') {
         activeClaim.value = claim
         showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
-        setTimeout(() => router.push({ name: 'vtual.profiles.show.view', params: { id: claim.creator_id } }), 800)
+        void redirectAfterClaim(claim.creator_id)
       } else if (payload.phase === 'cancelled' || payload.phase === 'max_attempts_blocked') {
         activeClaim.value = null
       } else if (payload.phase === 'verify_failed') {
@@ -170,6 +205,7 @@ async function handleVerifyDiscord(): Promise<void> {
     activeClaim.value = result
     if (result.status === 'verified') {
       showSuccess(t('web.vtual-vtuber.claim_discord_verified'))
+      await redirectAfterClaim(result.creator_id)
     } else {
       showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
     }
@@ -226,6 +262,7 @@ async function handleAcceptAnyway(): Promise<void> {
     activeClaim.value = result
     if (result.status === 'verified') {
       showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
+      await redirectAfterClaim(result.creator_id)
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-vtuber.errors.accept_failed'))

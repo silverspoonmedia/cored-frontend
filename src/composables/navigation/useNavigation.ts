@@ -110,6 +110,17 @@ function stopRealtime(): void {
   }
 }
 
+export function resetNavigationState(): void {
+  for (const layout of Object.keys(treeMap)) {
+    treeMap[layout] = []
+    loadedMap[layout] = false
+    fetchPromises[layout] = null
+  }
+  reactiveTrees.value = {}
+  loading.value = false
+  error.value = null
+}
+
 export function useNavigation() {
   return {
     tree,
