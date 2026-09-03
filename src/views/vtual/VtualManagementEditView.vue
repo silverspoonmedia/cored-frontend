@@ -255,13 +255,16 @@ watch([isEdit, managementId], () => {
               />
             </div>
             <div class="col-md-3">
-              <label class="form-label invisible" aria-hidden="true">&nbsp;</label>
-              <div class="d-grid">
-                <SubmitButton
-                  :loading="assigning"
-                  :label="t('web.vtual-managements.creators.assign_button')"
-                  size="sm"
-                />
+              <div class="mb-3">
+                <label class="form-label" aria-hidden="true">
+                  &nbsp;<span class="text-danger invisible">*</span>
+                </label>
+                <div class="d-grid">
+                  <SubmitButton
+                    :loading="assigning"
+                    :label="t('web.vtual-managements.creators.assign_button')"
+                  />
+                </div>
               </div>
             </div>
           </div>

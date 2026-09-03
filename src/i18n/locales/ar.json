@@ -1323,6 +1323,11 @@
     },
     "vtual": {
       "public": {
+        "meta": {
+          "landing_description": "اكتشف VTubers والبث المباشر والفيديوهات الجديدة عبر المنصات — الملفات الشخصية والجداول ومحتوى المجتمع في مكان واحد.",
+          "profile_description_fallback": "الملف العام لـ{name} على vTual — القنوات والفيديوهات والجدول.",
+          "management_description_fallback": "الملف العام لـ{name} على vTual — قائمة المبدعين والروابط."
+        },
         "stats": {
           "creators": "المبدعون",
           "channels": "القنوات",
@@ -1448,6 +1453,15 @@
             "offline": "غير متصل"
           }
         },
+        "management": {
+          "breadcrumb": "مسار التنقل",
+          "not_found": "جهة الإدارة غير موجودة",
+          "not_found_body": "ملف جهة الإدارة العامة هذا غير موجود أو غير مدرج.",
+          "error": "تعذر تحميل ملف جهة الإدارة هذا. حاول مرة أخرى لاحقًا.",
+          "retry": "حاول مرة أخرى",
+          "creators_heading": "المبدعون",
+          "creators_empty": "لا يوجد مبدعون عامون في جهة الإدارة هذه بعد."
+        },
         "landing": {
           "error": "تعذر تحميل أحدث الأحداث المميزة.",
           "retry": "حاول مرة أخرى"
@@ -1558,6 +1572,8 @@
         "page_title": "العودة إلى الملفات الشخصية",
         "view_profile": "عرض الملف الشخصي",
         "profile_title": "الملف الشخصي",
+        "refresh": "تحديث",
+        "channels_updated": "تم تحديث بيانات القناة من أحدث مزامنة.",
         "no_active_channels": "لا توجد قنوات نشطة.",
         "uuid_placeholder": "UUID",
         "channels": {
@@ -3759,6 +3775,7 @@
       "claim_queue_status_processing": "المعالجة",
       "claim_active_heading": "مطالبة نشطة",
       "claim_proof_channel_label": "قناة إثبات",
+      "claim_verified_channel_label": "تم التحقق عبر القناة",
       "claim_cancel": "إلغاء المطالبة",
       "claim_missing_active": "لا توجد مطالبة نشطة لتنفيذ هذا الإجراء.",
       "claim_realtime_connected": "تحديثات حية",

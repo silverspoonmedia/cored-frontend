@@ -1192,6 +1192,11 @@
     },
     "vtual": {
       "public": {
+        "meta": {
+          "landing_description": "플랫폼을 넘나드는 VTuber, 라이브 방송, 신규 영상을 발견하세요 — 프로필, 일정, 커뮤니티 콘텐츠를 한곳에서.",
+          "profile_description_fallback": "vTual의 {name} 공개 프로필 — 채널, 영상, 일정.",
+          "management_description_fallback": "vTual의 {name} 공개 프로필 — 소속 크리에이터 및 링크."
+        },
         "stats": {
           "creators": "크리에이터",
           "channels": "채널",
@@ -1317,6 +1322,15 @@
             "offline": "오프라인"
           }
         },
+        "management": {
+          "breadcrumb": "탐색 경로",
+          "not_found": "매니지먼트를 찾을 수 없습니다",
+          "not_found_body": "이 공개 매니지먼트 프로필이 존재하지 않거나 등록되어 있지 않습니다.",
+          "error": "이 매니지먼트 프로필을 불러오지 못했습니다. 나중에 다시 시도해 주세요.",
+          "retry": "다시 시도",
+          "creators_heading": "소속 크리에이터",
+          "creators_empty": "이 매니지먼트에는 아직 공개 크리에이터가 없습니다."
+        },
         "landing": {
           "error": "최신 하이라이트를 불러오지 못했습니다.",
           "retry": "다시 시도"
@@ -1427,6 +1441,8 @@
         "page_title": "프로필로 돌아가기",
         "view_profile": "프로필 보기",
         "profile_title": "프로필",
+        "refresh": "새로고침",
+        "channels_updated": "최신 동기화로 채널 데이터가 업데이트되었습니다.",
         "no_active_channels": "활성 채널이 없습니다.",
         "uuid_placeholder": "UUID",
         "channels": {
@@ -3628,6 +3644,7 @@
       "claim_queue_status_processing": "처리 중",
       "claim_active_heading": "활성 소유권 주장",
       "claim_proof_channel_label": "증명 채널",
+      "claim_verified_channel_label": "인증된 채널",
       "claim_cancel": "청구 취소",
       "claim_missing_active": "이 작업을 수행할 활성 소유권이 없습니다.",
       "claim_realtime_connected": "실시간 업데이트",

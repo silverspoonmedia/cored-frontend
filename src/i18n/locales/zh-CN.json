@@ -3957,6 +3957,7 @@
       "claim_queue_status_processing": "处理中",
       "claim_active_heading": "有效索赔",
       "claim_proof_channel_label": "证明通道",
+      "claim_verified_channel_label": "验证频道",
       "claim_cancel": "取消索赔",
       "claim_missing_active": "没有有效索赔来执行此操作。",
       "claim_realtime_connected": "实时更新",
@@ -4111,6 +4112,8 @@
         "page_title": "返回配置文件",
         "view_profile": "查看个人资料",
         "profile_title": "个人资料",
+        "refresh": "刷新",
+        "channels_updated": "频道数据已通过最新同步更新。",
         "no_active_channels": "没有活动频道。",
         "uuid_placeholder": "UUID",
         "channels": {
@@ -4452,6 +4455,11 @@
       "probe_failed": "探测失败",
       "public": {
         "title": "vTual — Virtual Creator Hub",
+        "meta": {
+          "landing_description": "发现跨平台的 VTuber、直播和新视频 — 个人资料、日程和社区内容一站式汇集。",
+          "profile_description_fallback": "{name} 在 vTual 的公开主页 — 频道、视频和日程。",
+          "management_description_fallback": "{name} 在 vTual 的公开主页 — 旗下创作者与链接。"
+        },
         "nav": {
           "home": "首页",
           "directory": "vTubers",
@@ -4575,6 +4583,15 @@
             "status": "状态",
             "offline": "离线"
           }
+        },
+        "management": {
+          "breadcrumb": "面包屑导航",
+          "not_found": "未找到管理机构",
+          "not_found_body": "该公开管理机构主页不存在或未收录。",
+          "error": "无法加载此管理机构主页，请稍后重试。",
+          "retry": "重试",
+          "creators_heading": "旗下创作者",
+          "creators_empty": "该管理机构暂无公开创作者。"
         },
         "landing": {
           "error": "无法加载最新精彩内容。",

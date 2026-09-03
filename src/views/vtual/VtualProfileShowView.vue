@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -13,6 +13,7 @@ import { confirmDialog } from '@/lib/swal'
 import StatusBadge from '@/components/StatusBadge.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
+import { useVtualRealtime } from '@/composables/vtual/useVtualRealtime'
 import { useConnections, providerByKey } from '@/composables/identity/useConnections'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useAuth } from '@/stores/auth'
@@ -38,9 +39,10 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const vtual = useVtual()
+const realtime = useVtualRealtime()
 const connections = useConnections()
 const { hasPermission } = useAuth()
-const { success: showSuccess, error: showError } = useAlert()
+const { success: showSuccess, error: showError, info: showInfo } = useAlert()
 
 const creator = ref<VtualCreator | null>(null)
 const channels = ref<VtualChannel[]>([])
@@ -207,8 +209,42 @@ onMounted(() => {
     url.searchParams.delete('discord')
     window.history.replaceState({}, '', url.toString())
   }
+  const creatorId = route.params.id as string
+  realtime.subscribeCreatorSnapshots(creatorId, onSnapshotUpdated)
   void loadAll()
 })
+
+onUnmounted(() => {
+  realtime.unsubscribeCreatorSnapshots(route.params.id as string, onSnapshotUpdated)
+})
+
+const refreshingChannels = ref(false)
+
+async function refreshChannelsOnly(): Promise<void> {
+  const id = route.params.id as string
+  refreshingChannels.value = true
+  try {
+    const [ch, arch] = await Promise.all([
+      vtual.fetchChannels(id),
+      vtual.fetchArchivedChannels(id),
+    ])
+    channels.value = ch
+    archivedChannels.value = arch
+  } catch {
+    // keep stale rows; transient fetch failure is non-fatal here
+  } finally {
+    refreshingChannels.value = false
+  }
+}
+
+function onSnapshotUpdated(): void {
+  showInfo(t('web.vtual.profiles.channels_updated'))
+  void refreshChannelsOnly()
+}
+
+async function handleRefreshChannels(): Promise<void> {
+  await refreshChannelsOnly()
+}
 
 async function handleSaveMeta(): Promise<void> {
   if (!creator.value || savingMeta.value) return
@@ -514,6 +550,18 @@ async function handleAcceptAnywayChannelClaim(claimId: string): Promise<void> {
     </Card>
 
     <Card :title="t('web.vtual.profiles.channels.section_title')" class="mt-3">
+      <template #actions>
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          :disabled="refreshingChannels"
+          @click="handleRefreshChannels"
+        >
+          <span v-if="refreshingChannels" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <i v-else class="bi bi-arrow-clockwise me-1"></i>
+          {{ t('web.vtual.profiles.refresh') }}
+        </button>
+      </template>
       <p class="text-muted small mb-3">{{ t('web.vtual.profiles.channels.section_help') }}</p>
 
       <form

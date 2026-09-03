@@ -10,6 +10,7 @@ Living docs for the SPA. **Language:** English only. Backend-side contract docs 
 | Project layout, `src/` layers, direct-to-API routing | [architecture.md](architecture.md) |
 | Auth/session lifecycle (cookie, CSRF, cross-tab) | [auth-session.md](auth-session.md) |
 | API client conventions (`src/api/`) | [api-client.md](api-client.md) |
+| Runtime OG/SEO meta for public pages | [head-meta.md](head-meta.md) |
 | Localization workflow + guards | [i18n.md](i18n.md) |
 | UI conventions (templates, states, buttons, Swal) | [ui-patterns.md](ui-patterns.md) |
 | Route registry + backend sync contract | [routes.md](routes.md) |
@@ -25,6 +26,7 @@ Living docs for the SPA. **Language:** English only. Backend-side contract docs 
 | [architecture.md](architecture.md) | Direct-to-API model, `VITE_API_BASE_URL`, tunnel perimeter, `src/` layer map (what goes in `lib/` vs `utils/` vs `composables/`), type-then-domain rule |
 | [auth-session.md](auth-session.md) | `__Host-spa_jwt` cookie, CSRF double-submit, `hydrateShell`, logout barrier/epoch, `BroadcastChannel` sync, post-login cookie settle |
 | [api-client.md](api-client.md) | `client.ts` behavior (419 retry, settle window), request headers, error normalization, batch hydration |
+| [head-meta.md](head-meta.md) | Client-side OG/SEO meta injection for public surfaces (`useHeadMeta`) — never a Worker function |
 | [i18n.md](i18n.md) | Seven locales, `zh-CN`↔`zh_CN` mapping, RTL reload contract, `check:i18n` + allowlist policy, translation waves |
 | [ui-patterns.md](ui-patterns.md) | AdminLTE4 vs Valkivid3 scoping, skeleton→error→empty states, DataTable chain, RowActions contract, Swal-only policy, FROZEN HomeView |
 | [routes.md](routes.md) | Route modules, naming contract, sync with `monolith/config/spa-routes.php` |

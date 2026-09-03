@@ -269,6 +269,21 @@ export const vtualPublicRoutes: RouteRecordRaw[] = [
         component: () => import('@/valkivid3/views/VkStr1VtuberShowView.vue'),
         meta: { public: true, template: 'valkivid3', titleKey: 'web.vtual.public.title' },
       },
+      {
+        path: 'management/:slug',
+        redirect: (to) => ({
+          name: 'vtual.public.management',
+          params: { slug: String(to.params.slug ?? '') },
+          query: to.query,
+          hash: to.hash,
+        }),
+      },
+      {
+        path: 'managements/:slug',
+        name: 'vtual.public.management',
+        component: () => import('@/valkivid3/views/VkStr1ManagementShowView.vue'),
+        meta: { public: true, template: 'valkivid3', titleKey: 'web.vtual.public.title' },
+      },
     ],
   },
 ]

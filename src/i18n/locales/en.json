@@ -3672,6 +3672,7 @@
       "claim_queue_status_processing": "Processing",
       "claim_active_heading": "Active claim",
       "claim_proof_channel_label": "Proof channel",
+      "claim_verified_channel_label": "Verified via channel",
       "claim_cancel": "Cancel claim",
       "claim_missing_active": "No active claim to perform this action.",
       "claim_realtime_connected": "Live updates",
@@ -3826,6 +3827,8 @@
         "page_title": "Back to profiles",
         "view_profile": "View profile",
         "profile_title": "Profile",
+        "refresh": "Refresh",
+        "channels_updated": "Channel data updated from the latest sync.",
         "no_active_channels": "No active channels.",
         "uuid_placeholder": "UUID",
         "channels": {
@@ -4167,6 +4170,11 @@
       "probe_failed": "Probe failed",
       "public": {
         "title": "vTual — Virtual Creator Hub",
+        "meta": {
+          "landing_description": "Discover VTubers, live streams, and new videos across platforms — profiles, schedules, and community content in one place.",
+          "profile_description_fallback": "Public profile of {name} on vTual — channels, videos, and schedule.",
+          "management_description_fallback": "Public profile of {name} on vTual — creator roster and links."
+        },
         "nav": {
           "home": "Home",
           "directory": "vTubers",
@@ -4290,6 +4298,15 @@
             "status": "Status",
             "offline": "Offline"
           }
+        },
+        "management": {
+          "breadcrumb": "Breadcrumb",
+          "not_found": "Management not found",
+          "not_found_body": "This public management profile does not exist or is not listed.",
+          "error": "Could not load this management profile. Try again later.",
+          "retry": "Try again",
+          "creators_heading": "Roster",
+          "creators_empty": "No public creators in this management yet."
         },
         "landing": {
           "error": "Could not load the latest highlights.",

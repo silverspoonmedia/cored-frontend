@@ -3675,6 +3675,7 @@
       "claim_queue_status_processing": "Diproses",
       "claim_active_heading": "Klaim aktif",
       "claim_proof_channel_label": "Channel bukti",
+      "claim_verified_channel_label": "Terverifikasi via channel",
       "claim_cancel": "Batalkan klaim",
       "claim_missing_active": "Tidak ada klaim aktif untuk tindakan ini.",
       "claim_realtime_connected": "Pembaruan langsung",
@@ -3830,6 +3831,8 @@
         "page_title": "Kembali ke profil",
         "view_profile": "Lihat profil",
         "profile_title": "Profil",
+        "refresh": "Muat ulang",
+        "channels_updated": "Data channel diperbarui dari sinkronisasi terbaru.",
         "no_active_channels": "Tidak ada channel aktif.",
         "uuid_placeholder": "UUID (ID unik)",
         "channels": {
@@ -4171,6 +4174,11 @@
       "probe_failed": "Probe gagal",
       "public": {
         "title": "vTual — Pusat Kreator Virtual",
+        "meta": {
+          "landing_description": "Temukan VTuber, siaran langsung, dan video baru lintas platform — profil, jadwal, dan konten komunitas dalam satu tempat.",
+          "profile_description_fallback": "Profil publik {name} di vTual — kanal, video, dan jadwal.",
+          "management_description_fallback": "Profil publik {name} di vTual — roster kreator dan tautan."
+        },
         "nav": {
           "home": "Beranda",
           "directory": "vTuber",
@@ -4294,6 +4302,15 @@
             "status": "Status",
             "offline": "Luring"
           }
+        },
+        "management": {
+          "breadcrumb": "Navigasi breadcrumb",
+          "not_found": "Management tidak ditemukan",
+          "not_found_body": "Profil management publik ini tidak ada atau tidak terdaftar.",
+          "error": "Profil management ini tidak dapat dimuat. Coba lagi nanti.",
+          "retry": "Coba lagi",
+          "creators_heading": "Daftar kreator",
+          "creators_empty": "Belum ada kreator publik di management ini."
         },
         "landing": {
           "error": "Sorotan terbaru tidak dapat dimuat.",

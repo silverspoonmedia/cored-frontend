@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ApiError } from '@/api/types'
 import type { VtualPublicProfile } from '@/api/types'
 import { setDocumentTitleOverride } from '@/composables/usePageTitle'
+import { clearHeadMeta, setHeadMeta } from '@/composables/useHeadMeta'
 import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
 import VkStr1VideoCard from '@/valkivid3/components/str1/VkStr1VideoCard.vue'
 import VkStr1ProfileSidebar from '@/valkivid3/components/str1/VkStr1ProfileSidebar.vue'
@@ -99,6 +100,19 @@ watch(slug, () => {
 
 watch(profile, (next) => {
   setDocumentTitleOverride(next ? `${next.display_name} | vTual | Monolith` : null)
+  if (!next) {
+    clearHeadMeta()
+    return
+  }
+  const bio = (next.bio ?? '').trim()
+  setHeadMeta({
+    title: next.display_name,
+    description:
+      bio.length > 160 ? `${bio.slice(0, 157)}...` : bio || t('web.vtual.public.meta.profile_description_fallback', { name: next.display_name }),
+    image: avatarUrl.value ?? bannerUrl.value,
+    url: window.location.origin + route.path,
+    type: 'profile',
+  })
 })
 
 onMounted(() => {
@@ -107,6 +121,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   setDocumentTitleOverride(null)
+  clearHeadMeta()
 })
 </script>
 

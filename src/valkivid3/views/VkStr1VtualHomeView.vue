@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import type { VtualPublicLanding } from '@/api/types'
 import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
+import { clearHeadMeta, setHeadMeta } from '@/composables/useHeadMeta'
 import VkStr1HeroSlider from '@/valkivid3/components/str1/VkStr1HeroSlider.vue'
 import VkStr1LiveNow from '@/valkivid3/components/str1/VkStr1LiveNow.vue'
 import VkStr1PlatformStats from '@/valkivid3/components/str1/VkStr1PlatformStats.vue'
@@ -14,6 +16,7 @@ import VkStr1SectionCountdown from '@/valkivid3/components/str1/VkStr1SectionCou
 import VkStr1ChannelBanner from '@/valkivid3/components/str1/VkStr1ChannelBanner.vue'
 
 const { t } = useI18n()
+const route = useRoute()
 const { fetchLanding } = useVtualPublic()
 
 const landing = ref<VtualPublicLanding | null>(null)
@@ -30,7 +33,17 @@ async function loadLanding(): Promise<void> {
 }
 
 onMounted(() => {
+  setHeadMeta({
+    title: t('web.vtual.public.title'),
+    description: t('web.vtual.public.meta.landing_description'),
+    url: window.location.origin + route.path,
+    type: 'website',
+  })
   void loadLanding()
+})
+
+onUnmounted(() => {
+  clearHeadMeta()
 })
 </script>
 

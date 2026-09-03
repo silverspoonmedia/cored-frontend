@@ -1791,6 +1791,11 @@
     },
     "vtual": {
       "public": {
+        "meta": {
+          "landing_description": "Открывайте VTuber'ов, прямые трансляции и новые видео на разных платформах — профили, расписания и контент сообщества в одном месте.",
+          "profile_description_fallback": "Публичный профиль {name} на vTual — каналы, видео и расписание.",
+          "management_description_fallback": "Публичный профиль {name} на vTual — состав авторов и ссылки."
+        },
         "countdown": {
           "eyebrow": "Скоро",
           "title": "Следующее событие",
@@ -1916,6 +1921,15 @@
             "offline": "Не в сети"
           }
         },
+        "management": {
+          "breadcrumb": "Хлебные крошки",
+          "not_found": "Менеджмент не найден",
+          "not_found_body": "Этот публичный профиль менеджмента не существует или не опубликован.",
+          "error": "Не удалось загрузить профиль менеджмента. Попробуйте позже.",
+          "retry": "Попробовать снова",
+          "creators_heading": "Состав",
+          "creators_empty": "В этом менеджменте пока нет публичных авторов."
+        },
         "landing": {
           "error": "Не удалось загрузить последние события.",
           "retry": "Попробовать снова"
@@ -2026,6 +2040,8 @@
         "page_title": "Назад к профилям",
         "view_profile": "Посмотреть профиль",
         "profile_title": "Профиль",
+        "refresh": "Обновить",
+        "channels_updated": "Данные каналов обновлены после последней синхронизации.",
         "no_active_channels": "Нет активных каналов.",
         "uuid_placeholder": "UUID",
         "channels": {
@@ -4249,6 +4265,7 @@
       "claim_queue_status_processing": "Обрабатывается",
       "claim_active_heading": "Активная заявка",
       "claim_proof_channel_label": "Доказательный канал",
+      "claim_verified_channel_label": "Подтверждено через канал",
       "claim_cancel": "Отменить заявку",
       "claim_missing_active": "Нет активных заявок на выполнение этого действия.",
       "claim_realtime_connected": "Обновления в реальном времени",

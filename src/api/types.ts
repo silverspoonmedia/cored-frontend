@@ -1496,6 +1496,15 @@ export interface VtualPublicProfile {
   contents: VtualPublicContentFeed
 }
 
+export interface VtualPublicManagementProfile {
+  slug: string
+  name: string
+  description: string | null
+  logo_url: string | null
+  links: VtualPublicLink[]
+  creators: VtualPublicVtuber[]
+}
+
 export interface VtualPublicLandingEvent {
   title: string
   starts_at: string
@@ -1548,8 +1557,10 @@ export interface VtualCreatorClaim {
   verified_at_human?: string | null
   verified_via: string | null
   verified_by_user_id: string | null
+  verified_channel_id: string | null
   creator?: VtualCreator | null
   channel?: VtualChannel | null
+  verified_channel?: VtualChannel | null
   user?: { id: string; name: string; email?: string } | null
   created_at: string | null
   created_at_formatted?: string | null

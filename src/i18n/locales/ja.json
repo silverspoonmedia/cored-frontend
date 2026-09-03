@@ -3675,6 +3675,7 @@
       "claim_queue_status_processing": "処理中",
       "claim_active_heading": "アクティブなクレーム",
       "claim_proof_channel_label": "証明チャンネル",
+      "claim_verified_channel_label": "認証済みチャンネル",
       "claim_cancel": "クレームを取消",
       "claim_missing_active": "この操作に使えるアクティブなクレームがありません。",
       "claim_realtime_connected": "ライブ更新",
@@ -3826,6 +3827,8 @@
         "page_title": "プロフィール一覧へ戻る",
         "view_profile": "プロフィールを見る",
         "profile_title": "プロフィール",
+        "refresh": "更新",
+        "channels_updated": "最新の同期でチャンネルデータが更新されました。",
         "no_active_channels": "有効なチャンネルはありません。",
         "uuid_placeholder": "UUID",
         "channels": {
@@ -4171,6 +4174,11 @@
       "profile_placeholder_twitch": "12345678 / login / https://twitch.tv/login",
       "public": {
         "title": "vTual — バーチャルクリエイターハブ",
+        "meta": {
+          "landing_description": "プラットフォームを横断してVTuber、ライブ配信、新着動画を発見 — プロフィール、スケジュール、コミュニティコンテンツを一か所に。",
+          "profile_description_fallback": "vTualの{name}の公開プロフィール — チャンネル、動画、スケジュール。",
+          "management_description_fallback": "vTualの{name}の公開プロフィール — 所属クリエイターとリンク。"
+        },
         "nav": {
           "home": "ホーム",
           "directory": "vTuber",
@@ -4294,6 +4302,15 @@
             "status": "ステータス",
             "offline": "オフライン"
           }
+        },
+        "management": {
+          "breadcrumb": "パンくずリスト",
+          "not_found": "マネジメントが見つかりません",
+          "not_found_body": "この公開マネジメントプロフィールは存在しないか、掲載されていません。",
+          "error": "このマネジメントプロフィールを読み込めませんでした。後でもう一度お試しください。",
+          "retry": "再試行",
+          "creators_heading": "所属クリエイター",
+          "creators_empty": "このマネジメントにはまだ公開クリエイターがいません。"
         },
         "landing": {
           "error": "最新のハイライトを読み込めませんでした。",

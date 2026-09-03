@@ -324,6 +324,18 @@ function platformIcon(key: string): string {
               <p class="small text-muted mb-0 mt-1">{{ t('web.vtual-vtuber.claim_one_channel_covers_profile') }}</p>
             </div>
 
+            <!-- Verified channel (Discord path) -->
+            <div v-if="activeClaim.verified_channel" class="mb-3">
+              <div class="text-muted small">{{ t('web.vtual-vtuber.claim_verified_channel_label') }}</div>
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi" :class="platformIcon(activeClaim.verified_channel.platform?.key ?? '')"></i>
+                <a v-if="safeHttpUrl(activeClaim.verified_channel.url)" :href="safeHttpUrl(activeClaim.verified_channel.url) ?? undefined" target="_blank" rel="noopener noreferrer">
+                  {{ activeClaim.verified_channel.display_name ?? activeClaim.verified_channel.handle ?? '—' }}
+                </a>
+                <span v-else>{{ activeClaim.verified_channel.display_name ?? activeClaim.verified_channel.handle ?? '—' }}</span>
+              </div>
+            </div>
+
             <!-- Token -->
             <div class="mb-3">
               <div class="text-muted small">{{ t('web.vtual-vtuber.claim_token_label') }}</div>
