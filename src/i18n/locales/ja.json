@@ -3535,12 +3535,75 @@
           "joined_at": "参加日"
         }
       },
+      "members": {
+        "section_title": "メンバー",
+        "section_help": "この組織を管理するメンバー。オーナーと管理者はメンバーを管理できます。新しいメンバーはメール招待で参加します。",
+        "role": "役割",
+        "remove_button": "削除",
+        "table_caption": "このマネジメントのメンバー",
+        "empty": "メンバーはまだいません。",
+        "roles": {
+          "owner": "オーナー",
+          "admin": "管理者",
+          "staff": "スタッフ"
+        },
+        "columns": {
+          "user": "ユーザー",
+          "role": "役割"
+        }
+      },
+      "invites": {
+        "section_title": "招待",
+        "section_help": "登録済みユーザーをメールで招待します。招待されたユーザーはメールとアプリ内通知で承認または辞退できます。承認済みの招待をキャンセルするとメンバーシップが取り消されます。",
+        "email": "メール",
+        "email_placeholder": "招待するメールアドレスを入力",
+        "email_hint": "招待するユーザーはこのメールアドレスでアカウントを持っている必要があります。",
+        "role": "役割",
+        "send_button": "招待を送信",
+        "cancel_button": "キャンセル",
+        "revoke_button": "取り消し",
+        "revoke_confirm": "この招待を取り消すと、ユーザーのメンバーシップが削除されます。続行しますか？",
+        "table_caption": "このマネジメントの招待",
+        "empty": "招待はまだありません。",
+        "statuses": {
+          "pending": "保留中",
+          "accepted": "承認済み",
+          "declined": "辞退",
+          "cancelled": "キャンセル済み",
+          "revoked": "取り消し済み",
+          "expired": "期限切れ"
+        },
+        "columns": {
+          "email": "メール",
+          "role": "役割",
+          "status": "ステータス",
+          "expires_at": "有効期限"
+        }
+      },
       "errors": {
         "load_failed": "マネジメントの読み込みに失敗しました。",
         "save_failed": "マネジメントの保存に失敗しました。",
         "archive_failed": "マネジメントのアーカイブに失敗しました。",
         "assign_failed": "クリエイターの割り当てに失敗しました。",
-        "unassign_failed": "クリエイターの解除に失敗しました。"
+        "unassign_failed": "クリエイターの解除に失敗しました。",
+        "member_update_failed": "メンバーの役割の更新に失敗しました。",
+        "member_remove_failed": "メンバーの削除に失敗しました。",
+        "invite_send_failed": "招待の送信に失敗しました。",
+        "invite_cancel_failed": "招待のキャンセルに失敗しました。"
+      }
+    },
+    "vtual-invites": {
+      "title": "マネジメント招待",
+      "invited_to": "{management} に招待されました。",
+      "role_label": "役割",
+      "expires_label": "有効期限",
+      "accept_button": "承認する",
+      "decline_button": "辞退する",
+      "back_to_managements": "マネジメント一覧へ",
+      "errors": {
+        "missing_token": "招待リンクにトークンがありません。",
+        "load_failed": "招待の読み込みに失敗しました。",
+        "respond_failed": "招待への回答に失敗しました。"
       }
     },
     "vtual-platform-credentials": {

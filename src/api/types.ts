@@ -1376,10 +1376,34 @@ export interface VtualVtuberProfile {
 
 export interface VtualManagementMember {
   id: string
-  management_id: string
-  user_id: string
+  management_id?: string
+  user_id?: string
   role: string
   user?: { id: string; name: string; email?: string } | null
+  created_at?: string | null
+}
+
+export type VtualManagementInviteStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'cancelled'
+  | 'revoked'
+  | 'expired'
+
+export interface VtualManagementInvite {
+  id: string
+  email: string
+  role: string
+  status: VtualManagementInviteStatus
+  invited_by?: { id: string; name: string } | null
+  management?: { id: string; name: string; slug: string } | null
+  expires_at?: string | null
+  expires_at_formatted?: string | null
+  expires_at_human?: string | null
+  responded_at?: string | null
+  created_at?: string | null
+  created_at_formatted?: string | null
 }
 
 export interface VtualManagementCreatorAssignment {

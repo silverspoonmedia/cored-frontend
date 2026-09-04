@@ -3634,12 +3634,75 @@
           "joined_at": "انضم"
         }
       },
+      "members": {
+        "section_title": "الأعضاء",
+        "section_help": "الأشخاص الذين يديرون هذه المنظمة. يمكن للمالكين والمسؤولين إدارة الأعضاء. ينضم الأعضاء الجدد عبر دعوة بالبريد الإلكتروني.",
+        "role": "الدور",
+        "remove_button": "إزالة",
+        "table_caption": "أعضاء هذه الإدارة",
+        "empty": "لا يوجد أعضاء حتى الآن.",
+        "roles": {
+          "owner": "المالك",
+          "admin": "المسؤول",
+          "staff": "الموظفون"
+        },
+        "columns": {
+          "user": "المستخدم",
+          "role": "الدور"
+        }
+      },
+      "invites": {
+        "section_title": "الدعوات",
+        "section_help": "ادعُ مستخدمًا مسجلاً عبر البريد الإلكتروني. يتلقى المدعو بريدًا إلكترونيًا وإشعارًا داخل التطبيق للقبول أو الرفض. إلغاء دعوة مقبولة يؤدي إلى إلغاء العضوية.",
+        "email": "البريد الإلكتروني",
+        "email_placeholder": "أدخل بريد المدعو الإلكتروني",
+        "email_hint": "يجب أن يمتلك المستخدم المدعو حسابًا بهذا البريد الإلكتروني.",
+        "role": "الدور",
+        "send_button": "إرسال الدعوة",
+        "cancel_button": "إلغاء",
+        "revoke_button": "إلغاء العضوية",
+        "revoke_confirm": "سيؤدي إلغاء هذه الدعوة إلى إزالة عضوية المستخدم. هل تريد المتابعة؟",
+        "table_caption": "دعوات هذه الإدارة",
+        "empty": "لا توجد دعوات حتى الآن.",
+        "statuses": {
+          "pending": "قيد الانتظار",
+          "accepted": "مقبولة",
+          "declined": "مرفوضة",
+          "cancelled": "ملغاة",
+          "revoked": "ملغاة العضوية",
+          "expired": "منتهية الصلاحية"
+        },
+        "columns": {
+          "email": "البريد الإلكتروني",
+          "role": "الدور",
+          "status": "الحالة",
+          "expires_at": "تنتهي في"
+        }
+      },
       "errors": {
         "load_failed": "فشل تحميل الإدارة.",
         "save_failed": "فشل حفظ الإدارة.",
         "archive_failed": "فشل في إدارة الأرشيف.",
         "assign_failed": "فشل تعيين المنشئ.",
-        "unassign_failed": "فشلت إزالة المنشئ."
+        "unassign_failed": "فشلت إزالة المنشئ.",
+        "member_update_failed": "فشل تحديث دور العضو.",
+        "member_remove_failed": "فشلت إزالة العضو.",
+        "invite_send_failed": "فشل إرسال الدعوة.",
+        "invite_cancel_failed": "فشل إلغاء الدعوة."
+      }
+    },
+    "vtual-invites": {
+      "title": "دعوة الإدارة",
+      "invited_to": "لقد تمت دعوتك للانضمام إلى {management}.",
+      "role_label": "الدور",
+      "expires_label": "تنتهي في",
+      "accept_button": "قبول",
+      "decline_button": "رفض",
+      "back_to_managements": "العودة إلى الإدارات",
+      "errors": {
+        "missing_token": "رابط الدعوة يفتقد الرمز.",
+        "load_failed": "فشل تحميل الدعوة.",
+        "respond_failed": "فشل الرد على الدعوة."
       }
     },
     "vtual-platform-credentials": {

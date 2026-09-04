@@ -3816,12 +3816,75 @@
           "joined_at": "已加入"
         }
       },
+      "members": {
+        "section_title": "成员",
+        "section_help": "管理此组织的人员。所有者和管理员可以管理成员。新成员通过电子邮件邀请加入。",
+        "role": "角色",
+        "remove_button": "移除",
+        "table_caption": "此管理机构的成员",
+        "empty": "暂无成员。",
+        "roles": {
+          "owner": "所有者",
+          "admin": "管理员",
+          "staff": "员工"
+        },
+        "columns": {
+          "user": "用户",
+          "role": "角色"
+        }
+      },
+      "invites": {
+        "section_title": "邀请",
+        "section_help": "通过电子邮件邀请已注册的用户。对方会通过邮件和应用内通知接受或拒绝。取消已接受的邀请将撤销其成员身份。",
+        "email": "邮箱",
+        "email_placeholder": "输入被邀请人的邮箱",
+        "email_hint": "被邀请的用户必须已使用该邮箱注册账户。",
+        "role": "角色",
+        "send_button": "发送邀请",
+        "cancel_button": "取消",
+        "revoke_button": "撤销",
+        "revoke_confirm": "撤销此邀请将移除该用户的成员身份。确定继续吗？",
+        "table_caption": "此管理机构的邀请",
+        "empty": "暂无邀请。",
+        "statuses": {
+          "pending": "待处理",
+          "accepted": "已接受",
+          "declined": "已拒绝",
+          "cancelled": "已取消",
+          "revoked": "已撤销",
+          "expired": "已过期"
+        },
+        "columns": {
+          "email": "邮箱",
+          "role": "角色",
+          "status": "状态",
+          "expires_at": "过期时间"
+        }
+      },
       "errors": {
         "load_failed": "无法加载管理。",
         "save_failed": "无法保存管理。",
         "archive_failed": "存档管理失败。",
         "assign_failed": "无法分配创建者。",
-        "unassign_failed": "无法删除创建者。"
+        "unassign_failed": "无法删除创建者。",
+        "member_update_failed": "无法更新成员角色。",
+        "member_remove_failed": "无法移除成员。",
+        "invite_send_failed": "邀请发送失败。",
+        "invite_cancel_failed": "取消邀请失败。"
+      }
+    },
+    "vtual-invites": {
+      "title": "管理机构邀请",
+      "invited_to": "你已被邀请加入 {management}。",
+      "role_label": "角色",
+      "expires_label": "过期时间",
+      "accept_button": "接受",
+      "decline_button": "拒绝",
+      "back_to_managements": "返回管理机构",
+      "errors": {
+        "missing_token": "邀请链接缺少令牌。",
+        "load_failed": "加载邀请失败。",
+        "respond_failed": "响应邀请失败。"
       }
     },
     "vtual-platform-credentials": {

@@ -3535,12 +3535,75 @@
           "joined_at": "Bergabung"
         }
       },
+      "members": {
+        "section_title": "Anggota",
+        "section_help": "Orang yang mengelola organisasi ini. Pemilik dan pengelola dapat mengelola anggota. Anggota baru bergabung melalui undangan email.",
+        "role": "Peran",
+        "remove_button": "Hapus",
+        "table_caption": "Anggota manajemen ini",
+        "empty": "Belum ada anggota.",
+        "roles": {
+          "owner": "Pemilik",
+          "admin": "Pengelola",
+          "staff": "Staf"
+        },
+        "columns": {
+          "user": "Pengguna",
+          "role": "Peran"
+        }
+      },
+      "invites": {
+        "section_title": "Undangan",
+        "section_help": "Undang pengguna terdaftar melalui email. Mereka menerima email dan notifikasi dalam aplikasi untuk menerima atau menolak. Membatalkan undangan yang sudah diterima akan mencabut keanggotaan.",
+        "email": "Email",
+        "email_placeholder": "Masukkan email yang diundang",
+        "email_hint": "Pengguna yang diundang harus sudah memiliki akun dengan email ini.",
+        "role": "Peran",
+        "send_button": "Kirim undangan",
+        "cancel_button": "Batalkan",
+        "revoke_button": "Cabut",
+        "revoke_confirm": "Mencabut undangan ini akan menghapus keanggotaan pengguna. Lanjutkan?",
+        "table_caption": "Undangan untuk manajemen ini",
+        "empty": "Belum ada undangan.",
+        "statuses": {
+          "pending": "Menunggu",
+          "accepted": "Diterima",
+          "declined": "Ditolak",
+          "cancelled": "Dibatalkan",
+          "revoked": "Dicabut",
+          "expired": "Kedaluwarsa"
+        },
+        "columns": {
+          "email": "Email",
+          "role": "Peran",
+          "status": "Status undangan",
+          "expires_at": "Kedaluwarsa"
+        }
+      },
       "errors": {
         "load_failed": "Gagal memuat manajemen.",
         "save_failed": "Gagal menyimpan manajemen.",
         "archive_failed": "Gagal mengarsipkan manajemen.",
         "assign_failed": "Gagal menetapkan kreator.",
-        "unassign_failed": "Gagal menghapus kreator."
+        "unassign_failed": "Gagal menghapus kreator.",
+        "member_update_failed": "Gagal memperbarui peran anggota.",
+        "member_remove_failed": "Gagal menghapus anggota.",
+        "invite_send_failed": "Gagal mengirim undangan.",
+        "invite_cancel_failed": "Gagal membatalkan undangan."
+      }
+    },
+    "vtual-invites": {
+      "title": "Undangan manajemen",
+      "invited_to": "Anda diundang untuk bergabung ke {management}.",
+      "role_label": "Peran",
+      "expires_label": "Kedaluwarsa",
+      "accept_button": "Terima",
+      "decline_button": "Tolak",
+      "back_to_managements": "Kembali ke manajemen",
+      "errors": {
+        "missing_token": "Tautan undangan tidak memiliki token.",
+        "load_failed": "Gagal memuat undangan.",
+        "respond_failed": "Gagal merespons undangan."
       }
     },
     "vtual-platform-credentials": {

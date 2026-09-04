@@ -107,6 +107,19 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/apps/vtual/invites/respond',
+    name: 'vtual.invites.respond',
+    component: AppLayout,
+    meta: { requiresAuth: true, titleKey: 'web.vtual-invites.title' },
+    children: [
+      {
+        path: '',
+        name: 'vtual.invites.respond.view',
+        component: () => import('@/views/vtual/VtualInviteRespondView.vue'),
+      },
+    ],
+  },
+  {
     path: '/apps/vtual/platform-credentials',
     name: 'vtual.platform-credentials.index',
     component: AppLayout,

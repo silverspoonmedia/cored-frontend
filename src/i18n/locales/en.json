@@ -3531,12 +3531,75 @@
           "joined_at": "Joined"
         }
       },
+      "members": {
+        "section_title": "Members",
+        "section_help": "People who manage this organisation. Owners and admins can manage members. New members join via email invitation.",
+        "role": "Role",
+        "remove_button": "Remove",
+        "table_caption": "Members of this management",
+        "empty": "No members yet.",
+        "roles": {
+          "owner": "Owner",
+          "admin": "Admin",
+          "staff": "Staff"
+        },
+        "columns": {
+          "user": "User",
+          "role": "Role"
+        }
+      },
+      "invites": {
+        "section_title": "Invitations",
+        "section_help": "Invite a registered user by email. They receive an email and an in-app notification to accept or decline. Cancelling an accepted invite revokes the membership.",
+        "email": "Email",
+        "email_placeholder": "Enter the invitee email",
+        "email_hint": "The invited user must already have an account with this email.",
+        "role": "Role",
+        "send_button": "Send invite",
+        "cancel_button": "Cancel",
+        "revoke_button": "Revoke",
+        "revoke_confirm": "Revoking this invitation removes the user's membership. Continue?",
+        "table_caption": "Invitations for this management",
+        "empty": "No invitations yet.",
+        "statuses": {
+          "pending": "Pending",
+          "accepted": "Accepted",
+          "declined": "Declined",
+          "cancelled": "Cancelled",
+          "revoked": "Revoked",
+          "expired": "Expired"
+        },
+        "columns": {
+          "email": "Email",
+          "role": "Role",
+          "status": "Status",
+          "expires_at": "Expires"
+        }
+      },
       "errors": {
         "load_failed": "Failed to load managements.",
         "save_failed": "Failed to save management.",
         "archive_failed": "Failed to archive management.",
         "assign_failed": "Failed to assign creator.",
-        "unassign_failed": "Failed to remove creator."
+        "unassign_failed": "Failed to remove creator.",
+        "member_update_failed": "Failed to update member role.",
+        "member_remove_failed": "Failed to remove member.",
+        "invite_send_failed": "Failed to send invitation.",
+        "invite_cancel_failed": "Failed to cancel invitation."
+      }
+    },
+    "vtual-invites": {
+      "title": "Management invitation",
+      "invited_to": "You have been invited to join {management}.",
+      "role_label": "Role",
+      "expires_label": "Expires",
+      "accept_button": "Accept",
+      "decline_button": "Decline",
+      "back_to_managements": "Back to managements",
+      "errors": {
+        "missing_token": "Invitation link is missing its token.",
+        "load_failed": "Failed to load invitation.",
+        "respond_failed": "Failed to respond to invitation."
       }
     },
     "vtual-platform-credentials": {
