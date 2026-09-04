@@ -1,11 +1,5 @@
 import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
-import id from './locales/id.json'
-import ja from './locales/ja.json'
-import ko from './locales/ko.json'
-import zhCN from './locales/zh-CN.json'
-import ar from './locales/ar.json'
-import ru from './locales/ru.json'
 
 export type AppLocale = 'en' | 'id' | 'ja' | 'ko' | 'zh-CN' | 'ar' | 'ru'
 export type BackendLocale = 'en' | 'id' | 'ja' | 'ko' | 'zh_CN' | 'ar' | 'ru'
@@ -78,12 +72,42 @@ const i18n = createI18n({
   legacy: false,
   locale: detectLocale(),
   fallbackLocale: 'en',
-  messages: { en, id, ja, ko, 'zh-CN': zhCN, ar, ru },
+  messages: { en },
 })
+
+// Non-fallback locales load on demand (~1.4 MB raw kept out of the entry chunk).
+// VueI18nPlugin precompiles each JSON into its own chunk; missing keys fall back
+// to the eagerly bundled `en` until the import resolves.
+const LAZY_LOCALES: Record<Exclude<AppLocale, 'en'>, () => Promise<{ default: unknown }>> = {
+  id: () => import('./locales/id.json'),
+  ja: () => import('./locales/ja.json'),
+  ko: () => import('./locales/ko.json'),
+  'zh-CN': () => import('./locales/zh-CN.json'),
+  ar: () => import('./locales/ar.json'),
+  ru: () => import('./locales/ru.json'),
+}
+
+const loadedLocales = new Set<AppLocale>(['en'])
+
+export async function ensureLocale(locale: AppLocale): Promise<void> {
+  if (loadedLocales.has(locale)) return
+  const loader = LAZY_LOCALES[locale as Exclude<AppLocale, 'en'>]
+  if (!loader) return
+  const messages = await loader() as { default?: unknown }
+  i18n.global.setLocaleMessage(locale, (messages.default ?? messages) as Parameters<typeof i18n.global.setLocaleMessage>[1])
+  loadedLocales.add(locale)
+}
 
 export function setLocale(locale: AppLocale, opts?: { reload?: boolean }): void {
   const directionChanged = isRtl(locale) !== isRtl()
-  i18n.global.locale.value = locale
+  void ensureLocale(locale).then(() => {
+    // Force reactivity refresh of already-rendered translations once the
+    // messages land (covers locales awaited asynchronously after mount).
+    if ((i18n.global.locale.value as AppLocale) === locale) {
+      ;(i18n.global.locale as unknown as { value: string }).value = locale
+    }
+  })
+  i18n.global.locale.value = locale as typeof i18n.global.locale.value
   if (typeof window !== 'undefined') window.localStorage?.setItem('locale', locale)
   applyHtmlLang()
   // Vendor CSS is split per direction (vendor.css / vendor-rtl.css, see main.ts);

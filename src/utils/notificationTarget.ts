@@ -48,7 +48,7 @@ export function resolveNotificationLocation(
           queryParams[key] = value
         }
       }
-      return { name, params: pathParams, query: queryParams }
+      return { name, params: pathParams, ...(Object.keys(queryParams).length > 0 ? { query: queryParams } : {}) }
     }
   }
 

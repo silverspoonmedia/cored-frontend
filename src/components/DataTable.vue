@@ -35,6 +35,8 @@ const props = withDefaults(defineProps<{
   server?: boolean
   total?: number
   page?: number
+  /** Stable row key: field name or function. Falls back to array index. */
+  rowKey?: string | ((row: T) => string | number)
 }>(), {
   loading: false,
   error: null,
@@ -115,6 +117,19 @@ const paged = computed<T[]>(() => {
 
 const from = computed(() => total.value === 0 ? 0 : (page.value - 1) * perPage.value + 1)
 const to = computed(() => Math.min(page.value * perPage.value, total.value))
+
+function rowKey(row: T, index: number): string | number {
+  const k = props.rowKey
+  if (typeof k === 'function') return k(row)
+  if (k) {
+    const val = getVal(row, k)
+    if (val !== null && val !== undefined) return val as string | number
+  }
+  // Sensible default: most table rows carry an `id`; fall back to index.
+  const id = getVal(row, 'id')
+  if (id !== null && id !== undefined) return id as string | number
+  return index
+}
 
 watch([sortKey, sortDir, perPage], () => {
   if (!props.server) page.value = 1
@@ -254,7 +269,7 @@ function getVal(row: T, key: string): unknown {
           <template v-else>
             <tr
               v-for="(row, index) in paged"
-              :key="index"
+              :key="rowKey(row, index)"
               @click="$emit('row-click', row)"
             >
               <td v-for="col in columns" :key="col.key" :class="[col.cellClass, alignClass(col)]">

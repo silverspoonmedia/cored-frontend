@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { isRtl } from '@/i18n'
 import { confirmDialog } from '@/lib/swal'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
@@ -12,125 +11,178 @@ import FhIcon from '@/components/file-hosting/FhIcon.vue'
 import FhShareModal from '@/components/file-hosting/FhShareModal.vue'
 import FhCollectionDescribeModal from '@/components/file-hosting/FhCollectionDescribeModal.vue'
 import FhMicrostockReviewModal from '@/components/file-hosting/FhMicrostockReviewModal.vue'
+import FhWorkspaceSwitcher from '@/components/file-hosting/FhWorkspaceSwitcher.vue'
+import FhContextMenu, { type ContextMenuState } from '@/components/file-hosting/FhContextMenu.vue'
+import FhNameMoveModal, { type FhNameMoveModal as FhNameMoveModalState } from '@/components/file-hosting/FhNameMoveModal.vue'
 import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
-import { useFhHydrate } from '@/composables/file-hosting/useFhHydrate'
+import { useFhBrowse } from '@/composables/file-hosting/useFhBrowse'
 import { useMicrostock } from '@/composables/microstock/useMicrostock'
-import { useMicrostockBilling } from '@/composables/microstock/useMicrostockBilling'
 import { useFileHostingRealtime } from '@/composables/file-hosting/useFileHostingRealtime'
 import { useAlert } from '@/composables/useAlert'
 import { useFhDragMove } from '@/composables/file-hosting/useFhDragMove'
 import { applyBrowseClick, listingKeys, idsByEntity } from '@/composables/file-hosting/useFhSelection'
-import { formatCollectionProgress, resolveMicrostockBadge, type FhMicrostockBadgeLabels } from '@/utils/file-hosting/fhMicrostockBadge'
+import { resolveMicrostockBadge, formatCollectionProgress, type FhMicrostockBadgeLabels } from '@/utils/file-hosting/fhMicrostockBadge'
 import { useAuth } from '@/stores/auth'
-import type {
-  HostedFile,
-  FhFolder,
-  FhBrowsePayload,
-  FhQuota,
-  FhWorkspace,
-  MicrostockBillingSummary,
-  MicrostockSlotStatus,
-  MicrostockCollectionStatusPayload,
-} from '@/api/types'
+import type { HostedFile, FhFolder, MicrostockCollectionStatusPayload } from '@/api/types'
 
 const VIS_LINK = 'anyone_with_link'
-const VIEW_MODE_KEY = 'fh-view-mode'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const fh = useFileHosting()
-const { hydrateFileHosting } = useFhHydrate()
 const ms = useMicrostock()
-const { fetchBilling } = useMicrostockBilling()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe: subscribeFhRealtime, unsubscribe: unsubscribeFhRealtime } = useFileHostingRealtime()
 
-const browse = ref<FhBrowsePayload | null>(null)
-const quota = ref<FhQuota | null>(null)
-const loading = ref(true)
-const browseError = ref<string | null>(null)
-const isBusy = ref(false)
-const workspaces = ref<FhWorkspace[]>([])
-const slots = ref<MicrostockSlotStatus | null>(null)
-const billing = ref<MicrostockBillingSummary | null>(null)
-const collectionStatusPayload = ref<MicrostockCollectionStatusPayload | null>(null)
+// ---- Selection (owned here, shared with browse composable + drag-move) ----
 const selected = ref<Set<string>>(new Set())
 const selectionAnchor = ref<string | null>(null)
 
-function readViewMode(): 'table' | 'grid' {
-  try {
-    const stored = localStorage.getItem(VIEW_MODE_KEY)
-    return stored === 'grid' ? 'grid' : 'table'
-  } catch {
-    return 'table'
-  }
+function clearSelection(): void {
+  selected.value = new Set()
+  selectionAnchor.value = null
 }
 
-const viewMode = ref<'table' | 'grid'>(readViewMode())
-
-function setViewMode(mode: 'table' | 'grid'): void {
-  viewMode.value = mode
-  try {
-    localStorage.setItem(VIEW_MODE_KEY, mode)
-  } catch {
-    /* ignore */
-  }
+function toggleSelect(key: string, on?: boolean): void {
+  const next = new Set(selected.value)
+  const enable = on === undefined ? !next.has(key) : on
+  if (enable) next.add(key)
+  else next.delete(key)
+  selected.value = next
 }
 
-const searchQ = ref('')
-const searchResults = ref<HostedFile[]>([])
-const searchOpen = ref(false)
-let searchTimer: ReturnType<typeof setTimeout> | null = null
-
-type FhModal =
-  | { type: 'folder'; name: string }
-  | { type: 'rename'; entity: 'folder' | 'file'; id: string; name: string }
-  | { type: 'move'; keys: string[]; target: string }
-
-const modal = ref<FhModal | null>(null)
-const showShare = ref(false)
-const shareVisibility = ref('private')
-const shareUrl = ref<string | null>(null)
-const shareTarget = ref<{ entity: 'folder' | 'file'; id: string } | null>(null)
-const deleteTarget = ref<{ type: 'folder' | 'file'; id: string } | null>(null)
-
-type ContextMenuState = {
-  x: number
-  y: number
-  entity: 'folder' | 'file'
-  item: FhFolder | HostedFile
+function setSelection(next: Set<string>, anchorKey: string | null): void {
+  selected.value = next
+  selectionAnchor.value = anchorKey
 }
 
-const contextMenu = ref<ContextMenuState | null>(null)
+function selectAllKeys(keys: string[], on: boolean): void {
+  selected.value = on ? new Set(keys) : new Set()
+  if (!on) selectionAnchor.value = null
+}
 
-// Mirror the popup under RTL and keep it on-screen near the viewport edge.
-const CONTEXT_MENU_WIDTH = 220
+// ---- Browse/search/lifecycle state (extracted composable) ----
+const {
+  browse,
+  quota,
+  loading,
+  browseError,
+  workspaces,
+  slots,
+  billing,
+  viewMode,
+  searchQ,
+  searchResults,
+  searchOpen,
+  currentFolderId,
+  folders,
+  files,
+  crumbs,
+  isMicrostock,
+  collectionLocked,
+  requireFolder,
+  collectionStatus,
+  parentMeta,
+  quotaPct,
+  uploadCtx,
+  setViewMode,
+  ctxParams,
+  loadBrowse,
+  loadQuota,
+  loadWorkspaces,
+  loadSlots,
+  loadAll,
+} = useFhBrowse({ selected, clearSelection })
 
-const contextMenuStyle = computed(() => {
-  if (!contextMenu.value) return {}
-  const x = Math.min(contextMenu.value.x, window.innerWidth - CONTEXT_MENU_WIDTH)
-  if (isRtl()) {
-    return { insetInlineStart: `${Math.max(0, window.innerWidth - contextMenu.value.x - CONTEXT_MENU_WIDTH)}px`, top: `${contextMenu.value.y}px` }
+const isBusy = ref(false)
+const allKeys = computed(() => listingKeys(folders.value, files.value))
+const isEmpty = computed(() => folders.value.length === 0 && files.value.length === 0)
+const selectedCount = computed(() => selected.value.size)
+const allSelected = computed(() => allKeys.value.length > 0 && allKeys.value.every((k) => selected.value.has(k)))
+
+const canCreateFile = computed(() => hasPermission('create file hosting file'))
+const canCreateFolder = computed(() => hasPermission('create file hosting folder'))
+const canEditFolder = computed(() => hasPermission('edit file hosting folder'))
+const canEditFile = computed(() => hasPermission('edit file hosting file'))
+const canDeleteFolder = computed(() => hasPermission('delete file hosting folder'))
+const canDeleteFile = computed(() => hasPermission('delete file hosting file'))
+
+function canEdit(entity: 'folder' | 'file'): boolean {
+  return entity === 'folder' ? canEditFolder.value : canEditFile.value
+}
+
+function canDelete(entity: 'folder' | 'file'): boolean {
+  return entity === 'folder' ? canDeleteFolder.value : canDeleteFile.value
+}
+
+const showLockBtn = computed(() => {
+  if (!isMicrostock.value || !currentFolderId.value) return false
+  const status = collectionStatus.value
+  return status === 'draft' || status === 'failed' || !status
+})
+const showAnalyzeBtn = computed(() => isMicrostock.value && collectionStatus.value === 'locked')
+const showReviewBtn = computed(() => {
+  if (!isMicrostock.value || !currentFolderId.value) return false
+  return ['processing', 'review', 'exported'].includes(collectionStatus.value ?? '')
+})
+const showExportBtn = computed(() => isMicrostock.value && collectionStatus.value === 'review')
+const showDownloadBtn = computed(() => isMicrostock.value && collectionStatus.value === 'exported')
+
+function canLockCollection(folder: FhFolder): boolean {
+  if (!folder.collection_status) return false
+  if (folder.collection_locked) return false
+  return folder.collection_status === 'draft' || folder.collection_status === 'failed'
+}
+
+const collectionStatusHint = computed(() => {
+  const status = collectionStatus.value
+  if (!isMicrostock.value || !status) return ''
+  if (status === 'locked') return t('web.file-hosting.microstock.status_locked')
+  if (status === 'processing') {
+    const extra = collectionStatusPayload.value?.billing_tier === 'free'
+      ? ` ${t('web.file-hosting.microstock.status_processing_free_tier')}`
+      : ''
+    return t('web.file-hosting.microstock.status_processing') + extra
   }
-  return { insetInlineStart: `${Math.max(0, x)}px`, top: `${contextMenu.value.y}px` }
+  if (status === 'review') return t('web.file-hosting.microstock.status_review')
+  if (status === 'exported') return t('web.file-hosting.microstock.status_exported')
+  if (status === 'failed') return t('web.file-hosting.microstock.status_failed')
+  return ''
 })
 
-const currentFolderId = computed(() => {
-  const id = route.params.folderId
-  return typeof id === 'string' && id.length > 0 ? id : null
+const rootLabel = computed(() => {
+  if (route.query.workspace_id) {
+    return browse.value?.workspace?.name
+      ?? workspaces.value.find((w) => w.id === route.query.workspace_id)?.name
+      ?? t('web.file-hosting.workspace_team')
+  }
+  return t('web.file-hosting.personal')
 })
 
-function ctxParams(): Record<string, unknown> {
-  const params: Record<string, unknown> = {}
-  const ws = route.query.workspace_id
-  const uid = route.query.user_id
-  if (typeof ws === 'string' && ws) params.workspace_id = ws
-  if (typeof uid === 'string' && uid) params.user_id = uid
-  return params
+const badgeLabels = computed<FhMicrostockBadgeLabels>(() => ({
+  noMetadata: t('web.file-hosting.microstock.no_metadata'),
+  statusPending: t('web.file-hosting.microstock.status_pending'),
+  statusGenerated: t('web.file-hosting.microstock.status_generated'),
+  statusFinalized: t('web.file-hosting.microstock.status_finalized'),
+  statusFailed: t('web.file-hosting.microstock.status_failed_item'),
+  stageVision: t('web.file-hosting.microstock.stage_vision'),
+  stageThinking: t('web.file-hosting.microstock.stage_thinking'),
+  stageQueuedThinking: t('web.file-hosting.microstock.stage_queued_thinking'),
+  stageDegraded: t('web.file-hosting.microstock.stage_degraded'),
+}))
+
+function msBadge(file: HostedFile) {
+  return resolveMicrostockBadge(file.microstock, badgeLabels.value)
 }
 
+const moveTargets = computed(() => {
+  const keys = modal.value?.type === 'move' ? modal.value.keys : []
+  return folders.value.filter((f) => !keys.includes(`folder:${f.id}`))
+})
+
+// ---- Navigation helpers ----
 function keepQuery(): Record<string, string | string[]> {
   const q: Record<string, string | string[]> = {}
   for (const [k, v] of Object.entries(route.query)) {
@@ -157,255 +209,6 @@ function fileHref(id: string): string {
     params: { id },
     query: route.query,
   }).href
-}
-
-const folders = computed(() => browse.value?.folders ?? [])
-const files = computed(() => browse.value?.files ?? [])
-const crumbs = computed(() => browse.value?.breadcrumb ?? [])
-const allKeys = computed(() => listingKeys(folders.value, files.value))
-const isEmpty = computed(() => folders.value.length === 0 && files.value.length === 0)
-const selectedCount = computed(() => selected.value.size)
-const allSelected = computed(() => allKeys.value.length > 0 && allKeys.value.every((k) => selected.value.has(k)))
-
-const canCreateFile = computed(() => hasPermission('create file hosting file'))
-const canCreateFolder = computed(() => hasPermission('create file hosting folder'))
-const canEditFolder = computed(() => hasPermission('edit file hosting folder'))
-const canEditFile = computed(() => hasPermission('edit file hosting file'))
-const canDeleteFolder = computed(() => hasPermission('delete file hosting folder'))
-const canDeleteFile = computed(() => hasPermission('delete file hosting file'))
-
-function canEdit(entity: 'folder' | 'file'): boolean {
-  return entity === 'folder' ? canEditFolder.value : canEditFile.value
-}
-
-function canDelete(entity: 'folder' | 'file'): boolean {
-  return entity === 'folder' ? canDeleteFolder.value : canDeleteFile.value
-}
-
-const isMicrostock = computed(() => browse.value?.workspace?.kind === 'microstock')
-const collectionLocked = computed(() => !!browse.value?.folder?.collection_locked)
-const requireFolder = computed(() => isMicrostock.value && !currentFolderId.value)
-const collectionStatus = computed(() => browse.value?.folder?.collection_status ?? collectionStatusPayload.value?.status ?? null)
-
-const showLockBtn = computed(() => {
-  if (!isMicrostock.value || !currentFolderId.value) return false
-  const status = collectionStatus.value
-  return status === 'draft' || status === 'failed' || !status
-})
-const showAnalyzeBtn = computed(() => isMicrostock.value && collectionStatus.value === 'locked')
-const showReviewBtn = computed(() => {
-  if (!isMicrostock.value || !currentFolderId.value) return false
-  return ['processing', 'review', 'exported'].includes(collectionStatus.value ?? '')
-})
-const showExportBtn = computed(() => isMicrostock.value && collectionStatus.value === 'review')
-const showDownloadBtn = computed(() => isMicrostock.value && collectionStatus.value === 'exported')
-
-function canLockCollection(folder: FhFolder): boolean {
-  if (!folder.collection_status) return false
-  if (folder.collection_locked) return false
-  return folder.collection_status === 'draft' || folder.collection_status === 'failed'
-}
-
-const collectionProgressText = computed(() => {
-  const payload = collectionStatusPayload.value
-  if (!isMicrostock.value || !payload || payload.total <= 0) return ''
-  if (!['processing', 'review', 'exported'].includes(payload.status) && collectionStatus.value !== 'processing') {
-    return ''
-  }
-  return formatCollectionProgress(
-    payload.processed,
-    payload.total,
-    payload.failed,
-    t('web.file-hosting.microstock.progress', { processed: payload.processed, total: payload.total }),
-    t('web.file-hosting.microstock.progress_failed', { failed: payload.failed }),
-  )
-})
-
-const collectionStatusHint = computed(() => {
-  const status = collectionStatus.value
-  if (!isMicrostock.value || !status) return ''
-  if (status === 'locked') return t('web.file-hosting.microstock.status_locked')
-  if (status === 'processing') {
-    const extra = collectionStatusPayload.value?.billing_tier === 'free'
-      ? ` ${t('web.file-hosting.microstock.status_processing_free_tier')}`
-      : ''
-    return t('web.file-hosting.microstock.status_processing') + extra
-  }
-  if (status === 'review') return t('web.file-hosting.microstock.status_review')
-  if (status === 'exported') return t('web.file-hosting.microstock.status_exported')
-  if (status === 'failed') return t('web.file-hosting.microstock.status_failed')
-  return ''
-})
-
-const parentMeta = computed(() => {
-  if (!currentFolderId.value) return null
-  const c = crumbs.value
-  const id = c.length >= 2 ? (c[c.length - 2]?.id ?? null) : null
-  return { id, href: folderHref(id) }
-})
-
-const rootLabel = computed(() => {
-  if (route.query.workspace_id) {
-    return browse.value?.workspace?.name
-      ?? workspaces.value.find((w) => w.id === route.query.workspace_id)?.name
-      ?? t('web.file-hosting.workspace_team')
-  }
-  return t('web.file-hosting.personal')
-})
-
-const quotaPct = computed(() => {
-  const q = quota.value
-  if (!q) return 0
-  const lim = Number(q.quota_bytes || 0)
-  return lim > 0 ? Math.min(100, (Number(q.used_bytes || 0) / lim) * 100) : 0
-})
-
-const badgeLabels = computed<FhMicrostockBadgeLabels>(() => ({
-  noMetadata: t('web.file-hosting.microstock.no_metadata'),
-  statusPending: t('web.file-hosting.microstock.status_pending'),
-  statusGenerated: t('web.file-hosting.microstock.status_generated'),
-  statusFinalized: t('web.file-hosting.microstock.status_finalized'),
-  statusFailed: t('web.file-hosting.microstock.status_failed_item'),
-  stageVision: t('web.file-hosting.microstock.stage_vision'),
-  stageThinking: t('web.file-hosting.microstock.stage_thinking'),
-  stageQueuedThinking: t('web.file-hosting.microstock.stage_queued_thinking'),
-  stageDegraded: t('web.file-hosting.microstock.stage_degraded'),
-}))
-
-function msBadge(file: HostedFile) {
-  return resolveMicrostockBadge(file.microstock, badgeLabels.value)
-}
-
-const moveTargets = computed(() => {
-  const keys = modal.value?.type === 'move' ? modal.value.keys : []
-  return folders.value.filter((f) => !keys.includes(`folder:${f.id}`))
-})
-
-const uploadCtx = computed(() => ({
-  folderId: currentFolderId.value,
-  userId: typeof route.query.user_id === 'string' ? route.query.user_id : null,
-  workspaceId: typeof route.query.workspace_id === 'string' ? route.query.workspace_id : null,
-}))
-
-function clearSelection(): void {
-  selected.value = new Set()
-  selectionAnchor.value = null
-}
-
-function toggleSelect(key: string, on?: boolean): void {
-  const next = new Set(selected.value)
-  const enable = on === undefined ? !next.has(key) : on
-  if (enable) next.add(key)
-  else next.delete(key)
-  selected.value = next
-}
-
-function setSelection(next: Set<string>, anchorKey: string | null): void {
-  selected.value = next
-  selectionAnchor.value = anchorKey
-}
-
-function selectAllKeys(keys: string[], on: boolean): void {
-  selected.value = on ? new Set(keys) : new Set()
-  if (!on) selectionAnchor.value = null
-}
-
-async function loadBrowse(opts?: { keepSelection?: boolean }): Promise<void> {
-  loading.value = true
-  browseError.value = null
-  try {
-    const params: Record<string, unknown> = { ...ctxParams() }
-    if (currentFolderId.value) params.folder_id = currentFolderId.value
-    browse.value = await fh.fetchBrowse(params)
-    if (!opts?.keepSelection) clearSelection()
-  } catch (e) {
-    browseError.value = e instanceof Error ? e.message : t('web.file-hosting.load_failed')
-  } finally {
-    loading.value = false
-  }
-}
-
-async function loadQuota(): Promise<void> {
-  try {
-    quota.value = await fh.fetchQuota(ctxParams())
-  } catch {
-    /* non-critical */
-  }
-}
-
-async function loadWorkspaces(): Promise<void> {
-  try {
-    workspaces.value = await fh.fetchWorkspaces()
-  } catch {
-    workspaces.value = []
-  }
-}
-
-async function loadSlots(): Promise<void> {
-  try {
-    slots.value = await ms.fetchSlots()
-  } catch {
-    slots.value = null
-  }
-}
-
-async function loadBilling(): Promise<void> {
-  if (browse.value?.workspace?.kind !== 'microstock') {
-    billing.value = null
-    return
-  }
-  try {
-    billing.value = await fetchBilling()
-  } catch {
-    billing.value = null
-  }
-}
-
-async function loadCollectionStatus(): Promise<void> {
-  if (browse.value?.workspace?.kind !== 'microstock' || !currentFolderId.value) {
-    collectionStatusPayload.value = null
-    return
-  }
-  try {
-    collectionStatusPayload.value = await ms.fetchCollectionStatus(currentFolderId.value)
-  } catch {
-    collectionStatusPayload.value = null
-  }
-}
-
-async function loadAll(): Promise<void> {
-  // loadAll owns the hydrate lifecycle: release the loading veil here, not
-  // only inside loadBrowse (which a successful batch skips entirely).
-  loading.value = true
-  try {
-    // One batch replaces the four independent reads; any sub that failed comes
-    // back null and falls through to its own loader (keeping that loader's
-    // error handling — browse toasts, the rest stay silent).
-    const { browse: b, quota: q, workspaces: ws, slots: sl } = await hydrateFileHosting({
-      folderId: currentFolderId.value,
-      ctx: ctxParams(),
-    })
-
-    if (b) {
-      browse.value = b
-      clearSelection()
-    }
-    if (q) quota.value = q
-    if (ws) workspaces.value = ws
-    if (sl) slots.value = sl
-
-    const fallbacks: Promise<void>[] = []
-    if (!b) fallbacks.push(loadBrowse())
-    if (!q) fallbacks.push(loadQuota())
-    if (!ws) fallbacks.push(loadWorkspaces())
-    if (!sl) fallbacks.push(loadSlots())
-    if (fallbacks.length) await Promise.all(fallbacks)
-
-    // Dependent stage: gated on browse.workspace.kind === 'microstock'.
-    await Promise.all([loadBilling(), loadCollectionStatus()])
-  } finally {
-    loading.value = false
-  }
 }
 
 function switchWorkspace(id: string | null): void {
@@ -441,6 +244,7 @@ function openItem(entity: 'folder' | 'file', item: { id: string }): void {
   else openFile(item as HostedFile)
 }
 
+// ---- Selection interactions ----
 function onBrowseSelect(e: MouseEvent, entity: 'folder' | 'file', item: { id: string }): void {
   const target = e.target
   if (target instanceof Element && target.closest('input, button, .fh-table__action-btn, .fh-action-group, a.fh-table__action-btn')) {
@@ -463,6 +267,9 @@ function onBrowseOpen(e: MouseEvent, entity: 'folder' | 'file', item: { id: stri
   openItem(entity, item)
 }
 
+// ---- Context menu ----
+const contextMenu = ref<ContextMenuState | null>(null)
+
 function onContext(e: MouseEvent, entity: 'folder' | 'file', item: FhFolder | HostedFile): void {
   e.preventDefault()
   const key = `${entity}:${item.id}`
@@ -473,6 +280,18 @@ function onContext(e: MouseEvent, entity: 'folder' | 'file', item: FhFolder | Ho
   }
   contextMenu.value = { x: e.clientX, y: e.clientY, entity, item }
 }
+
+function closeCtx(): void {
+  contextMenu.value = null
+}
+
+// ---- Modals ----
+const modal = ref<FhNameMoveModalState | null>(null)
+const showShare = ref(false)
+const shareVisibility = ref('private')
+const shareUrl = ref<string | null>(null)
+const shareTarget = ref<{ entity: 'folder' | 'file'; id: string } | null>(null)
+const deleteTarget = ref<{ type: 'folder' | 'file'; id: string } | null>(null)
 
 function visLabel(v: string): string {
   if (v === VIS_LINK) return t('web.file-hosting.visibility.anyone_with_link')
@@ -668,6 +487,7 @@ function onFileUploaded(file: HostedFile): void {
   }
 }
 
+// ---- Microstock collection actions ----
 const showCollectionModal = ref(false)
 const collectionFolder = ref<FhFolder | null>(null)
 const lockingCollection = ref(false)
@@ -772,18 +592,44 @@ async function handleCreateMicrostock(): Promise<void> {
   }
 }
 
-const fhRealtimeHandlers = {
-  onListingChanged: () => loadBrowse({ keepSelection: true }),
-  onQuotaChanged: () => loadQuota(),
-  onCollectionAnalysisProgress: () => {
-    loadBrowse({ keepSelection: true })
-    loadCollectionStatus()
-  },
-  onAssetMetadataProgress: () => loadBrowse({ keepSelection: true }),
+// ---- Realtime + global listeners ----
+const collectionStatusPayload = ref<MicrostockCollectionStatusPayload | null>(null)
+
+const collectionProgressText = computed(() => {
+  const payload = collectionStatusPayload.value
+  if (!isMicrostock.value || !payload || payload.total <= 0) return ''
+  if (!['processing', 'review', 'exported'].includes(payload.status) && collectionStatus.value !== 'processing') {
+    return ''
+  }
+  return formatCollectionProgress(
+    payload.processed,
+    payload.total,
+    payload.failed,
+    t('web.file-hosting.microstock.progress', { processed: payload.processed, total: payload.total }),
+    t('web.file-hosting.microstock.progress_failed', { failed: payload.failed }),
+  )
+})
+
+async function refreshCollectionStatus(): Promise<void> {
+  if (!isMicrostock.value || !currentFolderId.value) {
+    collectionStatusPayload.value = null
+    return
+  }
+  try {
+    collectionStatusPayload.value = await ms.fetchCollectionStatus(currentFolderId.value)
+  } catch {
+    collectionStatusPayload.value = null
+  }
 }
 
-function closeCtx(): void {
-  contextMenu.value = null
+const fhRealtimeHandlers = {
+  onListingChanged: () => loadBrowse({ keepSelection: true }),
+  onQuotaChanged: () => { void loadQuota() },
+  onCollectionAnalysisProgress: () => {
+    loadBrowse({ keepSelection: true })
+    void refreshCollectionStatus()
+  },
+  onAssetMetadataProgress: () => loadBrowse({ keepSelection: true }),
 }
 
 function onEsc(e: KeyboardEvent): void {
@@ -804,33 +650,6 @@ onUnmounted(() => {
   unsubscribeFhRealtime(fhRealtimeHandlers)
   document.removeEventListener('click', closeCtx)
   document.removeEventListener('keydown', onEsc)
-  if (searchTimer) clearTimeout(searchTimer)
-})
-
-watch(
-  () => `${String(route.params.folderId ?? '')}|${String(route.query.workspace_id ?? '')}|${String(route.query.user_id ?? '')}`,
-  () => {
-    loadAll()
-  },
-  { immediate: true },
-)
-
-watch(searchQ, (q) => {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(async () => {
-    const trimmed = q.trim()
-    if (!trimmed) {
-      searchResults.value = []
-      searchOpen.value = false
-      return
-    }
-    try {
-      searchResults.value = await fh.searchFiles(trimmed, ctxParams())
-    } catch {
-      searchResults.value = []
-    }
-    searchOpen.value = true
-  }, 250)
 })
 </script>
 
@@ -955,78 +774,15 @@ watch(searchQ, (q) => {
       >
         <i class="bi bi-download me-1"></i>{{ t('web.file-hosting.microstock.download_csv') }}
       </button>
-      <div class="dropdown fh-workspace-switcher">
-        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-          <i class="bi me-1" :class="route.query.workspace_id ? 'bi-people' : 'bi-person'"></i>
-          <span>{{ rootLabel }}</span>
-        </button>
-        <div class="dropdown-menu dropdown-menu-end shadow">
-          <button class="dropdown-item" :class="{ active: !route.query.workspace_id }" type="button" @click="switchWorkspace(null)">
-            <i class="bi bi-person me-2"></i>{{ t('web.file-hosting.personal') }}
-          </button>
-          <button
-            v-for="ws in workspaces"
-            :key="ws.id"
-            class="dropdown-item"
-            :class="{ active: route.query.workspace_id === ws.id }"
-            type="button"
-            @click="switchWorkspace(ws.id)"
-          >
-            <i class="bi me-2" :class="ws.kind === 'microstock' ? 'bi-stars' : 'bi-people'"></i>{{ ws.name }}
-          </button>
-          <div class="dropdown-divider"></div>
-          <div v-if="quota" class="px-3 py-1 small text-muted">
-            {{ t('web.file-hosting.collab.slots_counter', { used: quota.owned_workspace_used, limit: quota.owned_workspace_limit }) }}
-          </div>
-          <router-link
-            v-if="quota?.can_create_workspace"
-            class="dropdown-item"
-            :to="{ name: 'file-hosting.workspaces.view' }"
-          >
-            <i class="bi bi-plus-lg me-2"></i>{{ t('web.file-hosting.collab.create_workspace') }}
-          </router-link>
-          <template v-else-if="quota && !quota.can_create_workspace">
-            <span class="dropdown-item disabled text-muted small">
-              <i class="bi bi-lock me-2"></i>{{ t('web.file-hosting.collab.slots_full') }}
-            </span>
-            <router-link class="dropdown-item small" :to="{ name: 'services.index.view' }">
-              <i class="bi bi-stars me-2"></i>{{ t('web.file-hosting.collab.buy_slot_cta') }}
-            </router-link>
-          </template>
-          <template v-if="slots">
-            <div class="px-3 py-1 small text-muted">
-              {{ t('web.file-hosting.microstock.slots_counter', { used: slots.used, limit: slots.limit }) }}
-            </div>
-            <button
-              v-if="slots.can_create"
-              class="dropdown-item"
-              type="button"
-              @click="showCreateMs = true"
-            >
-              <i class="bi bi-images me-2"></i>{{ t('web.file-hosting.microstock.create_workspace') }}
-            </button>
-            <template v-else-if="slots.activated">
-              <span class="dropdown-item disabled text-muted small">
-                <i class="bi bi-lock me-2"></i>{{ t('web.file-hosting.microstock.slots_full') }}
-              </span>
-              <router-link class="dropdown-item small" :to="{ name: 'services.index.view' }">
-                <i class="bi bi-stars me-2"></i>{{ t('web.file-hosting.microstock.buy_slot_cta') }}
-              </router-link>
-            </template>
-            <router-link
-              v-else
-              class="dropdown-item small"
-              :to="{ name: 'services.index.view' }"
-            >
-              <i class="bi bi-stars me-2"></i>{{ t('web.file-hosting.microstock.activate_cta') }}
-            </router-link>
-          </template>
-          <div class="dropdown-divider"></div>
-          <router-link class="dropdown-item" :to="{ name: 'file-hosting.workspaces.view' }">
-            <i class="bi bi-gear me-2"></i>{{ t('web.file-hosting.manage_workspaces') }}
-          </router-link>
-        </div>
-      </div>
+      <FhWorkspaceSwitcher
+        :active-workspace-id="typeof route.query.workspace_id === 'string' ? route.query.workspace_id : null"
+        :root-label="rootLabel"
+        :workspaces="workspaces"
+        :quota="quota"
+        :slots="slots"
+        @switch="switchWorkspace"
+        @create-microstock="showCreateMs = true"
+      />
     </div>
 
     <nav class="fh-breadcrumb" data-fh-breadcrumb aria-label="breadcrumb">
@@ -1186,12 +942,12 @@ watch(searchQ, (q) => {
             >
               <td class="fh-table__select-cell"></td>
               <td class="fh-table__icon-cell">
-                <a :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
+                <a :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
                   <i class="bi bi-folder2 fh-parent-row__icon"></i>
                 </a>
               </td>
               <td>
-                <a class="fh-table__name" :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
+                <a class="fh-table__name" :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
                   <span class="fh-table__name-text">...</span>
                 </a>
               </td>
@@ -1338,11 +1094,11 @@ watch(searchQ, (q) => {
           @drop="drag.onDrop($event, parentMeta.id || 'root')"
         >
           <div class="fh-file-card__icon">
-            <a :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
+            <a :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
               <i class="bi bi-folder2 fh-parent-row__icon"></i>
             </a>
           </div>
-          <a class="fh-file-card__name" :href="parentMeta.href" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">...</a>
+          <a class="fh-file-card__name" :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">...</a>
           <div class="fh-file-card__meta">{{ t('web.file-hosting.parent') }}</div>
         </div>
         <div
@@ -1425,68 +1181,24 @@ watch(searchQ, (q) => {
       </div>
     </div>
 
-    <div
+    <FhContextMenu
       v-if="contextMenu"
-      class="fh-context-menu"
-      role="menu"
-      :style="contextMenuStyle"
-      @click.stop
-    >
-      <button type="button" class="fh-context-menu__item" @click="ctxAction('open')"><i class="bi bi-folder2-open"></i>{{ t('web.file-hosting.open') }}</button>
-      <button v-if="canEdit(contextMenu.entity)" type="button" class="fh-context-menu__item" @click="ctxAction('rename')"><i class="bi bi-pencil"></i>{{ t('web.file-hosting.rename') }}</button>
-      <button v-if="canEdit(contextMenu.entity)" type="button" class="fh-context-menu__item" @click="ctxAction('move')"><i class="bi bi-folder-symlink"></i>{{ t('web.file-hosting.move') }}</button>
-      <button v-if="canEdit(contextMenu.entity)" type="button" class="fh-context-menu__item" @click="ctxAction('share')"><i class="bi bi-share"></i>{{ t('web.file-hosting.share') }}</button>
-      <button
-        v-if="isMicrostock && contextMenu.entity === 'file'"
-        type="button"
-        class="fh-context-menu__item"
-        @click="ctxAction('review')"
-      >
-        <i class="bi bi-stars"></i>{{ t('web.file-hosting.microstock.review') }}
-      </button>
-      <button v-if="canDelete(contextMenu.entity)" type="button" class="fh-context-menu__item is-danger" @click="ctxAction('delete')"><i class="bi bi-trash"></i>{{ t('web.file-hosting.delete') }}</button>
-    </div>
+      :state="contextMenu"
+      :can-edit="canEdit(contextMenu.entity)"
+      :can-delete="canDelete(contextMenu.entity)"
+      :is-microstock="isMicrostock"
+      @action="ctxAction"
+      @close="closeCtx"
+    />
 
-    <div v-if="modal" class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.4)" @click.self="modal = null">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <template v-if="modal.type === 'folder'">{{ t('web.file-hosting.new_folder') }}</template>
-              <template v-else-if="modal.type === 'rename'">{{ t('web.file-hosting.rename') }}</template>
-              <template v-else>{{ t('web.file-hosting.modal_move') }}</template>
-            </h5>
-            <button type="button" class="btn-close" @click="modal = null"></button>
-          </div>
-          <div class="modal-body">
-            <div v-if="modal.type === 'folder' || modal.type === 'rename'">
-              <label class="form-label">{{ t('web.file-hosting.name_label') }}</label>
-              <input v-model="modal.name" type="text" class="form-control" autofocus @keyup.enter="submitModal" />
-            </div>
-            <div v-else-if="modal.type === 'move'">
-              <label class="form-label">{{ t('web.file-hosting.target_folder_label') }}</label>
-              <input v-model="modal.target" type="text" class="form-control mb-2" :placeholder="t('web.file-hosting.target_folder_placeholder')" />
-              <div class="list-group list-group-flush">
-                <button type="button" class="list-group-item list-group-item-action" @click="modal.target = ''">{{ t('web.file-hosting.root') }}</button>
-                <button
-                  v-for="f in moveTargets"
-                  :key="'mv:' + f.id"
-                  type="button"
-                  class="list-group-item list-group-item-action"
-                  @click="modal.target = f.id"
-                >
-                  <i class="bi bi-folder-fill me-1"></i>{{ f.name }}
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary btn-sm" @click="modal = null">{{ t('web.file-hosting.cancel') }}</button>
-            <button type="button" class="btn btn-primary btn-sm" @click="submitModal">{{ t('web.file-hosting.save') }}</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <FhNameMoveModal
+      v-if="modal"
+      :modal="modal"
+      :busy="isBusy"
+      :move-targets="moveTargets"
+      @submit="submitModal"
+      @close="modal = null"
+    />
 
     <FhShareModal
       v-model="showShare"

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
-import FormSelect2 from '@/components/FormSelect2.vue'
+// select2 pulls jQuery — load async so non-form views never download it.
+const FormSelect2 = defineAsyncComponent(() => import('@/components/FormSelect2.vue'))
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useUsers } from '@/composables/identity/useUsers'
 import { useActivityLogs } from '@/composables/activity-log/useActivityLogs'

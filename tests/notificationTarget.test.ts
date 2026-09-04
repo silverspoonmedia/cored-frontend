@@ -2,16 +2,18 @@ import { describe, expect, it } from 'vitest'
 import type { Router } from 'vue-router'
 import { resolveNotificationLocation } from '../src/utils/notificationTarget'
 
-function fakeRouter(names: string[]): Router {
+function fakeRouter(names: string[], paths: Record<string, string> = {}): Router {
   return {
     hasRoute: (name: string) => names.includes(name),
+    getRoutes: () =>
+      names.map((name) => ({ name, path: paths[name] ?? `/${name.replace(/\./g, '/')}` })),
   } as unknown as Router
 }
 
 describe('resolveNotificationLocation', () => {
   it('maps Blade users.edit + user param onto SPA :id', () => {
     const loc = resolveNotificationLocation(
-      fakeRouter(['users.edit.view']),
+      fakeRouter(['users.edit.view'], { 'users.edit.view': '/apps/identity/users/:id/edit' }),
       'users.edit',
       { user: '01900000-0000-7000-8000-000000000001' },
     )
@@ -23,7 +25,7 @@ describe('resolveNotificationLocation', () => {
 
   it('maps modelCard onto id for inference show', () => {
     const loc = resolveNotificationLocation(
-      fakeRouter(['inference.model-cards.show.view']),
+      fakeRouter(['inference.model-cards.show.view'], { 'inference.model-cards.show.view': '/apps/inference/model-cards/:id' }),
       'inference.model-cards.show',
       { modelCard: 'card-1' },
     )

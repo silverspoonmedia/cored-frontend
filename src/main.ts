@@ -1,9 +1,10 @@
 import 'sweetalert2/dist/sweetalert2.min.css'
 
-// Bootstrap 5 JS bundle (includes Popper) — enables data-bs-toggle="dropdown"
-// and other data-attribute APIs without jQuery.
-import * as bootstrap from 'bootstrap'
-;(window as any).bootstrap = bootstrap
+// Bootstrap 5 JS — only plugins with actual consumers in this SPA:
+// Dropdown (data-bs-toggle="dropdown"), Modal (Modal.vue + data-bs-dismiss).
+// Includes Popper (needed by Dropdown).
+import { Dropdown, Modal } from 'bootstrap'
+;(window as any).bootstrap = { Dropdown, Modal }
 
 import { createApp } from 'vue'
 import App from './App.vue'
@@ -19,7 +20,7 @@ initTheme()
 applyHtmlLang()
 
 // Global CSS splits per direction: the RTL entry resolves Bootstrap/AdminLTE
-// to their official RTL dist builds (see vite.config.ts rtl-vendor-css plugin).
+// to their official RTL dist builds (see src/assets/main-rtl.css imports).
 // Await it so the app never mounts unstyled.
 if (isRtl()) {
   await import('./assets/main-rtl.css')

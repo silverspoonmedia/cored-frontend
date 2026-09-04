@@ -34,6 +34,15 @@ Content cards (`VkStr1VideoCard`) lead with the channel avatar as a dedicated le
 
 **Unified live directory.** `VkStr1VtuberLiveDirectory.vue` merges the directory with live status: self-fetching directory grid (search, pagination, skeleton, hover prefetch) + `liveItems` prop fed from `landing.live_now`. Live streams group per `creator.slug` and match cards via `is_live`/slug map — a live card shows danger-ringed avatar, LIVE badge, up to 3 active stream rows (external `<a target="_blank">` outside the profile `router-link`) with `+N more` footer. A live card with no matching stream rows falls back to one `live_now.active` line. Standalone `VkStr1LiveNow.vue` / `VkStr1VtuberDirectory.vue` are kept unchanged as references.
 
+## Component extraction & heavy-vendor async loading
+
+Large admin views stay maintainable by splitting along two axes (pattern used by `FileHostingView`, `VtualProfileShowView`, `FileHostingMicrostockUsageView`, `FileHostingWorkspacesView`, `VtualManagementEditView`):
+
+- **Composable per concern** (`src/composables/{domain}/use<Thing>.ts`): owns fetch/load-all, filters, selection, pagination, realtime subscriptions, and action handlers. The view keeps only wiring (route params, guards) and layout. Realtime handlers must live in the composable or be forwarded to it — extracted sections never subscribe directly.
+- **Section components** (`src/components/{domain}/<Thing><Section|Card|Tab>.vue`): own one template region (a card, tab, table group) with typed props + emits; two-way form fields use `defineModel`. Keep domain i18n keys, `TableEmptyRow`/`ErrorState` usage, and Swal-only notifications inside the section. The parent view passes state from the composable; no prop drilling through intermediate shells.
+
+Views with heavy vendor widgets (`FormSelect2` → jQuery + select2) must import them via `defineAsyncComponent(() => import(...))` (see `UserEditView`, `MenuEditView`) so the vendor chunk loads only when the widget's view is visited — never eager-import a jQuery-dependent component from a shared entry path.
+
 ## Loading & error states
 
 Every data-loading view renders three explicit states, in priority order: **skeleton** while loading → **error with retry** on failure → **empty/data** otherwise. No view goes blank on fetch failure.
@@ -46,7 +55,7 @@ Shared primitives (Bootstrap 5 classes only — never Tailwind in the AdminLTE n
 - `src/components/TableEmptyRow.vue` — one `<tr>`/colspan `<td>` wrapping `EmptyState` for custom `<table>` bodies that cannot use `DataTable.vue`; keep `<thead>` visible.
 - `src/composables/useDetailLoader.ts` — detail/show views: input `loader: () => Promise<T>`, returns `{ data, loading, error, load }`; auto-loads on mount; `load()` is the retry handler.
 
-`DataTable.vue` extends the same priority inside its body: `loading` skeleton rows → `error` prop branch (renders `ErrorState` in a full-colspan cell + emits `retry`) → 0 rows `EmptyState` → rows. List views pass `:error` from `useResource.error` (or a local `loadError` ref), `@retry="fetchList()"`, and a domain `empty-icon`.
+`DataTable.vue` extends the same priority inside its body: `loading` skeleton rows → `error` prop branch (renders `ErrorState` in a full-colspan cell + emits `retry`) → 0 rows `EmptyState` → rows. List views pass `:error` from `useResource.error` (or a local `loadError` ref), `@retry="fetchList()"`, and a domain `empty-icon`. Row keys: pass a stable `row-key` (field name or function) when rows lack an `id`; the default resolver reads `id` before falling back to index — never rely on index keys for mutable lists.
 
 View migration patterns:
 
