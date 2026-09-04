@@ -3557,8 +3557,7 @@
         "role": "Role",
         "send_button": "Send invite",
         "cancel_button": "Cancel",
-        "revoke_button": "Revoke",
-        "revoke_confirm": "Revoking this invitation removes the user's membership. Continue?",
+        "cancel_accepted_confirm": "Cancelling this invitation removes the user's membership. Continue?",
         "table_caption": "Invitations for this management",
         "empty": "No invitations yet.",
         "statuses": {

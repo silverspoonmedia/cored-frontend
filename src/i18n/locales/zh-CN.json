@@ -3842,8 +3842,7 @@
         "role": "角色",
         "send_button": "发送邀请",
         "cancel_button": "取消",
-        "revoke_button": "撤销",
-        "revoke_confirm": "撤销此邀请将移除该用户的成员身份。确定继续吗？",
+        "cancel_accepted_confirm": "取消此邀请将移除该用户的成员身份。确定继续吗？",
         "table_caption": "此管理机构的邀请",
         "empty": "暂无邀请。",
         "statuses": {

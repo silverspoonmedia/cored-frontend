@@ -3561,8 +3561,7 @@
         "role": "Peran",
         "send_button": "Kirim undangan",
         "cancel_button": "Batalkan",
-        "revoke_button": "Cabut",
-        "revoke_confirm": "Mencabut undangan ini akan menghapus keanggotaan pengguna. Lanjutkan?",
+        "cancel_accepted_confirm": "Membatalkan undangan ini akan menghapus keanggotaan pengguna. Lanjutkan?",
         "table_caption": "Undangan untuk manajemen ini",
         "empty": "Belum ada undangan.",
         "statuses": {

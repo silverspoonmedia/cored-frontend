@@ -3529,8 +3529,7 @@
         "role": "역할",
         "send_button": "초대 보내기",
         "cancel_button": "취소",
-        "revoke_button": "해지",
-        "revoke_confirm": "이 초대를 해지하면 사용자의 멤버십이 제거됩니다. 계속하시겠습니까?",
+        "cancel_accepted_confirm": "이 초대를 취소하면 사용자의 멤버십이 제거됩니다. 계속하시겠습니까?",
         "table_caption": "이 매니지먼트의 초대",
         "empty": "아직 초대가 없습니다.",
         "statuses": {

@@ -3561,8 +3561,7 @@
         "role": "役割",
         "send_button": "招待を送信",
         "cancel_button": "キャンセル",
-        "revoke_button": "取り消し",
-        "revoke_confirm": "この招待を取り消すと、ユーザーのメンバーシップが削除されます。続行しますか？",
+        "cancel_accepted_confirm": "この招待をキャンセルすると、ユーザーのメンバーシップが削除されます。続行しますか？",
         "table_caption": "このマネジメントの招待",
         "empty": "招待はまだありません。",
         "statuses": {

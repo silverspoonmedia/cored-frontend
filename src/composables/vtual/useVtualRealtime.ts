@@ -116,11 +116,77 @@ export function unsubscribeVtualCreatorSnapshots(
   snapshotChannels.delete(creatorId)
 }
 
+// --- Management org updates (members / invites / creator assignments) ---
+
+export type ManagementUpdatedPayload = {
+  management_id: string
+  kind: 'management' | 'member' | 'invite' | 'creator'
+  ref_id: string | null
+  action: string
+}
+
+const managementHandlers = new Map<string, Set<(payload: ManagementUpdatedPayload) => void>>()
+const managementChannels = new Set<string>()
+
+function ensureManagementChannel(managementId: string): boolean {
+  if (managementChannels.has(managementId)) return true
+  const echo = getEcho()
+  if (!echo) return false
+  try {
+    const ch = echo.private(`vtual.management.${managementId}`)
+    ch.listen('.management.updated', (e: ManagementUpdatedPayload) => {
+      const set = managementHandlers.get(managementId)
+      if (!set) return
+      for (const handler of set) handler(e)
+    })
+    managementChannels.add(managementId)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function subscribeVtualManagement(
+  managementId: string,
+  handler: (payload: ManagementUpdatedPayload) => void,
+): boolean {
+  let set = managementHandlers.get(managementId)
+  if (!set) {
+    set = new Set()
+    managementHandlers.set(managementId, set)
+  }
+  set.add(handler)
+  return ensureManagementChannel(managementId)
+}
+
+export function unsubscribeVtualManagement(
+  managementId: string,
+  handler: (payload: ManagementUpdatedPayload) => void,
+): void {
+  const set = managementHandlers.get(managementId)
+  if (!set) return
+  set.delete(handler)
+  if (set.size > 0) return
+  managementHandlers.delete(managementId)
+  if (!managementChannels.has(managementId)) return
+  const echo = getEcho()
+  if (echo) {
+    try {
+      echo.leave(`vtual.management.${managementId}`)
+    } catch {
+      // ignore
+    }
+  }
+  managementChannels.delete(managementId)
+}
+
 export function useVtualRealtime() {
   return {
     subscribe: subscribeVtualPlatformCredentialsRealtime,
     unsubscribe: unsubscribeVtualPlatformCredentialsRealtime,
     subscribeCreatorSnapshots: subscribeVtualCreatorSnapshots,
     unsubscribeCreatorSnapshots: unsubscribeVtualCreatorSnapshots,
+    subscribeManagement: subscribeVtualManagement,
+    unsubscribeManagement: unsubscribeVtualManagement,
   }
 }

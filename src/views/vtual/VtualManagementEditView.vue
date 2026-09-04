@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -10,6 +10,7 @@ import SubmitButton from '@/components/SubmitButton.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { get } from '@/api/client'
 import { useVtualManagements } from '@/composables/vtual/useVtualManagements'
+import { useVtualRealtime } from '@/composables/vtual/useVtualRealtime'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import { ApiError } from '@/api/types'
@@ -86,6 +87,58 @@ function applyManagement(m: VtualManagement): void {
   myRole.value = m.my_role ?? null
 }
 
+/**
+ * Realtime refresh: apply collections + my_role only. Never overwrite form
+ * fields while the actor may be typing (dirty guard lives in the form fields
+ * themselves staying untouched here).
+ */
+function applyManagementRealtime(m: VtualManagement): void {
+  creators.value = m.creators ?? []
+  members.value = m.members ?? []
+  myRole.value = m.my_role ?? null
+}
+
+let realtimeActive = false
+const refreshingRealtime = ref(false)
+
+async function refetchRealtime(): Promise<void> {
+  if (!isEdit.value || refreshingRealtime.value) return
+  refreshingRealtime.value = true
+  try {
+    const [m, inviteList] = await Promise.all([
+      mgmt.fetchOne(managementId.value),
+      mgmt.listInvites(managementId.value),
+    ])
+    applyManagementRealtime(m)
+    invites.value = inviteList
+  } catch {
+    // silent — next push or manual reload recovers
+  } finally {
+    refreshingRealtime.value = false
+  }
+}
+
+function onManagementUpdated(): void {
+  void refetchRealtime()
+}
+
+function subscribeRealtime(): void {
+  if (realtimeActive || !isEdit.value || !managementId.value) return
+  const { subscribeManagement } = useVtualRealtime()
+  realtimeActive = subscribeManagement(managementId.value, onManagementUpdated)
+}
+
+function unsubscribeRealtime(): void {
+  if (!realtimeActive || !managementId.value) return
+  const { unsubscribeManagement } = useVtualRealtime()
+  unsubscribeManagement(managementId.value, onManagementUpdated)
+  realtimeActive = false
+}
+
+onUnmounted(() => {
+  unsubscribeRealtime()
+})
+
 async function load(): Promise<void> {
   if (!isEdit.value) {
     loading.value = false
@@ -103,6 +156,7 @@ async function load(): Promise<void> {
     applyManagement(m)
     allCreators.value = creatorList
     invites.value = inviteList
+    subscribeRealtime()
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.load_failed'))
   } finally {
@@ -208,7 +262,7 @@ async function handleSendInvite(): Promise<void> {
 
 async function handleCancelInvite(invite: VtualManagementInvite): Promise<void> {
   if (mutatingInviteId.value) return
-  if (invite.status === 'accepted' && !window.confirm(t('web.vtual-managements.invites.revoke_confirm'))) {
+  if (invite.status === 'accepted' && !window.confirm(t('web.vtual-managements.invites.cancel_accepted_confirm'))) {
     return
   }
   mutatingInviteId.value = invite.id
@@ -217,10 +271,8 @@ async function handleCancelInvite(invite: VtualManagementInvite): Promise<void> 
     invites.value = invites.value.map((i) => (i.id === invite.id ? updated : i))
     if (updated.status === 'revoked') {
       members.value = members.value.filter((m) => m.user?.email?.toLowerCase() !== invite.email)
-      showSuccess(t('api.vtual.management.invite_revoked'))
-    } else {
-      showSuccess(t('api.vtual.management.invite_cancelled'))
     }
+    showSuccess(t('api.vtual.management.invite_cancelled'))
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.invite_cancel_failed'))
   } finally {
@@ -399,7 +451,7 @@ watch([isEdit, managementId], () => {
               <tr>
                 <th>{{ t('web.vtual-managements.members.columns.user') }}</th>
                 <th>{{ t('web.vtual-managements.members.columns.role') }}</th>
-                <th v-if="canManageMembers" class="text-end">{{ t('ui.actions') }}</th>
+                <th v-if="canManageMembers" class="text-end">{{ t('ui.labels.actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -456,7 +508,7 @@ watch([isEdit, managementId], () => {
                 <th>{{ t('web.vtual-managements.invites.columns.role') }}</th>
                 <th>{{ t('web.vtual-managements.invites.columns.status') }}</th>
                 <th>{{ t('web.vtual-managements.invites.columns.expires_at') }}</th>
-                <th v-if="canManageMembers" class="text-end">{{ t('ui.actions') }}</th>
+                <th v-if="canManageMembers" class="text-end">{{ t('ui.labels.actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -481,7 +533,7 @@ watch([isEdit, managementId], () => {
                     @click="handleCancelInvite(inv)"
                   >
                     <i class="bi bi-x-lg me-1"></i>
-                    {{ inv.status === 'accepted' ? t('web.vtual-managements.invites.revoke_button') : t('web.vtual-managements.invites.cancel_button') }}
+                    {{ t('web.vtual-managements.invites.cancel_button') }}
                   </button>
                 </td>
               </tr>
@@ -529,7 +581,7 @@ watch([isEdit, managementId], () => {
               <tr>
                 <th>{{ t('web.vtual-managements.creators.columns.creator') }}</th>
                 <th>{{ t('web.vtual-managements.creators.columns.joined_at') }}</th>
-                <th class="text-end">{{ t('ui.actions') }}</th>
+                <th class="text-end">{{ t('ui.labels.actions') }}</th>
               </tr>
             </thead>
             <tbody>
