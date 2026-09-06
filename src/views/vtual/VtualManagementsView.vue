@@ -132,7 +132,7 @@ async function archiveManagement(row: VtualManagement, action: QueryRowAction): 
         <span class="text-muted small">{{ row.created_at_formatted ?? row.created_at ?? '-' }}</span>
       </template>
 
-      <template v-if="canManage" #actions="{ row }: { row: VtualManagement }">
+      <template #actions="{ row }: { row: VtualManagement }">
         <RowActions :actions="managementActions(row)" />
       </template>
     </DataTable>

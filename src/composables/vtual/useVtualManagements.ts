@@ -7,27 +7,6 @@ export function useVtualManagements() {
   const { t } = useI18n()
   const base = useResource<VtualManagement>('vtual/managements')
 
-  async function assignCreator(managementId: string, creatorId: string): Promise<VtualManagement> {
-    const res = await post<ApiResponse<{ management: VtualManagement }>>(
-      `vtual/managements/${managementId}/creators`,
-      { creator_id: creatorId },
-    )
-    if (res.status === 'success' && res.data?.management) {
-      return res.data.management
-    }
-    throw new Error(res.message ?? t('web.vtual-managements.errors.assign_failed'))
-  }
-
-  async function unassignCreator(managementId: string, creatorId: string): Promise<VtualManagement> {
-    const res = await del<ApiResponse<VtualManagement>>(
-      `vtual/managements/${managementId}/creators/${creatorId}`,
-    )
-    if (res.status === 'success' && res.data) {
-      return res.data
-    }
-    throw new Error(res.message ?? t('web.vtual-managements.errors.unassign_failed'))
-  }
-
   async function listMembers(managementId: string): Promise<VtualManagementMember[]> {
     const res = await get<ApiResponse<VtualManagementMember[]>>(
       `vtual/managements/${managementId}/members`,
@@ -74,24 +53,21 @@ export function useVtualManagements() {
     throw new Error(res.message ?? t('web.vtual-managements.errors.member_update_failed'))
   }
 
-  async function removeMember(managementId: string, memberId: string): Promise<void> {
-    const res = await del<ApiResponse<null>>(
-      `vtual/managements/${managementId}/members/${memberId}`,
-    )
-    if (res.status !== 'success') {
-      throw new Error(res.message ?? t('web.vtual-managements.errors.member_remove_failed'))
+  async function createOrphan(payload: Record<string, unknown>): Promise<VtualManagement> {
+    const res = await post<ApiResponse<VtualManagement>>('vtual/managements/orphan', payload)
+    if (res.status === 'success' && res.data) {
+      return res.data as unknown as VtualManagement
     }
+    throw new Error(res.message ?? t('web.vtual-managements.errors.save_failed'))
   }
 
   return {
     ...base,
-    assignCreator,
-    unassignCreator,
+    createOrphan,
     listMembers,
     inviteMember,
     listInvites,
     cancelInvite,
     updateMember,
-    removeMember,
   }
 }

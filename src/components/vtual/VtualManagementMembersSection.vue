@@ -4,10 +4,10 @@ import FormInput from '@/components/FormInput.vue'
 import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
-import type { VtualCreator, VtualManagementCreatorAssignment, VtualManagementInvite, VtualManagementMember } from '@/api/types'
+import type { VtualManagementCreatorAssignment, VtualManagementInvite, VtualManagementMember } from '@/api/types'
 
 /**
- * Members + invites + creator-assignments admin sections for
+ * Members + invites + linked-creators (read-only) sections for
  * VtualManagementEditView. Rendered only in edit mode.
  */
 defineProps<{
@@ -16,11 +16,8 @@ defineProps<{
   members: VtualManagementMember[]
   invites: VtualManagementInvite[]
   creators: VtualManagementCreatorAssignment[]
-  assignableCreators: VtualCreator[]
-  assignErrors: Record<string, string[]>
   addingMember: boolean
   memberErrors: Record<string, string[]>
-  assigning: boolean
   mutatingMemberId: string | null
   mutatingInviteId: string | null
   memberRoleOptions: Array<{ value: string; label: string }>
@@ -28,15 +25,11 @@ defineProps<{
 
 const inviteEmail = defineModel<string>('inviteEmail', { required: true })
 const inviteRole = defineModel<string>('inviteRole', { required: true })
-const assignCreatorId = defineModel<string>('assignCreatorId', { required: true })
 
 const emit = defineEmits<{
   sendInvite: []
   cancelInvite: [invite: VtualManagementInvite]
   updateMemberRole: [member: VtualManagementMember, role: string]
-  removeMember: [member: VtualManagementMember]
-  assign: []
-  unassign: [assignment: VtualManagementCreatorAssignment]
 }>()
 
 const { t } = useI18n()
@@ -106,6 +99,7 @@ function inviteStatusVariant(status: string): string {
       </div>
     </form>
 
+    <!-- Ini -->
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" :aria-label="t('web.vtual-managements.members.table_caption')">
         <caption class="visually-hidden">{{ t('web.vtual-managements.members.table_caption') }}</caption>
@@ -143,15 +137,7 @@ function inviteStatusVariant(status: string): string {
               <span v-else class="badge text-bg-secondary">{{ t('web.vtual-managements.members.roles.' + m.role) }}</span>
             </td>
             <td v-if="canManageMembers" class="text-end">
-              <button
-                v-if="m.role !== 'owner' && m.user?.id !== authUserId"
-                type="button"
-                class="btn btn-outline-danger btn-sm"
-                :disabled="mutatingMemberId === m.id"
-                @click="emit('removeMember', m)"
-              >
-                <i class="bi bi-x-lg me-1"></i> {{ t('web.vtual-managements.members.remove_button') }}
-              </button>
+              <!-- Member removal is unified through invite cancel (accepted → revoked). -->
             </td>
           </tr>
         </tbody>
@@ -161,6 +147,7 @@ function inviteStatusVariant(status: string): string {
     <h5 class="mt-4 mb-2">{{ t('web.vtual-managements.invites.section_title') }}</h5>
     <p class="text-muted small mb-3">{{ t('web.vtual-managements.invites.section_help') }}</p>
 
+    <!-- Ini juga -->
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" :aria-label="t('web.vtual-managements.invites.table_caption')">
         <caption class="visually-hidden">{{ t('web.vtual-managements.invites.table_caption') }}</caption>
@@ -207,34 +194,7 @@ function inviteStatusVariant(status: string): string {
     <h5 class="mb-2">{{ t('web.vtual-managements.creators.section_title') }}</h5>
     <p class="text-muted small mb-3">{{ t('web.vtual-managements.creators.section_help') }}</p>
 
-    <form class="border rounded p-3 mb-3" @submit.prevent="emit('assign')">
-      <div class="row g-2 align-items-end">
-        <div class="col-md-9">
-          <FormSelect
-            name="creator_id"
-            :label="t('web.vtual-managements.creators.creator')"
-            v-model="assignCreatorId"
-            :options="assignableCreators.map((c) => ({ value: c.id, label: c.display_name }))"
-            :error="fieldError(assignErrors, 'creator_id')"
-            required
-            :disabled="assigning"
-          />
-        </div>
-        <div class="col-md-3">
-          <div class="mb-3">
-            <label class="form-label" aria-hidden="true">
-              &nbsp;<span class="text-danger invisible">*</span>
-            </label>
-            <div class="d-grid">
-              <SubmitButton
-                :loading="assigning"
-                :label="t('web.vtual-managements.creators.assign_button')"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
+    
 
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" :aria-label="t('web.vtual-managements.creators.table_caption')">
@@ -243,28 +203,18 @@ function inviteStatusVariant(status: string): string {
           <tr>
             <th>{{ t('web.vtual-managements.creators.columns.creator') }}</th>
             <th>{{ t('web.vtual-managements.creators.columns.joined_at') }}</th>
-            <th class="text-end">{{ t('ui.labels.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <TableEmptyRow
             v-if="creators.length === 0"
-            :colspan="3"
+            :colspan="2"
             icon="bi-people"
             :title="t('web.vtual-managements.creators.empty')"
           />
           <tr v-for="a in creators" :key="a.assignment_id">
             <td>{{ a.creator.display_name }}</td>
             <td><span class="text-muted small">{{ a.joined_at_formatted ?? a.joined_at ?? '-' }}</span></td>
-            <td class="text-end">
-              <button
-                type="button"
-                class="btn btn-outline-danger btn-sm"
-                @click="emit('unassign', a)"
-              >
-                <i class="bi bi-x-lg me-1"></i> {{ t('web.vtual-managements.creators.unassign_button') }}
-              </button>
-            </td>
           </tr>
         </tbody>
       </table>

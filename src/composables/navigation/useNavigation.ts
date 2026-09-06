@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import i18n from '@/i18n'
 import { get } from '@/api/client'
 import { getEcho } from '@/composables/useEcho'
+import { useAuth } from '@/stores/auth'
 import type { ApiResponse, NavigationTreeNode } from '@/api/types'
 
 const treeMap: Record<string, NavigationTreeNode[]> = {}
@@ -88,7 +89,13 @@ function startRealtime(): void {
 
   try {
     const channel = echo.private('navigation.menus')
-    channel.listen('.menu.tree.changed', (e: { layout?: string }) => {
+    channel.listen('.menu.tree.changed', (e: { layout?: string; target_user_id?: string | null }) => {
+      // Targeted refresh (e.g. vTual management membership changed): ignore
+      // events meant for other viewers; broadcast-all events keep old behavior.
+      const { user } = useAuth()
+      if (e.target_user_id && String(e.target_user_id) !== String(user.value?.id ?? '')) {
+        return
+      }
       const layout = e.layout
       if (layout) {
         refetch(layout)

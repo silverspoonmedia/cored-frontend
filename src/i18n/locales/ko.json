@@ -3487,17 +3487,16 @@
         "description": "설명",
         "logo_url": "로고 URL",
         "status": "상태",
+        "ownerless": "오너 없이 생성(인계 가능)",
+        "ownerless_hint": "스태프 전용: 오너 멤버 없이 조직을 만들고 오너 초대로 인계합니다.",
         "submit_create": "관리 생성",
         "submit_update": "업데이트 관리"
       },
       "creators": {
         "section_title": "관리 중인 크리에이터",
-        "section_help": "이 관리에 vTuber 제작자를 할당하세요.",
-        "creator": "크리에이터",
-        "assign_button": "할당",
-        "unassign_button": "제거",
-        "table_caption": "이 관리에 할당된 크리에이터",
-        "empty": "아직 할당된 크리에이터가 없습니다.",
+        "section_help": "이 매니지먼트에 연결된 vTuber 프로필입니다. 연결은 vTuber 프로필 초대를 통해 이루어집니다.",
+        "table_caption": "이 매니지먼트에 연결된 vTuber 프로필",
+        "empty": "아직 연결된 vTuber 프로필이 없습니다.",
         "columns": {
           "creator": "크리에이터",
           "joined_at": "참여일"
@@ -3507,7 +3506,6 @@
         "section_title": "멤버",
         "section_help": "이 조직을 관리하는 사람입니다. 오너와 관리자는 멤버를 관리할 수 있습니다. 새 멤버는 이메일 초대로 참여합니다.",
         "role": "역할",
-        "remove_button": "제거",
         "table_caption": "이 매니지먼트의 멤버",
         "empty": "아직 멤버가 없습니다.",
         "roles": {
@@ -3547,6 +3545,33 @@
           "expires_at": "만료"
         }
       },
+      "creator_invites": {
+        "section_title": "vTuber 프로필 초대",
+        "section_help": "vTuber를 이 매니지먼트에 프로필을 연결하도록 초대합니다. 초대받은 계정이 소유한 기존 프로필을 선택하거나, 수락 시 새 프로필을 만듭니다.",
+        "mode": {
+          "label": "초대 모드",
+          "existing": "기존 프로필",
+          "new": "새 프로필"
+        },
+        "profile": "vTuber 프로필",
+        "profile_placeholder": "프로필 선택",
+        "no_candidates": "이 계정이 소유한 프로필이 없습니다.",
+        "new_display_name": "새 프로필 표시 이름",
+        "send_button": "초대 보내기",
+        "target": {
+          "existing": "기존 프로필",
+          "new": "새 프로필"
+        },
+        "columns": {
+          "target": "대상 프로필"
+        },
+        "empty": "아직 vTuber 프로필 초대가 없습니다.",
+        "table_caption": "이 매니지먼트의 vTuber 프로필 초대",
+        "errors": {
+          "send_failed": "vTuber 초대 보내기에 실패했습니다.",
+          "cancel_failed": "vTuber 초대 취소에 실패했습니다."
+        }
+      },
       "errors": {
         "load_failed": "관리를 로드하지 못했습니다.",
         "save_failed": "관리를 저장하지 못했습니다.",
@@ -3554,7 +3579,6 @@
         "assign_failed": "작성자를 할당하지 못했습니다.",
         "unassign_failed": "작성자를 삭제하지 못했습니다.",
         "member_update_failed": "멤버 역할을 업데이트하지 못했습니다.",
-        "member_remove_failed": "멤버를 제거하지 못했습니다.",
         "invite_send_failed": "초대를 보내지 못했습니다.",
         "invite_cancel_failed": "초대를 취소하지 못했습니다."
       }
@@ -3562,6 +3586,8 @@
     "vtual-invites": {
       "title": "매니지먼트 초대",
       "invited_to": "{management}에 초대되었습니다.",
+      "creator_invited_to": "{management}에 vTuber 프로필을 연결하도록 초대되었습니다.",
+      "creator_profile_label": "vTuber 프로필",
       "role_label": "역할",
       "expires_label": "만료",
       "accept_button": "수락",

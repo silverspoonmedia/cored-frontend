@@ -3519,17 +3519,16 @@
         "description": "説明",
         "logo_url": "ロゴ URL",
         "status": "状態",
+        "ownerless": "オーナーなしで作成（承渡し可能）",
+        "ownerless_hint": "スタッフ専用：オーナーメンバーなしで組織を作成し、オーナー招待で引き渡します。",
         "submit_create": "マネジメントを作成",
         "submit_update": "マネジメントを更新"
       },
       "creators": {
         "section_title": "管理対象クリエイター",
-        "section_help": "このマネジメントに vTuber クリエイターを割り当てます。",
-        "creator": "クリエイター",
-        "assign_button": "割り当て",
-        "unassign_button": "解除",
-        "table_caption": "このマネジメントに割り当てられたクリエイター",
-        "empty": "割り当てられたクリエイターはまだいません。",
+        "section_help": "このマネジメントにリンクされたvTuberプロフィール。リンクはvTuberプロフィール招待から行われます。",
+        "table_caption": "このマネジメントにリンクされたvTuberプロフィール",
+        "empty": "リンクされたvTuberプロフィールはまだありません。",
         "columns": {
           "creator": "クリエイター",
           "joined_at": "参加日"
@@ -3539,7 +3538,6 @@
         "section_title": "メンバー",
         "section_help": "この組織を管理するメンバー。オーナーと管理者はメンバーを管理できます。新しいメンバーはメール招待で参加します。",
         "role": "役割",
-        "remove_button": "削除",
         "table_caption": "このマネジメントのメンバー",
         "empty": "メンバーはまだいません。",
         "roles": {
@@ -3579,6 +3577,33 @@
           "expires_at": "有効期限"
         }
       },
+      "creator_invites": {
+        "section_title": "vTuber プロフィール招待",
+        "section_help": "vTuber をこのマネジメントにプロフィールを紐付けるよう招待します。招待先アカウントが所有する既存プロフィールを選ぶか、承諾時に新しいプロフィールを作成します。",
+        "mode": {
+          "label": "招待モード",
+          "existing": "既存プロフィール",
+          "new": "新規プロフィール"
+        },
+        "profile": "vTuber プロフィール",
+        "profile_placeholder": "プロフィールを選択",
+        "no_candidates": "このアカウントが所有するプロフィールはありません。",
+        "new_display_name": "新プロフィールの表示名",
+        "send_button": "招待を送信",
+        "target": {
+          "existing": "既存プロフィール",
+          "new": "新規プロフィール"
+        },
+        "columns": {
+          "target": "対象プロフィール"
+        },
+        "empty": "vTuber プロフィールの招待はまだありません。",
+        "table_caption": "このマネジメントの vTuber プロフィール招待",
+        "errors": {
+          "send_failed": "vTuber 招待の送信に失敗しました。",
+          "cancel_failed": "vTuber 招待のキャンセルに失敗しました。"
+        }
+      },
       "errors": {
         "load_failed": "マネジメントの読み込みに失敗しました。",
         "save_failed": "マネジメントの保存に失敗しました。",
@@ -3586,7 +3611,6 @@
         "assign_failed": "クリエイターの割り当てに失敗しました。",
         "unassign_failed": "クリエイターの解除に失敗しました。",
         "member_update_failed": "メンバーの役割の更新に失敗しました。",
-        "member_remove_failed": "メンバーの削除に失敗しました。",
         "invite_send_failed": "招待の送信に失敗しました。",
         "invite_cancel_failed": "招待のキャンセルに失敗しました。"
       }
@@ -3594,6 +3618,8 @@
     "vtual-invites": {
       "title": "マネジメント招待",
       "invited_to": "{management} に招待されました。",
+      "creator_invited_to": "{management} への vTuber プロフィールの紐付けに招待されました。",
+      "creator_profile_label": "vTuber プロフィール",
       "role_label": "役割",
       "expires_label": "有効期限",
       "accept_button": "承認する",

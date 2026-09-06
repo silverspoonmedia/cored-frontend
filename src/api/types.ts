@@ -1414,6 +1414,32 @@ export interface VtualManagementCreatorAssignment {
   creator: VtualCreator
 }
 
+export type VtualCreatorInviteMode = 'existing' | 'new'
+
+export interface VtualCreatorInvite {
+  id: string
+  email: string
+  mode: VtualCreatorInviteMode
+  status: VtualManagementInviteStatus
+  new_display_name?: string | null
+  creator?: { id: string; name: string; slug: string } | null
+  invited_by?: { id: string; name: string } | null
+  management?: { id: string; name: string; slug: string } | null
+  expires_at?: string | null
+  expires_at_formatted?: string | null
+  expires_at_human?: string | null
+  responded_at?: string | null
+  created_at?: string | null
+  created_at_formatted?: string | null
+}
+
+export interface VtualCreatorInviteCandidate {
+  id: string
+  slug: string
+  name: string
+  avatar_url?: string | null
+}
+
 export interface VtualManagement {
   actions?: QueryRowAction[]
   id: string

@@ -2,20 +2,19 @@
  * Management-edit state/actions for VtualManagementEditView.
  *
  * Extracted from the view: form state, load/save, member + invite management,
- * creator assignments, and realtime subscription. Template binding stays in
- * the view + section components.
+ * creator-invite management, and realtime subscription.
+ * Template binding stays in the view + section components.
  */
 import { ref, reactive, computed, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { get } from '@/api/client'
 import { useVtualManagements } from '@/composables/vtual/useVtualManagements'
 import { useVtualRealtime } from '@/composables/vtual/useVtualRealtime'
+import { useVtualCreatorInvites } from '@/composables/vtual/useVtualCreatorInvites'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import { ApiError } from '@/api/types'
-import type { ApiResponse, VtualCreator, VtualManagement, VtualManagementCreatorAssignment, VtualManagementInvite, VtualManagementMember } from '@/api/types'
-import { unwrapListPayload } from '@/composables/useResource'
+import type { VtualCreatorInvite, VtualManagement, VtualManagementCreatorAssignment, VtualManagementInvite, VtualManagementMember } from '@/api/types'
 
 export function useVtualManagementEdit() {
   const route = useRoute()
@@ -29,7 +28,6 @@ export function useVtualManagementEdit() {
   const loading = ref(isEdit.value)
   const saving = ref(false)
   const errors = ref<Record<string, string[]>>({})
-  const assignErrors = ref<Record<string, string[]>>({})
 
   const form = reactive({
     name: '',
@@ -40,12 +38,11 @@ export function useVtualManagementEdit() {
   })
 
   const creators = ref<VtualManagementCreatorAssignment[]>([])
-  const allCreators = ref<VtualCreator[]>([])
-  const assignCreatorId = ref('')
-  const assigning = ref(false)
 
   const members = ref<VtualManagementMember[]>([])
   const invites = ref<VtualManagementInvite[]>([])
+  const creatorInvites = ref<VtualCreatorInvite[]>([])
+  const creatorInvitesApi = useVtualCreatorInvites()
   const inviteEmail = ref('')
   const inviteRole = ref('staff')
   const addingMember = ref(false)
@@ -53,7 +50,9 @@ export function useVtualManagementEdit() {
   const mutatingMemberId = ref<string | null>(null)
   const mutatingInviteId = ref<string | null>(null)
   const myRole = ref<string | null>(null)
-  const { user: authUser } = useAuth()
+  const isOrphanCreate = ref(false)
+  const { user: authUser, hasPermission } = useAuth()
+  const canCreateOrphan = computed(() => hasPermission('manage any vtual resource'))
 
   const memberRoleOptions = computed(() => [
     { value: 'admin', label: t('web.vtual-managements.members.roles.admin') },
@@ -67,10 +66,6 @@ export function useVtualManagementEdit() {
     { value: 'archived', label: t('web.vtual-managements.status.archived') },
   ])
 
-  const assignableCreators = computed(() => {
-    const assigned = new Set(creators.value.map((a) => a.creator.id))
-    return allCreators.value.filter((c) => !assigned.has(c.id))
-  })
 
   function fieldError(bag: Record<string, string[]>, field: string): string | null {
     const list = bag[field]
@@ -106,12 +101,14 @@ export function useVtualManagementEdit() {
     if (!isEdit.value || refreshingRealtime.value) return
     refreshingRealtime.value = true
     try {
-      const [m, inviteList] = await Promise.all([
+      const [m, inviteList, creatorInviteList] = await Promise.all([
         mgmt.fetchOne(managementId.value),
         mgmt.listInvites(managementId.value),
+        creatorInvitesApi.listInvites(managementId.value),
       ])
       applyManagementRealtime(m)
       invites.value = inviteList
+      creatorInvites.value = creatorInviteList
     } catch {
       // silent — next push or manual reload recovers
     } finally {
@@ -147,16 +144,14 @@ export function useVtualManagementEdit() {
     }
     loading.value = true
     try {
-      const [m, creatorList, inviteList] = await Promise.all([
+      const [m, inviteList, creatorInviteList] = await Promise.all([
         mgmt.fetchOne(managementId.value),
-        get<ApiResponse<VtualCreator[]>>('vtual/creators', { per_page: 200 }).then(
-          (r) => unwrapListPayload<VtualCreator>(r.data).items,
-        ),
         mgmt.listInvites(managementId.value),
+        creatorInvitesApi.listInvites(managementId.value),
       ])
       applyManagement(m)
-      allCreators.value = creatorList
       invites.value = inviteList
+      creatorInvites.value = creatorInviteList
       subscribeRealtime()
     } catch (e) {
       showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.load_failed'))
@@ -188,7 +183,9 @@ export function useVtualManagementEdit() {
         showSuccess(t('api.vtual.management.updated'))
         return
       }
-      const created = await mgmt.create(payload)
+      const created = isOrphanCreate.value && canCreateOrphan.value
+        ? await mgmt.createOrphan(payload)
+        : await mgmt.create(payload)
       showSuccess(t('api.vtual.management.created'))
       await router.push({ name: 'vtual.managements.edit.view', params: { id: created.id } })
     } catch (e) {
@@ -202,37 +199,6 @@ export function useVtualManagementEdit() {
       }
     } finally {
       saving.value = false
-    }
-  }
-
-  async function handleAssign(): Promise<void> {
-    if (!isEdit.value || !assignCreatorId.value || assigning.value) return
-    assigning.value = true
-    assignErrors.value = {}
-    try {
-      const updated = await mgmt.assignCreator(managementId.value, assignCreatorId.value)
-      creators.value = updated.creators ?? []
-      assignCreatorId.value = ''
-      showSuccess(t('api.vtual.management.creator_assigned'))
-    } catch (e) {
-      if (e instanceof ApiError && e.isValidation) {
-        assignErrors.value = e.errors ?? {}
-        if (Object.keys(assignErrors.value).length === 0) showError(e.message)
-      } else {
-        showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.assign_failed'))
-      }
-    } finally {
-      assigning.value = false
-    }
-  }
-
-  async function handleUnassign(assignment: VtualManagementCreatorAssignment): Promise<void> {
-    try {
-      const updated = await mgmt.unassignCreator(managementId.value, assignment.creator.id)
-      creators.value = updated.creators ?? []
-      showSuccess(t('api.vtual.management.creator_unassigned'))
-    } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.unassign_failed'))
     }
   }
 
@@ -295,17 +261,12 @@ export function useVtualManagementEdit() {
     }
   }
 
-  async function handleRemoveMember(member: VtualManagementMember): Promise<void> {
-    if (mutatingMemberId.value) return
-    mutatingMemberId.value = member.id
+  async function handleCreatorInviteChanged(): Promise<void> {
+    if (!isEdit.value) return
     try {
-      await mgmt.removeMember(managementId.value, member.id)
-      members.value = members.value.filter((m) => m.id !== member.id)
-      showSuccess(t('api.vtual.management.member_removed'))
-    } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.member_remove_failed'))
-    } finally {
-      mutatingMemberId.value = null
+      creatorInvites.value = await creatorInvitesApi.listInvites(managementId.value)
+    } catch {
+      // silent — section shows its own error
     }
   }
 
@@ -334,14 +295,14 @@ export function useVtualManagementEdit() {
     loading,
     saving,
     errors,
-    assignErrors,
     form,
+    isOrphanCreate,
+    canCreateOrphan,
+    managementId,
     creators,
-    assignableCreators,
-    assignCreatorId,
-    assigning,
     members,
     invites,
+    creatorInvites,
     inviteEmail,
     inviteRole,
     addingMember,
@@ -354,12 +315,10 @@ export function useVtualManagementEdit() {
     statusOptions,
     fieldError,
     handleSubmit,
-    handleAssign,
-    handleUnassign,
     handleSendInvite,
     handleCancelInvite,
     handleUpdateMemberRole,
-    handleRemoveMember,
+    handleCreatorInviteChanged,
     goIndex,
     inviteStatusVariant,
   }

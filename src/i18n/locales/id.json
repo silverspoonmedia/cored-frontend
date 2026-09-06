@@ -3519,17 +3519,16 @@
         "description": "Deskripsi",
         "logo_url": "URL logo",
         "status": "Status",
+        "ownerless": "Buat tanpa owner (dapat diklaim)",
+        "ownerless_hint": "Khusus staff: buat organisasi tanpa member Owner, lalu serahkan melalui undangan Owner.",
         "submit_create": "Buat manajemen",
         "submit_update": "Perbarui manajemen"
       },
       "creators": {
         "section_title": "Kreator yang dikelola",
-        "section_help": "Tetapkan kreator vTuber ke manajemen ini.",
-        "creator": "Kreator",
-        "assign_button": "Tetapkan",
-        "unassign_button": "Hapus",
-        "table_caption": "Kreator yang ditetapkan ke manajemen ini",
-        "empty": "Belum ada kreator yang ditetapkan.",
+        "section_help": "Profil vTuber yang tertaut ke management ini. Penautan dilakukan melalui vTuber profile invites.",
+        "table_caption": "Profil vTuber yang tertaut ke management ini",
+        "empty": "Belum ada profil vTuber yang tertaut.",
         "columns": {
           "creator": "Kreator",
           "joined_at": "Bergabung"
@@ -3539,7 +3538,6 @@
         "section_title": "Anggota",
         "section_help": "Orang yang mengelola organisasi ini. Pemilik dan pengelola dapat mengelola anggota. Anggota baru bergabung melalui undangan email.",
         "role": "Peran",
-        "remove_button": "Hapus",
         "table_caption": "Anggota manajemen ini",
         "empty": "Belum ada anggota.",
         "roles": {
@@ -3579,6 +3577,33 @@
           "expires_at": "Kedaluwarsa"
         }
       },
+      "creator_invites": {
+        "section_title": "Undangan profil vTuber",
+        "section_help": "Undang vTuber untuk menautkan profilnya ke management ini. Pilih profil existing miliknya, atau buat profil baru untuknya saat menerima.",
+        "mode": {
+          "label": "Mode undangan",
+          "existing": "Profil existing",
+          "new": "Profil baru"
+        },
+        "profile": "Profil vTuber",
+        "profile_placeholder": "Pilih profil",
+        "no_candidates": "Tidak ada profil milik akun ini.",
+        "new_display_name": "Nama tampilan profil baru",
+        "send_button": "Kirim undangan",
+        "target": {
+          "existing": "Profil existing",
+          "new": "Profil baru"
+        },
+        "columns": {
+          "target": "Profil tujuan"
+        },
+        "empty": "Belum ada undangan profil vTuber.",
+        "table_caption": "Undangan profil vTuber untuk management ini",
+        "errors": {
+          "send_failed": "Gagal mengirim undangan vTuber.",
+          "cancel_failed": "Gagal membatalkan undangan vTuber."
+        }
+      },
       "errors": {
         "load_failed": "Gagal memuat manajemen.",
         "save_failed": "Gagal menyimpan manajemen.",
@@ -3586,7 +3611,6 @@
         "assign_failed": "Gagal menetapkan kreator.",
         "unassign_failed": "Gagal menghapus kreator.",
         "member_update_failed": "Gagal memperbarui peran anggota.",
-        "member_remove_failed": "Gagal menghapus anggota.",
         "invite_send_failed": "Gagal mengirim undangan.",
         "invite_cancel_failed": "Gagal membatalkan undangan."
       }
@@ -3594,6 +3618,8 @@
     "vtual-invites": {
       "title": "Undangan manajemen",
       "invited_to": "Anda diundang untuk bergabung ke {management}.",
+      "creator_invited_to": "Anda diundang menautkan profil vTuber Anda ke {management}.",
+      "creator_profile_label": "Profil vTuber",
       "role_label": "Peran",
       "expires_label": "Kedaluwarsa",
       "accept_button": "Terima",

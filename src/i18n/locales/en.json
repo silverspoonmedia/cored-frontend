@@ -3515,17 +3515,16 @@
         "description": "Description",
         "logo_url": "Logo URL",
         "status": "Status",
+        "ownerless": "Create without owner (claimable)",
+        "ownerless_hint": "Staff-only: seed the organization without an Owner member, then hand it over via an Owner invitation.",
         "submit_create": "Create management",
         "submit_update": "Update management"
       },
       "creators": {
         "section_title": "Managed creators",
-        "section_help": "Assign vTuber creators to this management.",
-        "creator": "Creator",
-        "assign_button": "Assign",
-        "unassign_button": "Remove",
-        "table_caption": "Creators assigned to this management",
-        "empty": "No creators assigned yet.",
+        "section_help": "vTuber profiles linked to this management. Linking happens via vTuber profile invites.",
+        "table_caption": "vTuber profiles linked to this management",
+        "empty": "No vTuber profiles linked yet.",
         "columns": {
           "creator": "Creator",
           "joined_at": "Joined"
@@ -3535,7 +3534,6 @@
         "section_title": "Members",
         "section_help": "People who manage this organisation. Owners and admins can manage members. New members join via email invitation.",
         "role": "Role",
-        "remove_button": "Remove",
         "table_caption": "Members of this management",
         "empty": "No members yet.",
         "roles": {
@@ -3575,6 +3573,33 @@
           "expires_at": "Expires"
         }
       },
+      "creator_invites": {
+        "section_title": "vTuber profile invites",
+        "section_help": "Invite a vTuber to link their profile to this management. Choose an existing profile owned by the invitee, or create a new profile for them on accept.",
+        "mode": {
+          "label": "Invite mode",
+          "existing": "Existing profile",
+          "new": "New profile"
+        },
+        "profile": "vTuber profile",
+        "profile_placeholder": "Select a profile",
+        "no_candidates": "No profiles owned by this account.",
+        "new_display_name": "New profile display name",
+        "send_button": "Send invite",
+        "target": {
+          "existing": "Existing profile",
+          "new": "New profile"
+        },
+        "columns": {
+          "target": "Target profile"
+        },
+        "empty": "No vTuber profile invites yet.",
+        "table_caption": "vTuber profile invitations for this management",
+        "errors": {
+          "send_failed": "Failed to send vTuber invite.",
+          "cancel_failed": "Failed to cancel vTuber invite."
+        }
+      },
       "errors": {
         "load_failed": "Failed to load managements.",
         "save_failed": "Failed to save management.",
@@ -3582,7 +3607,6 @@
         "assign_failed": "Failed to assign creator.",
         "unassign_failed": "Failed to remove creator.",
         "member_update_failed": "Failed to update member role.",
-        "member_remove_failed": "Failed to remove member.",
         "invite_send_failed": "Failed to send invitation.",
         "invite_cancel_failed": "Failed to cancel invitation."
       }
@@ -3590,6 +3614,8 @@
     "vtual-invites": {
       "title": "Management invitation",
       "invited_to": "You have been invited to join {management}.",
+      "creator_invited_to": "You have been invited to link your vTuber profile to {management}.",
+      "creator_profile_label": "vTuber profile",
       "role_label": "Role",
       "expires_label": "Expires",
       "accept_button": "Accept",

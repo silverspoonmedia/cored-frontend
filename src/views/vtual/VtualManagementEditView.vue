@@ -4,8 +4,10 @@ import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
 import FormTextarea from '@/components/FormTextarea.vue'
 import FormSelect from '@/components/FormSelect.vue'
+import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import VtualManagementMembersSection from '@/components/vtual/VtualManagementMembersSection.vue'
+import VtualManagementCreatorInvitesSection from '@/components/vtual/VtualManagementCreatorInvitesSection.vue'
 import { useVtualManagementEdit } from '@/composables/vtual/useVtualManagementEdit'
 
 const { t } = useI18n()
@@ -17,17 +19,17 @@ const {
   errors,
   form,
   statusOptions,
+  isOrphanCreate,
+  canCreateOrphan,
   fieldError,
   handleSubmit,
   goIndex,
   members,
   invites,
+  creatorInvites,
   creators,
-  assignableCreators,
-  assignErrors,
   addingMember,
   memberErrors,
-  assigning,
   mutatingMemberId,
   mutatingInviteId,
   authUser,
@@ -35,13 +37,11 @@ const {
   canManageMembers,
   inviteEmail,
   inviteRole,
-  assignCreatorId,
   handleSendInvite,
   handleCancelInvite,
   handleUpdateMemberRole,
-  handleRemoveMember,
-  handleAssign,
-  handleUnassign,
+  handleCreatorInviteChanged,
+  managementId,
 } = useVtualManagementEdit()
 </script>
 
@@ -93,6 +93,14 @@ const {
           :error="fieldError(errors, 'logo_url')"
           :disabled="saving"
         />
+        <FormCheckbox
+          v-if="!isEdit && canCreateOrphan"
+          name="ownerless"
+          :label="t('web.vtual-managements.form.ownerless')"
+          :hint="t('web.vtual-managements.form.ownerless_hint')"
+          v-model="isOrphanCreate"
+          :disabled="saving"
+        />
         <FormSelect
           v-if="isEdit"
           name="status"
@@ -118,26 +126,27 @@ const {
         <VtualManagementMembersSection
           v-model:invite-email="inviteEmail"
           v-model:invite-role="inviteRole"
-          v-model:assign-creator-id="assignCreatorId"
           :auth-user-id="authUser?.id ?? null"
           :can-manage-members="canManageMembers"
           :members="members"
           :invites="invites"
           :creators="creators"
-          :assignable-creators="assignableCreators"
-          :assign-errors="assignErrors"
           :adding-member="addingMember"
           :member-errors="memberErrors"
-          :assigning="assigning"
           :mutating-member-id="mutatingMemberId"
           :mutating-invite-id="mutatingInviteId"
           :member-role-options="memberRoleOptions"
           @send-invite="handleSendInvite"
           @cancel-invite="handleCancelInvite"
           @update-member-role="handleUpdateMemberRole"
-          @remove-member="handleRemoveMember"
-          @assign="handleAssign"
-          @unassign="handleUnassign"
+        />
+
+        <hr class="my-4">
+        <VtualManagementCreatorInvitesSection
+          :management-id="managementId"
+          :can-manage-members="canManageMembers"
+          :invites="creatorInvites"
+          @invite-changed="handleCreatorInviteChanged"
         />
       </div>
     </div>

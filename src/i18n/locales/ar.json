@@ -3618,17 +3618,16 @@
         "description": "الوصف",
         "logo_url": "الشعار URL",
         "status": "الحالة",
+        "ownerless": "إنشاء بدون مالك (قابل للتسليم)",
+        "ownerless_hint": "للموظفين فقط: أنشئ المنظمة بدون عضو مالك، ثم سلّمها عبر دعوة مالك.",
         "submit_create": "إنشاء الإدارة",
         "submit_update": "إدارة التحديث"
       },
       "creators": {
         "section_title": "المبدعين المدارة",
-        "section_help": "قم بتعيين منشئي محتوى vTuber لهذه الإدارة.",
-        "creator": "الخالق",
-        "assign_button": "تعيين",
-        "unassign_button": "إزالة",
-        "table_caption": "المبدعين المخصصة لهذه الإدارة",
-        "empty": "لم يتم تعيين منشئي المحتوى حتى الآن.",
+        "section_help": "ملفات vTuber المرتبطة بهذا الإدارة. يتم الربط عبر دعوات ملفات vTuber.",
+        "table_caption": "ملفات vTuber المرتبطة بهذا الإدارة",
+        "empty": "لا توجد ملفات vTuber مرتبطة بعد.",
         "columns": {
           "creator": "الخالق",
           "joined_at": "انضم"
@@ -3638,7 +3637,6 @@
         "section_title": "الأعضاء",
         "section_help": "الأشخاص الذين يديرون هذه المنظمة. يمكن للمالكين والمسؤولين إدارة الأعضاء. ينضم الأعضاء الجدد عبر دعوة بالبريد الإلكتروني.",
         "role": "الدور",
-        "remove_button": "إزالة",
         "table_caption": "أعضاء هذه الإدارة",
         "empty": "لا يوجد أعضاء حتى الآن.",
         "roles": {
@@ -3678,6 +3676,33 @@
           "expires_at": "تنتهي في"
         }
       },
+      "creator_invites": {
+        "section_title": "دعوات ملفات vTuber",
+        "section_help": "ادعُ vTuber لربط ملفه بهذه الإدارة. اختر ملفًا موجودًا يملكه المدعو، أو أنشئ ملفًا جديدًا له عند القبول.",
+        "mode": {
+          "label": "وضع الدعوة",
+          "existing": "ملف موجود",
+          "new": "ملف جديد"
+        },
+        "profile": "ملف vTuber",
+        "profile_placeholder": "اختر ملفًا",
+        "no_candidates": "لا توجد ملفات يملكها هذا الحساب.",
+        "new_display_name": "اسم عرض الملف الجديد",
+        "send_button": "إرسال الدعوة",
+        "target": {
+          "existing": "ملف موجود",
+          "new": "ملف جديد"
+        },
+        "columns": {
+          "target": "الملف المستهدف"
+        },
+        "empty": "لا توجد دعوات ملفات vTuber بعد.",
+        "table_caption": "دعوات ملفات vTuber لهذه الإدارة",
+        "errors": {
+          "send_failed": "فشل إرسال دعوة vTuber.",
+          "cancel_failed": "فشل إلغاء دعوة vTuber."
+        }
+      },
       "errors": {
         "load_failed": "فشل تحميل الإدارة.",
         "save_failed": "فشل حفظ الإدارة.",
@@ -3685,7 +3710,6 @@
         "assign_failed": "فشل تعيين المنشئ.",
         "unassign_failed": "فشلت إزالة المنشئ.",
         "member_update_failed": "فشل تحديث دور العضو.",
-        "member_remove_failed": "فشلت إزالة العضو.",
         "invite_send_failed": "فشل إرسال الدعوة.",
         "invite_cancel_failed": "فشل إلغاء الدعوة."
       }
@@ -3693,6 +3717,8 @@
     "vtual-invites": {
       "title": "دعوة الإدارة",
       "invited_to": "لقد تمت دعوتك للانضمام إلى {management}.",
+      "creator_invited_to": "لقد تمت دعوتك لربط ملف vTuber الخاص بك بـ {management}.",
+      "creator_profile_label": "ملف vTuber",
       "role_label": "الدور",
       "expires_label": "تنتهي في",
       "accept_button": "قبول",

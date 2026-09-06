@@ -3800,17 +3800,16 @@
         "description": "说明",
         "logo_url": "徽标 URL",
         "status": "状态",
+        "ownerless": "创建时不含所有者（可认领）",
+        "ownerless_hint": "仅限员工：创建不含所有者成员的组织，然后通过所有者邀请进行移交。",
         "submit_create": "创建管理",
         "submit_update": "更新管理"
       },
       "creators": {
         "section_title": "托管创建者",
-        "section_help": "将 vTuber 创建者分配到此管理。",
-        "creator": "创建者",
-        "assign_button": "分配",
-        "unassign_button": "删除",
-        "table_caption": "分配给此管理的创建者",
-        "empty": "尚未分配创建者。",
+        "section_help": "已关联到此管理的vTuber资料。关联通过vTuber资料邀请进行。",
+        "table_caption": "已关联到此管理的vTuber资料",
+        "empty": "尚无已关联的vTuber资料。",
         "columns": {
           "creator": "创建者",
           "joined_at": "已加入"
@@ -3820,7 +3819,6 @@
         "section_title": "成员",
         "section_help": "管理此组织的人员。所有者和管理员可以管理成员。新成员通过电子邮件邀请加入。",
         "role": "角色",
-        "remove_button": "移除",
         "table_caption": "此管理机构的成员",
         "empty": "暂无成员。",
         "roles": {
@@ -3860,6 +3858,33 @@
           "expires_at": "过期时间"
         }
       },
+      "creator_invites": {
+        "section_title": "vTuber 资料邀请",
+        "section_help": "邀请 vTuber 将其资料关联到此管理项。可选择被邀请人拥有的现有资料，或在接受时为其创建新资料。",
+        "mode": {
+          "label": "邀请模式",
+          "existing": "现有资料",
+          "new": "新资料"
+        },
+        "profile": "vTuber 资料",
+        "profile_placeholder": "选择资料",
+        "no_candidates": "该账号没有拥有的资料。",
+        "new_display_name": "新资料显示名称",
+        "send_button": "发送邀请",
+        "target": {
+          "existing": "现有资料",
+          "new": "新资料"
+        },
+        "columns": {
+          "target": "目标资料"
+        },
+        "empty": "暂无 vTuber 资料邀请。",
+        "table_caption": "此管理项的 vTuber 资料邀请",
+        "errors": {
+          "send_failed": "发送 vTuber 邀请失败。",
+          "cancel_failed": "取消 vTuber 邀请失败。"
+        }
+      },
       "errors": {
         "load_failed": "无法加载管理。",
         "save_failed": "无法保存管理。",
@@ -3867,7 +3892,6 @@
         "assign_failed": "无法分配创建者。",
         "unassign_failed": "无法删除创建者。",
         "member_update_failed": "无法更新成员角色。",
-        "member_remove_failed": "无法移除成员。",
         "invite_send_failed": "邀请发送失败。",
         "invite_cancel_failed": "取消邀请失败。"
       }
@@ -3875,6 +3899,8 @@
     "vtual-invites": {
       "title": "管理机构邀请",
       "invited_to": "你已被邀请加入 {management}。",
+      "creator_invited_to": "你已被邀请将你的 vTuber 资料关联到 {management}。",
+      "creator_profile_label": "vTuber 资料",
       "role_label": "角色",
       "expires_label": "过期时间",
       "accept_button": "接受",
