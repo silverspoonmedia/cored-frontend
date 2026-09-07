@@ -3484,6 +3484,54 @@
         "channel_added": "Channel added."
       }
     },
+    "vtual-events": {
+      "title": "Events",
+      "breadcrumb": "Events",
+      "list_title": "vTual events",
+      "subtitle": "Events submitted by managements, shown on the public landing page.",
+      "add_button": "Add event",
+      "create_title": "Create event",
+      "edit_title": "Event details",
+      "status": {
+        "scheduled": "Scheduled",
+        "live": "Live",
+        "ended": "Ended",
+        "cancelled": "Cancelled",
+        "featured": "Featured"
+      },
+      "datatable": {
+        "empty": "No events yet.",
+        "zero_records": "No events match the search.",
+        "confirm_cancel": "Cancel this event?",
+        "columns": {
+          "title": "Title",
+          "management": "Management",
+          "starts_at": "Starts",
+          "status": "Status"
+        }
+      },
+      "form": {
+        "management": "Management",
+        "title": "Title",
+        "description": "Description",
+        "starts_at": "Starts at",
+        "ends_at": "Ends at",
+        "timezone": "Time zone",
+        "timezone_hint": "IANA name, e.g. Asia/Jakarta. Leave empty for UTC.",
+        "thumbnail_url": "Thumbnail URL",
+        "url": "External URL",
+        "is_featured": "Featured event",
+        "management_required": "Select a management.",
+        "submit_create": "Create event",
+        "submit_update": "Update event"
+      },
+      "errors": {
+        "load_failed": "Failed to load events.",
+        "save_failed": "Failed to save the event.",
+        "cancel_failed": "Failed to cancel the event.",
+        "readonly": "Events cannot be edited after creation; create a new event instead."
+      }
+    },
     "vtual-managements": {
       "title": "Managements",
       "breadcrumb": "Managements",

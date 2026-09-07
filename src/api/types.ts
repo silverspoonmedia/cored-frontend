@@ -1459,6 +1459,51 @@ export interface VtualManagement {
   updated_at_human?: string | null
 }
 
+// --- Vtual events (management-submitted) ---
+
+export interface VtualEventManagementRef {
+  id?: string
+  slug: string
+  name: string
+}
+
+export interface VtualEventCreatorRef {
+  id?: string
+  slug: string
+  display_name: string
+  avatar_url: string | null
+}
+
+export interface VtualManagementEvent {
+  id: string
+  management_id: string
+  creator_id: string | null
+  slug: string
+  title: string
+  description: string | null
+  thumbnail_url: string | null
+  url: string | null
+  starts_at: string | null
+  ends_at: string | null
+  timezone: string | null
+  status: string
+  is_featured: boolean
+  management?: VtualEventManagementRef | null
+  creator?: VtualEventCreatorRef | null
+}
+
+export interface VtualEventListPagination {
+  current_page: number
+  per_page: number
+  total: number
+  has_more: boolean
+}
+
+export interface VtualEventPagedList {
+  items: VtualManagementEvent[]
+  pagination: VtualEventListPagination
+}
+
 // --- Vtual public (guest-safe, slug-addressed — no UUID, no claim URLs) ---
 
 export interface VtualPublicChannel {
@@ -1573,7 +1618,23 @@ export interface VtualPublicLanding {
   event: VtualPublicLandingEvent | null
   live_now: VtualPublicContent[]
   schedule: VtualPublicContent[]
+  events?: VtualPublicEvent[]
   stats: VtualPublicStats
+}
+
+export interface VtualPublicEvent {
+  title: string
+  slug: string
+  description: string | null
+  thumbnail_url: string | null
+  url: string | null
+  starts_at: string | null
+  ends_at: string | null
+  timezone: string | null
+  status: string
+  is_featured: boolean
+  management?: { slug: string; name: string } | null
+  creator?: { slug: string; display_name: string; avatar_url: string | null } | null
 }
 
 export interface VtualPublicItems {

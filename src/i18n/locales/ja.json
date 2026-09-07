@@ -3488,6 +3488,54 @@
         "channel_added": "チャンネルを追加しました。"
       }
     },
+    "vtual-events": {
+      "title": "イベント",
+      "breadcrumb": "イベント",
+      "list_title": "vTual イベント",
+      "subtitle": "マネジメントが投稿したイベント。公開ランディングページに表示されます。",
+      "add_button": "イベント追加",
+      "create_title": "イベント作成",
+      "edit_title": "イベント詳細",
+      "status": {
+        "scheduled": "予定",
+        "live": "配信中",
+        "ended": "終了",
+        "cancelled": "中止",
+        "featured": "注目"
+      },
+      "datatable": {
+        "empty": "イベントはまだありません。",
+        "zero_records": "検索に一致するイベントはありません。",
+        "confirm_cancel": "このイベントを中止しますか？",
+        "columns": {
+          "title": "タイトル",
+          "management": "マネジメント",
+          "starts_at": "開始",
+          "status": "ステータス"
+        }
+      },
+      "form": {
+        "management": "マネジメント",
+        "title": "タイトル",
+        "description": "説明",
+        "starts_at": "開始日時",
+        "ends_at": "終了日時",
+        "timezone": "タイムゾーン",
+        "timezone_hint": "IANA 名（例: Asia/Tokyo）。空欄の場合は UTC。",
+        "thumbnail_url": "サムネイル URL",
+        "url": "外部 URL",
+        "is_featured": "注目イベント",
+        "management_required": "マネジメントを選択してください。",
+        "submit_create": "イベントを作成",
+        "submit_update": "イベントを更新"
+      },
+      "errors": {
+        "load_failed": "イベントの読み込みに失敗しました。",
+        "save_failed": "イベントの保存に失敗しました。",
+        "cancel_failed": "イベントの中止に失敗しました。",
+        "readonly": "作成後のイベントは編集できません。代わりに新しいイベントを作成してください。"
+      }
+    },
     "vtual-managements": {
       "title": "マネジメント",
       "breadcrumb": "マネジメント",

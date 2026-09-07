@@ -3769,6 +3769,54 @@
         "channel_added": "频道已添加。"
       }
     },
+    "vtual-events": {
+      "title": "活动",
+      "breadcrumb": "活动",
+      "list_title": "vTual 活动",
+      "subtitle": "由管理机构提交的活动，显示在公开落地页上。",
+      "add_button": "添加活动",
+      "create_title": "创建活动",
+      "edit_title": "活动详情",
+      "status": {
+        "scheduled": "已排期",
+        "live": "进行中",
+        "ended": "已结束",
+        "cancelled": "已取消",
+        "featured": "精选"
+      },
+      "datatable": {
+        "empty": "暂无活动。",
+        "zero_records": "没有符合搜索条件的活动。",
+        "confirm_cancel": "取消此活动？",
+        "columns": {
+          "title": "标题",
+          "management": "管理机构",
+          "starts_at": "开始",
+          "status": "状态"
+        }
+      },
+      "form": {
+        "management": "管理机构",
+        "title": "标题",
+        "description": "描述",
+        "starts_at": "开始时间",
+        "ends_at": "结束时间",
+        "timezone": "时区",
+        "timezone_hint": "IANA 名称，例如 Asia/Shanghai。留空表示 UTC。",
+        "thumbnail_url": "缩略图 URL",
+        "url": "外部 URL",
+        "is_featured": "精选活动",
+        "management_required": "请选择管理机构。",
+        "submit_create": "创建活动",
+        "submit_update": "更新活动"
+      },
+      "errors": {
+        "load_failed": "加载活动失败。",
+        "save_failed": "保存活动失败。",
+        "cancel_failed": "取消活动失败。",
+        "readonly": "活动创建后无法编辑；请改为创建新活动。"
+      }
+    },
     "vtual-managements": {
       "title": "管理层",
       "breadcrumb": "管理层",

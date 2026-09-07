@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { VtualPublicContent } from '@/api/types'
+import type { VtualPublicContent, VtualPublicEvent } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
 import { safeHttpUrl } from '@/utils/safeUrl'
 
 const props = defineProps<{
+  events?: VtualPublicEvent[] | null
   schedule?: VtualPublicContent[] | null
 }>()
 
@@ -21,6 +22,7 @@ interface ScheduleRow {
   platformKey: string | null
   creatorName: string | null
   creatorSlug: string | null
+  hostName: string | null
   url: string | null
 }
 
@@ -34,30 +36,72 @@ const dateFormatter = computed(
     }),
 )
 
+/**
+ * Events-first: management-submitted events win; the derived scheduled-streams
+ * view is a legacy fallback while no events exist.
+ */
+const activeEvents = computed<VtualPublicEvent[]>(() =>
+  props.events && props.events.length > 0 ? props.events : [],
+)
+
 const scheduleRows = computed<ScheduleRow[]>(() => {
+  if (activeEvents.value.length > 0) {
+    return activeEvents.value.map((event, index) => buildRow({
+      key: `event-${event.slug}-${index}`,
+      date: event.starts_at ? new Date(event.starts_at) : null,
+      title: event.title,
+      creatorName: event.creator?.display_name ?? null,
+      creatorSlug: event.creator?.slug ?? null,
+      hostName: event.management?.name ?? null,
+      url: event.url,
+      platformKey: null,
+    }))
+  }
+
   if (!props.schedule || props.schedule.length === 0) {
     return []
   }
   return props.schedule
     .filter((item) => item.scheduled_at)
-    .map((item, index) => {
-      const date = new Date(item.scheduled_at as string)
-      const valid = !Number.isNaN(date.getTime())
-      return {
-        key: `${item.url ?? item.title ?? 'sched'}-${index}`,
-        day: valid ? String(date.getDate()).padStart(2, '0') : '',
-        month: valid
-          ? date.toLocaleDateString(locale.value, { month: 'short' })
-          : '',
-        title: item.title ?? '',
-        time: valid ? dateFormatter.value.format(date) : '',
-        platformKey: item.platform_key,
-        creatorName: item.creator?.display_name ?? null,
-        creatorSlug: item.creator?.slug ?? null,
-        url: safeHttpUrl(item.url),
-      }
-    })
+    .map((item, index) => buildRow({
+      key: `${item.url ?? item.title ?? 'sched'}-${index}`,
+      date: new Date(item.scheduled_at as string),
+      title: item.title ?? '',
+      creatorName: item.creator?.display_name ?? null,
+      creatorSlug: item.creator?.slug ?? null,
+      hostName: null,
+      url: item.url,
+      platformKey: item.platform_key,
+    }))
 })
+
+function buildRow(input: {
+  key: string
+  date: Date | null
+  title: string
+  creatorName: string | null
+  creatorSlug: string | null
+  hostName: string | null
+  url: string | null
+  platformKey: string | null
+}): ScheduleRow {
+  const date = input.date
+  const valid = date !== null && !Number.isNaN(date.getTime())
+  return {
+    key: input.key,
+    day: valid ? String(date.getDate()).padStart(2, '0') : '',
+    month: valid
+      ? date.toLocaleDateString(locale.value, { month: 'short' })
+      : '',
+    title: input.title,
+    time: valid ? dateFormatter.value.format(date) : '',
+    platformKey: input.platformKey,
+    creatorName: input.creatorName,
+    creatorSlug: input.creatorSlug,
+    hostName: input.hostName,
+    url: safeHttpUrl(input.url),
+  }
+}
 
 function platformIcon(key: string | null): string {
   if (key === 'youtube') return `${socialIconsUrl}#youtube`
@@ -104,13 +148,15 @@ function platformIcon(key: string | null): string {
               >{{ row.title }}</a>
               <template v-else>{{ row.title }}</template>
             </h4>
-            <div v-if="row.creatorName" class="lg:leading-[26px]">
+            <div v-if="row.creatorName || row.hostName" class="lg:leading-[26px]">
               <router-link
                 v-if="row.creatorSlug"
                 :to="`/vtual/vtubers/${row.creatorSlug}`"
                 class="font-bold text-accent transition-colors hover:text-gray-900 dark:hover:text-white"
               >{{ row.creatorName }}</router-link>
-              <span v-else class="text-gray-600 dark:text-gray">{{ row.creatorName }}</span>
+              <span v-else-if="row.creatorName" class="text-gray-600 dark:text-gray">{{ row.creatorName }}</span>
+              <span v-if="row.creatorName && row.hostName" class="text-gray-600 dark:text-gray"> · </span>
+              <span v-if="row.hostName" class="text-gray-600 dark:text-gray">{{ row.hostName }}</span>
             </div>
           </div>
 

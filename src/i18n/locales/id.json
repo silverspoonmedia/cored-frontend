@@ -3488,6 +3488,54 @@
         "channel_added": "Channel ditambahkan."
       }
     },
+    "vtual-events": {
+      "title": "Acara",
+      "breadcrumb": "Acara",
+      "list_title": "Acara vTual",
+      "subtitle": "Acara yang dikirimkan management, ditampilkan pada halaman landing publik.",
+      "add_button": "Tambah acara",
+      "create_title": "Buat acara",
+      "edit_title": "Detail acara",
+      "status": {
+        "scheduled": "Terjadwal",
+        "live": "Live",
+        "ended": "Selesai",
+        "cancelled": "Dibatalkan",
+        "featured": "Unggulan"
+      },
+      "datatable": {
+        "empty": "Belum ada acara.",
+        "zero_records": "Tidak ada acara yang cocok dengan pencarian.",
+        "confirm_cancel": "Batalkan acara ini?",
+        "columns": {
+          "title": "Judul",
+          "management": "Management",
+          "starts_at": "Mulai",
+          "status": "Status"
+        }
+      },
+      "form": {
+        "management": "Management",
+        "title": "Judul",
+        "description": "Deskripsi",
+        "starts_at": "Mulai pada",
+        "ends_at": "Berakhir pada",
+        "timezone": "Zona waktu",
+        "timezone_hint": "Nama IANA, mis. Asia/Jakarta. Kosongkan untuk UTC.",
+        "thumbnail_url": "URL thumbnail",
+        "url": "URL eksternal",
+        "is_featured": "Acara unggulan",
+        "management_required": "Pilih management.",
+        "submit_create": "Buat acara",
+        "submit_update": "Perbarui acara"
+      },
+      "errors": {
+        "load_failed": "Gagal memuat acara.",
+        "save_failed": "Gagal menyimpan acara.",
+        "cancel_failed": "Gagal membatalkan acara.",
+        "readonly": "Acara tidak dapat diubah setelah dibuat; buat acara baru sebagai gantinya."
+      }
+    },
     "vtual-managements": {
       "title": "Manajemen",
       "breadcrumb": "Manajemen",

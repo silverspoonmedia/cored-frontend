@@ -18,7 +18,7 @@ Rules:
 
 ## Registry
 
-~172 named routes across the 18 modules. The live registry is the code — `src/router/routes/*.ts` on this side, `monolith/config/spa-routes.php` on the backend side. When in doubt, diff the two lists; they must agree on every menu-consumed name.
+~178 named routes across the 18 modules (the live count is the code — this figure drifts; the registry itself is `src/router/routes/*.ts` plus `src/router/index.ts` on this side, `monolith/config/spa-routes.php` on the backend side). When in doubt, diff the two lists; they must agree on every menu-consumed name. Recent additions: the `vtual.events.index/create/edit` trio under `/apps/vtual/events` (standalone management-events page).
 
 ## Meta flags
 

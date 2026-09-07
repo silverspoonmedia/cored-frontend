@@ -68,11 +68,49 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/apps/vtual/events',
+    name: 'vtual.events.index',
+    component: AppLayout,
+    meta: { requiresAuth: true, titleKey: 'web.vtual-events.title' },
+    children: [
+      {
+        path: '',
+        name: 'vtual.events.index.view',
+        component: () => import('@/views/vtual/VtualEventsView.vue'),
+      },
+    ],
+  },
+  {
+    path: '/apps/vtual/events/create',
+    name: 'vtual.events.create',
+    component: AppLayout,
+    meta: { requiresAuth: true, titleKey: 'web.vtual-events.create_title' },
+    children: [
+      {
+        path: '',
+        name: 'vtual.events.create.view',
+        component: () => import('@/views/vtual/VtualEventEditView.vue'),
+      },
+    ],
+  },
+  {
+    path: '/apps/vtual/events/:id/edit',
+    name: 'vtual.events.edit',
+    component: AppLayout,
+    meta: { requiresAuth: true, titleKey: 'web.vtual-events.edit_title' },
+    children: [
+      {
+        path: '',
+        name: 'vtual.events.edit.view',
+        component: () => import('@/views/vtual/VtualEventEditView.vue'),
+      },
+    ],
+  },
+  {
     path: '/apps/vtual/managements',
     name: 'vtual.managements.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-managements.title' },
-    children: [
+    meta: { requiresAuth: true, titleKey: 'web.vtual-managements.title' },    children: [
       {
         path: '',
         name: 'vtual.managements.index.view',

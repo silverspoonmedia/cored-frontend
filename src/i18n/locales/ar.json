@@ -3587,6 +3587,54 @@
         "channel_added": "تمت إضافة القناة."
       }
     },
+    "vtual-events": {
+      "title": "الفعاليات",
+      "breadcrumb": "الفعاليات",
+      "list_title": "فعاليات vTual",
+      "subtitle": "فعاليات تقدمها الإدارات، وتظهر في الصفحة العامة الرئيسية.",
+      "add_button": "إضافة فعالية",
+      "create_title": "إنشاء فعالية",
+      "edit_title": "تفاصيل الفعالية",
+      "status": {
+        "scheduled": "مجدولة",
+        "live": "مباشرة",
+        "ended": "انتهت",
+        "cancelled": "ملغاة",
+        "featured": "مميزة"
+      },
+      "datatable": {
+        "empty": "لا توجد فعاليات بعد.",
+        "zero_records": "لا توجد فعاليات مطابقة للبحث.",
+        "confirm_cancel": "إلغاء هذه الفعالية؟",
+        "columns": {
+          "title": "العنوان",
+          "management": "الإدارة",
+          "starts_at": "تبدأ",
+          "status": "الحالة"
+        }
+      },
+      "form": {
+        "management": "الإدارة",
+        "title": "العنوان",
+        "description": "الوصف",
+        "starts_at": "تبدأ في",
+        "ends_at": "تنتهي في",
+        "timezone": "المنطقة الزمنية",
+        "timezone_hint": "اسم IANA، مثل Asia/Riyadh. اتركه فارغًا لـ UTC.",
+        "thumbnail_url": "رابط الصورة المصغرة",
+        "url": "رابط خارجي",
+        "is_featured": "فعالية مميزة",
+        "management_required": "اختر إدارة.",
+        "submit_create": "إنشاء فعالية",
+        "submit_update": "تحديث الفعالية"
+      },
+      "errors": {
+        "load_failed": "فشل تحميل الفعاليات.",
+        "save_failed": "فشل حفظ الفعالية.",
+        "cancel_failed": "فشل إلغاء الفعالية.",
+        "readonly": "لا يمكن تعديل الفعالية بعد إنشائها؛ أنشئ فعالية جديدة بدلاً من ذلك."
+      }
+    },
     "vtual-managements": {
       "title": "الإدارات",
       "breadcrumb": "الإدارات",

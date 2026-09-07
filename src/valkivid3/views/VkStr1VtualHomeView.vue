@@ -70,6 +70,6 @@ onUnmounted(() => {
   </div>
   <VkStr1VtuberLiveDirectory :live-items="landing?.live_now ?? null" />
   <VkStr1ContentFeed />
-  <VkStr1SectionEvents :schedule="landing?.schedule ?? null" />
+  <VkStr1SectionEvents :events="landing?.events ?? null" :schedule="landing?.schedule ?? null" />
   <VkStr1ChannelBanner />
 </template>

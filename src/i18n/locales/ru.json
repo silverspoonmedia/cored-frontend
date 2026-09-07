@@ -4077,6 +4077,54 @@
         "channel_added": "Канал добавлен."
       }
     },
+    "vtual-events": {
+      "title": "События",
+      "breadcrumb": "События",
+      "list_title": "События vTual",
+      "subtitle": "События, добавленные менеджментами, отображаются на публичной главной странице.",
+      "add_button": "Добавить событие",
+      "create_title": "Создать событие",
+      "edit_title": "Детали события",
+      "status": {
+        "scheduled": "Запланировано",
+        "live": "В эфире",
+        "ended": "Завершено",
+        "cancelled": "Отменено",
+        "featured": "Избранное"
+      },
+      "datatable": {
+        "empty": "Событий пока нет.",
+        "zero_records": "Поиск не дал результатов.",
+        "confirm_cancel": "Отменить это событие?",
+        "columns": {
+          "title": "Название",
+          "management": "Менеджмент",
+          "starts_at": "Начало",
+          "status": "Статус"
+        }
+      },
+      "form": {
+        "management": "Менеджмент",
+        "title": "Название",
+        "description": "Описание",
+        "starts_at": "Начало",
+        "ends_at": "Окончание",
+        "timezone": "Часовой пояс",
+        "timezone_hint": "Имя IANA, например Asia/Almaty. Оставьте пустым для UTC.",
+        "thumbnail_url": "URL миниатюры",
+        "url": "Внешняя ссылка",
+        "is_featured": "Избранное событие",
+        "management_required": "Выберите менеджмент.",
+        "submit_create": "Создать событие",
+        "submit_update": "Обновить событие"
+      },
+      "errors": {
+        "load_failed": "Не удалось загрузить события.",
+        "save_failed": "Не удалось сохранить событие.",
+        "cancel_failed": "Не удалось отменить событие.",
+        "readonly": "Событие нельзя изменить после создания; создайте новое событие."
+      }
+    },
     "vtual-managements": {
       "title": "Менеджменты",
       "breadcrumb": "Менеджменты",
