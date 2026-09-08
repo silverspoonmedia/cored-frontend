@@ -1,6 +1,6 @@
 # Auth & session lifecycle
 
-How the SPA keeps a logged-in session without ever exposing the JWT to JavaScript. Backend-side minting/blacklist behavior: `monolith/docs/domains/identity/README.md`. End-to-end contract: `monolith/docs/integration/vue-workers-spa.md#cross-tab-auth-multi-tab-session-sync`.
+How the SPA keeps a logged-in session without ever exposing the JWT to JavaScript. Backend-side minting/blacklist behavior: `monolith/docs/domains/identity/README.md`. Contract: `monolith/docs/integration/vue-workers-spa.md#cross-tab-auth-multi-tab-session-sync` (implementation details in this file).
 
 ## Core invariants
 

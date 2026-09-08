@@ -34,7 +34,7 @@ Cross-origin mutation gets 419 → `refreshCsrf()` once → retry the original r
 
 ## Batch hydration
 
-`batch(requests)` fans read-only GET/HEAD calls into `POST batch` (server cap 10 per call — `MAX_BATCH_REQUESTS` mirrors `BatchController::MAX_REQUESTS`). Larger fan-outs split into sequential chunks and re-join positionally. Each entry returns `{ status, body }` where `body` keeps its own full API envelope; the outer response is always 200 — callers must inspect per-entry `status`. Backend contract: `monolith/docs/platform/api-envelope.md#batch`. Consumer rules (which views hydrate through batch): `monolith/docs/integration/vue-workers-spa.md#invocation-budget-controls`.
+`batch(requests)` fans read-only GET/HEAD calls into `POST batch` (server cap 10 per call — `MAX_BATCH_REQUESTS` mirrors `BatchController::MAX_REQUESTS`). Larger fan-outs split into sequential chunks and re-join positionally. Each entry returns `{ status, body }` where `body` keeps its own full API envelope; the outer response is always 200 — callers must inspect per-entry `status`. Backend contract: `monolith/docs/platform/api-envelope.md#batch`. Which views hydrate through batch: `monolith/docs/integration/vue-workers-spa.md#invocation-budget-controls`.
 
 ## Blob downloads
 

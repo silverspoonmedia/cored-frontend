@@ -1,0 +1,5 @@
+# Large locale dumps — Grep / targeted StrReplace still work; do not semantic-search whole files
+/src/i18n/locales/*.json
+
+# Visual baseline images / JSON (open only when editing FROZEN landing)
+/src/valkivid3/.baseline/

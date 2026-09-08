@@ -2,9 +2,9 @@
 
 Leading Vue 3 SPA for the Monolith `/api/v1/*` API — the **sole browser UI**. Deployed to Cloudflare Workers as static assets; the Worker is not an API or auth proxy. Browser requests go directly to the Laravel API origin, authenticated by the cross-site HttpOnly `__Host-spa_jwt` cookie (`credentials: 'include'`) plus public `X-SPA-Origin: 1` marker and double-submit `X-CSRF-Token` on mutations.
 
-Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
+Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md` (open only when headers, cookies/CSRF, envelopes, or route names change).
 
-**Docs:** agent protocol in [AGENTS.md](AGENTS.md) · full doc map in [docs/README.md](docs/README.md) — architecture, auth/session, API client, i18n, UI patterns, routes, testing, worker, deployment.
+**Docs:** agent protocol in [AGENTS.md](AGENTS.md) · full doc map in [docs/README.md](docs/README.md) — architecture, auth/session, API client, i18n, UI patterns, routes, testing, worker, deployment. IDE: open [Monolith-SPA.code-workspace](Monolith-SPA.code-workspace) for UI-only work; sibling fullstack workspace only when the API contract moves.
 
 ## Scripts
 

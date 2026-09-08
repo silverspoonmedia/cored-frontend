@@ -1,0 +1,13 @@
+---
+description: Patch SPA locale keys; never dump whole JSON files
+globs: src/i18n/**,docs/i18n.md
+alwaysApply: false
+---
+
+# Localization (SPA)
+
+Seven locales: `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json`. English is the source.
+
+- **Never `Read` an entire locale JSON file.** Grep the key, `StrReplace` it in all seven files, run `npm run check:i18n`.
+- Translate contextually, not literally. Preserve `{placeholders}` and machine-contract English.
+- `useI18n()` only inside `setup()`; elsewhere `i18n.global.t`. Details: [docs/i18n.md](../../docs/i18n.md).

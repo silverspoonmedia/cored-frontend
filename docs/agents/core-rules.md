@@ -1,6 +1,6 @@
 # Core rules — Monolith-Vue-Workers (SPA)
 
-Mandatory rules for every task in this repo. Each rule has a summary + a link to the owning doc. Root protocol: [../../AGENTS.md](../../AGENTS.md).
+Mandatory rules for this repo. Each rule has a summary + a link to the owning doc — open the owning doc only when that rule is in play. Root protocol: [../../AGENTS.md](../../AGENTS.md). Context budget: sibling `monolith/docs/agents/context-budget.md`.
 
 ## Rules
 
@@ -20,8 +20,8 @@ Mandatory rules for every task in this repo. Each rule has a summary + a link to
 ## Workflow checklist
 
 1. Read the owning doc for the area you touch (see [../README.md](../README.md) doc map).
-2. Check the backend contract (`monolith/docs/integration/vue-workers-spa.md`) before touching API calls, headers, auth, realtime, or route names.
-3. Implement; keep type alignment with Laravel API Resources (snake_case, no transform layer — `src/api/types.ts`).
+2. SPA-local docs first ([auth-session.md](../auth-session.md), [api-client.md](../api-client.md), [routes.md](../routes.md)). Open the backend contract (`monolith/docs/integration/vue-workers-spa.md`) only when headers, cookies/CSRF, envelopes, or route names change.
+3. Implement; keep type alignment with Laravel API Resources (snake_case, no transform layer — `src/api/types.ts`). Do not `Read` whole locale JSON files — patch keys, then `npm run check:i18n`.
 4. Run the gates: `npm run type-check` → `npm run check:i18n` → `npm test` → `npm run build-only` (CI order).
 5. Update docs in the same task.
 

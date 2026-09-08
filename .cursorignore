@@ -1,0 +1,17 @@
+# Dependencies & build artefacts
+/node_modules
+/dist
+/dist-ssr
+/coverage
+/.wrangler
+*.tsbuildinfo
+.eslintcache
+
+# Logs
+*.log
+/logs
+
+# Secrets (committed examples / tracked mode files stay visible)
+.env
+.env.local
+.dev.vars

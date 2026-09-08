@@ -18,6 +18,10 @@ coverage
 .vscode/*
 !.vscode/extensions.json
 .idea
+# Cursor local state; committed project rules live in .cursor/rules/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 *.suo
 *.ntvs*
 *.njsproj

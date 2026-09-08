@@ -6,7 +6,8 @@ Living docs for the SPA. **Language:** English only. Backend-side contract docs 
 
 | Need | Open |
 |------|------|
-| Agent scope + protocol | Root [AGENTS.md](../AGENTS.md) · [agents/core-rules.md](agents/core-rules.md) |
+| Agent scope + protocol | Root [AGENTS.md](../AGENTS.md) · [agents/core-rules.md](agents/core-rules.md) · context budget: `monolith/docs/agents/context-budget.md` |
+| IDE workspace | [Monolith-SPA.code-workspace](../Monolith-SPA.code-workspace) (this repo) · sibling `Monolith-Fullstack.code-workspace` only when the API contract moves |
 | Project layout, `src/` layers, direct-to-API routing | [architecture.md](architecture.md) |
 | Auth/session lifecycle (cookie, CSRF, cross-tab) | [auth-session.md](auth-session.md) |
 | API client conventions (`src/api/`) | [api-client.md](api-client.md) |
