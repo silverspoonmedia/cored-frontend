@@ -36,7 +36,7 @@ Content cards (`VkStr1VideoCard`) lead with the channel avatar as a dedicated le
 
 ## Component extraction & heavy-vendor async loading
 
-Large admin views stay maintainable by splitting along two axes (pattern used by `FileHostingView`, `VtualProfileShowView`, `FileHostingMicrostockUsageView`, `FileHostingWorkspacesView`, `VtualManagementEditView`):
+Large admin views stay maintainable by splitting along two axes (pattern used by `ArchivdView`, `VtualProfileShowView`, `ArchivdMicrostockUsageView`, `ArchivdWorkspacesView`, `VtualManagementEditView`):
 
 - **Composable per concern** (`src/composables/{domain}/use<Thing>.ts`): owns fetch/load-all, filters, selection, pagination, realtime subscriptions, and action handlers. The view keeps only wiring (route params, guards) and layout. Realtime handlers must live in the composable or be forwarded to it — extracted sections never subscribe directly.
 - **Section components** (`src/components/{domain}/<Thing><Section|Card|Tab>.vue`): own one template region (a card, tab, table group) with typed props + emits; two-way form fields use `defineModel`. Keep domain i18n keys, `TableEmptyRow`/`ErrorState` usage, and Swal-only notifications inside the section. The parent view passes state from the composable; no prop drilling through intermediate shells.
@@ -61,7 +61,7 @@ View migration patterns:
 
 - **List views** (~20): pass the composable's `error` ref and `@retry` to `DataTable`. Exception: `MenusView` uses inline `SkeletonBlock`/`ErrorState` + raw `<table>` + `TableEmptyRow` (no `DataTable.vue`) so the `h`/`p`/`c` menu hierarchy renders uncut — DataTable's client paging would split parents/children. Load-more event/ledger tables and inline-edit nested tables also use `TableEmptyRow`.
 - **Detail/show views** (~15): `useDetailLoader` + template `v-if="loading"` skeleton → `v-else-if="loadError"` ErrorState `@retry="load"` → `v-else-if="data"` content. `showError` is no longer the primary failure surface — the in-page ErrorState is.
-- **Hydrate-first views** (`FileHostingView`, `VtualProfileShowView`, `ServiceShowView`, `ServicePurchaseShowView`, `InferenceModelCardShowView`): keep the batch→fallback chain; the final loader failure sets a `loadError` ref the template ErrorState reads. `showError` remains for action failures (create/delete/checkout), not initial load.
+- **Hydrate-first views** (`ArchivdView`, `VtualProfileShowView`, `ServiceShowView`, `ServicePurchaseShowView`, `InferenceModelCardShowView`): keep the batch→fallback chain; the final loader failure sets a `loadError` ref the template ErrorState reads. `showError` remains for action failures (create/delete/checkout), not initial load.
 - **Public views** (`PublicFileView`, `PublicFolderView`): same pattern, no `useAlert`/SweetAlert (public layout has no Swal chrome) — `ErrorState` is the only failure surface.
 
 Router chunk-load failures (`router.onError` in `main.ts`) detect the dynamic-import error and flip a global `chunkLoadFailed` flag (`src/composables/useChunkLoadError.ts`); `App.vue` then renders a full-page `ErrorState` with a reload button instead of a blank document.
@@ -80,7 +80,7 @@ Any button whose only effect is SPA navigation (`router.push(...)`) is a `<route
 All notifications and confirmations use Sweetalert2 through `src/lib/swal.ts` — never native `alert()`/`confirm()` or ad-hoc Bootstrap alert blocks:
 
 - Notifications: `useAlert()` (`success`/`error`/`info`). Success/info render as Swal toasts; errors as a Swal error dialog.
-- Confirmations: `confirmDialog({ title, text | html, confirmText, ... })` from `@/lib/swal` resolves `true` on confirm. Do not build `v-model` confirm components. `ConfirmModal.vue` remains only for the file-hosting rename form (an input dialog, not a yes/no confirm).
+- Confirmations: `confirmDialog({ title, text | html, confirmText, ... })` from `@/lib/swal` resolves `true` on confirm. Do not build `v-model` confirm components. `ConfirmModal.vue` remains only for the archivd rename form (an input dialog, not a yes/no confirm).
 - Text input prompts: `inputDialog({ title, required?, confirmText?, danger? })` replaces native `prompt()` and resolves the trimmed string or `null` on cancel. `required: true` blocks an empty confirm. Used by the product-activation reject/suspend reason prompts.
 - Labels come from `ui.swal.*` / `ui.dialog.*` plus domain keys, in all seven locales.
 - `.swal2-container` is pinned to `z-index: 1090` (`src/assets/monolith-overrides.css`) so dialogs sit above Bootstrap modals (1050/1055) and other fixed layers (1080).

@@ -20,7 +20,7 @@ export const LEGACY_APP_ROOTS = new Set([
   'vtual',
   'product-activations',
   'payments',
-  'file-hosting',
+  'archivd',
   'payment-channels',
   'service-purchases',
 ])

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-export const FH_ITEMS_MIME = 'application/x-fh-items'
+export const FH_ITEMS_MIME = 'application/x-ar-items'
 
 export function canDropOnFolder(folderId: string | null | undefined, keys: string[]): boolean {
   if (folderId !== null && folderId !== undefined && folderId !== '') {
@@ -11,14 +11,14 @@ export function canDropOnFolder(folderId: string | null | undefined, keys: strin
   return true
 }
 
-export interface FhDragMoveOptions {
+export interface ArDragMoveOptions {
   selected: { value: Set<string> }
   clearSelection: () => void
   toggleSelect: (key: string, on?: boolean) => void
   moveItems: (keys: string[], targetFolderId: string | null) => Promise<boolean>
 }
 
-export function useFhDragMove(opts: FhDragMoveOptions) {
+export function useArchivdDragMove(opts: ArDragMoveOptions) {
   const { selected, clearSelection, toggleSelect, moveItems } = opts
 
   const dragging = ref(false)
@@ -26,10 +26,10 @@ export function useFhDragMove(opts: FhDragMoveOptions) {
 
   function isInteractive(el: EventTarget | null): boolean {
     if (!(el instanceof HTMLElement)) return false
-    return !!el.closest('input, button, a.fh-table__action-btn, [data-bs-toggle], .fh-file-card__select')
+    return !!el.closest('input, button, a.ar-table__action-btn, [data-bs-toggle], .ar-file-card__select')
   }
 
-  function isFhDrag(dt: DataTransfer | null): boolean {
+  function isArDrag(dt: DataTransfer | null): boolean {
     if (!dt?.types) return false
     return Array.from(dt.types).includes(FH_ITEMS_MIME)
   }
@@ -70,7 +70,7 @@ export function useFhDragMove(opts: FhDragMoveOptions) {
   }
 
   function onDropOver(e: DragEvent, folderId: string | null): void {
-    if (!isFhDrag(e.dataTransfer) && !dragging.value) return
+    if (!isArDrag(e.dataTransfer) && !dragging.value) return
     const keys = Array.from(selected.value)
     const target = (folderId === '' || folderId === 'root' || folderId == null) ? null : folderId
     if (!canDropOnFolder(target, keys)) {
@@ -91,7 +91,7 @@ export function useFhDragMove(opts: FhDragMoveOptions) {
   }
 
   async function onDrop(e: DragEvent, folderId: string | null): Promise<void> {
-    if (!isFhDrag(e.dataTransfer) && !dragging.value) return
+    if (!isArDrag(e.dataTransfer) && !dragging.value) return
 
     e.preventDefault()
     e.stopPropagation()

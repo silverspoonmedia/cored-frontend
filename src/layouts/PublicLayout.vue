@@ -21,13 +21,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div id="main-content" class="fh-public-wrapper" data-bs-theme="dark">
+  <div id="main-content" class="ar-public-wrapper" data-bs-theme="dark">
     <router-view />
   </div>
 </template>
 
 <style scoped>
-.fh-public-wrapper {
+.ar-public-wrapper {
   min-height: 100vh;
   background: var(--bs-body-bg, #1a1d20);
   display: flex;

@@ -6,35 +6,35 @@ import { confirmDialog } from '@/lib/swal'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import Modal from '@/components/Modal.vue'
-import FhDropzone from '@/components/file-hosting/FhDropzone.vue'
-import FhIcon from '@/components/file-hosting/FhIcon.vue'
-import FhShareModal from '@/components/file-hosting/FhShareModal.vue'
-import FhCollectionDescribeModal from '@/components/file-hosting/FhCollectionDescribeModal.vue'
-import FhMicrostockReviewModal from '@/components/file-hosting/FhMicrostockReviewModal.vue'
-import FhWorkspaceSwitcher from '@/components/file-hosting/FhWorkspaceSwitcher.vue'
-import FhContextMenu, { type ContextMenuState } from '@/components/file-hosting/FhContextMenu.vue'
-import FhNameMoveModal, { type FhNameMoveModal as FhNameMoveModalState } from '@/components/file-hosting/FhNameMoveModal.vue'
-import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
-import { useFhBrowse } from '@/composables/file-hosting/useFhBrowse'
+import ArDropzone from '@/components/archivd/ArDropzone.vue'
+import ArIcon from '@/components/archivd/ArIcon.vue'
+import ArShareModal from '@/components/archivd/ArShareModal.vue'
+import ArCollectionDescribeModal from '@/components/archivd/ArCollectionDescribeModal.vue'
+import ArMicrostockReviewModal from '@/components/archivd/ArMicrostockReviewModal.vue'
+import ArWorkspaceSwitcher from '@/components/archivd/ArWorkspaceSwitcher.vue'
+import ArContextMenu, { type ContextMenuState } from '@/components/archivd/ArContextMenu.vue'
+import ArNameMoveModal, { type ArNameMoveModal as ArNameMoveModalState } from '@/components/archivd/ArNameMoveModal.vue'
+import { useArchivd } from '@/composables/archivd/useArchivd'
+import { useArchivdBrowse } from '@/composables/archivd/useArchivdBrowse'
 import { useMicrostock } from '@/composables/microstock/useMicrostock'
-import { useFileHostingRealtime } from '@/composables/file-hosting/useFileHostingRealtime'
+import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
 import { useAlert } from '@/composables/useAlert'
-import { useFhDragMove } from '@/composables/file-hosting/useFhDragMove'
-import { applyBrowseClick, listingKeys, idsByEntity } from '@/composables/file-hosting/useFhSelection'
-import { resolveMicrostockBadge, formatCollectionProgress, type FhMicrostockBadgeLabels } from '@/utils/file-hosting/fhMicrostockBadge'
+import { useArchivdDragMove } from '@/composables/archivd/useArchivdDragMove'
+import { applyBrowseClick, listingKeys, idsByEntity } from '@/composables/archivd/useArchivdSelection'
+import { resolveMicrostockBadge, formatCollectionProgress, type arMicrostockBadgeLabels } from '@/utils/archivd/arMicrostockBadge'
 import { useAuth } from '@/stores/auth'
-import type { HostedFile, FhFolder, MicrostockCollectionStatusPayload } from '@/api/types'
+import type { HostedFile, ArFolder, MicrostockCollectionStatusPayload } from '@/api/types'
 
 const VIS_LINK = 'anyone_with_link'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const fh = useFileHosting()
+const ar = useArchivd()
 const ms = useMicrostock()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
-const { subscribe: subscribeFhRealtime, unsubscribe: unsubscribeFhRealtime } = useFileHostingRealtime()
+const { subscribe: subscribeArRealtime, unsubscribe: unsubscribeArRealtime } = useArchivdRealtime()
 
 // ---- Selection (owned here, shared with browse composable + drag-move) ----
 const selected = ref<Set<string>>(new Set())
@@ -94,7 +94,7 @@ const {
   loadWorkspaces,
   loadSlots,
   loadAll,
-} = useFhBrowse({ selected, clearSelection })
+} = useArchivdBrowse({ selected, clearSelection })
 
 const isBusy = ref(false)
 const allKeys = computed(() => listingKeys(folders.value, files.value))
@@ -102,12 +102,12 @@ const isEmpty = computed(() => folders.value.length === 0 && files.value.length 
 const selectedCount = computed(() => selected.value.size)
 const allSelected = computed(() => allKeys.value.length > 0 && allKeys.value.every((k) => selected.value.has(k)))
 
-const canCreateFile = computed(() => hasPermission('create file hosting file'))
-const canCreateFolder = computed(() => hasPermission('create file hosting folder'))
-const canEditFolder = computed(() => hasPermission('edit file hosting folder'))
-const canEditFile = computed(() => hasPermission('edit file hosting file'))
-const canDeleteFolder = computed(() => hasPermission('delete file hosting folder'))
-const canDeleteFile = computed(() => hasPermission('delete file hosting file'))
+const canCreateFile = computed(() => hasPermission('create archivd file'))
+const canCreateFolder = computed(() => hasPermission('create archivd folder'))
+const canEditFolder = computed(() => hasPermission('edit archivd folder'))
+const canEditFile = computed(() => hasPermission('edit archivd file'))
+const canDeleteFolder = computed(() => hasPermission('delete archivd folder'))
+const canDeleteFile = computed(() => hasPermission('delete archivd file'))
 
 function canEdit(entity: 'folder' | 'file'): boolean {
   return entity === 'folder' ? canEditFolder.value : canEditFile.value
@@ -130,7 +130,7 @@ const showReviewBtn = computed(() => {
 const showExportBtn = computed(() => isMicrostock.value && collectionStatus.value === 'review')
 const showDownloadBtn = computed(() => isMicrostock.value && collectionStatus.value === 'exported')
 
-function canLockCollection(folder: FhFolder): boolean {
+function canLockCollection(folder: ArFolder): boolean {
   if (!folder.collection_status) return false
   if (folder.collection_locked) return false
   return folder.collection_status === 'draft' || folder.collection_status === 'failed'
@@ -139,16 +139,16 @@ function canLockCollection(folder: FhFolder): boolean {
 const collectionStatusHint = computed(() => {
   const status = collectionStatus.value
   if (!isMicrostock.value || !status) return ''
-  if (status === 'locked') return t('web.file-hosting.microstock.status_locked')
+  if (status === 'locked') return t('web.archivd.microstock.status_locked')
   if (status === 'processing') {
     const extra = collectionStatusPayload.value?.billing_tier === 'free'
-      ? ` ${t('web.file-hosting.microstock.status_processing_free_tier')}`
+      ? ` ${t('web.archivd.microstock.status_processing_free_tier')}`
       : ''
-    return t('web.file-hosting.microstock.status_processing') + extra
+    return t('web.archivd.microstock.status_processing') + extra
   }
-  if (status === 'review') return t('web.file-hosting.microstock.status_review')
-  if (status === 'exported') return t('web.file-hosting.microstock.status_exported')
-  if (status === 'failed') return t('web.file-hosting.microstock.status_failed')
+  if (status === 'review') return t('web.archivd.microstock.status_review')
+  if (status === 'exported') return t('web.archivd.microstock.status_exported')
+  if (status === 'failed') return t('web.archivd.microstock.status_failed')
   return ''
 })
 
@@ -156,21 +156,21 @@ const rootLabel = computed(() => {
   if (route.query.workspace_id) {
     return browse.value?.workspace?.name
       ?? workspaces.value.find((w) => w.id === route.query.workspace_id)?.name
-      ?? t('web.file-hosting.workspace_team')
+      ?? t('web.archivd.workspace_team')
   }
-  return t('web.file-hosting.personal')
+  return t('web.archivd.personal')
 })
 
-const badgeLabels = computed<FhMicrostockBadgeLabels>(() => ({
-  noMetadata: t('web.file-hosting.microstock.no_metadata'),
-  statusPending: t('web.file-hosting.microstock.status_pending'),
-  statusGenerated: t('web.file-hosting.microstock.status_generated'),
-  statusFinalized: t('web.file-hosting.microstock.status_finalized'),
-  statusFailed: t('web.file-hosting.microstock.status_failed_item'),
-  stageVision: t('web.file-hosting.microstock.stage_vision'),
-  stageThinking: t('web.file-hosting.microstock.stage_thinking'),
-  stageQueuedThinking: t('web.file-hosting.microstock.stage_queued_thinking'),
-  stageDegraded: t('web.file-hosting.microstock.stage_degraded'),
+const badgeLabels = computed<arMicrostockBadgeLabels>(() => ({
+  noMetadata: t('web.archivd.microstock.no_metadata'),
+  statusPending: t('web.archivd.microstock.status_pending'),
+  statusGenerated: t('web.archivd.microstock.status_generated'),
+  statusFinalized: t('web.archivd.microstock.status_finalized'),
+  statusFailed: t('web.archivd.microstock.status_failed_item'),
+  stageVision: t('web.archivd.microstock.stage_vision'),
+  stageThinking: t('web.archivd.microstock.stage_thinking'),
+  stageQueuedThinking: t('web.archivd.microstock.stage_queued_thinking'),
+  stageDegraded: t('web.archivd.microstock.stage_degraded'),
 }))
 
 function msBadge(file: HostedFile) {
@@ -194,10 +194,10 @@ function keepQuery(): Record<string, string | string[]> {
 
 function folderHref(folderId: string | null): string {
   if (!folderId) {
-    return router.resolve({ name: 'file-hosting.index.view', query: route.query }).href
+    return router.resolve({ name: 'archivd.index.view', query: route.query }).href
   }
   return router.resolve({
-    name: 'file-hosting.index.folder',
+    name: 'archivd.index.folder',
     params: { folderId },
     query: route.query,
   }).href
@@ -205,7 +205,7 @@ function folderHref(folderId: string | null): string {
 
 function fileHref(id: string): string {
   return router.resolve({
-    name: 'file-hosting.show.view',
+    name: 'archivd.show.view',
     params: { id },
     query: route.query,
   }).href
@@ -216,24 +216,24 @@ function switchWorkspace(id: string | null): void {
   if (id) query.workspace_id = id
   const uid = route.query.user_id
   if (typeof uid === 'string' && uid) query.user_id = uid
-  router.push({ name: 'file-hosting.index.view', query })
+  router.push({ name: 'archivd.index.view', query })
 }
 
 function navigateToFolder(folderId: string): void {
   router.push({
-    name: 'file-hosting.index.folder',
+    name: 'archivd.index.folder',
     params: { folderId },
     query: keepQuery(),
   })
 }
 
 function navigateToRoot(): void {
-  router.push({ name: 'file-hosting.index.view', query: keepQuery() })
+  router.push({ name: 'archivd.index.view', query: keepQuery() })
 }
 
 function openFile(file: HostedFile): void {
   router.push({
-    name: 'file-hosting.show.view',
+    name: 'archivd.show.view',
     params: { id: file.id },
     query: keepQuery(),
   })
@@ -247,7 +247,7 @@ function openItem(entity: 'folder' | 'file', item: { id: string }): void {
 // ---- Selection interactions ----
 function onBrowseSelect(e: MouseEvent, entity: 'folder' | 'file', item: { id: string }): void {
   const target = e.target
-  if (target instanceof Element && target.closest('input, button, .fh-table__action-btn, .fh-action-group, a.fh-table__action-btn')) {
+  if (target instanceof Element && target.closest('input, button, .ar-table__action-btn, .ar-action-group, a.ar-table__action-btn')) {
     return
   }
   e.preventDefault()
@@ -270,7 +270,7 @@ function onBrowseOpen(e: MouseEvent, entity: 'folder' | 'file', item: { id: stri
 // ---- Context menu ----
 const contextMenu = ref<ContextMenuState | null>(null)
 
-function onContext(e: MouseEvent, entity: 'folder' | 'file', item: FhFolder | HostedFile): void {
+function onContext(e: MouseEvent, entity: 'folder' | 'file', item: ArFolder | HostedFile): void {
   e.preventDefault()
   const key = `${entity}:${item.id}`
   if (!selected.value.has(key)) {
@@ -286,7 +286,7 @@ function closeCtx(): void {
 }
 
 // ---- Modals ----
-const modal = ref<FhNameMoveModalState | null>(null)
+const modal = ref<ArNameMoveModalState | null>(null)
 const showShare = ref(false)
 const shareVisibility = ref('private')
 const shareUrl = ref<string | null>(null)
@@ -294,13 +294,13 @@ const shareTarget = ref<{ entity: 'folder' | 'file'; id: string } | null>(null)
 const deleteTarget = ref<{ type: 'folder' | 'file'; id: string } | null>(null)
 
 function visLabel(v: string): string {
-  if (v === VIS_LINK) return t('web.file-hosting.visibility.anyone_with_link')
-  if (v === 'workspace') return t('web.file-hosting.workspace_team')
-  return t('web.file-hosting.visibility.private')
+  if (v === VIS_LINK) return t('web.archivd.visibility.anyone_with_link')
+  if (v === 'workspace') return t('web.archivd.workspace_team')
+  return t('web.archivd.visibility.private')
 }
 
 function visBadgeClass(v: string): string {
-  return v === VIS_LINK ? 'fh-badge--link' : 'fh-badge--private'
+  return v === VIS_LINK ? 'ar-badge--link' : 'ar-badge--private'
 }
 
 async function withBusy(fn: () => Promise<void>): Promise<boolean> {
@@ -309,7 +309,7 @@ async function withBusy(fn: () => Promise<void>): Promise<boolean> {
     await fn()
     return true
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
     return false
   } finally {
     isBusy.value = false
@@ -322,16 +322,16 @@ async function moveItems(keys: string[], targetFolderId: string | null): Promise
     for (const key of keys) {
       const [entity, id] = key.split(':')
       if (!id) continue
-      if (entity === 'folder') await fh.moveFolder(id, targetFolderId, ctxParams())
-      else if (entity === 'file') await fh.moveFile(id, targetFolderId, ctxParams())
+      if (entity === 'folder') await ar.moveFolder(id, targetFolderId, ctxParams())
+      else if (entity === 'file') await ar.moveFile(id, targetFolderId, ctxParams())
     }
-    showSuccess(t('web.file-hosting.items_moved', { count: keys.length }))
+    showSuccess(t('web.archivd.items_moved', { count: keys.length }))
     clearSelection()
     await loadAll()
   })
 }
 
-const drag = useFhDragMove({
+const drag = useArchivdDragMove({
   selected,
   clearSelection,
   toggleSelect,
@@ -371,21 +371,21 @@ async function submitModal(): Promise<void> {
     const name = m.name.trim()
     if (!name) return
     ok = await withBusy(async () => {
-      await fh.createFolder(name, {
+      await ar.createFolder(name, {
         parent_id: currentFolderId.value ?? undefined,
         user_id: typeof route.query.user_id === 'string' ? route.query.user_id : undefined,
         workspace_id: typeof route.query.workspace_id === 'string' ? route.query.workspace_id : undefined,
       })
-      showSuccess(t('web.file-hosting.folder_created'))
+      showSuccess(t('web.archivd.folder_created'))
       await loadAll()
     })
   } else if (m.type === 'rename') {
     const name = m.name.trim()
     if (!name) return
     ok = await withBusy(async () => {
-      if (m.entity === 'folder') await fh.renameFolder(m.id, name, ctxParams())
-      else await fh.renameFile(m.id, name, ctxParams())
-      showSuccess(t('web.file-hosting.renamed'))
+      if (m.entity === 'folder') await ar.renameFolder(m.id, name, ctxParams())
+      else await ar.renameFile(m.id, name, ctxParams())
+      showSuccess(t('web.archivd.renamed'))
       await loadBrowse({ keepSelection: true })
     })
   } else if (m.type === 'move') {
@@ -400,16 +400,16 @@ async function saveShare(): Promise<void> {
   const ok = await withBusy(async () => {
     let updated: { share_url: string | null }
     if (entity === 'folder') {
-      updated = await fh.setFolderVisibility(id, shareVisibility.value, ctxParams())
+      updated = await ar.setFolderVisibility(id, shareVisibility.value, ctxParams())
     } else {
-      updated = await fh.setFileVisibility(id, shareVisibility.value, ctxParams())
+      updated = await ar.setFileVisibility(id, shareVisibility.value, ctxParams())
     }
     shareUrl.value = updated.share_url
     if (shareVisibility.value === VIS_LINK && updated.share_url) {
       await navigator.clipboard.writeText(updated.share_url)
-      showSuccess(t('web.file-hosting.share_url_copied'))
+      showSuccess(t('web.archivd.share_url_copied'))
     } else {
-      showSuccess(t('web.file-hosting.visibility_updated'))
+      showSuccess(t('web.archivd.visibility_updated'))
     }
     await loadBrowse({ keepSelection: true })
   })
@@ -420,9 +420,9 @@ async function openDelete(entity: 'folder' | 'file', id: string): Promise<void> 
   contextMenu.value = null
   deleteTarget.value = { type: entity, id }
   const confirmed = await confirmDialog({
-    title: t('web.file-hosting.modal_delete'),
-    html: `<p>${t('web.file-hosting.confirm_delete_item')}</p><p class="text-muted small">${t('web.file-hosting.trash_hint')}</p>`,
-    confirmText: t('web.file-hosting.delete'),
+    title: t('web.archivd.modal_delete'),
+    html: `<p>${t('web.archivd.confirm_delete_item')}</p><p class="text-muted small">${t('web.archivd.trash_hint')}</p>`,
+    confirmText: t('web.archivd.delete'),
   })
   if (confirmed) await handleDelete()
   else deleteTarget.value = null
@@ -432,9 +432,9 @@ async function handleDelete(): Promise<void> {
   if (!deleteTarget.value) return
   const { type, id } = deleteTarget.value
   const ok = await withBusy(async () => {
-    if (type === 'folder') await fh.deleteFolder(id, ctxParams())
-    else await fh.deleteFile(id, ctxParams())
-    showSuccess(t('web.file-hosting.deleted'))
+    if (type === 'folder') await ar.deleteFolder(id, ctxParams())
+    else await ar.deleteFile(id, ctxParams())
+    showSuccess(t('web.archivd.deleted'))
     await loadAll()
   })
   if (ok) {
@@ -447,9 +447,9 @@ async function handleBulkVisibility(visibility: string): Promise<void> {
   if (!ids.file.length && !ids.folder.length) return
   await withBusy(async () => {
     let total = 0
-    if (ids.folder.length) total += await fh.bulkSetFolderVisibility(ids.folder, visibility, ctxParams())
-    if (ids.file.length) total += await fh.bulkSetFileVisibility(ids.file, visibility, ctxParams())
-    showSuccess(t('web.file-hosting.items_updated', { count: total }))
+    if (ids.folder.length) total += await ar.bulkSetFolderVisibility(ids.folder, visibility, ctxParams())
+    if (ids.file.length) total += await ar.bulkSetFileVisibility(ids.file, visibility, ctxParams())
+    showSuccess(t('web.archivd.items_updated', { count: total }))
     clearSelection()
     await loadAll()
   })
@@ -460,9 +460,9 @@ async function handleBulkDelete(): Promise<void> {
   if (!ids.file.length && !ids.folder.length) return
   await withBusy(async () => {
     let total = 0
-    if (ids.folder.length) total += await fh.bulkDeleteFolders(ids.folder, ctxParams())
-    if (ids.file.length) total += await fh.bulkDeleteFiles(ids.file, ctxParams())
-    showSuccess(t('web.file-hosting.items_deleted', { count: total }))
+    if (ids.folder.length) total += await ar.bulkDeleteFolders(ids.folder, ctxParams())
+    if (ids.file.length) total += await ar.bulkDeleteFiles(ids.file, ctxParams())
+    showSuccess(t('web.archivd.items_deleted', { count: total }))
     clearSelection()
     await loadAll()
   })
@@ -489,7 +489,7 @@ function onFileUploaded(file: HostedFile): void {
 
 // ---- Microstock collection actions ----
 const showCollectionModal = ref(false)
-const collectionFolder = ref<FhFolder | null>(null)
+const collectionFolder = ref<ArFolder | null>(null)
 const lockingCollection = ref(false)
 const analyzingCollection = ref(false)
 const exportingCollection = ref(false)
@@ -501,7 +501,7 @@ const creatingMs = ref(false)
 
 const reviewFileIds = computed(() => files.value.map((f) => f.id))
 
-function openCollectionModal(folder: FhFolder): void {
+function openCollectionModal(folder: ArFolder): void {
   collectionFolder.value = folder
   showCollectionModal.value = true
 }
@@ -512,7 +512,7 @@ function openReview(fileId?: string): void {
     .map((k) => k.slice(5))[0]
   const id = fileId ?? selectedFile ?? files.value[0]?.id ?? null
   if (!id) {
-    showError(t('web.file-hosting.empty'))
+    showError(t('web.archivd.empty'))
     return
   }
   reviewFileId.value = id
@@ -524,11 +524,11 @@ async function handleLockCollection(payload: { hint: string | null; billingMode:
   lockingCollection.value = true
   try {
     await ms.lockCollection(collectionFolder.value.id, payload.hint, payload.billingMode)
-    showSuccess(t('web.file-hosting.collection_locked'))
+    showSuccess(t('web.archivd.collection_locked'))
     showCollectionModal.value = false
     await loadAll()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.lock_collection_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.lock_collection_failed'))
   } finally {
     lockingCollection.value = false
   }
@@ -540,10 +540,10 @@ async function handleAnalyzeCollection(): Promise<void> {
   analyzingCollection.value = true
   try {
     await ms.analyzeCollection(folder.id)
-    showSuccess(t('web.file-hosting.microstock.status_processing'))
+    showSuccess(t('web.archivd.microstock.status_processing'))
     await loadAll()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
   } finally {
     analyzingCollection.value = false
   }
@@ -555,10 +555,10 @@ async function handleExportCollection(): Promise<void> {
   exportingCollection.value = true
   try {
     await ms.exportCollection(folder.id)
-    showSuccess(t('web.file-hosting.microstock.status_exported'))
+    showSuccess(t('web.archivd.microstock.status_exported'))
     await loadAll()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
   } finally {
     exportingCollection.value = false
   }
@@ -570,7 +570,7 @@ async function handleDownloadCsv(): Promise<void> {
   try {
     await ms.downloadCollectionCsv(folder.id)
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
   }
 }
 
@@ -579,14 +579,14 @@ async function handleCreateMicrostock(): Promise<void> {
   creatingMs.value = true
   try {
     const ws = await ms.createWorkspace(createMsName.value.trim() || null)
-    showSuccess(t('web.file-hosting.workspace_created', { name: ws.name }))
+    showSuccess(t('web.archivd.workspace_created', { name: ws.name }))
     showCreateMs.value = false
     createMsName.value = ''
     await loadWorkspaces()
     await loadSlots()
     switchWorkspace(ws.id)
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.failed_create_workspace'))
+    showError(e instanceof Error ? e.message : t('web.archivd.failed_create_workspace'))
   } finally {
     creatingMs.value = false
   }
@@ -605,8 +605,8 @@ const collectionProgressText = computed(() => {
     payload.processed,
     payload.total,
     payload.failed,
-    t('web.file-hosting.microstock.progress', { processed: payload.processed, total: payload.total }),
-    t('web.file-hosting.microstock.progress_failed', { failed: payload.failed }),
+    t('web.archivd.microstock.progress', { processed: payload.processed, total: payload.total }),
+    t('web.archivd.microstock.progress_failed', { failed: payload.failed }),
   )
 })
 
@@ -622,7 +622,7 @@ async function refreshCollectionStatus(): Promise<void> {
   }
 }
 
-const fhRealtimeHandlers = {
+const ArRealtimeHandlers = {
   onListingChanged: () => loadBrowse({ keepSelection: true }),
   onQuotaChanged: () => { void loadQuota() },
   onCollectionAnalysisProgress: () => {
@@ -641,13 +641,13 @@ function onEsc(e: KeyboardEvent): void {
 }
 
 onMounted(() => {
-  subscribeFhRealtime(fhRealtimeHandlers)
+  subscribeArRealtime(ArRealtimeHandlers)
   document.addEventListener('click', closeCtx)
   document.addEventListener('keydown', onEsc)
 })
 
 onUnmounted(() => {
-  unsubscribeFhRealtime(fhRealtimeHandlers)
+  unsubscribeArRealtime(ArRealtimeHandlers)
   document.removeEventListener('click', closeCtx)
   document.removeEventListener('keydown', onEsc)
 })
@@ -655,60 +655,60 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="fh-manager"
+    class="ar-manager"
     data-file-manager
-    data-fh-spa
-    :class="{ 'is-fh-loading': loading, 'is-fh-busy': isBusy }"
+    data-ar-spa
+    :class="{ 'is-ar-loading': loading, 'is-ar-busy': isBusy }"
   >
-    <div v-if="isBusy" class="fh-busy-overlay" data-fh-busy-overlay>
-      <div class="fh-busy-overlay__inner" role="status">
+    <div v-if="isBusy" class="ar-busy-overlay" data-ar-busy-overlay>
+      <div class="ar-busy-overlay__inner" role="status">
         <div class="spinner-border spinner-border-sm"></div>
       </div>
     </div>
 
-    <div class="fh-toolbar">
-      <div class="fh-toolbar__search">
-        <i class="bi bi-search fh-toolbar__search-icon"></i>
+    <div class="ar-toolbar">
+      <div class="ar-toolbar__search">
+        <i class="bi bi-search ar-toolbar__search-icon"></i>
         <input
           v-model="searchQ"
           type="text"
-          class="form-control form-control-sm fh-toolbar__search-input"
-          :placeholder="t('web.file-hosting.search_placeholder')"
+          class="form-control form-control-sm ar-toolbar__search-input"
+          :placeholder="t('web.archivd.search_placeholder')"
           autocomplete="off"
           @focus="searchOpen = searchResults.length > 0"
         />
-        <div class="fh-toolbar__search-results" :class="{ 'is-open': searchOpen }">
+        <div class="ar-toolbar__search-results" :class="{ 'is-open': searchOpen }">
           <a
             v-for="r in searchResults"
             :key="r.id"
-            class="fh-search-result"
+            class="ar-search-result"
             :href="fileHref(r.id)"
             @click.prevent="openFile(r); searchOpen = false"
           >
-            <FhIcon :mime="r.mime" />
-            <div class="fh-search-result__name">{{ r.name }}</div>
-            <span class="fh-search-result__meta">{{ r.size_human || '' }}</span>
+            <ArIcon :mime="r.mime" />
+            <div class="ar-search-result__name">{{ r.name }}</div>
+            <span class="ar-search-result__meta">{{ r.size_human || '' }}</span>
           </a>
-          <div v-if="!searchResults.length && searchQ.trim()" class="fh-search-result__empty">
-            {{ t('web.file-hosting.search_no_results') }}
+          <div v-if="!searchResults.length && searchQ.trim()" class="ar-search-result__empty">
+            {{ t('web.archivd.search_no_results') }}
           </div>
         </div>
       </div>
-      <div class="fh-toolbar__view-toggle btn-group btn-group-sm" role="group" :aria-label="t('web.file-hosting.view_toggle')">
+      <div class="ar-toolbar__view-toggle btn-group btn-group-sm" role="group" :aria-label="t('web.archivd.view_toggle')">
         <button
           type="button"
-          class="fh-toolbar__view-btn btn btn-outline-secondary"
+          class="ar-toolbar__view-btn btn btn-outline-secondary"
           :class="{ 'is-active': viewMode === 'table' }"
-          :title="t('web.file-hosting.view_list')"
+          :title="t('web.archivd.view_list')"
           @click="setViewMode('table')"
         >
           <i class="bi bi-list"></i>
         </button>
         <button
           type="button"
-          class="fh-toolbar__view-btn btn btn-outline-secondary"
+          class="ar-toolbar__view-btn btn btn-outline-secondary"
           :class="{ 'is-active': viewMode === 'grid' }"
-          :title="t('web.file-hosting.view_grid')"
+          :title="t('web.archivd.view_grid')"
           @click="setViewMode('grid')"
         >
           <i class="bi bi-grid"></i>
@@ -716,19 +716,19 @@ onUnmounted(() => {
       </div>
       <router-link
         class="btn btn-outline-secondary btn-sm"
-        :to="{ name: 'file-hosting.trash.view', query: route.query }"
+        :to="{ name: 'archivd.trash.view', query: route.query }"
       >
-        <i class="bi bi-trash3 me-1"></i>{{ t('web.file-hosting.trash') }}
+        <i class="bi bi-trash3 me-1"></i>{{ t('web.archivd.trash') }}
       </router-link>
       <router-link
         v-if="isMicrostock"
         class="btn btn-outline-secondary btn-sm"
-        :to="{ name: 'file-hosting.microstock-usage.view', query: route.query }"
+        :to="{ name: 'archivd.microstock-usage.view', query: route.query }"
       >
         <i class="bi bi-wallet2 me-1"></i>{{ t('web.services.microstock.usage_balance') }}
       </router-link>
       <button v-if="canCreateFolder" type="button" class="btn btn-primary btn-sm" @click="openModal('folder')">
-        <i class="bi bi-folder-plus me-1"></i>{{ t('web.file-hosting.new_folder') }}
+        <i class="bi bi-folder-plus me-1"></i>{{ t('web.archivd.new_folder') }}
       </button>
       <button
         v-if="showLockBtn && browse?.folder"
@@ -736,7 +736,7 @@ onUnmounted(() => {
         class="btn btn-outline-primary btn-sm"
         @click="openCollectionModal(browse.folder)"
       >
-        <i class="bi bi-lock me-1"></i>{{ t('web.file-hosting.microstock.lock_describe') }}
+        <i class="bi bi-lock me-1"></i>{{ t('web.archivd.microstock.lock_describe') }}
       </button>
       <button
         v-if="showAnalyzeBtn"
@@ -746,7 +746,7 @@ onUnmounted(() => {
         @click="handleAnalyzeCollection"
       >
         <span v-if="analyzingCollection" class="spinner-border spinner-border-sm me-1"></span>
-        <i v-else class="bi bi-stars me-1"></i>{{ t('web.file-hosting.microstock.analyze') }}
+        <i v-else class="bi bi-stars me-1"></i>{{ t('web.archivd.microstock.analyze') }}
       </button>
       <button
         v-if="showReviewBtn"
@@ -754,7 +754,7 @@ onUnmounted(() => {
         class="btn btn-outline-secondary btn-sm"
         @click="openReview()"
       >
-        <i class="bi bi-pencil-square me-1"></i>{{ t('web.file-hosting.microstock.review') }}
+        <i class="bi bi-pencil-square me-1"></i>{{ t('web.archivd.microstock.review') }}
       </button>
       <button
         v-if="showExportBtn"
@@ -764,7 +764,7 @@ onUnmounted(() => {
         @click="handleExportCollection"
       >
         <span v-if="exportingCollection" class="spinner-border spinner-border-sm me-1"></span>
-        <i v-else class="bi bi-file-earmark-spreadsheet me-1"></i>{{ t('web.file-hosting.microstock.export_csv') }}
+        <i v-else class="bi bi-file-earmark-spreadsheet me-1"></i>{{ t('web.archivd.microstock.export_csv') }}
       </button>
       <button
         v-if="showDownloadBtn"
@@ -772,9 +772,9 @@ onUnmounted(() => {
         class="btn btn-outline-secondary btn-sm"
         @click="handleDownloadCsv"
       >
-        <i class="bi bi-download me-1"></i>{{ t('web.file-hosting.microstock.download_csv') }}
+        <i class="bi bi-download me-1"></i>{{ t('web.archivd.microstock.download_csv') }}
       </button>
-      <FhWorkspaceSwitcher
+      <ArWorkspaceSwitcher
         :active-workspace-id="typeof route.query.workspace_id === 'string' ? route.query.workspace_id : null"
         :root-label="rootLabel"
         :workspaces="workspaces"
@@ -785,15 +785,15 @@ onUnmounted(() => {
       />
     </div>
 
-    <nav class="fh-breadcrumb" data-fh-breadcrumb aria-label="breadcrumb">
+    <nav class="ar-breadcrumb" data-ar-breadcrumb aria-label="breadcrumb">
       <template v-if="!crumbs.length">
-        <span class="fh-breadcrumb__item is-active">
-          <i class="bi bi-folder2-open fh-breadcrumb__root-icon me-1"></i>{{ rootLabel }}
+        <span class="ar-breadcrumb__item is-active">
+          <i class="bi bi-folder2-open ar-breadcrumb__root-icon me-1"></i>{{ rootLabel }}
         </span>
       </template>
       <template v-else>
         <a
-          class="fh-breadcrumb__item"
+          class="ar-breadcrumb__item"
           :class="{ 'is-drop-target': drag.isDropTarget('root') }"
           :href="folderHref(null)"
           @click.prevent="navigateToRoot"
@@ -801,14 +801,14 @@ onUnmounted(() => {
           @dragleave="drag.onDropLeave($event, 'root')"
           @drop="drag.onDrop($event, 'root')"
         >
-          <i class="bi bi-folder2-open fh-breadcrumb__root-icon me-1"></i>{{ rootLabel }}
+          <i class="bi bi-folder2-open ar-breadcrumb__root-icon me-1"></i>{{ rootLabel }}
         </a>
         <template v-for="(crumb, i) in crumbs" :key="crumb.id">
-          <i class="bi bi-chevron-right fh-breadcrumb__sep"></i>
-          <span v-if="i === crumbs.length - 1" class="fh-breadcrumb__item is-active">{{ crumb.name }}</span>
+          <i class="bi bi-chevron-right ar-breadcrumb__sep"></i>
+          <span v-if="i === crumbs.length - 1" class="ar-breadcrumb__item is-active">{{ crumb.name }}</span>
           <a
             v-else
-            class="fh-breadcrumb__item"
+            class="ar-breadcrumb__item"
             :class="{ 'is-drop-target': drag.isDropTarget(crumb.id) }"
             :href="folderHref(crumb.id)"
             @click.prevent="navigateToFolder(crumb.id)"
@@ -820,18 +820,18 @@ onUnmounted(() => {
       </template>
     </nav>
 
-    <div v-if="quota" data-fh-quota>
-      <div class="fh-quota">
-        <div class="fh-quota__header">
-          <span class="fh-quota__label">{{ t('web.file-hosting.quota_used') }}</span>
-          <span class="fh-quota__value">
+    <div v-if="quota" data-ar-quota>
+      <div class="ar-quota">
+        <div class="ar-quota__header">
+          <span class="ar-quota__label">{{ t('web.archivd.quota_used') }}</span>
+          <span class="ar-quota__value">
             {{ quota.used_bytes_human || '0 B' }} /
-            {{ Number(quota.quota_bytes) > 0 ? (quota.quota_bytes_human || '0 B') : t('web.file-hosting.quota_unlimited') }}
+            {{ Number(quota.quota_bytes) > 0 ? (quota.quota_bytes_human || '0 B') : t('web.archivd.quota_unlimited') }}
           </span>
         </div>
-        <div class="fh-quota__track">
+        <div class="ar-quota__track">
           <div
-          class="fh-quota__fill"
+          class="ar-quota__fill"
           :class="{ 'is-warn': quotaPct >= 75 && quotaPct < 90, 'is-danger': quotaPct >= 90 }"
           :style="{ width: (Number(quota.quota_bytes) > 0 ? quotaPct : 3) + '%' }"
         ></div>
@@ -843,7 +843,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <FhDropzone
+    <ArDropzone
       v-if="canCreateFile"
       :folder-id="uploadCtx.folderId"
       :user-id="uploadCtx.userId"
@@ -854,16 +854,16 @@ onUnmounted(() => {
       @refresh="loadAll"
     />
 
-    <div v-show="selectedCount > 0" class="fh-bulk-bar">
-      <span class="fh-bulk-bar__count"><strong>{{ selectedCount }}</strong> {{ t('web.file-hosting.bulk.selected') }}</span>
-      <div class="fh-bulk-bar__actions">
+    <div v-show="selectedCount > 0" class="ar-bulk-bar">
+      <span class="ar-bulk-bar__count"><strong>{{ selectedCount }}</strong> {{ t('web.archivd.bulk.selected') }}</span>
+      <div class="ar-bulk-bar__actions">
         <button
           v-if="canEditFile || canEditFolder"
           type="button"
           class="btn btn-outline-primary btn-sm"
           @click="openModal('move', { keys: [...selected] })"
         >
-          <i class="bi bi-folder-symlink me-1"></i>{{ t('web.file-hosting.bulk.move') }}
+          <i class="bi bi-folder-symlink me-1"></i>{{ t('web.archivd.bulk.move') }}
         </button>
         <button
           v-if="canEditFile || canEditFolder"
@@ -871,7 +871,7 @@ onUnmounted(() => {
           class="btn btn-outline-success btn-sm"
           @click="handleBulkVisibility(VIS_LINK)"
         >
-          <i class="bi bi-share me-1"></i>{{ t('web.file-hosting.bulk.share') }}
+          <i class="bi bi-share me-1"></i>{{ t('web.archivd.bulk.share') }}
         </button>
         <button
           v-if="canEditFile || canEditFolder"
@@ -879,7 +879,7 @@ onUnmounted(() => {
           class="btn btn-outline-secondary btn-sm"
           @click="handleBulkVisibility('private')"
         >
-          <i class="bi bi-shield-lock me-1"></i>{{ t('web.file-hosting.bulk.unshare') }}
+          <i class="bi bi-shield-lock me-1"></i>{{ t('web.archivd.bulk.unshare') }}
         </button>
         <button
           v-if="canDeleteFile || canDeleteFolder"
@@ -887,7 +887,7 @@ onUnmounted(() => {
           class="btn btn-outline-danger btn-sm"
           @click="handleBulkDelete"
         >
-          <i class="bi bi-trash me-1"></i>{{ t('web.file-hosting.bulk.delete') }}
+          <i class="bi bi-trash me-1"></i>{{ t('web.archivd.bulk.delete') }}
         </button>
       </div>
     </div>
@@ -908,12 +908,12 @@ onUnmounted(() => {
       @retry="loadAll"
     />
 
-    <div v-else data-fh-panel="browse">
+    <div v-else data-ar-panel="browse">
       <div v-show="viewMode === 'table'" class="table-responsive">
-        <table class="table fh-table">
+        <table class="table ar-table">
           <thead>
             <tr>
-              <th class="fh-table__select-cell">
+              <th class="ar-table__select-cell">
                 <input
                   type="checkbox"
                   class="form-check-input"
@@ -921,47 +921,47 @@ onUnmounted(() => {
                   @change="selectAllKeys(allKeys, ($event.target as HTMLInputElement).checked)"
                 />
               </th>
-              <th class="fh-table__icon-cell"></th>
-              <th>{{ t('web.file-hosting.columns.name') }}</th>
-              <th>{{ t('web.file-hosting.columns.type') }}</th>
-              <th>{{ t('web.file-hosting.columns.size') }}</th>
-              <th>{{ t('web.file-hosting.columns.visibility') }}</th>
+              <th class="ar-table__icon-cell"></th>
+              <th>{{ t('web.archivd.columns.name') }}</th>
+              <th>{{ t('web.archivd.columns.type') }}</th>
+              <th>{{ t('web.archivd.columns.size') }}</th>
+              <th>{{ t('web.archivd.columns.visibility') }}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-if="parentMeta"
-              class="fh-parent-row"
-              data-fh-row
-              data-fh-entity="parent"
+              class="ar-parent-row"
+              data-ar-row
+              data-ar-entity="parent"
               :class="{ 'is-drop-target': drag.isDropTarget(parentMeta.id || 'root') }"
               @dragover="drag.onDropOver($event, parentMeta.id || 'root')"
               @dragleave="drag.onDropLeave($event, parentMeta.id || 'root')"
               @drop="drag.onDrop($event, parentMeta.id || 'root')"
             >
-              <td class="fh-table__select-cell"></td>
-              <td class="fh-table__icon-cell">
+              <td class="ar-table__select-cell"></td>
+              <td class="ar-table__icon-cell">
                 <a :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
-                  <i class="bi bi-folder2 fh-parent-row__icon"></i>
+                  <i class="bi bi-folder2 ar-parent-row__icon"></i>
                 </a>
               </td>
               <td>
-                <a class="fh-table__name" :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
-                  <span class="fh-table__name-text">...</span>
+                <a class="ar-table__name" :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
+                  <span class="ar-table__name-text">...</span>
                 </a>
               </td>
-              <td class="fh-table__type text-muted">{{ t('web.file-hosting.parent') }}</td>
-              <td class="fh-table__size">—</td>
+              <td class="ar-table__type text-muted">{{ t('web.archivd.parent') }}</td>
+              <td class="ar-table__size">—</td>
               <td></td>
               <td></td>
             </tr>
             <tr
               v-for="folder in folders"
               :key="'f:' + folder.id"
-              data-fh-row
-              data-fh-entity="folder"
-              :data-fh-id="folder.id"
+              data-ar-row
+              data-ar-entity="folder"
+              :data-ar-id="folder.id"
               draggable="true"
               :class="{
                 'is-dragging-source': drag.isDraggingSource('folder', folder.id),
@@ -977,7 +977,7 @@ onUnmounted(() => {
               @dragleave="drag.onDropLeave($event, folder.id)"
               @drop="drag.onDrop($event, folder.id)"
             >
-              <td class="fh-table__select-cell">
+              <td class="ar-table__select-cell">
                 <input
                   type="checkbox"
                   class="form-check-input"
@@ -986,43 +986,43 @@ onUnmounted(() => {
                   @change="toggleSelect('folder:' + folder.id, ($event.target as HTMLInputElement).checked)"
                 />
               </td>
-              <td class="fh-table__icon-cell">
+              <td class="ar-table__icon-cell">
                 <a :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">
-                  <FhIcon is-folder />
+                  <ArIcon is-folder />
                 </a>
               </td>
               <td>
-                <a class="fh-table__name" :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">
-                  <span class="fh-table__name-text">{{ folder.name }}</span>
+                <a class="ar-table__name" :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">
+                  <span class="ar-table__name-text">{{ folder.name }}</span>
                 </a>
               </td>
-              <td class="fh-table__type">{{ t('web.file-hosting.type_folder') }}</td>
-              <td class="fh-table__size">—</td>
+              <td class="ar-table__type">{{ t('web.archivd.type_folder') }}</td>
+              <td class="ar-table__size">—</td>
               <td>
-                <span class="fh-badge" :class="visBadgeClass(folder.visibility)">{{ visLabel(folder.visibility) }}</span>
+                <span class="ar-badge" :class="visBadgeClass(folder.visibility)">{{ visLabel(folder.visibility) }}</span>
               </td>
-              <td class="fh-table__actions">
-                <div class="fh-action-group">
+              <td class="ar-table__actions">
+                <div class="ar-action-group">
                   <button
                     v-if="canLockCollection(folder)"
                     type="button"
-                    class="fh-table__action-btn"
-                    :title="t('web.file-hosting.microstock.lock_describe')"
+                    class="ar-table__action-btn"
+                    :title="t('web.archivd.microstock.lock_describe')"
                     @click="openCollectionModal(folder)"
                   ><i class="bi bi-lock-fill"></i></button>
-                  <button v-if="canEdit('folder')" type="button" class="fh-table__action-btn" @click="openModal('rename', { entity: 'folder', id: folder.id, name: folder.name })"><i class="bi bi-pencil"></i></button>
-                  <button v-if="canEdit('folder')" type="button" class="fh-table__action-btn" @click="openModal('move', { keys: ['folder:' + folder.id] })"><i class="bi bi-folder-symlink"></i></button>
-                  <button v-if="canEdit('folder')" type="button" class="fh-table__action-btn" @click="openShare('folder', folder)"><i class="bi bi-share"></i></button>
-                  <button v-if="canDelete('folder')" type="button" class="fh-table__action-btn is-danger" @click="openDelete('folder', folder.id)"><i class="bi bi-trash"></i></button>
+                  <button v-if="canEdit('folder')" type="button" class="ar-table__action-btn" @click="openModal('rename', { entity: 'folder', id: folder.id, name: folder.name })"><i class="bi bi-pencil"></i></button>
+                  <button v-if="canEdit('folder')" type="button" class="ar-table__action-btn" @click="openModal('move', { keys: ['folder:' + folder.id] })"><i class="bi bi-folder-symlink"></i></button>
+                  <button v-if="canEdit('folder')" type="button" class="ar-table__action-btn" @click="openShare('folder', folder)"><i class="bi bi-share"></i></button>
+                  <button v-if="canDelete('folder')" type="button" class="ar-table__action-btn is-danger" @click="openDelete('folder', folder.id)"><i class="bi bi-trash"></i></button>
                 </div>
               </td>
             </tr>
             <tr
               v-for="file in files"
               :key="'file:' + file.id"
-              data-fh-row
-              data-fh-entity="file"
-              :data-fh-id="file.id"
+              data-ar-row
+              data-ar-entity="file"
+              :data-ar-id="file.id"
               draggable="true"
               :class="{
                 'is-dragging-source': drag.isDraggingSource('file', file.id),
@@ -1034,7 +1034,7 @@ onUnmounted(() => {
               @dragstart="drag.onRowDragStart($event, 'file', file.id)"
               @dragend="drag.onDragEnd"
             >
-              <td class="fh-table__select-cell">
+              <td class="ar-table__select-cell">
                 <input
                   type="checkbox"
                   class="form-check-input"
@@ -1043,38 +1043,38 @@ onUnmounted(() => {
                   @change="toggleSelect('file:' + file.id, ($event.target as HTMLInputElement).checked)"
                 />
               </td>
-              <td class="fh-table__icon-cell">
+              <td class="ar-table__icon-cell">
                 <a :href="fileHref(file.id)" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">
-                  <FhIcon :mime="file.mime" />
+                  <ArIcon :mime="file.mime" />
                 </a>
               </td>
               <td>
-                <a class="fh-table__name" :href="fileHref(file.id)" :title="file.name" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">
-                  <span class="fh-table__name-text">{{ file.name }}</span>
+                <a class="ar-table__name" :href="fileHref(file.id)" :title="file.name" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">
+                  <span class="ar-table__name-text">{{ file.name }}</span>
                 </a>
-                <span v-if="isMicrostock" class="badge fh-ms-badge ms-1" :class="msBadge(file).cls">{{ msBadge(file).label }}</span>
-                <span v-if="file.is_hash_blocked" class="badge text-bg-danger ms-1">{{ t('web.file-hosting.blocked_badge') }}</span>
+                <span v-if="isMicrostock" class="badge ar-ms-badge ms-1" :class="msBadge(file).cls">{{ msBadge(file).label }}</span>
+                <span v-if="file.is_hash_blocked" class="badge text-bg-danger ms-1">{{ t('web.archivd.blocked_badge') }}</span>
               </td>
-              <td class="fh-table__type">{{ file.mime || t('web.file-hosting.type_file') }}</td>
-              <td class="fh-table__size">{{ file.size_human || '—' }}</td>
+              <td class="ar-table__type">{{ file.mime || t('web.archivd.type_file') }}</td>
+              <td class="ar-table__size">{{ file.size_human || '—' }}</td>
               <td>
-                <span class="fh-badge" :class="visBadgeClass(file.visibility)">{{ visLabel(file.visibility) }}</span>
+                <span class="ar-badge" :class="visBadgeClass(file.visibility)">{{ visLabel(file.visibility) }}</span>
               </td>
-              <td class="fh-table__actions">
-                <div class="fh-action-group">
-                  <a class="fh-table__action-btn" :href="fileHref(file.id)" draggable="false" @click.prevent="openItem('file', file)"><i class="bi bi-eye"></i></a>
-                  <button v-if="canEdit('file')" type="button" class="fh-table__action-btn" @click="openModal('rename', { entity: 'file', id: file.id, name: file.name })"><i class="bi bi-pencil"></i></button>
-                  <button v-if="canEdit('file')" type="button" class="fh-table__action-btn" @click="openModal('move', { keys: ['file:' + file.id] })"><i class="bi bi-folder-symlink"></i></button>
-                  <button v-if="canEdit('file')" type="button" class="fh-table__action-btn" @click="openShare('file', file)"><i class="bi bi-share"></i></button>
-                  <button v-if="canDelete('file')" type="button" class="fh-table__action-btn is-danger" @click="openDelete('file', file.id)"><i class="bi bi-trash"></i></button>
+              <td class="ar-table__actions">
+                <div class="ar-action-group">
+                  <a class="ar-table__action-btn" :href="fileHref(file.id)" draggable="false" @click.prevent="openItem('file', file)"><i class="bi bi-eye"></i></a>
+                  <button v-if="canEdit('file')" type="button" class="ar-table__action-btn" @click="openModal('rename', { entity: 'file', id: file.id, name: file.name })"><i class="bi bi-pencil"></i></button>
+                  <button v-if="canEdit('file')" type="button" class="ar-table__action-btn" @click="openModal('move', { keys: ['file:' + file.id] })"><i class="bi bi-folder-symlink"></i></button>
+                  <button v-if="canEdit('file')" type="button" class="ar-table__action-btn" @click="openShare('file', file)"><i class="bi bi-share"></i></button>
+                  <button v-if="canDelete('file')" type="button" class="ar-table__action-btn is-danger" @click="openDelete('file', file.id)"><i class="bi bi-trash"></i></button>
                 </div>
               </td>
             </tr>
             <tr v-if="isEmpty && !parentMeta">
               <td colspan="7">
-                <div class="fh-empty">
-                  <i class="bi bi-folder2-open fh-empty__icon"></i>
-                  <div class="fh-empty__text">{{ t('web.file-hosting.empty') }}</div>
+                <div class="ar-empty">
+                  <i class="bi bi-folder2-open ar-empty__icon"></i>
+                  <div class="ar-empty__text">{{ t('web.archivd.empty') }}</div>
                 </div>
               </td>
             </tr>
@@ -1082,32 +1082,32 @@ onUnmounted(() => {
         </table>
       </div>
 
-      <div v-show="viewMode === 'grid'" class="fh-grid">
+      <div v-show="viewMode === 'grid'" class="ar-grid">
         <div
           v-if="parentMeta"
-          class="fh-file-card is-parent"
-          data-fh-row
-          data-fh-entity="parent"
+          class="ar-file-card is-parent"
+          data-ar-row
+          data-ar-entity="parent"
           :class="{ 'is-drop-target': drag.isDropTarget(parentMeta.id || 'root') }"
           @dragover="drag.onDropOver($event, parentMeta.id || 'root')"
           @dragleave="drag.onDropLeave($event, parentMeta.id || 'root')"
           @drop="drag.onDrop($event, parentMeta.id || 'root')"
         >
-          <div class="fh-file-card__icon">
+          <div class="ar-file-card__icon">
             <a :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">
-              <i class="bi bi-folder2 fh-parent-row__icon"></i>
+              <i class="bi bi-folder2 ar-parent-row__icon"></i>
             </a>
           </div>
-          <a class="fh-file-card__name" :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">...</a>
-          <div class="fh-file-card__meta">{{ t('web.file-hosting.parent') }}</div>
+          <a class="ar-file-card__name" :href="folderHref(parentMeta.id)" draggable="false" @click.prevent="parentMeta.id ? navigateToFolder(parentMeta.id) : navigateToRoot()">...</a>
+          <div class="ar-file-card__meta">{{ t('web.archivd.parent') }}</div>
         </div>
         <div
           v-for="folder in folders"
           :key="'gf:' + folder.id"
-          class="fh-file-card"
-          data-fh-row
-          data-fh-entity="folder"
-          :data-fh-id="folder.id"
+          class="ar-file-card"
+          data-ar-row
+          data-ar-entity="folder"
+          :data-ar-id="folder.id"
           draggable="true"
           :class="{
             'is-dragging-source': drag.isDraggingSource('folder', folder.id),
@@ -1125,26 +1125,26 @@ onUnmounted(() => {
         >
           <input
             type="checkbox"
-            class="form-check-input fh-file-card__select"
+            class="form-check-input ar-file-card__select"
             :checked="selected.has('folder:' + folder.id)"
             @click.stop
             @change="toggleSelect('folder:' + folder.id, ($event.target as HTMLInputElement).checked)"
           />
-          <div class="fh-file-card__icon">
+          <div class="ar-file-card__icon">
             <a :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">
-              <FhIcon is-folder />
+              <ArIcon is-folder />
             </a>
           </div>
-          <a class="fh-file-card__name" :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">{{ folder.name }}</a>
-          <div class="fh-file-card__meta">{{ t('web.file-hosting.type_folder') }}</div>
+          <a class="ar-file-card__name" :href="folderHref(folder.id)" draggable="false" @click="onBrowseSelect($event, 'folder', folder)" @dblclick="onBrowseOpen($event, 'folder', folder)">{{ folder.name }}</a>
+          <div class="ar-file-card__meta">{{ t('web.archivd.type_folder') }}</div>
         </div>
         <div
           v-for="file in files"
           :key="'gfile:' + file.id"
-          class="fh-file-card"
-          data-fh-row
-          data-fh-entity="file"
-          :data-fh-id="file.id"
+          class="ar-file-card"
+          data-ar-row
+          data-ar-entity="file"
+          :data-ar-id="file.id"
           draggable="true"
           :class="{
             'is-dragging-source': drag.isDraggingSource('file', file.id),
@@ -1158,30 +1158,30 @@ onUnmounted(() => {
         >
           <input
             type="checkbox"
-            class="form-check-input fh-file-card__select"
+            class="form-check-input ar-file-card__select"
             :checked="selected.has('file:' + file.id)"
             @click.stop
             @change="toggleSelect('file:' + file.id, ($event.target as HTMLInputElement).checked)"
           />
-          <div class="fh-file-card__badge">
-            <span v-if="isMicrostock" class="badge fh-ms-badge" :class="msBadge(file).cls">{{ msBadge(file).label }}</span>
+          <div class="ar-file-card__badge">
+            <span v-if="isMicrostock" class="badge ar-ms-badge" :class="msBadge(file).cls">{{ msBadge(file).label }}</span>
           </div>
-          <div class="fh-file-card__icon">
+          <div class="ar-file-card__icon">
             <a :href="fileHref(file.id)" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">
-              <FhIcon :mime="file.mime" />
+              <ArIcon :mime="file.mime" />
             </a>
           </div>
-          <a class="fh-file-card__name" :href="fileHref(file.id)" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">{{ file.name }}</a>
-          <div class="fh-file-card__meta">{{ file.size_human || t('web.file-hosting.type_file') }}</div>
+          <a class="ar-file-card__name" :href="fileHref(file.id)" draggable="false" @click="onBrowseSelect($event, 'file', file)" @dblclick="onBrowseOpen($event, 'file', file)">{{ file.name }}</a>
+          <div class="ar-file-card__meta">{{ file.size_human || t('web.archivd.type_file') }}</div>
         </div>
-        <div v-if="isEmpty && !parentMeta" class="fh-empty">
-          <i class="bi bi-folder2-open fh-empty__icon"></i>
-          <div class="fh-empty__text">{{ t('web.file-hosting.empty') }}</div>
+        <div v-if="isEmpty && !parentMeta" class="ar-empty">
+          <i class="bi bi-folder2-open ar-empty__icon"></i>
+          <div class="ar-empty__text">{{ t('web.archivd.empty') }}</div>
         </div>
       </div>
     </div>
 
-    <FhContextMenu
+    <ArContextMenu
       v-if="contextMenu"
       :state="contextMenu"
       :can-edit="canEdit(contextMenu.entity)"
@@ -1191,7 +1191,7 @@ onUnmounted(() => {
       @close="closeCtx"
     />
 
-    <FhNameMoveModal
+    <ArNameMoveModal
       v-if="modal"
       :modal="modal"
       :busy="isBusy"
@@ -1200,14 +1200,14 @@ onUnmounted(() => {
       @close="modal = null"
     />
 
-    <FhShareModal
+    <ArShareModal
       v-model="showShare"
       v-model:visibility="shareVisibility"
       :share-url="shareUrl"
       @save="saveShare"
     />
 
-    <FhCollectionDescribeModal
+    <ArCollectionDescribeModal
       v-model="showCollectionModal"
       :folder="collectionFolder"
       :file-count="files.length"
@@ -1216,7 +1216,7 @@ onUnmounted(() => {
       @lock="handleLockCollection"
     />
 
-    <FhMicrostockReviewModal
+    <ArMicrostockReviewModal
       v-model="showReview"
       v-model:file-id="reviewFileId"
       :file-ids="reviewFileIds"
@@ -1224,23 +1224,23 @@ onUnmounted(() => {
       @saved="loadBrowse({ keepSelection: true })"
     />
 
-    <Modal v-model="showCreateMs" :title="t('web.file-hosting.microstock.create_title')">
-      <p class="small text-muted">{{ t('web.file-hosting.microstock.create_hint') }}</p>
-      <label class="form-label" for="fh-ms-ws-name">{{ t('web.file-hosting.microstock.name_label') }}</label>
+    <Modal v-model="showCreateMs" :title="t('web.archivd.microstock.create_title')">
+      <p class="small text-muted">{{ t('web.archivd.microstock.create_hint') }}</p>
+      <label class="form-label" for="ar-ms-ws-name">{{ t('web.archivd.microstock.name_label') }}</label>
       <input
-        id="fh-ms-ws-name"
+        id="ar-ms-ws-name"
         v-model="createMsName"
         type="text"
         class="form-control"
         maxlength="120"
-        :placeholder="t('web.file-hosting.microstock.name_placeholder')"
+        :placeholder="t('web.archivd.microstock.name_placeholder')"
         @keyup.enter="handleCreateMicrostock"
       />
       <template #footer>
-        <button type="button" class="btn btn-outline-secondary" @click="showCreateMs = false">{{ t('web.file-hosting.cancel') }}</button>
+        <button type="button" class="btn btn-outline-secondary" @click="showCreateMs = false">{{ t('web.archivd.cancel') }}</button>
         <button type="button" class="btn btn-primary" :disabled="creatingMs" @click="handleCreateMicrostock">
           <span v-if="creatingMs" class="spinner-border spinner-border-sm me-1"></span>
-          {{ t('web.file-hosting.create') }}
+          {{ t('web.archivd.create') }}
         </button>
       </template>
     </Modal>

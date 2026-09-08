@@ -4,16 +4,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
-import FhIcon from '@/components/file-hosting/FhIcon.vue'
-import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
-import type { FhPublicBrowsePayload } from '@/api/types'
+import ArIcon from '@/components/archivd/ArIcon.vue'
+import { useArchivd } from '@/composables/archivd/useArchivd'
+import type { ArPublicBrowsePayload } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const fh = useFileHosting()
+const ar = useArchivd()
 
-const browse = ref<FhPublicBrowsePayload | null>(null)
+const browse = ref<ArPublicBrowsePayload | null>(null)
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 
@@ -21,10 +21,10 @@ async function loadFolder(): Promise<void> {
   loading.value = true
   loadError.value = null
   try {
-    browse.value = await fh.fetchPublicFolder(route.params.id as string)
+    browse.value = await ar.fetchPublicFolder(route.params.id as string)
   } catch (e) {
     browse.value = null
-    loadError.value = e instanceof Error ? e.message : t('web.file-hosting.public.folder_not_found')
+    loadError.value = e instanceof Error ? e.message : t('web.archivd.public.folder_not_found')
   } finally {
     loading.value = false
   }
@@ -56,7 +56,7 @@ function openFile(fileId: string): void {
 </script>
 
 <template>
-  <div v-if="loading" class="fh-public is-fh-loading py-5">
+  <div v-if="loading" class="ar-public is-ar-loading py-5">
     <div class="card" style="max-width: 800px; width: 100%; margin: 0 auto;">
       <div class="card-body p-4">
         <SkeletonBlock variant="line" :lines="1" width="50%" />
@@ -71,12 +71,12 @@ function openFile(fileId: string): void {
 
   <ErrorState v-else-if="loadError" :message="loadError" @retry="loadFolder" />
 
-  <div v-else-if="browse" class="fh-public">
-    <div class="fh-public__card card" style="max-width: 800px; width: 100%;">
-      <div class="fh-public__card-body card-body p-4">
-        <div class="fh-public__label text-muted small mb-2">{{ t('web.file-hosting.public.shared_folder') }}</div>
+  <div v-else-if="browse" class="ar-public">
+    <div class="ar-public__card card" style="max-width: 800px; width: 100%;">
+      <div class="ar-public__card-body card-body p-4">
+        <div class="ar-public__label text-muted small mb-2">{{ t('web.archivd.public.shared_folder') }}</div>
         <h1 class="h4 mb-3">
-          <FhIcon is-folder />
+          <ArIcon is-folder />
           {{ browse.folder.name }}
         </h1>
 
@@ -100,11 +100,11 @@ function openFile(fileId: string): void {
 
         <div v-if="browse.folders.length === 0 && browse.files.length === 0" class="text-muted text-center py-4">
           <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
-          {{ t('web.file-hosting.public.empty_folder') }}
+          {{ t('web.archivd.public.empty_folder') }}
         </div>
 
         <div v-else class="table-responsive">
-          <table class="table table-sm table-hover align-middle mb-0 fh-table">
+          <table class="table table-sm table-hover align-middle mb-0 ar-table">
             <tbody>
               <tr
                 v-for="folder in browse.folders"
@@ -114,11 +114,11 @@ function openFile(fileId: string): void {
               >
                 <td>
                   <a :href="folderHref(folder.id)" class="text-reset text-decoration-none" @click.prevent="openFolder(folder.id)">
-                    <FhIcon is-folder />
+                    <ArIcon is-folder />
                     {{ folder.name }}
                   </a>
                 </td>
-                <td class="text-muted small">{{ t('web.file-hosting.public.folder') }}</td>
+                <td class="text-muted small">{{ t('web.archivd.public.folder') }}</td>
                 <td class="text-end text-muted small">—</td>
               </tr>
               <tr
@@ -129,7 +129,7 @@ function openFile(fileId: string): void {
               >
                 <td>
                   <a :href="fileHref(file.id)" class="text-reset text-decoration-none" @click.prevent="openFile(file.id)">
-                    <FhIcon :mime="file.mime" />
+                    <ArIcon :mime="file.mime" />
                     {{ file.name }}
                   </a>
                 </td>

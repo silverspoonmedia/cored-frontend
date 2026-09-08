@@ -5,7 +5,7 @@ import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
-import FhMicrostockPlatformTab from '@/components/file-hosting/FhMicrostockPlatformTab.vue'
+import ArMicrostockPlatformTab from '@/components/archivd/ArMicrostockPlatformTab.vue'
 import { useMicrostockUsageTabs } from '@/composables/microstock/useMicrostockUsageTabs'
 import type {
   MicrostockLedgerEntry,
@@ -14,7 +14,7 @@ import type {
 
 /**
  * Microstock usage/billing view — thin shell over useMicrostockUsageTabs
- * composable + FhMicrostockPlatformTab for the admin platform tab.
+ * composable + ArMicrostockPlatformTab for the admin platform tab.
  */
 const { t, locale } = useI18n()
 
@@ -207,7 +207,7 @@ const usageRows = computed<MicrostockUsageEvent[]>(() => usageEvents.value)
 
       <!-- Platform Tab -->
       <div v-if="activeTab === 'platform' && canViewPlatform">
-        <FhMicrostockPlatformTab
+        <ArMicrostockPlatformTab
           :loading="platformLoading"
           :error="platformError"
           :overview="platformOverview"

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatBytes, formatTransferRate, uploadFile, type UploadRow } from '@/composables/file-hosting/useFhUpload'
-import { FH_ITEMS_MIME } from '@/composables/file-hosting/useFhDragMove'
+import { formatBytes, formatTransferRate, uploadFile, type UploadRow } from '@/composables/archivd/useArchivdUpload'
+import { FH_ITEMS_MIME } from '@/composables/archivd/useArchivdDragMove'
 import { useAlert } from '@/composables/useAlert'
 import type { HostedFile } from '@/api/types'
 
@@ -48,7 +48,7 @@ const canStart = computed(() => {
 
 const pendingCount = computed(() => rows.value.filter((r) => r.status === 'pending').length)
 
-function isFhItemDrag(dt: DataTransfer | null): boolean {
+function isArItemDrag(dt: DataTransfer | null): boolean {
   if (!dt?.types) return false
   return Array.from(dt.types).includes(FH_ITEMS_MIME)
 }
@@ -67,11 +67,11 @@ function onFileInputChange(e: Event): void {
 
 function gateAdd(): boolean {
   if (props.requireFolder) {
-    showError(t('web.file-hosting.microstock.error_requires_folder'))
+    showError(t('web.archivd.microstock.error_requires_folder'))
     return false
   }
   if (props.collectionLocked) {
-    showError(t('web.file-hosting.microstock.error_collection_locked'))
+    showError(t('web.archivd.microstock.error_collection_locked'))
     return false
   }
   return true
@@ -114,29 +114,29 @@ function removePending(id: string): void {
 
 function statusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: t('web.file-hosting.dropzone_status_pending'),
-    uploading: t('web.file-hosting.dropzone_status_uploading'),
-    completing: t('web.file-hosting.dropzone_status_completing'),
-    done: t('web.file-hosting.dropzone_status_done'),
-    error: t('web.file-hosting.dropzone_status_error'),
+    pending: t('web.archivd.dropzone_status_pending'),
+    uploading: t('web.archivd.dropzone_status_uploading'),
+    completing: t('web.archivd.dropzone_status_completing'),
+    done: t('web.archivd.dropzone_status_done'),
+    error: t('web.archivd.dropzone_status_error'),
   }
   return labels[status] ?? status
 }
 
 function onDragOver(e: DragEvent): void {
-  if (isFhItemDrag(e.dataTransfer)) return
+  if (isArItemDrag(e.dataTransfer)) return
   e.preventDefault()
   isDragging.value = true
 }
 
 function onDragLeave(e: DragEvent): void {
-  if (isFhItemDrag(e.dataTransfer)) return
+  if (isArItemDrag(e.dataTransfer)) return
   e.preventDefault()
   isDragging.value = false
 }
 
 function onDrop(e: DragEvent): void {
-  if (isFhItemDrag(e.dataTransfer)) return
+  if (isArItemDrag(e.dataTransfer)) return
   e.preventDefault()
   isDragging.value = false
   if (e.dataTransfer?.files?.length) {
@@ -189,7 +189,7 @@ async function startBatch(): Promise<void> {
       scheduleDismiss(row.id)
     } catch (e) {
       row.status = 'error'
-      row.error = e instanceof Error ? e.message : t('web.file-hosting.dropzone_upload_failed')
+      row.error = e instanceof Error ? e.message : t('web.archivd.dropzone_upload_failed')
       row.speed = ''
     }
   }
@@ -229,23 +229,23 @@ function scheduleDismiss(id: string): void {
 <template>
   <div>
     <div
-      class="fh-dropzone"
-      data-fh-dropzone
+      class="ar-dropzone"
+      data-ar-dropzone
       :class="{ 'is-dragging': isDragging }"
       role="button"
       tabindex="0"
-      :aria-label="t('web.file-hosting.dropzone_aria_label')"
+      :aria-label="t('web.archivd.dropzone_aria_label')"
       @dragover="onDragOver"
       @dragleave="onDragLeave"
       @drop="onDrop"
       @click="openFilePicker"
       @keydown="onDropzoneKeydown"
     >
-      <div class="fh-dropzone__icon">
+      <div class="ar-dropzone__icon">
         <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
       </div>
-      <div class="fh-dropzone__text">{{ t('web.file-hosting.upload_here') }}</div>
-      <div class="fh-dropzone__hint">{{ t('web.file-hosting.dropzone_max_files', { count: maxFiles }) }}</div>
+      <div class="ar-dropzone__text">{{ t('web.archivd.upload_here') }}</div>
+      <div class="ar-dropzone__hint">{{ t('web.archivd.dropzone_max_files', { count: maxFiles }) }}</div>
       <input
         ref="fileInputEl"
         type="file"
@@ -255,26 +255,26 @@ function scheduleDismiss(id: string): void {
       />
     </div>
 
-    <div v-if="canStart || batchRunning" class="fh-dropzone__actions">
+    <div v-if="canStart || batchRunning" class="ar-dropzone__actions">
       <button
         class="btn btn-primary btn-sm"
         type="button"
         :disabled="!canStart"
         @click.stop="startBatch"
       >
-        <i class="bi bi-play-fill me-1"></i> {{ t('web.file-hosting.dropzone_start_upload') }}
+        <i class="bi bi-play-fill me-1"></i> {{ t('web.archivd.dropzone_start_upload') }}
       </button>
     </div>
 
-    <div v-if="rows.length" class="fh-upload-queue">
+    <div v-if="rows.length" class="ar-upload-queue">
       <div
         v-for="row in rows"
         :key="row.id"
-        class="fh-upload-row"
+        class="ar-upload-row"
       >
-        <div class="fh-upload-row__header">
-          <span class="fh-upload-row__name">{{ row.name }} <span class="text-muted">({{ row.sizeLabel }})</span></span>
-          <span class="fh-upload-row__status" :class="row.status === 'error' ? 'text-danger' : row.status === 'done' ? 'text-success' : ''">
+        <div class="ar-upload-row__header">
+          <span class="ar-upload-row__name">{{ row.name }} <span class="text-muted">({{ row.sizeLabel }})</span></span>
+          <span class="ar-upload-row__status" :class="row.status === 'error' ? 'text-danger' : row.status === 'done' ? 'text-success' : ''">
             {{ row.error || statusLabel(row.status) }}
           </span>
           <button

@@ -1,5 +1,5 @@
 /**
- * Drive-like selection helpers for File Hosting browse.
+ * Drive-like selection helpers for Archivd browse.
  * Keys: "file:{uuid}" | "folder:{uuid}".
  */
 

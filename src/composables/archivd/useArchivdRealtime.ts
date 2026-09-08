@@ -1,7 +1,7 @@
 import { getEcho } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 
-export type FileHostingRealtimeHandlers = {
+export type ArchivdRealtimeHandlers = {
   onListingChanged?: () => void
   onQuotaChanged?: () => void
   onMembersChanged?: () => void
@@ -11,14 +11,14 @@ export type FileHostingRealtimeHandlers = {
   onMicrostockBillingChanged?: (payload: { owner_user_id: string; action: string }) => void
 }
 
-const handlerSet = new Set<FileHostingRealtimeHandlers>()
+const handlerSet = new Set<ArchivdRealtimeHandlers>()
 let activeChannel: string | null = null
 
 function resolveChannel(): string | null {
   const { user } = useAuth()
   const userId = user.value?.id
   if (!userId) return null
-  return `file-hosting.user.${userId}`
+  return `archivd.user.${userId}`
 }
 
 function ensureChannel(): boolean {
@@ -74,19 +74,19 @@ function maybeLeave(): void {
   activeChannel = null
 }
 
-export function subscribeFileHostingRealtime(handlers: FileHostingRealtimeHandlers): boolean {
+export function subscribeArchivdRealtime(handlers: ArchivdRealtimeHandlers): boolean {
   handlerSet.add(handlers)
   return ensureChannel()
 }
 
-export function unsubscribeFileHostingRealtime(handlers: FileHostingRealtimeHandlers): void {
+export function unsubscribeArchivdRealtime(handlers: ArchivdRealtimeHandlers): void {
   handlerSet.delete(handlers)
   maybeLeave()
 }
 
-export function useFileHostingRealtime() {
+export function useArchivdRealtime() {
   return {
-    subscribe: subscribeFileHostingRealtime,
-    unsubscribe: unsubscribeFileHostingRealtime,
+    subscribe: subscribeArchivdRealtime,
+    unsubscribe: unsubscribeArchivdRealtime,
   }
 }

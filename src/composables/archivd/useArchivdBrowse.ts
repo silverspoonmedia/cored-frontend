@@ -1,5 +1,5 @@
 /**
- * Browse/search/view-mode/lifecycle state for FileHostingView.
+ * Browse/search/view-mode/lifecycle state for ArchivdView.
  *
  * Extracted from the view so the SFC keeps template + event wiring only.
  * Owns: browse/quota/workspaces/slots/billing/collection-status refs, the
@@ -7,28 +7,28 @@
  * the route-reactive reload. Mutations (move/rename/delete/share) stay in the
  * view — they need the alert/toast layer and selection interplay.
  *
- * Selection primitives live in useFhSelection (pure) and the selection Set is
+ * Selection primitives live in useArchivdSelection (pure) and the selection Set is
  * owned by the caller (passed in) so both browse and drag-move can share it.
  */
 import { ref, computed, watch, onUnmounted, type Ref, type ComputedRef } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
-import { useFhHydrate } from '@/composables/file-hosting/useFhHydrate'
+import { useArchivd } from '@/composables/archivd/useArchivd'
+import { useArchivdHydrate } from '@/composables/archivd/useArchivdHydrate'
 import { useMicrostock } from '@/composables/microstock/useMicrostock'
 import { useMicrostockBilling } from '@/composables/microstock/useMicrostockBilling'
-import { formatCollectionProgress } from '@/utils/file-hosting/fhMicrostockBadge'
+import { formatCollectionProgress } from '@/utils/archivd/arMicrostockBadge'
 import type {
   HostedFile,
-  FhBrowsePayload,
-  FhQuota,
-  FhWorkspace,
+  ArBrowsePayload,
+  ArQuota,
+  ArWorkspace,
   MicrostockBillingSummary,
   MicrostockSlotStatus,
   MicrostockCollectionStatusPayload,
 } from '@/api/types'
 
-const VIEW_MODE_KEY = 'fh-view-mode'
+const VIEW_MODE_KEY = 'ar-view-mode'
 
 function readViewMode(): 'table' | 'grid' {
   try {
@@ -39,7 +39,7 @@ function readViewMode(): 'table' | 'grid' {
   }
 }
 
-export function useFhBrowse(options: {
+export function useArchivdBrowse(options: {
   selected: Ref<Set<string>>
   clearSelection: () => void
 }) {
@@ -47,16 +47,16 @@ export function useFhBrowse(options: {
 
   const route = useRoute()
   const { t } = useI18n()
-  const fh = useFileHosting()
-  const { hydrateFileHosting } = useFhHydrate()
+  const ar = useArchivd()
+  const { hydrateArchivd } = useArchivdHydrate()
   const ms = useMicrostock()
   const { fetchBilling } = useMicrostockBilling()
 
-  const browse = ref<FhBrowsePayload | null>(null)
-  const quota = ref<FhQuota | null>(null)
+  const browse = ref<ArBrowsePayload | null>(null)
+  const quota = ref<ArQuota | null>(null)
   const loading = ref(true)
   const browseError = ref<string | null>(null)
-  const workspaces = ref<FhWorkspace[]>([])
+  const workspaces = ref<ArWorkspace[]>([])
   const slots = ref<MicrostockSlotStatus | null>(null)
   const billing = ref<MicrostockBillingSummary | null>(null)
   const collectionStatusPayload = ref<MicrostockCollectionStatusPayload | null>(null)
@@ -118,8 +118,8 @@ export function useFhBrowse(options: {
       payload.processed,
       payload.total,
       payload.failed,
-      t('web.file-hosting.microstock.progress', { processed: payload.processed, total: payload.total }),
-      t('web.file-hosting.microstock.progress_failed', { failed: payload.failed }),
+      t('web.archivd.microstock.progress', { processed: payload.processed, total: payload.total }),
+      t('web.archivd.microstock.progress_failed', { failed: payload.failed }),
     )
   }
 
@@ -129,10 +129,10 @@ export function useFhBrowse(options: {
     try {
       const params: Record<string, unknown> = { ...ctxParams() }
       if (currentFolderId.value) params.folder_id = currentFolderId.value
-      browse.value = await fh.fetchBrowse(params)
+      browse.value = await ar.fetchBrowse(params)
       if (!opts?.keepSelection) clearSelection()
     } catch (e) {
-      browseError.value = e instanceof Error ? e.message : t('web.file-hosting.load_failed')
+      browseError.value = e instanceof Error ? e.message : t('web.archivd.load_failed')
     } finally {
       loading.value = false
     }
@@ -140,7 +140,7 @@ export function useFhBrowse(options: {
 
   async function loadQuota(): Promise<void> {
     try {
-      quota.value = await fh.fetchQuota(ctxParams())
+      quota.value = await ar.fetchQuota(ctxParams())
     } catch {
       /* non-critical */
     }
@@ -148,7 +148,7 @@ export function useFhBrowse(options: {
 
   async function loadWorkspaces(): Promise<void> {
     try {
-      workspaces.value = await fh.fetchWorkspaces()
+      workspaces.value = await ar.fetchWorkspaces()
     } catch {
       workspaces.value = []
     }
@@ -194,7 +194,7 @@ export function useFhBrowse(options: {
       // One batch replaces the four independent reads; any sub that failed comes
       // back null and falls through to its own loader (keeping that loader's
       // error handling — browse toasts, the rest stay silent).
-      const { browse: b, quota: q, workspaces: ws, slots: sl } = await hydrateFileHosting({
+      const { browse: b, quota: q, workspaces: ws, slots: sl } = await hydrateArchivd({
         folderId: currentFolderId.value,
         ctx: ctxParams(),
       })
@@ -243,7 +243,7 @@ export function useFhBrowse(options: {
         return
       }
       try {
-        searchResults.value = await fh.searchFiles(trimmed, ctxParams())
+        searchResults.value = await ar.searchFiles(trimmed, ctxParams())
       } catch {
         searchResults.value = []
       }
@@ -304,11 +304,11 @@ export function useFhBrowse(options: {
     loadCollectionStatus,
     loadAll,
   } as {
-    browse: Ref<FhBrowsePayload | null>
-    quota: Ref<FhQuota | null>
+    browse: Ref<ArBrowsePayload | null>
+    quota: Ref<ArQuota | null>
     loading: Ref<boolean>
     browseError: Ref<string | null>
-    workspaces: Ref<FhWorkspace[]>
+    workspaces: Ref<ArWorkspace[]>
     slots: Ref<MicrostockSlotStatus | null>
     billing: Ref<MicrostockBillingSummary | null>
     collectionStatusPayload: Ref<MicrostockCollectionStatusPayload | null>
@@ -317,9 +317,9 @@ export function useFhBrowse(options: {
     searchResults: Ref<HostedFile[]>
     searchOpen: Ref<boolean>
     currentFolderId: ComputedRef<string | null>
-    folders: ComputedRef<FhBrowsePayload['folders']>
-    files: ComputedRef<FhBrowsePayload['files']>
-    crumbs: ComputedRef<FhBrowsePayload['breadcrumb']>
+    folders: ComputedRef<ArBrowsePayload['folders']>
+    files: ComputedRef<ArBrowsePayload['files']>
+    crumbs: ComputedRef<ArBrowsePayload['breadcrumb']>
     isMicrostock: ComputedRef<boolean>
     collectionLocked: ComputedRef<boolean>
     requireFolder: ComputedRef<boolean>

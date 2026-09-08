@@ -2,17 +2,17 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isRtl } from '@/i18n'
-import type { FhFolder, HostedFile } from '@/api/types'
+import type { ArFolder, HostedFile } from '@/api/types'
 
 /**
- * File Hosting context menu. Extracted from FileHostingView.
+ * Archivd context menu. Extracted from ArchivdView.
  * Mirrors under RTL and keeps itself on-screen near the viewport edge.
  */
 export interface ContextMenuState {
   x: number
   y: number
   entity: 'folder' | 'file'
-  item: FhFolder | HostedFile
+  item: ArFolder | HostedFile
 }
 
 const props = defineProps<{
@@ -47,23 +47,23 @@ function run(action: 'open' | 'rename' | 'move' | 'share' | 'delete' | 'review')
 
 <template>
   <div
-    class="fh-context-menu"
+    class="ar-context-menu"
     role="menu"
     :style="style"
     @click.stop
   >
-    <button type="button" class="fh-context-menu__item" @click="run('open')"><i class="bi bi-folder2-open"></i>{{ t('web.file-hosting.open') }}</button>
-    <button v-if="canEdit" type="button" class="fh-context-menu__item" @click="run('rename')"><i class="bi bi-pencil"></i>{{ t('web.file-hosting.rename') }}</button>
-    <button v-if="canEdit" type="button" class="fh-context-menu__item" @click="run('move')"><i class="bi bi-folder-symlink"></i>{{ t('web.file-hosting.move') }}</button>
-    <button v-if="canEdit" type="button" class="fh-context-menu__item" @click="run('share')"><i class="bi bi-share"></i>{{ t('web.file-hosting.share') }}</button>
+    <button type="button" class="ar-context-menu__item" @click="run('open')"><i class="bi bi-folder2-open"></i>{{ t('web.archivd.open') }}</button>
+    <button v-if="canEdit" type="button" class="ar-context-menu__item" @click="run('rename')"><i class="bi bi-pencil"></i>{{ t('web.archivd.rename') }}</button>
+    <button v-if="canEdit" type="button" class="ar-context-menu__item" @click="run('move')"><i class="bi bi-folder-symlink"></i>{{ t('web.archivd.move') }}</button>
+    <button v-if="canEdit" type="button" class="ar-context-menu__item" @click="run('share')"><i class="bi bi-share"></i>{{ t('web.archivd.share') }}</button>
     <button
       v-if="isMicrostock && state.entity === 'file'"
       type="button"
-      class="fh-context-menu__item"
+      class="ar-context-menu__item"
       @click="run('review')"
     >
-      <i class="bi bi-stars"></i>{{ t('web.file-hosting.microstock.review') }}
+      <i class="bi bi-stars"></i>{{ t('web.archivd.microstock.review') }}
     </button>
-    <button v-if="canDelete" type="button" class="fh-context-menu__item is-danger" @click="run('delete')"><i class="bi bi-trash"></i>{{ t('web.file-hosting.delete') }}</button>
+    <button v-if="canDelete" type="button" class="ar-context-menu__item is-danger" @click="run('delete')"><i class="bi bi-trash"></i>{{ t('web.archivd.delete') }}</button>
   </div>
 </template>

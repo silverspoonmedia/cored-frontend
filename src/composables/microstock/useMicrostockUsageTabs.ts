@@ -1,5 +1,5 @@
 /**
- * Billing/ledger/usage/platform-tab state for FileHostingMicrostockUsageView.
+ * Billing/ledger/usage/platform-tab state for ArchivdMicrostockUsageView.
  *
  * Extracted from the view: paginated loaders with load-more, tab switching,
  * realtime rebinding, and the hydrate-first billing/platform fan-out.
@@ -8,7 +8,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMicrostockBilling } from '@/composables/microstock/useMicrostockBilling'
 import { useMicrostockHydrate } from '@/composables/microstock/useMicrostockHydrate'
-import { useFileHostingRealtime } from '@/composables/file-hosting/useFileHostingRealtime'
+import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type {
@@ -26,7 +26,7 @@ export function useMicrostockUsageTabs() {
   const { hydrateUsage, hydratePlatform } = useMicrostockHydrate()
   const { hasPermission } = useAuth()
   const { error: showError } = useAlert()
-  const { subscribe, unsubscribe } = useFileHostingRealtime()
+  const { subscribe, unsubscribe } = useArchivdRealtime()
 
   const canViewPlatform = computed(() => hasPermission('view platform billing'))
 

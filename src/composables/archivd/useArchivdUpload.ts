@@ -2,9 +2,9 @@ import i18n from '@/i18n'
 import { post, del } from '@/api/client'
 import type {
   ApiResponse,
-  FhUploadSession,
-  FhUploadPart,
-  FhUploadCompleteResult,
+  ArUploadSession,
+  ArUploadPart,
+  ArUploadCompleteResult,
   HostedFile,
 } from '@/api/types'
 
@@ -27,7 +27,7 @@ const MAX_INIT_RETRIES = 3
 const MAX_PART_RETRIES = 3
 
 function localizedUploadMessage(key: 'init_failed' | 'sign_failed' | 'complete_failed'): string {
-  return i18n.global.t(`web.file-hosting.upload.${key}`)
+  return i18n.global.t(`web.archivd.upload.${key}`)
 }
 
 function resolveMimeType(file: File): string {
@@ -69,7 +69,7 @@ function isAuthExpired(err: unknown): boolean {
   return /status 403|SignatureDoesNotMatch|expired|Request has expired/i.test(msg)
 }
 
-async function initUpload(file: File, ctx: UploadContext): Promise<FhUploadSession> {
+async function initUpload(file: File, ctx: UploadContext): Promise<ArUploadSession> {
   const body: Record<string, unknown> = {
     name: file.name,
     mime: resolveMimeType(file),
@@ -80,12 +80,12 @@ async function initUpload(file: File, ctx: UploadContext): Promise<FhUploadSessi
   if (ctx.workspaceId) body.workspace_id = ctx.workspaceId
   if (ctx.disk) body.disk = ctx.disk
 
-  const res = await post<ApiResponse<FhUploadSession>>('file-hosting/uploads', body)
+  const res = await post<ApiResponse<ArUploadSession>>('archivd/uploads', body)
   if (res.status === 'success' && res.data) return res.data
   throw new Error(res.message ?? localizedUploadMessage('init_failed'))
 }
 
-async function initUploadWithRetry(file: File, ctx: UploadContext): Promise<FhUploadSession> {
+async function initUploadWithRetry(file: File, ctx: UploadContext): Promise<ArUploadSession> {
   let lastErr: unknown
   for (let attempt = 1; attempt <= MAX_INIT_RETRIES; attempt++) {
     try {
@@ -99,9 +99,9 @@ async function initUploadWithRetry(file: File, ctx: UploadContext): Promise<FhUp
   throw lastErr
 }
 
-async function signParts(uploadId: string, partNumbers: number[]): Promise<FhUploadPart[]> {
-  const res = await post<ApiResponse<{ parts: FhUploadPart[] }>>(
-    `file-hosting/uploads/${uploadId}/sign-parts`,
+async function signParts(uploadId: string, partNumbers: number[]): Promise<ArUploadPart[]> {
+  const res = await post<ApiResponse<{ parts: ArUploadPart[] }>>(
+    `archivd/uploads/${uploadId}/sign-parts`,
     { part_numbers: partNumbers },
   )
   if (res.status === 'success' && res.data) return res.data.parts
@@ -110,7 +110,7 @@ async function signParts(uploadId: string, partNumbers: number[]): Promise<FhUpl
 
 async function abortUpload(uploadId: string): Promise<void> {
   try {
-    await del<ApiResponse<null>>(`file-hosting/uploads/${uploadId}`)
+    await del<ApiResponse<null>>(`archivd/uploads/${uploadId}`)
   } catch {
     // best-effort
   }
@@ -120,8 +120,8 @@ async function completeUpload(
   uploadId: string,
   parts: { part_number: number; etag: string; size: number }[],
 ): Promise<HostedFile> {
-  const res = await post<ApiResponse<FhUploadCompleteResult>>(
-    `file-hosting/uploads/${uploadId}/complete`,
+  const res = await post<ApiResponse<ArUploadCompleteResult>>(
+    `archivd/uploads/${uploadId}/complete`,
     { parts },
   )
   if (res.status === 'success' && res.data) return res.data.file
@@ -139,7 +139,7 @@ async function putPart(
     try {
       parsedUrl = new URL(url)
     } catch {
-      reject(new Error(i18n.global.t('web.file-hosting.upload.invalid_url')))
+      reject(new Error(i18n.global.t('web.archivd.upload.invalid_url')))
       return
     }
     if (
@@ -147,7 +147,7 @@ async function putPart(
       || parsedUrl.username
       || parsedUrl.password
     ) {
-      reject(new Error(i18n.global.t('web.file-hosting.upload.invalid_url')))
+      reject(new Error(i18n.global.t('web.archivd.upload.invalid_url')))
       return
     }
 
@@ -172,18 +172,18 @@ async function putPart(
         const etag = xhr.getResponseHeader('ETag')?.replace(/"/g, '') ?? ''
         resolve({ etag, size: blob.size })
       } else {
-        reject(new Error(i18n.global.t('web.file-hosting.upload.put_failed', { status: xhr.status })))
+        reject(new Error(i18n.global.t('web.archivd.upload.put_failed', { status: xhr.status })))
       }
     }
 
-    xhr.onerror = () => reject(new Error(i18n.global.t('web.file-hosting.upload.network_error')))
-    xhr.ontimeout = () => reject(new Error(i18n.global.t('web.file-hosting.upload.network_error')))
+    xhr.onerror = () => reject(new Error(i18n.global.t('web.archivd.upload.network_error')))
+    xhr.ontimeout = () => reject(new Error(i18n.global.t('web.archivd.upload.network_error')))
     xhr.send(blob)
   })
 }
 
 async function putPartWithRetry(
-  part: FhUploadPart,
+  part: ArUploadPart,
   blob: Blob,
   uploadId: string,
   strategy: 'single' | 'multipart',
@@ -290,7 +290,7 @@ export function formatTransferRate(bytesPerSecond: number): string {
   return `${formatLocalized(bytesPerSecond / (1024 * 1024), 1)} MB/s`
 }
 
-export interface FhUploadResult {
+export interface ArUploadResult {
   file: HostedFile
 }
 
@@ -299,8 +299,8 @@ export async function uploadFile(
   ctx: UploadContext,
   onProgress?: (p: UploadProgress) => void,
   onStatus?: (s: UploadStatus) => void,
-): Promise<FhUploadResult> {
-  let session: FhUploadSession | null = null
+): Promise<ArUploadResult> {
+  let session: ArUploadSession | null = null
 
   try {
     onStatus?.('uploading')
@@ -311,7 +311,7 @@ export async function uploadFile(
 
     if (session.strategy === 'single') {
       const part = session.parts[0]
-      if (!part) throw new Error(i18n.global.t('web.file-hosting.upload.part_list_missing'))
+      if (!part) throw new Error(i18n.global.t('web.archivd.upload.part_list_missing'))
 
       const putResult = await putPartWithRetry(part, file, session.upload_id, session.strategy, (l) => {
         const percent = Math.min(100, Math.round((l / totalBytes) * 100))
@@ -340,7 +340,7 @@ export async function uploadFile(
       const blob = file.slice(start, end)
       const part = session!.parts.find((p) => p.part_number === n)
 
-      if (!part) throw new Error(i18n.global.t('web.file-hosting.upload.part_missing', { part: n }))
+      if (!part) throw new Error(i18n.global.t('web.archivd.upload.part_missing', { part: n }))
 
       const result = await putPartWithRetry(part, blob, session!.upload_id, session!.strategy, (l) => {
         partProgress.set(n, l)
@@ -369,7 +369,7 @@ export async function uploadFile(
   }
 }
 
-export function useFhUpload() {
+export function useArchivdUpload() {
   return {
     uploadFile,
     abortUpload,

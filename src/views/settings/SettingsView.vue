@@ -19,7 +19,7 @@ const { groups, fetchGroups, loading, error } = useSettings()
 
 const iconMap: Record<string, string> = {
   platform: 'bi-sliders',
-  'file-hosting': 'bi-cloud-upload',
+  'archivd': 'bi-cloud-upload',
   microstock: 'bi-images',
   vtual: 'bi-broadcast',
   identity: 'bi-person-badge',

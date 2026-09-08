@@ -66,7 +66,7 @@ async function hydrateReviewAsset(
 ): Promise<MicrostockReviewAssetResult> {
   const [metadataRes, downloadRes] = await batch<unknown>([
     { path: `microstock/assets/${fileId}/metadata` },
-    { path: `file-hosting/files/${fileId}/download`, query: { preview: 1, ...downloadCtx } },
+    { path: `archivd/files/${fileId}/download`, query: { preview: 1, ...downloadCtx } },
   ])
 
   return {

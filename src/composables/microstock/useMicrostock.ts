@@ -3,7 +3,7 @@ import { get, post, patch, getBlob } from '@/api/client'
 import { saveBlob } from '@/utils/download'
 import type {
   ApiResponse,
-  FhWorkspace,
+  ArWorkspace,
   MicrostockAssetMetadata,
   MicrostockCollectionPayload,
   MicrostockCollectionStatusPayload,
@@ -27,7 +27,7 @@ export function useMicrostock() {
       body,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? t('web.file-hosting.lock_collection_failed'))
+    throw new Error(res.message ?? t('web.archivd.lock_collection_failed'))
   }
 
   async function analyzeCollection(folderId: string): Promise<MicrostockCollectionPayload> {
@@ -45,7 +45,7 @@ export function useMicrostock() {
       `microstock/collections/${folderId}/status`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? t('web.file-hosting.operation_failed'))
+    throw new Error(res.message ?? t('web.archivd.operation_failed'))
   }
 
   async function exportCollection(folderId: string): Promise<MicrostockCollectionExportPayload> {
@@ -96,7 +96,7 @@ export function useMicrostock() {
     throw new Error(res.message ?? t('web.microstock.slots_loaded'))
   }
 
-  async function createWorkspace(name?: string | null): Promise<FhWorkspace> {
+  async function createWorkspace(name?: string | null): Promise<ArWorkspace> {
     const body: Record<string, unknown> = {}
     if (name?.trim()) body.name = name.trim()
     const res = await post<ApiResponse<{
@@ -119,7 +119,7 @@ export function useMicrostock() {
         updated_at: null,
       }
     }
-    throw new Error(res.message ?? t('web.file-hosting.failed_create_workspace'))
+    throw new Error(res.message ?? t('web.archivd.failed_create_workspace'))
   }
 
   return {

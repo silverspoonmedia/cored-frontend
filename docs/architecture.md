@@ -29,7 +29,7 @@ Type-then-domain: screens live under `src/views/{domain}/`, with matching `src/c
 | Layer | Contents | Notes |
 |-------|----------|-------|
 | `src/api/` | `client.ts`, `csrf.ts`, `batch.ts`, `baseUrl.ts`, `requestHeaders.ts`, `types.ts` | The only HTTP layer — see [api-client.md](api-client.md). `types.ts` mirrors Laravel API Resources exactly (snake_case, no transform layer) |
-| `src/views/{domain}/` | Vue Router page components | 17 domains (activity-log, auth, dashboard, domain-access, error-log, file-hosting, identity, inference, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual) |
+| `src/views/{domain}/` | Vue Router page components | 17 domains (activity-log, auth, dashboard, domain-access, error-log, archivd, identity, inference, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual) |
 | `src/composables/` | Shared composables at root (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`, `useForm`, …) + `composables/{domain}/` | Stateful logic bound to component lifecycle |
 | `src/components/` | Shared UI chrome (`AppNavbar`, `DataTable`, `RowActions`, `ErrorState`, `EmptyState`, `SkeletonBlock`, …) | Cross-domain only; domain-specific components live under the view domain |
 | `src/lib/` | Side-effect wrappers around vendor libs (`swal.ts`, `safeRedirect.ts`) | Small, app-wide, not domain-scoped |

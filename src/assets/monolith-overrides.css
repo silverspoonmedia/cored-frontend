@@ -111,7 +111,7 @@
 }
 
 .card.is-clickable:hover,
-.fh-file-card:hover,
+.ar-file-card:hover,
 a.card:hover {
     box-shadow: var(--monolith-shadow);
     transform: translateY(-1px);
@@ -670,7 +670,7 @@ code {
     }
 
     .card.is-clickable:hover,
-    .fh-file-card:hover,
+    .ar-file-card:hover,
     a.card:hover {
         transform: none;
     }
@@ -725,7 +725,7 @@ code {
     }
 }
 
-/* ---- Unified toast component (replaces fh-toast, ois-toast, pc-admin-toast, inf-admin-toast) ---- */
+/* ---- Unified toast component (replaces ar-toast, ois-toast, pc-admin-toast, inf-admin-toast) ---- */
 .monolith-toast-container {
     position: fixed;
     inset-block-end: 1.25rem;
@@ -857,7 +857,7 @@ html[dir='rtl'] .bi-arrow-left::before {
     content: '\f138'; /* bi-arrow-right glyph */
 }
 
-html[dir='rtl'] .fh-breadcrumb__sep {
+html[dir='rtl'] .ar-breadcrumb__sep {
     transform: scaleX(-1);
 }
 

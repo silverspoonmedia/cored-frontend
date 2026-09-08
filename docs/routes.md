@@ -2,13 +2,13 @@
 
 ## Layout
 
-- Route records live in `src/router/routes/*.ts` — one module per domain (18 modules: activity-log, auth, dashboard, domain-access, error-log, file-hosting, identity, inference, legacy, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual).
+- Route records live in `src/router/routes/*.ts` — one module per domain (18 modules: activity-log, auth, dashboard, domain-access, error-log, archivd, identity, inference, legacy, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual).
 - `src/router/index.ts` assembles them (order matters — vTual admin early/late and the 404 catch-all are position-sensitive), keeps the `beforeEach` guard, and owns `scrollBehavior` (`top: 96` hash offset for `/vtual` anchors).
 - URL layout: authenticated app under **`/apps/*`**, guest/public at the site root (`/vtual`, `/s/*`, payment bounce), auth pages at root. URLs and route names do not change without a cross-repo contract update.
 
 ## Naming contract (cross-repo)
 
-Symbolic route names (e.g. `dashboard`, `users.index`, `file-hosting.microstock-usage`) are consumed by the **backend**: Monolith menu rows store these names and validate them against `monolith/config/spa-routes.php` (`SpaRouteRegistry`). Notification deep links (`action_route` + `action_params`) resolve `${route}.view` via `src/utils/notificationTarget.ts`.
+Symbolic route names (e.g. `dashboard`, `users.index`, `archivd.microstock-usage`) are consumed by the **backend**: Monolith menu rows store these names and validate them against `monolith/config/spa-routes.php` (`SpaRouteRegistry`). Notification deep links (`action_route` + `action_params`) resolve `${route}.view` via `src/utils/notificationTarget.ts`.
 
 Rules:
 

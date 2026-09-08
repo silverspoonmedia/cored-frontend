@@ -35,7 +35,7 @@ const columns: DataTableColumn[] = [
   { key: 'name', label: t('web.services.columns.name'), sortable: true },
   { key: 'billing_interval', label: t('web.services.columns.interval'), sortable: true, align: 'center' },
   { key: 'status', label: t('web.services.columns.status'), sortable: true, align: 'center' },
-  { key: 'updated_at', label: t('web.file-hosting.updated'), sortable: true, align: 'end' },
+  { key: 'updated_at', label: t('web.archivd.updated'), sortable: true, align: 'end' },
 ]
 
 function showService(row: Service): void {
@@ -62,7 +62,7 @@ async function handleDelete(): Promise<void> {
     deleteTarget.value = null
     await fetchList()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
   }
 }
 

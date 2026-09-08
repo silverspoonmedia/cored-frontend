@@ -10,7 +10,7 @@ import type {
 } from '@/api/types'
 
 /**
- * Platform admin tab for FileHostingMicrostockUsageView: overview totals,
+ * Platform admin tab for ArchivdMicrostockUsageView: overview totals,
  * by-source/stage/model breakdown cards, and the paginated events table.
  */
 defineProps<{

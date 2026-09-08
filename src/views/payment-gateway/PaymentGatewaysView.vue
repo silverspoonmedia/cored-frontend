@@ -27,7 +27,7 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'display_name', label: t('web.payments.gateways.datatable.columns.display_name'), sortable: true },
   { key: 'priority', label: t('web.payments.gateways.datatable.columns.priority'), sortable: true, align: 'center' },
   { key: 'is_active', label: t('web.payments.gateways.datatable.columns.is_active'), sortable: true, align: 'center' },
-  { key: 'updated_at', label: t('web.file-hosting.updated'), sortable: true, align: 'end' },
+  { key: 'updated_at', label: t('web.archivd.updated'), sortable: true, align: 'end' },
 ])
 
 function editGateway(row: PaymentGateway): void {
@@ -54,7 +54,7 @@ async function handleDelete(): Promise<void> {
     deleteTarget.value = null
     await fetchList()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
   }
 }
 </script>

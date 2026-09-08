@@ -70,7 +70,7 @@ async function handleDelete(): Promise<void> {
     deleteTarget.value = null
     await fetchList()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.file-hosting.operation_failed'))
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
   } finally {
     deleting.value = false
   }

@@ -14,7 +14,7 @@ import { inferenceCatalogRoutes, inferenceUsageRoutes } from '@/router/routes/in
 import { subscriptionRoutes, serviceCatalogRoutes, servicePurchaseRoutes } from '@/router/routes/service'
 import { vtualAdminEarlyRoutes, vtualAdminLateRoutes, vtualPublicRoutes } from '@/router/routes/vtual'
 import { productActivationRoutes } from '@/router/routes/product-activations'
-import { fileHostingMicrostockUsageRoutes, fileHostingRoutes } from '@/router/routes/file-hosting'
+import { archivdMicrostockUsageRoutes, archivdRoutes } from '@/router/routes/archivd'
 import { microstockRoutes } from '@/router/routes/microstock'
 import { publicShareRoutes, notFoundRoutes } from '@/router/routes/public'
 import { legacyRoutes } from '@/router/routes/legacy'
@@ -56,11 +56,11 @@ const router = createRouter({
     ...productActivationRoutes,
     ...inferenceUsageRoutes,
     ...paymentsIncomeRoutes,
-    ...fileHostingMicrostockUsageRoutes,
+    ...archivdMicrostockUsageRoutes,
     ...microstockRoutes,
     ...paymentChannelRoutes,
     ...servicePurchaseRoutes,
-    ...fileHostingRoutes,
+    ...archivdRoutes,
     ...publicShareRoutes,
     ...vtualAdminLateRoutes,
     ...vtualPublicRoutes,

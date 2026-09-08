@@ -194,7 +194,7 @@
         "ignored": "تم التجاهل"
       }
     },
-    "file-hosting": {
+    "archivd": {
       "root_label": "ملفاتي",
       "browse_success": "تم تحميل قائمة الملفات.",
       "folder_created": "تم إنشاء المجلد.",
@@ -216,7 +216,7 @@
       "download_unavailable": "لا يتوفر عنوان URL للتنزيل لهذا التخزين.",
       "visibility_updated": "تم تحديث إعدادات الظهور.",
       "invalid_visibility": "قيمة الظهور غير صالحة.",
-      "public_share_requires_paid": "تتطلب المشاركة عبر رابط عام خطة File Hosting مدفوعة ونشطة.",
+      "public_share_requires_paid": "تتطلب المشاركة عبر رابط عام خطة Archivd مدفوعة ونشطة.",
       "public_share_blocked_hash": "لا يمكن جعل هذا الملف عاماً بسبب حظر متعلق بالامتثال.",
       "public_share_not_allowed": "لا يمكن جعل العناصر في مساحة العمل هذه عامة.",
       "blocklist_saved": "أضيفت قيمة التجزئة إلى قائمة الحظر.",
@@ -255,7 +255,7 @@
         "access_denied": "لا تملك صلاحية الوصول إلى مساحة العمل هذه.",
         "mutate_denied": "لا يمكن تعديل الملفات في مساحة العمل هذه.",
         "members_denied": "لا تملك صلاحية إدارة أعضاء مساحة العمل.",
-        "requires_paid": "تتطلب مساحة العمل المشتركة خطة File Hosting مدفوعة ونشطة.",
+        "requires_paid": "تتطلب مساحة العمل المشتركة خطة Archivd مدفوعة ونشطة.",
         "owner_in_grace": "اشتراك مالك مساحة العمل في فترة سماح. جدده لاستخدام ميزات التعاون.",
         "already_exists": "لديك مساحة عمل بالفعل.",
         "slot_limit": "تم بلوغ حد مساحات العمل الجماعية المملوكة ({used} / {limit}). أرشف فريقاً أو اشترِ إضافة Team Workspace Slot.",
@@ -1013,7 +1013,7 @@
       "source": "المصدر الحالي: {source}",
       "groups": {
         "platform": "منصة",
-        "file_hosting": "استضافة الملفات",
+        "archivd": "استضافة الملفات",
         "microstock": "ميكروستوك",
         "vtual": "vTual",
         "identity": "الهوية",
@@ -1092,7 +1092,7 @@
             "connections_snapshot_max_age_minutes": "الحد الأقصى لعمر لقطة اتصالات Discord (بالدقائق)"
           }
         },
-        "file-hosting": {
+        "archivd": {
           "max_file_size_bytes": "الحد الأقصى لحجم الملف (بايت)",
           "max_files_per_batch": "الحد الأقصى للملفات لكل دفعة",
           "max_concurrent_uploads": "الحد الأقصى للتحميلات المتزامنة",
@@ -2076,7 +2076,7 @@
       "not_found_message": "لم يتم العثور على سجل الخطأ.",
       "back_to_list_button": "العودة إلى القائمة"
     },
-    "file-hosting": {
+    "archivd": {
       "title": "استضافة الملفات",
       "blocklist_title": "قائمة التجزئة المحظورة (قانون الألفية الجديدة لحقوق طبع ونشر المواد الرقمية)",
       "blocklist_add": "كتلة التجزئة",

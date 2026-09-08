@@ -1,5 +1,5 @@
 /**
- * Workspaces state/actions for FileHostingWorkspacesView.
+ * Workspaces state/actions for ArchivdWorkspacesView.
  *
  * Extracted from the view: workspace list + selected-workspace detail
  * (members/activity) loading with hydrate fallbacks, CRUD actions, and
@@ -8,14 +8,14 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { confirmDialog } from '@/lib/swal'
-import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
-import { useFhHydrate } from '@/composables/file-hosting/useFhHydrate'
-import { useFileHostingRealtime } from '@/composables/file-hosting/useFileHostingRealtime'
+import { useArchivd } from '@/composables/archivd/useArchivd'
+import { useArchivdHydrate } from '@/composables/archivd/useArchivdHydrate'
+import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
-import type { FhWorkspace, FhWorkspaceMember, FhWorkspaceActivity } from '@/api/types'
+import type { ArWorkspace, ArWorkspaceMember, ArWorkspaceActivity } from '@/api/types'
 
-export function useFhWorkspaces() {
+export function useArchivdWorkspaces() {
   const {
     fetchWorkspaces,
     createWorkspace,
@@ -26,22 +26,22 @@ export function useFhWorkspaces() {
     updateMemberRole,
     removeMember,
     fetchActivity,
-  } = useFileHosting()
+  } = useArchivd()
   const { hasPermission } = useAuth()
   const { success: showSuccess, error: showError } = useAlert()
-  const { subscribe: subscribeFh, unsubscribe: unsubscribeFh } = useFileHostingRealtime()
-  const { hydrateWorkspaceDetail } = useFhHydrate()
+  const { subscribe: subscribeFh, unsubscribe: unsubscribeFh } = useArchivdRealtime()
+  const { hydrateWorkspaceDetail } = useArchivdHydrate()
   const { t } = useI18n()
 
-  const workspaces = ref<FhWorkspace[]>([])
+  const workspaces = ref<ArWorkspace[]>([])
   const loading = ref(true)
   const loadError = ref<string | null>(null)
-  const selected = ref<FhWorkspace | null>(null)
-  const members = ref<FhWorkspaceMember[]>([])
-  const activity = ref<FhWorkspaceActivity[]>([])
+  const selected = ref<ArWorkspace | null>(null)
+  const members = ref<ArWorkspaceMember[]>([])
+  const activity = ref<ArWorkspaceActivity[]>([])
   const detailLoading = ref(false)
 
-  const canManage = computed(() => hasPermission('create file hosting folder'))
+  const canManage = computed(() => hasPermission('create archivd folder'))
 
   const roles = ['admin', 'editor', 'viewer']
 
@@ -60,7 +60,7 @@ export function useFhWorkspaces() {
   const accepting = ref(false)
 
   // Remove member confirm
-  const removeTarget = ref<FhWorkspaceMember | null>(null)
+  const removeTarget = ref<ArWorkspaceMember | null>(null)
 
   const wsHandlers = {
     onMembersChanged: () => {
@@ -99,13 +99,13 @@ export function useFhWorkspaces() {
         if (first) await selectWorkspace(first)
       }
     } catch (e) {
-      loadError.value = e instanceof Error ? e.message : t('web.file-hosting.failed_load_workspaces')
+      loadError.value = e instanceof Error ? e.message : t('web.archivd.failed_load_workspaces')
     } finally {
       loading.value = false
     }
   }
 
-  async function selectWorkspace(ws: FhWorkspace): Promise<void> {
+  async function selectWorkspace(ws: ArWorkspace): Promise<void> {
     selected.value = ws
     detailLoading.value = true
     try {
@@ -122,7 +122,7 @@ export function useFhWorkspaces() {
         activity.value = a
       }
     } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.file-hosting.failed_load_workspace_detail'))
+      showError(e instanceof Error ? e.message : t('web.archivd.failed_load_workspace_detail'))
       members.value = []
       activity.value = []
     } finally {
@@ -135,13 +135,13 @@ export function useFhWorkspaces() {
     creating.value = true
     try {
       const ws = await createWorkspace(createName.value.trim())
-      showSuccess(t('web.file-hosting.workspace_created', { name: ws.name }))
+      showSuccess(t('web.archivd.workspace_created', { name: ws.name }))
       workspaces.value.push(ws)
       showCreate.value = false
       createName.value = ''
       await selectWorkspace(ws)
     } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.file-hosting.failed_create_workspace'))
+      showError(e instanceof Error ? e.message : t('web.archivd.failed_create_workspace'))
     } finally {
       creating.value = false
     }
@@ -152,11 +152,11 @@ export function useFhWorkspaces() {
     inviting.value = true
     try {
       await inviteMember(selected.value.id, inviteEmail.value.trim(), inviteRole.value)
-      showSuccess(t('web.file-hosting.invitation_sent', { email: inviteEmail.value }))
+      showSuccess(t('web.archivd.invitation_sent', { email: inviteEmail.value }))
       inviteEmail.value = ''
       inviteRole.value = 'viewer'
     } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.file-hosting.failed_invite_member'))
+      showError(e instanceof Error ? e.message : t('web.archivd.failed_invite_member'))
     } finally {
       inviting.value = false
     }
@@ -167,34 +167,34 @@ export function useFhWorkspaces() {
     accepting.value = true
     try {
       await acceptInvite(inviteToken.value.trim())
-      showSuccess(t('web.file-hosting.invitation_accepted'))
+      showSuccess(t('web.archivd.invitation_accepted'))
       inviteToken.value = ''
       await loadWorkspaces()
     } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.file-hosting.failed_accept_invite'))
+      showError(e instanceof Error ? e.message : t('web.archivd.failed_accept_invite'))
     } finally {
       accepting.value = false
     }
   }
 
-  async function handleRoleChange(member: FhWorkspaceMember, role: string): Promise<void> {
+  async function handleRoleChange(member: ArWorkspaceMember, role: string): Promise<void> {
     if (!selected.value || member.role === role) return
     try {
       const updated = await updateMemberRole(selected.value.id, member.user_id, role)
       const idx = members.value.findIndex((m) => m.id === member.id)
       if (idx >= 0) members.value[idx] = updated
-      showSuccess(t('web.file-hosting.role_updated'))
+      showSuccess(t('web.archivd.role_updated'))
     } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.file-hosting.failed_update_role'))
+      showError(e instanceof Error ? e.message : t('web.archivd.failed_update_role'))
     }
   }
 
-  async function confirmRemoveMember(member: FhWorkspaceMember): Promise<void> {
+  async function confirmRemoveMember(member: ArWorkspaceMember): Promise<void> {
     removeTarget.value = member
     const confirmed = await confirmDialog({
-      title: t('web.file-hosting.remove_member_title'),
-      text: t('web.file-hosting.remove_member_message', { name: removeTarget.value?.user?.name ?? removeTarget.value?.user_id }),
-      confirmText: t('web.file-hosting.remove_button'),
+      title: t('web.archivd.remove_member_title'),
+      text: t('web.archivd.remove_member_message', { name: removeTarget.value?.user?.name ?? removeTarget.value?.user_id }),
+      confirmText: t('web.archivd.remove_button'),
     })
     if (confirmed) {
       await handleRemoveMember()
@@ -208,9 +208,9 @@ export function useFhWorkspaces() {
     try {
       await removeMember(selected.value.id, removeTarget.value.user_id)
       members.value = members.value.filter((m) => m.id !== removeTarget.value!.id)
-      showSuccess(t('web.file-hosting.member_removed'))
+      showSuccess(t('web.archivd.member_removed'))
     } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.file-hosting.failed_remove_member'))
+      showError(e instanceof Error ? e.message : t('web.archivd.failed_remove_member'))
     } finally {
       removeTarget.value = null
     }
@@ -219,9 +219,9 @@ export function useFhWorkspaces() {
   async function confirmArchive(): Promise<void> {
     if (!selected.value) return
     const confirmed = await confirmDialog({
-      title: t('web.file-hosting.archive_workspace_title'),
-      text: t('web.file-hosting.archive_workspace_message', { name: selected.value.name }),
-      confirmText: t('web.file-hosting.archive_button'),
+      title: t('web.archivd.archive_workspace_title'),
+      text: t('web.archivd.archive_workspace_message', { name: selected.value.name }),
+      confirmText: t('web.archivd.archive_button'),
     })
     if (confirmed) await handleArchive()
   }
@@ -230,10 +230,10 @@ export function useFhWorkspaces() {
     if (!selected.value) return
     try {
       const ws = await archiveWorkspace(selected.value.id)
-      showSuccess(t('web.file-hosting.workspace_archived', { name: ws.name }))
+      showSuccess(t('web.archivd.workspace_archived', { name: ws.name }))
       await loadWorkspaces()
     } catch (e) {
-      showError(e instanceof Error ? e.message : t('web.file-hosting.failed_archive_workspace'))
+      showError(e instanceof Error ? e.message : t('web.archivd.failed_archive_workspace'))
     }
   }
 
@@ -246,7 +246,7 @@ export function useFhWorkspaces() {
 
   function roleLabel(role: string | null | undefined): string {
     if (!role) return '—'
-    const key = `web.file-hosting.roles.${role}`
+    const key = `web.archivd.roles.${role}`
     return t(key) === key ? role : t(key)
   }
 

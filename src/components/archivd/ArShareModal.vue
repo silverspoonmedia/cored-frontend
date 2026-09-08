@@ -25,12 +25,12 @@ function onSave(): void {
 </script>
 
 <template>
-  <Modal v-model="open" :title="t('web.file-hosting.modal_share')">
+  <Modal v-model="open" :title="t('web.archivd.modal_share')">
     <div class="mb-3">
-      <label class="form-label">{{ t('web.file-hosting.visibility.label') }}</label>
+      <label class="form-label">{{ t('web.archivd.visibility.label') }}</label>
       <select v-model="visibility" class="form-select">
-        <option value="private">{{ t('web.file-hosting.visibility.private') }}</option>
-        <option :value="VIS_LINK">{{ t('web.file-hosting.visibility.anyone_with_link') }}</option>
+        <option value="private">{{ t('web.archivd.visibility.private') }}</option>
+        <option :value="VIS_LINK">{{ t('web.archivd.visibility.anyone_with_link') }}</option>
       </select>
       <input
         v-if="safeShareUrl && visibility === VIS_LINK"
@@ -41,8 +41,8 @@ function onSave(): void {
       />
     </div>
     <template #footer>
-      <button type="button" class="btn btn-secondary btn-sm" @click="open = false">{{ t('web.file-hosting.cancel') }}</button>
-      <button type="button" class="btn btn-primary btn-sm" @click="onSave">{{ t('web.file-hosting.save') }}</button>
+      <button type="button" class="btn btn-secondary btn-sm" @click="open = false">{{ t('web.archivd.cancel') }}</button>
+      <button type="button" class="btn btn-primary btn-sm" @click="onSave">{{ t('web.archivd.save') }}</button>
     </template>
   </Modal>
 </template>

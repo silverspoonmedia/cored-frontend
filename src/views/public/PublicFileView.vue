@@ -4,13 +4,13 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
-import { useFileHosting } from '@/composables/file-hosting/useFileHosting'
+import { useArchivd } from '@/composables/archivd/useArchivd'
 import type { HostedFile } from '@/api/types'
 import { safeHttpUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
 const { t } = useI18n()
-const fh = useFileHosting()
+const ar = useArchivd()
 
 const file = ref<HostedFile | null>(null)
 const downloadUrl = ref<string | null>(null)
@@ -22,13 +22,13 @@ async function load(): Promise<void> {
   loadError.value = null
   try {
     const [fileData, dlData] = await Promise.all([
-      fh.fetchPublicFile(route.params.id as string),
-      fh.fetchPublicFileDownload(route.params.id as string).catch(() => null),
+      ar.fetchPublicFile(route.params.id as string),
+      ar.fetchPublicFileDownload(route.params.id as string).catch(() => null),
     ])
     file.value = fileData
     downloadUrl.value = safeHttpUrl(dlData?.url)
   } catch (e) {
-    loadError.value = e instanceof Error ? e.message : t('web.file-hosting.public.file_not_found')
+    loadError.value = e instanceof Error ? e.message : t('web.archivd.public.file_not_found')
   } finally {
     loading.value = false
   }
@@ -48,7 +48,7 @@ function fileIcon(mime: string): string {
 </script>
 
 <template>
-  <div v-if="loading" class="fh-public is-fh-loading py-5">
+  <div v-if="loading" class="ar-public is-ar-loading py-5">
     <div class="card" style="max-width: 600px; width: 100%; margin: 0 auto;">
       <div class="card-body p-4">
         <SkeletonBlock variant="line" :lines="1" width="40%" class="mx-auto" />
@@ -61,35 +61,35 @@ function fileIcon(mime: string): string {
 
   <ErrorState v-else-if="loadError" :message="loadError" @retry="load" />
 
-  <div v-else-if="file" class="fh-public">
-    <div class="fh-public__card card" style="max-width: 600px; width: 100%;">
-      <div class="fh-public__card-body card-body text-center p-4">
-        <div class="fh-public__label text-muted small mb-2">{{ t('web.file-hosting.public.shared_file') }}</div>
-        <i class="bi fh-public__file-icon fs-1 mb-3 d-block" :class="fileIcon(file.mime)"></i>
-        <h1 class="h4 mb-3 fh-public__file-name">{{ file.name }}</h1>
+  <div v-else-if="file" class="ar-public">
+    <div class="ar-public__card card" style="max-width: 600px; width: 100%;">
+      <div class="ar-public__card-body card-body text-center p-4">
+        <div class="ar-public__label text-muted small mb-2">{{ t('web.archivd.public.shared_file') }}</div>
+        <i class="bi ar-public__file-icon fs-1 mb-3 d-block" :class="fileIcon(file.mime)"></i>
+        <h1 class="h4 mb-3 ar-public__file-name">{{ file.name }}</h1>
 
-        <div class="fh-public__meta row g-2 mb-3 text-start">
+        <div class="ar-public__meta row g-2 mb-3 text-start">
           <div class="col-6">
             <div class="border rounded p-2">
-              <div class="fh-public__meta-label text-muted small">{{ t('web.file-hosting.public.type') }}</div>
-              <div class="fh-public__meta-value small text-truncate">{{ file.mime }}</div>
+              <div class="ar-public__meta-label text-muted small">{{ t('web.archivd.public.type') }}</div>
+              <div class="ar-public__meta-value small text-truncate">{{ file.mime }}</div>
             </div>
           </div>
           <div class="col-6">
             <div class="border rounded p-2">
-              <div class="fh-public__meta-label text-muted small">{{ t('web.file-hosting.public.size') }}</div>
-              <div class="fh-public__meta-value small">{{ file.size_human ?? file.size }}</div>
+              <div class="ar-public__meta-label text-muted small">{{ t('web.archivd.public.size') }}</div>
+              <div class="ar-public__meta-value small">{{ file.size_human ?? file.size }}</div>
             </div>
           </div>
         </div>
 
-        <div class="fh-public__actions">
+        <div class="ar-public__actions">
           <a
             v-if="downloadUrl"
             :href="downloadUrl ?? undefined"
             class="btn btn-primary w-100"
           >
-            <i class="bi bi-download me-1"></i> {{ t('web.file-hosting.public.download') }}
+            <i class="bi bi-download me-1"></i> {{ t('web.archivd.public.download') }}
           </a>
         </div>
       </div>

@@ -3,16 +3,16 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 /**
- * Name / move modal for File Hosting (create folder, rename, move).
- * Extracted from FileHostingView. Parent owns visibility + submission.
+ * Name / move modal for Archivd (create folder, rename, move).
+ * Extracted from ArchivdView. Parent owns visibility + submission.
  */
-export type FhNameMoveModal =
+export type ArNameMoveModal =
   | { type: 'folder'; name: string }
   | { type: 'rename'; entity: 'folder' | 'file'; id: string; name: string }
   | { type: 'move'; keys: string[]; target: string }
 
 const props = defineProps<{
-  modal: FhNameMoveModal
+  modal: ArNameMoveModal
   busy: boolean
   moveTargets: Array<{ id: string; name: string }>
 }>()
@@ -25,9 +25,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const title = computed(() => {
-  if (props.modal.type === 'folder') return t('web.file-hosting.new_folder')
-  if (props.modal.type === 'rename') return t('web.file-hosting.rename')
-  return t('web.file-hosting.modal_move')
+  if (props.modal.type === 'folder') return t('web.archivd.new_folder')
+  if (props.modal.type === 'rename') return t('web.archivd.rename')
+  return t('web.archivd.modal_move')
 })
 
 function setName(v: string): void {
@@ -53,7 +53,7 @@ function onEnter(): void {
         </div>
         <div class="modal-body">
           <div v-if="modal.type === 'folder' || modal.type === 'rename'">
-            <label class="form-label">{{ t('web.file-hosting.name_label') }}</label>
+            <label class="form-label">{{ t('web.archivd.name_label') }}</label>
             <input
               :value="modal.name"
               type="text"
@@ -64,16 +64,16 @@ function onEnter(): void {
             />
           </div>
           <div v-else-if="modal.type === 'move'">
-            <label class="form-label">{{ t('web.file-hosting.target_folder_label') }}</label>
+            <label class="form-label">{{ t('web.archivd.target_folder_label') }}</label>
             <input
               :value="modal.target"
               type="text"
               class="form-control mb-2"
-              :placeholder="t('web.file-hosting.target_folder_placeholder')"
+              :placeholder="t('web.archivd.target_folder_placeholder')"
               @input="setTarget(($event.target as HTMLInputElement).value)"
             />
             <div class="list-group list-group-flush">
-              <button type="button" class="list-group-item list-group-item-action" @click="setTarget('')">{{ t('web.file-hosting.root') }}</button>
+              <button type="button" class="list-group-item list-group-item-action" @click="setTarget('')">{{ t('web.archivd.root') }}</button>
               <button
                 v-for="f in moveTargets"
                 :key="'mv:' + f.id"
@@ -87,8 +87,8 @@ function onEnter(): void {
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" @click="emit('close')">{{ t('web.file-hosting.cancel') }}</button>
-          <button type="button" class="btn btn-primary btn-sm" :disabled="busy" @click="emit('submit')">{{ t('web.file-hosting.save') }}</button>
+          <button type="button" class="btn btn-secondary btn-sm" @click="emit('close')">{{ t('web.archivd.cancel') }}</button>
+          <button type="button" class="btn btn-primary btn-sm" :disabled="busy" @click="emit('submit')">{{ t('web.archivd.save') }}</button>
         </div>
       </div>
     </div>

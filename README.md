@@ -65,7 +65,7 @@ On **Monolith** (`APP_ENV=production`):
 1. `SPA_URL` = public Vue-Workers origin (no trailing slash). Empty falls back to Monolith `APP_URL` + surviving server endpoints (public share, iPaymu return, OAuth callback).
 2. `APP_URL` = public Laravel API origin; `VITE_API_BASE_URL` uses same origin with `/api/v1`.
 3. hCaptcha: Settings on **and** `VITE_HCAPTCHA_SITE_KEY` set, or both off.
-4. File Hosting bucket / Gateway CORS includes the SPA origin and **exposes `ETag`**.
+4. Archivd bucket / Gateway CORS includes the SPA origin and **exposes `ETag`**.
 5. Pusher or Sockudo: `PUSHER_*` on Laravel + matching `VITE_PUSHER_*` in the SPA build.
 
 The same five points apply to the **sandbox** Monolith instance with its own `SPA_URL` (the `monolith-spa-sandbox` origin) and sandbox credential sets.

@@ -1,11 +1,11 @@
-import type { FhMicrostock } from '@/api/types'
+import type { ArMicrostock } from '@/api/types'
 
-export interface FhMicrostockBadge {
+export interface arMicrostockBadge {
   label: string
   cls: string
 }
 
-export interface FhMicrostockBadgeLabels {
+export interface arMicrostockBadgeLabels {
   noMetadata: string
   statusPending: string
   statusGenerated: string
@@ -23,7 +23,7 @@ type MsStages = {
   result?: string
 }
 
-function stagesOf(ms: FhMicrostock | null | undefined): MsStages {
+function stagesOf(ms: ArMicrostock | null | undefined): MsStages {
   const raw = ms?.stages
   if (!raw || typeof raw !== 'object') return {}
   return raw as MsStages
@@ -46,9 +46,9 @@ export function formatCollectionProgress(
 }
 
 export function resolveMicrostockBadge(
-  ms: FhMicrostock | null | undefined,
-  labels: FhMicrostockBadgeLabels,
-): FhMicrostockBadge {
+  ms: ArMicrostock | null | undefined,
+  labels: arMicrostockBadgeLabels,
+): arMicrostockBadge {
   if (!ms || !ms.status) {
     return { label: labels.noMetadata, cls: 'text-bg-secondary' }
   }
