@@ -1632,7 +1632,7 @@
       "back_to_list_button": "Kembali ke daftar"
     },
     "archivd": {
-      "title": "Hosting file",
+      "title": "Archivd",
       "blocklist_title": "Daftar blokir hash (DMCA)",
       "blocklist_add": "Blokir hash",
       "blocklist_sha256": "sha256",

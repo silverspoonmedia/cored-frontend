@@ -1632,7 +1632,7 @@
       "back_to_list_button": "返回列表"
     },
     "archivd": {
-      "title": "文件托管",
+      "title": "Archivd",
       "blocklist_title": "哈希阻止列表 (DMCA)",
       "blocklist_add": "块哈希",
       "blocklist_sha256": "sha256",

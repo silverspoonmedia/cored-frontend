@@ -29,7 +29,7 @@ export function useArchivdWorkspaces() {
   } = useArchivd()
   const { hasPermission } = useAuth()
   const { success: showSuccess, error: showError } = useAlert()
-  const { subscribe: subscribeFh, unsubscribe: unsubscribeFh } = useArchivdRealtime()
+  const { subscribe: subscribeArchivd, unsubscribe: unsubscribeArchivd } = useArchivdRealtime()
   const { hydrateWorkspaceDetail } = useArchivdHydrate()
   const { t } = useI18n()
 
@@ -77,11 +77,11 @@ export function useArchivdWorkspaces() {
 
   onMounted(async () => {
     await loadWorkspaces()
-    subscribeFh(wsHandlers)
+    subscribeArchivd(wsHandlers)
   })
 
   onUnmounted(() => {
-    unsubscribeFh(wsHandlers)
+    unsubscribeArchivd(wsHandlers)
   })
 
   async function loadWorkspaces(): Promise<void> {

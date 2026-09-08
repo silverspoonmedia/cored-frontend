@@ -1008,7 +1008,7 @@
       "source": "현재 출처: {source}",
       "groups": {
         "platform": "플랫폼",
-        "archivd": "파일 호스팅",
+        "archivd": "Archivd",
         "microstock": "마이크로스톡",
         "vtual": "vTual",
         "identity": "계정",
@@ -1946,7 +1946,7 @@
       "back_to_list_button": "목록으로 돌아가기"
     },
     "archivd": {
-      "title": "파일 호스팅",
+      "title": "Archivd",
       "blocklist_title": "해시 차단 목록(DMCA)",
       "blocklist_add": "해시 차단",
       "blocklist_sha256": "sha256",
@@ -2248,7 +2248,7 @@
       "quota_remaining": "남음",
       "quota_unlimited": "무제한",
       "load_failed": "불러오지 못했습니다.",
-      "vue_mount_failed": "파일 호스팅 화면을 불러오지 못했습니다. 페이지를 새로 고치세요.",
+      "vue_mount_failed": "Archivd 화면을 불러오지 못했습니다. 페이지를 새로 고치세요.",
       "link_copied": "링크가 클립보드에 복사되었습니다.",
       "ajax_success": "작업이 완료되었습니다.",
       "ajax_error": "작업에 실패했습니다.",
@@ -3307,7 +3307,7 @@
       },
       "microstock": {
         "title": "Microstock",
-        "slot_desc": "무료 Microstock 작업 공간을 활성화한 다음 추가 작업 공간 슬롯을 구매하세요. 슬롯은 파일 호스팅 팀 작업 공간과 별개입니다.",
+        "slot_desc": "무료 Microstock 작업 공간을 활성화한 다음 추가 작업 공간 슬롯을 구매하세요. 슬롯은 Archivd 팀 작업 공간과 별개입니다.",
         "activate_free": "무료 활성화",
         "active_badge": "활성",
         "buy_slot": "슬롯 구매($1/월)",
