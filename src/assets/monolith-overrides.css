@@ -111,7 +111,7 @@
 }
 
 .card.is-clickable:hover,
-.fh-file-card:hover,
+.ar-file-card:hover,
 a.card:hover {
     box-shadow: var(--monolith-shadow);
     transform: translateY(-1px);
@@ -153,7 +153,7 @@ a.card:hover {
 
 /* ---- Sidebar: respect theme (no forced dark) ---- */
 .app-sidebar {
-    border-right: 1px solid var(--monolith-border-subtle);
+    border-inline-end: 1px solid var(--monolith-border-subtle);
     transition: background-color var(--monolith-transition);
 }
 
@@ -184,6 +184,15 @@ a.card:hover {
     background-color: var(--monolith-accent-soft);
     color: var(--monolith-accent);
     box-shadow: inset 2px 0 0 var(--monolith-accent);
+}
+
+html[dir='rtl'] .sidebar-wrapper .nav-link.active {
+    box-shadow: inset -2px 0 0 var(--monolith-accent);
+}
+
+html[dir='rtl'] .app-sidebar {
+    border-inline-start: 1px solid var(--monolith-border-subtle);
+    border-inline-end: 0;
 }
 
 .sidebar-wrapper .nav-header {
@@ -661,7 +670,7 @@ code {
     }
 
     .card.is-clickable:hover,
-    .fh-file-card:hover,
+    .ar-file-card:hover,
     a.card:hover {
         transform: none;
     }
@@ -716,11 +725,11 @@ code {
     }
 }
 
-/* ---- Unified toast component (replaces fh-toast, ois-toast, pc-admin-toast, inf-admin-toast) ---- */
+/* ---- Unified toast component (replaces ar-toast, ois-toast, pc-admin-toast, inf-admin-toast) ---- */
 .monolith-toast-container {
     position: fixed;
-    bottom: 1.25rem;
-    right: 1.25rem;
+    inset-block-end: 1.25rem;
+    inset-inline-end: 1.25rem;
     z-index: 1080;
     display: flex;
     flex-direction: column;
@@ -742,7 +751,7 @@ code {
     max-width: 24rem;
     pointer-events: auto;
     animation: monolith-toast-in 0.25s ease;
-    border-left-width: 3px;
+    border-inline-start-width: 3px;
 }
 
 @keyframes monolith-toast-in {
@@ -756,26 +765,45 @@ code {
     }
 }
 
+html[dir='rtl'] .monolith-toast {
+    animation-name: monolith-toast-in-rtl;
+}
+
+@keyframes monolith-toast-in-rtl {
+    from {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 .monolith-toast.is-success {
-    border-left-color: var(--monolith-status-success-text);
+    border-inline-start-color: var(--monolith-status-success-text);
 }
 
 .monolith-toast.is-error {
-    border-left-color: var(--monolith-status-danger-text);
+    border-inline-start-color: var(--monolith-status-danger-text);
 }
 
 .monolith-toast.is-info {
-    border-left-color: var(--monolith-accent);
+    border-inline-start-color: var(--monolith-accent);
 }
 
 .monolith-toast.is-warning {
-    border-left-color: var(--monolith-status-warning-text);
+    border-inline-start-color: var(--monolith-status-warning-text);
 }
 
 .monolith-toast.is-leaving {
     opacity: 0;
     transform: translateX(1rem);
     transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+html[dir='rtl'] .monolith-toast.is-leaving {
+    transform: translateX(-1rem);
 }
 
 .monolith-toast__icon {
@@ -820,6 +848,19 @@ code {
     z-index: 1090 !important;
 }
 
+/* ---- RTL directional icons ----
+   Vendor RTL builds already mirror AdminLTE's own chrome (.nav-arrow uses
+   translateY(-50%) rotate(180deg)); only glyphs/icons outside vendor control
+   need an explicit mirror here. Do NOT re-transform .nav-arrow — it would
+   clobber the vendor's vertical centering. */
+html[dir='rtl'] .bi-arrow-left::before {
+    content: '\f138'; /* bi-arrow-right glyph */
+}
+
+html[dir='rtl'] .ar-breadcrumb__sep {
+    transform: scaleX(-1);
+}
+
 /* Toast sizing must not depend on body.swal2-toast-shown — App.vue and AdminLTE
    both mutate body classes, and wiping that class makes the container fall back
    to inset:0 / height:100% (full-viewport banner). */
@@ -827,7 +868,10 @@ code {
     width: 360px;
     max-width: 100%;
     height: auto;
-    inset: 0 0 auto auto;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    inset-block-end: auto;
+    inset-inline-start: auto;
     background: transparent;
     pointer-events: none;
 }

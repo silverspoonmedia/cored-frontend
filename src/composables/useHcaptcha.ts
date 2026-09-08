@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import i18n from '@/i18n'
 
 export interface HcaptchaExpose {
   execute: () => Promise<string>
@@ -13,7 +14,7 @@ export function useHcaptcha() {
   async function captchaToken(): Promise<string | undefined> {
     if (!enabled.value) return undefined
     if (!widget.value) {
-      throw new Error('hCaptcha not ready')
+      throw new Error(i18n.global.t('ui.hcaptcha.not_ready'))
     }
     return widget.value.execute()
   }

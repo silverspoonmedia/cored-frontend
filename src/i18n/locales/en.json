@@ -194,7 +194,7 @@
         "ignored": "Ignored"
       }
     },
-    "file-hosting": {
+    "archivd": {
       "root_label": "My Files",
       "browse_success": "Browse loaded.",
       "folder_created": "Folder created.",
@@ -216,7 +216,7 @@
       "download_unavailable": "Download URL is unavailable for this storage disk.",
       "visibility_updated": "Visibility updated.",
       "invalid_visibility": "Invalid visibility value.",
-      "public_share_requires_paid": "Public link sharing requires an active paid File Hosting plan.",
+      "public_share_requires_paid": "Public link sharing requires an active paid Archivd plan.",
       "public_share_blocked_hash": "This file cannot be shared publicly (blocked by compliance).",
       "public_share_not_allowed": "Items in this workspace cannot be shared publicly.",
       "blocklist_saved": "Hash added to the blocklist.",
@@ -255,7 +255,7 @@
         "access_denied": "You cannot access this workspace.",
         "mutate_denied": "You cannot modify files in this workspace.",
         "members_denied": "You cannot manage members of this workspace.",
-        "requires_paid": "Collaborative workspaces require an active paid File Hosting plan (main or addon).",
+        "requires_paid": "Collaborative workspaces require an active paid Archivd plan (main or addon).",
         "owner_in_grace": "The workspace owner is in the grace period. Renew the plan to use collaborative features.",
         "already_exists": "You already have a workspace.",
         "slot_limit": "Owned team workspace limit reached ({used} / {limit}). Archive a team or buy a Team Workspace Slot addon.",
@@ -1032,6 +1032,16 @@
       "datatable_load_failed": "Could not load the table data. Please try again.",
       "unexpected_error": "Something went wrong. Please try again."
     },
+    "hcaptcha": {
+      "challenge_failed": "Captcha verification failed. Please try again.",
+      "challenge_closed": "Captcha challenge was closed.",
+      "challenge_expired": "Captcha challenge expired.",
+      "not_ready": "Captcha is not ready yet.",
+      "execute_failed": "Captcha could not be completed."
+    },
+    "realtime": {
+      "broadcast_auth_invalid": "Could not authorize the realtime connection."
+    },
     "shared": {
       "load_failed": "Could not load the data.",
       "create_failed": "Could not create the item.",
@@ -1621,8 +1631,8 @@
       "not_found_message": "Error log not found.",
       "back_to_list_button": "Back to List"
     },
-    "file-hosting": {
-      "title": "File hosting",
+    "archivd": {
+      "title": "Archivd",
       "blocklist_title": "Hash blocklist (DMCA)",
       "blocklist_add": "Block hash",
       "blocklist_sha256": "sha256",
@@ -1924,7 +1934,7 @@
       "quota_remaining": "remaining",
       "quota_unlimited": "Unlimited",
       "load_failed": "Failed to load.",
-      "vue_mount_failed": "File Hosting UI failed to load. Refresh the page.",
+      "vue_mount_failed": "Archivd UI failed to load. Refresh the page.",
       "link_copied": "Link copied to clipboard.",
       "ajax_success": "Action completed.",
       "ajax_error": "Action failed.",
@@ -1940,6 +1950,11 @@
       "upload": {
         "start": "Start upload",
         "browse": "Browse files",
+        "invalid_url": "The upload URL is invalid.",
+        "part_missing": "Upload part {part} is unavailable.",
+        "part_list_missing": "The upload did not return a part.",
+        "put_failed": "Upload failed with status {status}.",
+        "network_error": "A network error interrupted the upload.",
         "region": "Upload region",
         "too_many": "Too many files selected.",
         "wait": "Please wait for uploads to finish.",
@@ -2072,6 +2087,12 @@
       "failed_update_role": "Could not update the member's role.",
       "failed_remove_member": "Could not remove the member.",
       "failed_archive_workspace": "Could not archive the workspace.",
+      "roles": {
+        "Owner": "Owner",
+        "admin": "Admin",
+        "editor": "Editor",
+        "viewer": "Viewer"
+      },
       "system": "System",
       "activity": "activity",
       "blocklist_title_card": "Hash Blocklist",
@@ -2141,6 +2162,19 @@
       "linked_unverified": "Not verified",
       "linked_revoked": "Revoked",
       "synced_at": "Last synced: {at}",
+      "sync": "Sync",
+      "sync_failed": "Could not sync connected accounts.",
+      "synced": "Linked accounts updated.",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "disconnected": "Account disconnected.",
+      "disconnect_failed": "Could not disconnect this account.",
+      "connected": "This account is connected.",
+      "not_connected": "Connect this provider to link accounts from your profile.",
+      "not_configured": "This provider is not configured on this server.",
+      "provider_heading": "{name}",
+      "linked_accounts_heading_generic": "Linked accounts",
+      "linked_accounts_empty_generic": "No linked accounts yet.",
       "discord_disconnect_failed": "Failed to disconnect Discord.",
       "load_failed": "Could not load connected accounts.",
       "authorization_failed": "Could not start Discord authorization."
@@ -2348,6 +2382,11 @@
         "layout_hint": "Show menus for the selected shell region only."
       },
       "has_children_title": "Has {count} child item(s)",
+      "search_aria_label": "Search menus",
+      "attributes": {
+        "auth": "auth",
+        "guest": "guest"
+      },
       "trashed_card_title": "Deleted menus",
       "new_card_title": "New menu details",
       "edit_card_title": "Edit menu: {name}",
@@ -2945,6 +2984,7 @@
         "sync_policy_done": "Routing policy synced ({channels} channels, {routes} routes). Reloading…"
       },
       "checkout_panel_title": "Payment Checkout",
+      "qr_code_alt": "Payment QR code",
       "invoice_status_label": "Invoice status:",
       "select_payment_channel": "Select Payment Channel",
       "checkout_initiated": "Checkout initiated. Follow the instructions below.",
@@ -3102,7 +3142,7 @@
       },
       "microstock": {
         "title": "Microstock",
-        "slot_desc": "Activate the free Microstock workspace, then buy additional workspace slots. Slots are separate from File Hosting team workspaces.",
+        "slot_desc": "Activate the free Microstock workspace, then buy additional workspace slots. Slots are separate from Archivd team workspaces.",
         "activate_free": "Activate free",
         "active_badge": "Active",
         "buy_slot": "Buy slot ($1/mo)",
@@ -3147,7 +3187,7 @@
       "source": "Current source: {source}",
       "groups": {
         "platform": "Platform",
-        "file_hosting": "File Hosting",
+        "archivd": "Archivd",
         "microstock": "Microstock",
         "vtual": "vTual",
         "identity": "Identity",
@@ -3195,25 +3235,25 @@
         "platform.inference.unknown_output_per_million_usd": "Unknown model output rate (USD per 1M tokens)",
         "platform.frankfurter.cache_ttl": "Frankfurter FX freshness window (seconds)",
         "platform.frankfurter.timeout": "Frankfurter FX HTTP timeout (seconds)",
-        "file-hosting.max_file_size_bytes": "Max file size (bytes)",
-        "file-hosting.max_files_per_batch": "Max files per batch",
-        "file-hosting.max_concurrent_uploads": "Max concurrent uploads",
-        "file-hosting.max_concurrent_parts": "Max concurrent multipart parts",
-        "file-hosting.chunk_size_bytes": "Upload chunk size (bytes)",
-        "file-hosting.multipart_threshold_bytes": "Multipart upload threshold (bytes)",
-        "file-hosting.max_presigned_parts_per_response": "Max presigned parts per response",
-        "file-hosting.presign_ttl_minutes": "Presigned URL TTL (minutes)",
-        "file-hosting.session_ttl_hours": "Upload session TTL (hours)",
-        "file-hosting.stale_upload_grace_hours": "Stale upload grace period (hours)",
-        "file-hosting.orphan_inactivity_minutes": "Orphan part inactivity timeout (minutes)",
-        "file-hosting.default_quota_bytes": "Default storage quota (bytes)",
-        "file-hosting.base_owned_workspace_slots": "Base owned workspace slots",
-        "file-hosting.disabled_regions": "Disabled storage regions",
-        "file-hosting.signed_download_ttl_minutes": "Signed download URL TTL (minutes)",
-        "file-hosting.signed_download_cache_margin_seconds": "Signed download cache margin (seconds)",
-        "file-hosting.public_download_signature_ttl_minutes": "Public download signature TTL (minutes)",
-        "file-hosting.allowed_mime_prefixes": "Allowed MIME type prefixes",
-        "file-hosting.download_vault.enabled": "Download vault proxy enabled",
+        "archivd.max_file_size_bytes": "Max file size (bytes)",
+        "archivd.max_files_per_batch": "Max files per batch",
+        "archivd.max_concurrent_uploads": "Max concurrent uploads",
+        "archivd.max_concurrent_parts": "Max concurrent multipart parts",
+        "archivd.chunk_size_bytes": "Upload chunk size (bytes)",
+        "archivd.multipart_threshold_bytes": "Multipart upload threshold (bytes)",
+        "archivd.max_presigned_parts_per_response": "Max presigned parts per response",
+        "archivd.presign_ttl_minutes": "Presigned URL TTL (minutes)",
+        "archivd.session_ttl_hours": "Upload session TTL (hours)",
+        "archivd.stale_upload_grace_hours": "Stale upload grace period (hours)",
+        "archivd.orphan_inactivity_minutes": "Orphan part inactivity timeout (minutes)",
+        "archivd.default_quota_bytes": "Default storage quota (bytes)",
+        "archivd.base_owned_workspace_slots": "Base owned workspace slots",
+        "archivd.disabled_regions": "Disabled storage regions",
+        "archivd.signed_download_ttl_minutes": "Signed download URL TTL (minutes)",
+        "archivd.signed_download_cache_margin_seconds": "Signed download cache margin (seconds)",
+        "archivd.public_download_signature_ttl_minutes": "Public download signature TTL (minutes)",
+        "archivd.allowed_mime_prefixes": "Allowed MIME type prefixes",
+        "archivd.download_vault.enabled": "Download vault proxy enabled",
         "microstock.daily_free.enabled": "Daily free downloads enabled",
         "microstock.daily_free.limit_per_user": "Daily free download limit per user",
         "microstock.daily_free.timezone": "Daily free reset timezone",
@@ -3444,6 +3484,54 @@
         "channel_added": "Channel added."
       }
     },
+    "vtual-events": {
+      "title": "Events",
+      "breadcrumb": "Events",
+      "list_title": "vTual events",
+      "subtitle": "Events submitted by managements, shown on the public landing page.",
+      "add_button": "Add event",
+      "create_title": "Create event",
+      "edit_title": "Event details",
+      "status": {
+        "scheduled": "Scheduled",
+        "live": "Live",
+        "ended": "Ended",
+        "cancelled": "Cancelled",
+        "featured": "Featured"
+      },
+      "datatable": {
+        "empty": "No events yet.",
+        "zero_records": "No events match the search.",
+        "confirm_cancel": "Cancel this event?",
+        "columns": {
+          "title": "Title",
+          "management": "Management",
+          "starts_at": "Starts",
+          "status": "Status"
+        }
+      },
+      "form": {
+        "management": "Management",
+        "title": "Title",
+        "description": "Description",
+        "starts_at": "Starts at",
+        "ends_at": "Ends at",
+        "timezone": "Time zone",
+        "timezone_hint": "IANA name, e.g. Asia/Jakarta. Leave empty for UTC.",
+        "thumbnail_url": "Thumbnail URL",
+        "url": "External URL",
+        "is_featured": "Featured event",
+        "management_required": "Select a management.",
+        "submit_create": "Create event",
+        "submit_update": "Update event"
+      },
+      "errors": {
+        "load_failed": "Failed to load events.",
+        "save_failed": "Failed to save the event.",
+        "cancel_failed": "Failed to cancel the event.",
+        "readonly": "Events cannot be edited after creation; create a new event instead."
+      }
+    },
     "vtual-managements": {
       "title": "Managements",
       "breadcrumb": "Managements",
@@ -3475,20 +3563,89 @@
         "description": "Description",
         "logo_url": "Logo URL",
         "status": "Status",
+        "ownerless": "Create without owner (claimable)",
+        "ownerless_hint": "Staff-only: seed the organization without an Owner member, then hand it over via an Owner invitation.",
         "submit_create": "Create management",
         "submit_update": "Update management"
       },
       "creators": {
         "section_title": "Managed creators",
-        "section_help": "Assign vTuber creators to this management.",
-        "creator": "Creator",
-        "assign_button": "Assign",
-        "unassign_button": "Remove",
-        "table_caption": "Creators assigned to this management",
-        "empty": "No creators assigned yet.",
+        "section_help": "vTuber profiles linked to this management. Linking happens via vTuber profile invites.",
+        "table_caption": "vTuber profiles linked to this management",
+        "empty": "No vTuber profiles linked yet.",
         "columns": {
           "creator": "Creator",
           "joined_at": "Joined"
+        }
+      },
+      "members": {
+        "section_title": "Members",
+        "section_help": "People who manage this organisation. Owners and admins can manage members. New members join via email invitation.",
+        "role": "Role",
+        "table_caption": "Members of this management",
+        "empty": "No members yet.",
+        "roles": {
+          "owner": "Owner",
+          "admin": "Admin",
+          "staff": "Staff"
+        },
+        "columns": {
+          "user": "User",
+          "role": "Role"
+        }
+      },
+      "invites": {
+        "section_title": "Invitations",
+        "section_help": "Invite a registered user by email. They receive an email and an in-app notification to accept or decline. Cancelling an accepted invite revokes the membership.",
+        "email": "Email",
+        "email_placeholder": "Enter the invitee email",
+        "email_hint": "The invited user must already have an account with this email.",
+        "role": "Role",
+        "send_button": "Send invite",
+        "cancel_button": "Cancel",
+        "cancel_accepted_confirm": "Cancelling this invitation removes the user's membership. Continue?",
+        "table_caption": "Invitations for this management",
+        "empty": "No invitations yet.",
+        "statuses": {
+          "pending": "Pending",
+          "accepted": "Accepted",
+          "declined": "Declined",
+          "cancelled": "Cancelled",
+          "revoked": "Revoked",
+          "expired": "Expired"
+        },
+        "columns": {
+          "email": "Email",
+          "role": "Role",
+          "status": "Status",
+          "expires_at": "Expires"
+        }
+      },
+      "creator_invites": {
+        "section_title": "vTuber profile invites",
+        "section_help": "Invite a vTuber to link their profile to this management. Choose an existing profile owned by the invitee, or create a new profile for them on accept.",
+        "mode": {
+          "label": "Invite mode",
+          "existing": "Existing profile",
+          "new": "New profile"
+        },
+        "profile": "vTuber profile",
+        "profile_placeholder": "Select a profile",
+        "no_candidates": "No profiles owned by this account.",
+        "new_display_name": "New profile display name",
+        "send_button": "Send invite",
+        "target": {
+          "existing": "Existing profile",
+          "new": "New profile"
+        },
+        "columns": {
+          "target": "Target profile"
+        },
+        "empty": "No vTuber profile invites yet.",
+        "table_caption": "vTuber profile invitations for this management",
+        "errors": {
+          "send_failed": "Failed to send vTuber invite.",
+          "cancel_failed": "Failed to cancel vTuber invite."
         }
       },
       "errors": {
@@ -3496,7 +3653,26 @@
         "save_failed": "Failed to save management.",
         "archive_failed": "Failed to archive management.",
         "assign_failed": "Failed to assign creator.",
-        "unassign_failed": "Failed to remove creator."
+        "unassign_failed": "Failed to remove creator.",
+        "member_update_failed": "Failed to update member role.",
+        "invite_send_failed": "Failed to send invitation.",
+        "invite_cancel_failed": "Failed to cancel invitation."
+      }
+    },
+    "vtual-invites": {
+      "title": "Management invitation",
+      "invited_to": "You have been invited to join {management}.",
+      "creator_invited_to": "You have been invited to link your vTuber profile to {management}.",
+      "creator_profile_label": "vTuber profile",
+      "role_label": "Role",
+      "expires_label": "Expires",
+      "accept_button": "Accept",
+      "decline_button": "Decline",
+      "back_to_managements": "Back to managements",
+      "errors": {
+        "missing_token": "Invitation link is missing its token.",
+        "load_failed": "Failed to load invitation.",
+        "respond_failed": "Failed to respond to invitation."
       }
     },
     "vtual-platform-credentials": {
@@ -3632,6 +3808,7 @@
       "claim_queue_status_processing": "Processing",
       "claim_active_heading": "Active claim",
       "claim_proof_channel_label": "Proof channel",
+      "claim_verified_channel_label": "Verified via channel",
       "claim_cancel": "Cancel claim",
       "claim_missing_active": "No active claim to perform this action.",
       "claim_realtime_connected": "Live updates",
@@ -3654,6 +3831,7 @@
       "claim_no_discord": "No Discord connected?",
       "claim_discord_return_hint": ", then return here and click Verify with Discord.",
       "claim_select_channel_hint": "Select a channel to prove ownership of this profile.",
+      "claim_one_channel_covers_profile": "You only need to prove one channel. A successful claim owns this entire profile — you do not claim every channel listed.",
       "claim_no_channels_for_verify": "No channels available for verification.",
       "claim_attempts": "Attempts",
       "claim_remaining": "remaining",
@@ -3704,7 +3882,6 @@
       "profile_help_twitch": "Twitch: numeric user id, login, or twitch.tv/… profile URL.",
       "profile_placeholder_youtube": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
       "profile_placeholder_twitch": "12345678 / login / https://twitch.tv/login",
-      "refresh_channel": "Verify / refresh",
       "archive_channel": "Archive channel",
       "restore_channel": "Restore channel",
       "avatar_url": "Avatar URL",
@@ -3786,8 +3963,27 @@
         "page_title": "Back to profiles",
         "view_profile": "View profile",
         "profile_title": "Profile",
+        "refresh": "Refresh",
+        "channels_updated": "Channel data updated from the latest sync.",
         "no_active_channels": "No active channels.",
         "uuid_placeholder": "UUID",
+        "channels": {
+          "section_title": "Platform channels",
+          "section_help": "Add a platform channel. Owners and editors start a bio-token claim — paste the token in the channel About/bio and verify below. Leftover pending rows can be deleted; bound channels can be archived.",
+          "avatar": "Avatar",
+          "platform": "Platform",
+          "profile_or_id": "Profile / external id",
+          "handle": "Handle",
+          "status": "Status",
+          "actions": "Actions",
+          "table_caption": "Profile platform channels",
+          "archived_table_caption": "Archived platform channels",
+          "empty": "No channels registered yet.",
+          "status_pending": "Pending",
+          "status_active": "Active",
+          "status_disconnected": "Disconnected",
+          "status_archived": "Archived"
+        },
         "link_kinds": {
           "social": "Social",
           "donation": "Donation",
@@ -3814,7 +4010,7 @@
           "link_save_failed": "Failed to save link",
           "link_delete_failed": "Failed to delete link",
           "channel_add_failed": "Failed to add channel",
-          "refresh_failed": "Failed to refresh",
+          "channel_delete_failed": "Failed to delete pending channel",
           "archive_failed": "Failed to archive",
           "restore_failed": "Failed to restore",
           "promote_failed": "Failed to promote",
@@ -3829,7 +4025,7 @@
           "link_removed": "Link removed.",
           "channel_claim_started": "Channel claim started. Paste the token in your channel bio to verify.",
           "channel_added": "Channel added.",
-          "refresh_queued": "Refresh queued.",
+          "channel_deleted": "Pending channel deleted.",
           "channel_archived": "Channel archived.",
           "channel_restored": "Channel restored.",
           "channel_promoted": "Channel promoted.",
@@ -3972,8 +4168,8 @@
         "accept": "Accept",
         "accept_anyway": "Accept Anyway",
         "promote": "Make public",
-        "refresh": "Verify / refresh",
         "archive": "Archive",
+        "delete": "Delete",
         "restore": "Restore"
       },
       "confirm": {
@@ -3981,6 +4177,8 @@
         "default_submit": "Confirm",
         "archive_channel_title": "Archive channel",
         "archive_channel_body": "Archive this channel? It will be hidden from the active list.",
+        "delete_pending_channel_title": "Delete pending channel",
+        "delete_pending_channel_body": "Delete this pending channel? It was never bound to a platform identity. This cannot be undone.",
         "restore_channel_title": "Restore channel",
         "restore_channel_body": "Restore this channel to active?",
         "cancel_claim_title": "Cancel claim",
@@ -4108,6 +4306,11 @@
       "probe_failed": "Probe failed",
       "public": {
         "title": "vTual — Virtual Creator Hub",
+        "meta": {
+          "landing_description": "Discover VTubers, live streams, and new videos across platforms — profiles, schedules, and community content in one place.",
+          "profile_description_fallback": "Public profile of {name} on vTual — channels, videos, and schedule.",
+          "management_description_fallback": "Public profile of {name} on vTual — creator roster and links."
+        },
         "nav": {
           "home": "Home",
           "directory": "vTubers",
@@ -4231,6 +4434,15 @@
             "status": "Status",
             "offline": "Offline"
           }
+        },
+        "management": {
+          "breadcrumb": "Breadcrumb",
+          "not_found": "Management not found",
+          "not_found_body": "This public management profile does not exist or is not listed.",
+          "error": "Could not load this management profile. Try again later.",
+          "retry": "Try again",
+          "creators_heading": "Roster",
+          "creators_empty": "No public creators in this management yet."
         },
         "landing": {
           "error": "Could not load the latest highlights.",

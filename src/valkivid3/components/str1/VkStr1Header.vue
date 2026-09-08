@@ -45,10 +45,11 @@ onMounted(() => {
               <button
                 v-if="node.children.length > 0"
                 type="button"
-                class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:left-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-right after:scale-x-0 after:bg-current-marker-dark after:transition-transform hover:after:origin-left hover:after:scale-x-100 dark:text-white dark:after:bg-current-marker xl:px-4.5"
+                class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:start-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-right after:scale-x-0 after:bg-current-marker-dark after:transition-transform hover:after:origin-left hover:after:scale-x-100 dark:text-white dark:after:bg-current-marker xl:px-4.5"
                 :class="isVkNavActive(node, route) ? 'after:origin-left after:scale-x-100 text-accent dark:text-accent' : ''"
                 @click="toggleDropdown(node.id)"
                 @blur="openDropdown = null"
+                :aria-expanded="openDropdown === node.id"
               >
                 {{ node.name }}
               </button>
@@ -56,7 +57,7 @@ onMounted(() => {
               <router-link
                 v-else
                 :to="resolveRoute(node) ?? '#'"
-                class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:left-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-right after:scale-x-0 after:bg-current-marker-dark after:transition-transform hover:after:origin-left hover:after:scale-x-100 dark:text-white dark:after:bg-current-marker xl:px-4.5"
+                class="group relative inline-flex items-center gap-x-3 px-3.5 leading-10 text-gray-900 after:absolute after:start-0 after:top-[15px] after:h-[9px] after:w-1.5 after:origin-right after:scale-x-0 after:bg-current-marker-dark after:transition-transform hover:after:origin-left hover:after:scale-x-100 dark:text-white dark:after:bg-current-marker xl:px-4.5"
                 :class="isVkNavActive(node, route) ? 'after:origin-left after:scale-x-100 text-accent dark:text-accent' : ''"
                 :aria-current="isVkNavActive(node, route) ? 'page' : undefined"
               >
@@ -66,7 +67,7 @@ onMounted(() => {
               <!-- Dropdown panel -->
               <ul
                 v-if="node.children.length > 0 && openDropdown === node.id"
-                class="absolute left-0 top-full z-50 min-w-[180px] border border-gray-150 bg-white py-2 text-sm font-medium dark:border-gray-600 dark:bg-gray-700"
+                class="absolute start-0 top-full z-50 min-w-[180px] border border-gray-150 bg-white py-2 text-sm font-medium dark:border-gray-600 dark:bg-gray-700"
               >
                 <li v-for="child in node.children" :key="child.id">
                   <router-link
@@ -84,7 +85,7 @@ onMounted(() => {
           </ul>
 
           <!-- Controls -->
-          <div class="-mr-3 ml-auto flex">
+          <div class="-me-3 ms-auto flex">
             <!-- Dark/light switcher -->
             <div class="flex items-center px-1 py-4 sm:px-2">
               <button
@@ -96,13 +97,13 @@ onMounted(() => {
                 @click="toggleTheme()"
               >
                 <span
-                  class="relative z-10 block h-6 w-11 rounded-full border-2 border-gray-500/60 bg-gray-150 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-gray-900 after:transition-transform dark:border-white/50 dark:bg-white/10 dark:after:bg-white"
-                  :class="theme === 'dark' ? 'after:translate-x-[20px]' : ''"
+                  class="relative z-10 block h-6 w-11 rounded-full border-2 border-gray-500/60 bg-gray-150 after:absolute after:start-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-gray-900 after:transition-transform dark:border-white/50 dark:bg-white/10 dark:after:bg-white"
+                  :class="theme === 'dark' ? 'after:translate-x-[20px] rtl:after:-translate-x-[20px]' : ''"
                 ></span>
-                <svg role="img" class="pointer-events-none absolute left-[5px] top-1 h-4 w-4 fill-accent stroke-accent">
+                <svg role="img" class="pointer-events-none absolute start-[5px] top-1 h-4 w-4 fill-accent stroke-accent">
                   <use :href="`${spriteUrl}#sun`"></use>
                 </svg>
-                <svg role="img" class="pointer-events-none absolute right-[5px] top-1 h-4 w-4 fill-accent stroke-accent">
+                <svg role="img" class="pointer-events-none absolute end-[5px] top-1 h-4 w-4 fill-accent stroke-accent">
                   <use :href="`${spriteUrl}#moon`"></use>
                 </svg>
               </button>
@@ -122,7 +123,7 @@ onMounted(() => {
             <!-- Mobile menu toggle -->
             <button
               type="button"
-              class="-mr-2 inline-flex px-2 py-4 sm:px-3 lg:hidden xl:px-4"
+              class="-me-2 inline-flex px-2 py-4 sm:px-3 lg:hidden xl:px-4"
               :aria-label="t('web.vtual.public.nav.toggle_menu')"
               @click="toggle()"
             >

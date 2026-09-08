@@ -31,7 +31,7 @@ function toggleExpand(id: string): void {
 <template>
   <div
     v-if="open"
-    class="fixed left-0 top-[64px] z-50 block h-[calc(100dvh-64px)] w-full overflow-auto bg-white py-5 text-primary transition-transform duration-300 dark:bg-gray-700 dark:text-white lg:hidden"
+    class="fixed start-0 top-[64px] z-50 block h-[calc(100dvh-64px)] w-full overflow-auto bg-white py-5 text-primary transition-transform duration-300 dark:bg-gray-700 dark:text-white lg:hidden"
   >
     <div class="container">
       <ul class="flex flex-col gap-y-2 text-lg font-bold">
@@ -47,7 +47,7 @@ function toggleExpand(id: string): void {
               <span>{{ node.name }}</span>
               <span class="text-sm">{{ expanded.has(node.id) ? '−' : '+' }}</span>
             </button>
-            <ul v-if="expanded.has(node.id)" class="ml-4 border-l border-gray-150 pl-3 dark:border-gray-600">
+            <ul v-if="expanded.has(node.id)" class="ms-4 border-s border-gray-150 ps-3 dark:border-gray-600">
               <li v-for="child in node.children" :key="child.id">
                 <router-link
                   :to="resolveRoute(child) ?? '#'"
@@ -86,13 +86,13 @@ function toggleExpand(id: string): void {
             <span>{{ t('web.vtual.public.nav.toggle_theme') }}</span>
             <span class="relative inline-flex items-center">
               <span
-                class="relative z-10 block h-6 w-11 rounded-full border-2 border-gray-500/60 bg-gray-150 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-gray-900 after:transition-transform dark:border-white/50 dark:bg-white/10 dark:after:bg-white"
-                :class="theme === 'dark' ? 'after:translate-x-[20px]' : ''"
+                class="relative z-10 block h-6 w-11 rounded-full border-2 border-gray-500/60 bg-gray-150 after:absolute after:start-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-gray-900 after:transition-transform dark:border-white/50 dark:bg-white/10 dark:after:bg-white"
+                :class="theme === 'dark' ? 'after:translate-x-[20px] rtl:after:-translate-x-[20px]' : ''"
               ></span>
-              <svg role="img" class="pointer-events-none absolute left-[5px] h-4 w-4 fill-accent stroke-accent">
+              <svg role="img" class="pointer-events-none absolute start-[5px] h-4 w-4 fill-accent stroke-accent">
                 <use :href="`${spriteUrl}#sun`"></use>
               </svg>
-              <svg role="img" class="pointer-events-none absolute right-[5px] h-4 w-4 fill-accent stroke-accent">
+              <svg role="img" class="pointer-events-none absolute end-[5px] h-4 w-4 fill-accent stroke-accent">
                 <use :href="`${spriteUrl}#moon`"></use>
               </svg>
             </span>

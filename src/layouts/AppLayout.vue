@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNavbar from '@/components/AppNavbar.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
-import { useNavigation } from '@/composables/useNavigation'
+import { useNavigation } from '@/composables/navigation/useNavigation'
 import { useShellHydrate } from '@/composables/useShellHydrate'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTreeview } from '@/composables/useTreeview'
@@ -16,8 +16,8 @@ const route = useRoute()
 const { t } = useI18n()
 const { init: initSidebar, closeMobile, syncOverlayScrollbarTheme, destroyOverlayScrollbars } = useSidebar()
 const { openActiveAncestors } = useTreeview()
-const { sidebarTree: tree, load, startRealtime: startNavRealtime, stopRealtime: stopNavRealtime } = useNavigation()
-const { hydrateShell } = useShellHydrate()
+const { sidebarTree: tree, load, isTreeLoaded, startRealtime: startNavRealtime, stopRealtime: stopNavRealtime } = useNavigation()
+const { hydrateShell, isShellFallbackBlocked } = useShellHydrate()
 const { breadcrumbs } = useBreadcrumbs()
 const { pageTitle } = usePageTitle()
 const { effective: themeEffective } = useTheme()
@@ -29,11 +29,18 @@ function syncActiveAncestors(name: string | null): void {
 
 onMounted(() => {
   initSidebar()
-  // One batch seeds auth + sidebar/navbar trees + unread count; the
-  // individual loaders below (and in AppNavbar) stay as no-op fallbacks for
-  // whatever the batch did not seed.
-  hydrateShell().then(() => load()).then(() => syncActiveAncestors(route.name as string | null))
-  startNavRealtime()
+  // Join the shell batch (Navbar starts it). Fallback GET sidebar only when
+  // the batch did not seed and the sub-entry was not a terminal 401/403/429.
+  // Echo subscribe waits until after hydrate so POST /broadcasting/auth does
+  // not race the batch cookie write (DevTools would label that as CORS).
+  void (async () => {
+    await hydrateShell()
+    if (!isTreeLoaded('sidebar') && !isShellFallbackBlocked('sidebar')) {
+      await load()
+    }
+    syncActiveAncestors(route.name as string | null)
+    startNavRealtime()
+  })()
 })
 
 onUnmounted(() => {

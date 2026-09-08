@@ -99,7 +99,7 @@ function goTo(delta: number): void {
             :aria-label="t('web.vtual.public.contents.prev')"
             @click="goTo(-1)"
           >
-            <svg class="h-2.5 w-1.5" fill="currentColor">
+            <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
               <use :href="`${spriteUrl}#arrow-left-pixel-alt`"></use>
             </svg>
           </button>
@@ -113,7 +113,7 @@ function goTo(delta: number): void {
             :aria-label="t('web.vtual.public.contents.next')"
             @click="goTo(1)"
           >
-            <svg class="h-2.5 w-1.5" fill="currentColor">
+            <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
               <use :href="`${spriteUrl}#arrow-right-pixel-alt`"></use>
             </svg>
           </button>

@@ -99,7 +99,7 @@ function externalUrl(value: string | null | undefined): string | null {
                   {{ (group.creator?.display_name ?? '?').charAt(0) }}
                 </span>
                 <span
-                  class="absolute -bottom-1 -right-1 rounded-full bg-danger px-1.5 py-0.5 text-3xs font-bold uppercase leading-none text-white"
+                  class="absolute -bottom-1 -end-1 rounded-full bg-danger px-1.5 py-0.5 text-3xs font-bold uppercase leading-none text-white"
                 >
                   {{ t('web.vtual.public.live_now.badge') }}
                 </span>

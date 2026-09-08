@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   readonly?: boolean
   maxlength?: number
+  step?: string | number | null
 }>(), {
   type: 'text',
   modelValue: '',
@@ -32,6 +33,7 @@ const props = withDefaults(defineProps<{
   toggleable: null,
   disabled: false,
   readonly: false,
+  step: null,
 })
 
 const emit = defineEmits<{
@@ -95,6 +97,7 @@ function togglePassword(): void {
         :disabled="disabled"
         :readonly="readonly"
         :maxlength="maxlength"
+        :step="step ?? undefined"
         :class="inputClasses"
         @input="onInput"
         @blur="emit('blur', $event)"
@@ -126,6 +129,7 @@ function togglePassword(): void {
       :disabled="disabled"
       :readonly="readonly"
       :maxlength="maxlength"
+      :step="step ?? undefined"
       :class="inputClasses"
       @input="onInput"
       @blur="emit('blur', $event)"

@@ -1,6 +1,6 @@
 import i18n from '@/i18n'
 import { apiUrl, isCrossOrigin } from './baseUrl'
-import { applyCsrfHeader, ensureCsrf, refreshCsrf } from './csrf'
+import { applyCsrfHeader, ensureCsrf, refreshCsrf, whenCsrfCookieQuiet } from './csrf'
 import { applySpaRequestHeader } from './requestHeaders'
 import { translateFallback } from '@/i18n/fallbacks'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
@@ -15,12 +15,37 @@ let refreshHandler: RefreshHandler | null = null
 let unauthorizedHandler: UnauthorizedHandler | null = null
 let refreshPromise: Promise<boolean> | null = null
 
+/** Window after login/register/refresh where a 401/TypeError is cookie-settle, not expiry. */
+const SESSION_SETTLE_MS = 5_000
+let sessionIssuedAt = 0
+
+/** Backoff between settle retries (401 or browser TypeError / "CORS" Failed to fetch). */
+export const SESSION_SETTLE_BACKOFF_MS = [50, 150, 400] as const
+
 export function setRefreshHandler(handler: RefreshHandler): void {
   refreshHandler = handler
 }
 
 export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
   unauthorizedHandler = handler
+}
+
+/** Call from applyAuth after a new JWT cookie is minted (login/register/2FA/refresh). */
+export function markSessionIssued(): void {
+  sessionIssuedAt = Date.now()
+}
+
+export function clearSessionIssued(): void {
+  sessionIssuedAt = 0
+}
+
+export function isSessionSettling(): boolean {
+  return sessionIssuedAt > 0 && Date.now() - sessionIssuedAt < SESSION_SETTLE_MS
+}
+
+export function settleBackoff(attempt: number): Promise<void> {
+  const capped = Math.min(Math.max(attempt, 0), SESSION_SETTLE_BACKOFF_MS.length - 1)
+  return sleep(SESSION_SETTLE_BACKOFF_MS[capped] ?? 400)
 }
 
 function buildHeaders(hasBody: boolean, isFormData: boolean, crossOrigin: boolean, mutating: boolean): Headers {
@@ -118,22 +143,81 @@ function ensureRefresh(): Promise<boolean> {
   return refreshPromise
 }
 
+function requestPath(uri: string): string {
+  return uri.split('?')[0] ?? uri
+}
+
 function skipAuthRefresh(uri: string): boolean {
-  return uri === 'auth/refresh' || uri === 'auth/logout'
+  // auth/me 401 means no session cookie, not an expired JWT. Guest cold-boot
+  // and post-login settle must not POST /auth/refresh (that 401s without a
+  // cookie and used to clearAuth the session that login just created).
+  // navigation/menus is jwt.optional (guest 200); a 401 there is not expiry.
+  const path = requestPath(uri)
+  return path === 'auth/refresh' || path === 'auth/logout' || path === 'auth/me' || path === 'navigation/menus'
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isTransientNetworkError(error: unknown): boolean {
+  if (!(error instanceof TypeError)) return false
+  const msg = error.message.toLowerCase()
+  return (
+    msg.includes('failed to fetch') ||
+    msg.includes('load failed') ||
+    msg.includes('networkerror') ||
+    msg.includes('network request failed')
+  )
+}
+
+async function fetchUntilSettled(doFetch: () => Promise<Response>): Promise<Response> {
+  let attempt = 0
+  while (true) {
+    await whenCsrfCookieQuiet()
+    try {
+      return await doFetch()
+    } catch (error) {
+      if (!isTransientNetworkError(error) || !isSessionSettling()) {
+        throw error
+      }
+      await settleBackoff(attempt++)
+      if (!isSessionSettling()) {
+        throw error
+      }
+    }
+  }
+}
+
+async function retry401WhileSettling(
+  doFetch: () => Promise<Response>,
+  first: Response,
+): Promise<Response> {
+  let response = first
+  let attempt = 0
+  while (response.status === 401) {
+    await settleBackoff(attempt++)
+    response = await fetchUntilSettled(doFetch)
+    if (response.ok || response.status !== 401 || !isSessionSettling()) {
+      return response
+    }
+  }
+  return response
 }
 
 // Auth-session endpoints are CSRF-skipped server-side (a guest has no nonce
 // yet). A 419 there means something else is wrong, so do not burn the single
 // retry re-fetching a nonce that would not help.
 function isAuthSessionPath(uri: string): boolean {
+  const path = requestPath(uri)
   return (
-    uri === 'auth/login' ||
-    uri === 'auth/register' ||
-    uri === 'auth/refresh' ||
-    uri === 'auth/logout' ||
-    uri === 'auth/forgot-password' ||
-    uri === 'auth/reset-password' ||
-    uri === 'auth/two-factor/login'
+    path === 'auth/login' ||
+    path === 'auth/register' ||
+    path === 'auth/refresh' ||
+    path === 'auth/logout' ||
+    path === 'auth/forgot-password' ||
+    path === 'auth/reset-password' ||
+    path === 'auth/two-factor/login'
   )
 }
 
@@ -148,7 +232,10 @@ async function request<T>(
   const mutating = isMutating(method)
 
   // Cross-origin mutations need the double-submit CSRF nonce before they run.
-  if (crossOrigin && mutating) {
+  // Auth-session paths skip it server-side (no session to ride yet); fetching
+  // a nonce here would mint __Host-spa_csrf before login and race the first
+  // authenticated POST /batch against a second cookie.
+  if (crossOrigin && mutating && !isAuthSessionPath(uri)) {
     await ensureCsrf()
   }
 
@@ -163,36 +250,46 @@ async function request<T>(
       credentials: credentialsFor(crossOrigin),
     })
 
-  let response = await doFetch()
+  let response = await fetchUntilSettled(doFetch)
 
   // Stale/rotated CSRF nonce: refresh once and retry before treating as an error.
   if (response.status === 419 && crossOrigin && mutating && !isAuthSessionPath(uri)) {
     await refreshCsrf()
-    response = await doFetch()
+    response = await fetchUntilSettled(doFetch)
   }
-
-  const json = await readJson(response)
 
   if (response.ok) {
-    return json as T
+    return (await readJson(response)) as T
   }
 
-  if (response.status === 401 && refreshHandler && !skipAuthRefresh(uri)) {
-    const refreshed = await ensureRefresh()
-    if (refreshed) {
-      const retryRes = await doFetch()
-      const retryJson = await readJson(retryRes)
-      if (retryRes.ok) {
-        return retryJson as T
+  if (response.status === 401 && !skipAuthRefresh(uri)) {
+    // Brand-new session: the JWT Set-Cookie may not be in the jar yet.
+    // Retry the original request with backoff until the settle window ends;
+    // do not POST /auth/refresh (no cookie → 401, and a successful refresh
+    // would blacklist the login token).
+    if (isSessionSettling()) {
+      response = await retry401WhileSettling(doFetch, response)
+      if (response.ok) {
+        return (await readJson(response)) as T
       }
-      throwForStatus(retryRes, retryJson)
-    } else {
-      unauthorizedHandler?.()
-      throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+    }
+
+    if (response.status === 401 && refreshHandler) {
+      const refreshed = await ensureRefresh()
+      if (refreshed) {
+        const retryRes = await fetchUntilSettled(doFetch)
+        if (retryRes.ok) {
+          return (await readJson(retryRes)) as T
+        }
+        throwForStatus(retryRes, await readJson(retryRes))
+      } else {
+        unauthorizedHandler?.()
+        throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+      }
     }
   }
 
-  throwForStatus(response, json)
+  throwForStatus(response, await readJson(response))
 }
 
 export function get<T>(uri: string, query?: Record<string, unknown>): Promise<T> {
@@ -269,7 +366,7 @@ function filenameFromDisposition(header: string | null): string | null {
   return ascii?.[1] ?? null
 }
 
-/** GET a non-JSON payload (CSV export, file download). Same cookie session + 401 refresh as `get()`. */
+/** GET a non-JSON payload (CSV export, file download). Same cookie session + settle/401 as `get()`. */
 export async function getBlob(
   uri: string,
   query?: Record<string, unknown>,
@@ -288,21 +385,25 @@ export async function getBlob(
   const doFetch = (): Promise<Response> =>
     fetch(url.toString(), { method: 'GET', headers: headers(), credentials: credentialsFor(crossOrigin) })
 
-  let response = await doFetch()
+  let response = await fetchUntilSettled(doFetch)
 
-  if (response.status === 401 && refreshHandler) {
-    const refreshed = await ensureRefresh()
-    if (refreshed) {
-      response = await doFetch()
-    } else {
-      unauthorizedHandler?.()
-      throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+  if (response.status === 401 && !skipAuthRefresh(uri)) {
+    if (isSessionSettling()) {
+      response = await retry401WhileSettling(doFetch, response)
+    }
+    if (response.status === 401 && refreshHandler) {
+      const refreshed = await ensureRefresh()
+      if (refreshed) {
+        response = await fetchUntilSettled(doFetch)
+      } else {
+        unauthorizedHandler?.()
+        throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
+      }
     }
   }
 
   if (!response.ok) {
-    const json = await readJson(response)
-    throwForStatus(response, json)
+    throwForStatus(response, await readJson(response))
   }
 
   return {

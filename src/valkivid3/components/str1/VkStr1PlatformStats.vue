@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { VtualPublicStats } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
@@ -8,7 +8,8 @@ const props = defineProps<{
   stats?: VtualPublicStats | null
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const numberFormatter = computed(() => new Intl.NumberFormat(locale.value))
 
 const rootEl = ref<HTMLElement | null>(null)
 const visible = ref(false)
@@ -92,7 +93,7 @@ onBeforeUnmount(() => {
             <use :href="`${spriteUrl}#user`"></use>
           </svg>
           <dd class="text-3xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-5xl">
-            {{ display.creators.toLocaleString() }}
+            {{ numberFormatter.format(display.creators) }}
           </dd>
           <dt class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-sm">
             {{ t('web.vtual.public.stats.creators') }}
@@ -103,7 +104,7 @@ onBeforeUnmount(() => {
             <use :href="`${spriteUrl}#screen`"></use>
           </svg>
           <dd class="text-3xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-5xl">
-            {{ display.channels.toLocaleString() }}
+            {{ numberFormatter.format(display.channels) }}
           </dd>
           <dt class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-sm">
             {{ t('web.vtual.public.stats.channels') }}
@@ -114,7 +115,7 @@ onBeforeUnmount(() => {
             <use :href="`${spriteUrl}#play`"></use>
           </svg>
           <dd class="text-3xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-5xl">
-            {{ display.contents.toLocaleString() }}
+            {{ numberFormatter.format(display.contents) }}
           </dd>
           <dt class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-sm">
             {{ t('web.vtual.public.stats.contents') }}
@@ -125,7 +126,7 @@ onBeforeUnmount(() => {
             <use :href="`${spriteUrl}#star`"></use>
           </svg>
           <dd class="text-3xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-5xl">
-            {{ display.subscribers.toLocaleString() }}
+            {{ numberFormatter.format(display.subscribers) }}
           </dd>
           <dt class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-sm">
             {{ t('web.vtual.public.stats.subscribers') }}

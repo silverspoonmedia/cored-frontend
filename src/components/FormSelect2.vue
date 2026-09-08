@@ -204,7 +204,9 @@ watch(
       applyValue()
     }
   },
-  { deep: true },
+  // Shallow: consumers replace option arrays wholesale; deep traversal of
+  // large option lists is wasted work (Vue re-runs getter on identity change).
+  { deep: false },
 )
 
 watch(

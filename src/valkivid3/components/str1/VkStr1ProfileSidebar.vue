@@ -15,7 +15,6 @@ const { t } = useI18n()
 const { isAuthenticated } = useAuth()
 
 const claimPath = computed(() => `/apps/vtual/vtubers/${props.profile.slug}/claim`)
-const guestClaimTo = computed(() => `/login?redirect=${encodeURIComponent(claimPath.value)}`)
 
 function imageUrl(value: string | null | undefined): string | null {
   return safeImageUrl(value)
@@ -45,7 +44,7 @@ function externalUrl(value: string | null | undefined): string | null {
       </div>
       <span
         v-if="profile.is_live"
-        class="absolute -right-1 top-0 rounded-full bg-danger px-2 py-1 text-2xs font-bold uppercase text-white"
+        class="absolute -end-1 top-0 rounded-full bg-danger px-2 py-1 text-2xs font-bold uppercase text-white"
       >
         {{ t('web.vtual.public.profile.live') }}
       </span>
@@ -86,10 +85,10 @@ function externalUrl(value: string | null | undefined): string | null {
       </li>
     </ul>
 
-    <div v-if="profile.is_claimable" class="mt-8">
+    <div v-if="profile.is_claimable && isAuthenticated" class="mt-8">
       <p class="mb-4 text-sm">{{ t('web.vtual.public.profile.claim_body') }}</p>
       <router-link
-        :to="isAuthenticated ? claimPath : guestClaimTo"
+        :to="claimPath"
         class="inline-flex w-full justify-center bg-accent px-6 py-4 text-center text-sm font-bold uppercase text-white transition-colors hover:bg-accent-500 dark:text-gray-900"
       >
         {{ t('web.vtual.public.profile.claim_cta') }}

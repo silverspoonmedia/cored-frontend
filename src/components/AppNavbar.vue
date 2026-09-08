@@ -2,16 +2,18 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useNavigation } from '@/composables/useNavigation'
+import { useNavigation } from '@/composables/navigation/useNavigation'
 import type { NavNode } from '@/types'
 import { useSidebar } from '@/composables/useSidebar'
 import { useTheme } from '@/composables/useTheme'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
-import { useNotifications } from '@/composables/useNotifications'
+import { useNotifications } from '@/composables/notification/useNotifications'
 import { useEcho, onEchoResync } from '@/composables/useEcho'
+import { useShellHydrate } from '@/composables/useShellHydrate'
+import { csrfToken, ensureCsrf } from '@/api/csrf'
 import { triggerAllListingsReload } from '@/composables/useListingReload'
-import { setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
+import { LOCALE_LABELS, reloadForDirection, setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 import { isNavNodeActive } from '@/utils/navActive'
 import { resolveNotificationLocation } from '@/utils/notificationTarget'
 import type { AppNotification } from '@/api/types'
@@ -21,11 +23,12 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const { toggle: toggleSidebar } = useSidebar()
 const { mode, setMode } = useTheme()
-const { user, logout, switchLocale: switchLocaleApi } = useAuth()
+const { user, logout, loggingOut, switchLocale: switchLocaleApi } = useAuth()
 const { success: showSuccess } = useAlert()
 const { unreadCount, items: recentNotifications, hasSeededUnread, hasSeededList, fetchUnreadCount, fetchList, markAllRead, markAsRead, startRealtime, stopRealtime } = useNotifications()
-const { navbarTree, load: loadNavigation, isTreeLoaded } = useNavigation()
+const { navbarTree, load: loadNavigation, refetchAll: refetchNavigation, isTreeLoaded, startRealtime: startNavRealtime } = useNavigation()
 const { init: initEcho, disconnect: disconnectEcho, connected: echoConnected } = useEcho()
+const { hydrateShell, isShellFallbackBlocked } = useShellHydrate()
 
 const currentLocale = computed<AppLocale>(() => locale.value as AppLocale)
 const supportedLocales = SUPPORTED_LOCALES
@@ -57,21 +60,31 @@ function navigate(node: NavNode): void {
   }
 }
 
-function switchLocale(locale: AppLocale): void {
-  setLocale(locale)
-  switchLocaleApi(locale).then(() => {
-    showSuccess(t('web.navbar.language_updated'))
-  }).catch(() => {
-    // locale already switched client-side, API sync is best-effort
-  })
-}
+async function switchLocale(nextLocale: AppLocale): Promise<void> {
+  // Capture the current locale BEFORE setLocale mutates it. On a direction swap
+  // (ar <-> non-ar) a hard reload is needed to load the other vendor CSS — but
+  // it must happen AFTER auth/locale persists, otherwise the reload aborts the
+  // in-flight POST and the dynamic menu stays on the old locale.
+  const previousLocale = locale.value as AppLocale
+  setLocale(nextLocale, { reload: false })
 
-const loggingOut = computed(() => false)
+  try {
+    await switchLocaleApi(nextLocale)
+    await refetchNavigation()
+    showSuccess(t('web.navbar.language_updated'))
+  } catch {
+    // Keep client locale active when preference sync or menu refresh fails.
+  }
+
+  reloadForDirection(previousLocale, nextLocale)
+}
 
 async function handleLogout(): Promise<void> {
   await logout()
+  if (router.currentRoute.value.name !== 'login.view') {
+    await router.replace({ name: 'login.view' })
+  }
   showSuccess(t('web.navbar.logged_out'))
-  router.push({ name: 'login.view' })
 }
 
 async function loadBellData(): Promise<void> {
@@ -111,24 +124,32 @@ function notificationTime(n: { created_at_human: string | null; created_at_forma
 }
 
 onMounted(() => {
-  // The shell-hydrate batch (AppLayout) may already have seeded the unread
-  // count and navbar tree; only fetch what is still missing.
-  if (!hasSeededList.value) {
-    fetchList(5)
-  }
-  if (!hasSeededUnread.value) {
-    fetchUnreadCount()
-  }
-  if (!isTreeLoaded('navbar')) {
-    loadNavigation('navbar')
-  }
+  // AppNavbar mounts before AppLayout. Calling hydrateShell() here starts (or
+  // joins) the shell batch so fallback GETs do not race POST /batch — a child
+  // GET notifications 401 used to POST /auth/refresh and tear down the session.
+  // Echo (POST /broadcasting/auth) waits until that batch settles: a parallel
+  // CSRF cookie write used to surface as a CORS TypeError on GET menus.
+  void (async () => {
+    await hydrateShell()
+    if (!hasSeededList.value && !isShellFallbackBlocked('list')) {
+      fetchList(5)
+    }
+    if (!hasSeededUnread.value && !isShellFallbackBlocked('unread')) {
+      fetchUnreadCount()
+    }
+    if (!isTreeLoaded('navbar') && !isShellFallbackBlocked('navbar')) {
+      loadNavigation('navbar')
+    }
 
-  // Live updates arrive only over the websocket; Echo auto-reconnect is the
-  // recovery path, so there is no polling fallback.
-  const echoStarted = initEcho()
-  if (echoStarted) {
-    startRealtime()
-  }
+    if (csrfToken() === null) {
+      await ensureCsrf()
+    }
+    const echoStarted = initEcho()
+    if (echoStarted) {
+      startRealtime()
+      startNavRealtime()
+    }
+  })()
 
   // Re-pull state after a socket outage: events during the gap are lost, so
   // refresh the bell and every registered listing when the socket recovers.
@@ -249,7 +270,7 @@ onUnmounted(() => {
             aria-expanded="false"
           >
             <i class="bi bi-translate" aria-hidden="true"></i>
-            <span class="d-none d-md-inline ms-1 text-uppercase">{{ currentLocale }}</span>
+            <span class="d-none d-md-inline ms-1">{{ LOCALE_LABELS[currentLocale] }}</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li v-for="locale in supportedLocales" :key="locale">
@@ -259,7 +280,7 @@ onUnmounted(() => {
                 href="#"
                 @click.prevent="switchLocale(locale)"
               >
-                {{ locale.toUpperCase() }}
+                {{ LOCALE_LABELS[locale] }}
               </a>
             </li>
           </ul>

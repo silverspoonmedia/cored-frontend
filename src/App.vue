@@ -2,12 +2,14 @@
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAuth } from '@/stores/auth'
 import { usePageTitle } from '@/composables/usePageTitle'
 import { useChunkLoadError } from '@/composables/useChunkLoadError'
 import ErrorState from '@/components/ErrorState.vue'
 
 const route = useRoute()
 const { t } = useI18n()
+const { isAuthenticated } = useAuth()
 const { documentTitle, applyDocumentTitle } = usePageTitle()
 const { chunkLoadFailed } = useChunkLoadError()
 
@@ -38,6 +40,11 @@ onMounted(() => {
   applyDocumentTitle()
 })
 watch(() => route.path, applyBodyClass)
+watch(isAuthenticated, (authenticated) => {
+  if (!authenticated) {
+    void import('@/router').then((m) => m.revokeCurrentProtectedRoute())
+  }
+})
 watch(documentTitle, applyDocumentTitle)
 </script>
 

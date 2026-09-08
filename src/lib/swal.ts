@@ -7,7 +7,7 @@ function t(key: string): string {
 
 export const toast = Swal.mixin({
   toast: true,
-  position: 'top-end',
+  position: typeof document !== 'undefined' && document.documentElement.dir === 'rtl' ? 'top-start' : 'top-end',
   timer: 4000,
   timerProgressBar: true,
   showConfirmButton: false,

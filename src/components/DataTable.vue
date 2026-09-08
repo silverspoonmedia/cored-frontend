@@ -1,6 +1,7 @@
 <script lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isRtl } from '@/i18n'
 import EmptyState from '@/components/EmptyState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 
@@ -34,6 +35,8 @@ const props = withDefaults(defineProps<{
   server?: boolean
   total?: number
   page?: number
+  /** Stable row key: field name or function. Falls back to array index. */
+  rowKey?: string | ((row: T) => string | number)
 }>(), {
   loading: false,
   error: null,
@@ -47,6 +50,11 @@ const props = withDefaults(defineProps<{
 })
 
 const { t } = useI18n()
+
+// Prev/next page movement is time-like, not reading-direction-like: under RTL
+// "previous page" still moves backward in the list, so the chevrons swap sides.
+const prevIcon = computed(() => (isRtl() ? 'bi-chevron-right' : 'bi-chevron-left'))
+const nextIcon = computed(() => (isRtl() ? 'bi-chevron-left' : 'bi-chevron-right'))
 
 const resolvedSearchPlaceholder = computed(() => props.searchPlaceholder || t('ui.datatable.search_placeholder'))
 const resolvedEmptyTitle = computed(() => props.emptyTitle || t('ui.datatable.empty_title'))
@@ -109,6 +117,19 @@ const paged = computed<T[]>(() => {
 
 const from = computed(() => total.value === 0 ? 0 : (page.value - 1) * perPage.value + 1)
 const to = computed(() => Math.min(page.value * perPage.value, total.value))
+
+function rowKey(row: T, index: number): string | number {
+  const k = props.rowKey
+  if (typeof k === 'function') return k(row)
+  if (k) {
+    const val = getVal(row, k)
+    if (val !== null && val !== undefined) return val as string | number
+  }
+  // Sensible default: most table rows carry an `id`; fall back to index.
+  const id = getVal(row, 'id')
+  if (id !== null && id !== undefined) return id as string | number
+  return index
+}
 
 watch([sortKey, sortDir, perPage], () => {
   if (!props.server) page.value = 1
@@ -248,7 +269,7 @@ function getVal(row: T, key: string): unknown {
           <template v-else>
             <tr
               v-for="(row, index) in paged"
-              :key="index"
+              :key="rowKey(row, index)"
               @click="$emit('row-click', row)"
             >
               <td v-for="col in columns" :key="col.key" :class="[col.cellClass, alignClass(col)]">
@@ -278,7 +299,7 @@ function getVal(row: T, key: string): unknown {
           <ul class="pagination pagination-sm mb-0">
             <li class="page-item" :class="{ disabled: page === 1 }">
               <a class="page-link" href="#" @click.prevent="changePage(page - 1)">
-                <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                <i class="bi" :class="prevIcon" aria-hidden="true"></i>
               </a>
             </li>
             <li
@@ -292,7 +313,7 @@ function getVal(row: T, key: string): unknown {
             </li>
             <li class="page-item" :class="{ disabled: page === totalPages }">
               <a class="page-link" href="#" @click.prevent="changePage(page + 1)">
-                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                <i class="bi" :class="nextIcon" aria-hidden="true"></i>
               </a>
             </li>
           </ul>

@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ApiError } from '@/api/types'
 import type { VtualPublicProfile } from '@/api/types'
 import { setDocumentTitleOverride } from '@/composables/usePageTitle'
+import { clearHeadMeta, setHeadMeta } from '@/composables/useHeadMeta'
 import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
 import VkStr1VideoCard from '@/valkivid3/components/str1/VkStr1VideoCard.vue'
 import VkStr1ProfileSidebar from '@/valkivid3/components/str1/VkStr1ProfileSidebar.vue'
@@ -99,6 +100,19 @@ watch(slug, () => {
 
 watch(profile, (next) => {
   setDocumentTitleOverride(next ? `${next.display_name} | vTual | Monolith` : null)
+  if (!next) {
+    clearHeadMeta()
+    return
+  }
+  const bio = (next.bio ?? '').trim()
+  setHeadMeta({
+    title: next.display_name,
+    description:
+      bio.length > 160 ? `${bio.slice(0, 157)}...` : bio || t('web.vtual.public.meta.profile_description_fallback', { name: next.display_name }),
+    image: avatarUrl.value ?? bannerUrl.value,
+    url: window.location.origin + route.path,
+    type: 'profile',
+  })
 })
 
 onMounted(() => {
@@ -107,6 +121,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   setDocumentTitleOverride(null)
+  clearHeadMeta()
 })
 </script>
 
@@ -204,7 +219,7 @@ onUnmounted(() => {
           aria-hidden="true"
         ></div>
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
-        <div class="absolute bottom-0 left-0 flex w-full items-end gap-x-4 p-5 lg:p-8">
+        <div class="absolute bottom-0 start-0 flex w-full items-end gap-x-4 p-5 lg:p-8">
           <img
             v-if="avatarUrl"
             class="h-16 w-16 rounded-full object-cover ring-4 ring-white/20 lg:h-24 lg:w-24"
@@ -295,7 +310,7 @@ onUnmounted(() => {
                 :aria-label="t('web.vtual.public.contents.prev')"
                 @click="goTo(-1)"
               >
-                <svg class="h-2.5 w-1.5" fill="currentColor">
+                <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
                   <use :href="`${spriteUrl}#arrow-left-pixel-alt`"></use>
                 </svg>
               </button>
@@ -309,7 +324,7 @@ onUnmounted(() => {
                 :aria-label="t('web.vtual.public.contents.next')"
                 @click="goTo(1)"
               >
-                <svg class="h-2.5 w-1.5" fill="currentColor">
+                <svg class="h-2.5 w-1.5 rtl:rotate-180" fill="currentColor">
                   <use :href="`${spriteUrl}#arrow-right-pixel-alt`"></use>
                 </svg>
               </button>

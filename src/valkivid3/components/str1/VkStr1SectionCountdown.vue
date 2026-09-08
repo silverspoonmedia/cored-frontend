@@ -57,7 +57,7 @@ onBeforeUnmount(() => {
     <div class="relative min-h-[220px] bg-gradient-to-br from-gray-100 via-primary/10 to-gray-100 dark:from-gray-900 dark:via-primary dark:to-gray-900">
       <div class="container relative z-10 text-white">
         <div class="grid grid-cols-12 gap-x-5 gap-y-8 px-2 py-7 md:gap-x-6 lg:gap-x-7.5 lg:gap-y-12 lg:px-0 lg:py-11">
-          <div class="col-span-full md:col-span-5 md:col-start-3 xl:-ml-7.5">
+          <div class="col-span-full md:col-span-5 md:col-start-3 xl:-ms-7.5">
             <div class="text-lg font-bold uppercase tracking-wide text-accent">{{ t('web.vtual.public.countdown.eyebrow') }}</div>
             <h3 class="mb-3 text-2xl font-bold leading-none text-gray-900 dark:text-white md:text-2.5xl lg:mb-4 lg:text-4xl xl:text-[42px]">
               {{ props.eventTitle || t('web.vtual.public.countdown.title') }}
@@ -69,7 +69,7 @@ onBeforeUnmount(() => {
 
           <div class="col-span-full flex flex-wrap items-center justify-center gap-y-4 self-center md:col-span-4 md:col-start-9 lg:gap-y-0">
             <div
-              class="mb-4 grid w-full basis-full grid-cols-4 font-bold lg:mb-5 xl:pt-2.5 [&>div]:before:absolute [&>div]:before:-left-0.5 [&>div]:before:top-0 [&>div]:before:text-xl [&>div]:before:content-[':'] [&>div:first-child]:before:hidden [&>div]:md:before:text-3xl [&>div]:lg:before:-left-1 [&>div]:xl:before:text-[42px] [&>div]:xl:before:leading-none"
+              class="mb-4 grid w-full basis-full grid-cols-4 font-bold lg:mb-5 xl:pt-2.5 [&>div]:before:absolute [&>div]:before:-start-0.5 [&>div]:before:top-0 [&>div]:before:text-xl [&>div]:before:content-[':'] [&>div:first-child]:before:hidden [&>div]:md:before:text-3xl [&>div]:lg:before:-start-1 [&>div]:xl:before:text-[42px] [&>div]:xl:before:leading-none"
             >
               <div class="relative flex flex-col items-center">
                 <div class="text-xl font-bold tabular-nums text-gray-900 dark:text-white md:text-3xl xl:mb-1 xl:text-[42px] xl:leading-none">{{ pad(remaining.days) }}</div>

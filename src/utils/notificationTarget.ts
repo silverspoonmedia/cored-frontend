@@ -20,6 +20,8 @@ function mapParams(actionParams: Record<string, unknown>): Record<string, string
  * Turn API `action_route` + Blade-shaped `action_params` into a Vue Router
  * location. Menu/API names are unprefixed (`users.edit`); SPA page names add
  * `.view`. Unknown names return null so the caller can fall back to the list.
+ * Params that don't match route path segments (e.g. `token`) are passed as
+ * query so deep-link pages like invite respond can read them.
  */
 export function resolveNotificationLocation(
   router: Router,
@@ -35,9 +37,29 @@ export function resolveNotificationLocation(
 
   for (const name of candidates) {
     if (router.hasRoute(name)) {
-      return { name, params }
+      const record = router.getRoutes().find((r) => r.name === name)
+      const pathKeys = new Set(record ? extractPathKeys(record.path) : [])
+      const pathParams: Record<string, string> = {}
+      const queryParams: Record<string, string> = {}
+      for (const [key, value] of Object.entries(params)) {
+        if (pathKeys.has(key)) {
+          pathParams[key] = value
+        } else {
+          queryParams[key] = value
+        }
+      }
+      return { name, params: pathParams, ...(Object.keys(queryParams).length > 0 ? { query: queryParams } : {}) }
     }
   }
 
   return null
+}
+
+function extractPathKeys(path: string): string[] {
+  const keys: string[] = []
+  for (const match of path.matchAll(/:([A-Za-z_][A-Za-z0-9_]*)/g)) {
+    const key = match[1]
+    if (typeof key === 'string') keys.push(key)
+  }
+  return keys
 }

@@ -1,5 +1,7 @@
 /* Vendor CSS bundle — mirrors Monolith's resources/css/vendor.css.
-   AdminLTE/Bootstrap/OverlayScrollbars/Select2 styles, then Monolith overrides layer on top. */
+   AdminLTE/Bootstrap/OverlayScrollbars/Select2 styles, then Monolith overrides layer on top.
+   The RTL entry (main-rtl.css) imports vendor-rtl.css instead, which swaps the
+   two Bootstrap/AdminLTE lines for their official .rtl dist builds. */
 @import '@fontsource/source-sans-3/latin-400.css';
 @import '@fontsource/source-sans-3/latin-600.css';
 @import '@fontsource/source-sans-3/latin-700.css';

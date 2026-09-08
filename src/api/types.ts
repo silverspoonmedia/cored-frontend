@@ -19,6 +19,27 @@ export interface PagedList<T> {
   pagination: ListPagination
 }
 
+export interface QueryRowActionConfirm {
+  title: string
+  text: string
+}
+
+/** Query-mode list row action emitted by Monolith. Views must not invent keys. */
+export interface QueryRowAction {
+  key: string
+  label: string
+  icon: string
+  variant: string
+  route?: string
+  params?: Record<string, string | number>
+  query?: Record<string, string | number>
+  href?: string
+  target?: string
+  method?: string
+  path?: string
+  confirm?: QueryRowActionConfirm
+}
+
 export interface ValidationErrors {
   [field: string]: string[]
 }
@@ -90,6 +111,7 @@ export type LoginResult =
   | { type: 'two_factor_challenge'; token: string; expiresInSeconds: number }
 
 export interface Currency {
+  actions?: QueryRowAction[]
   code: string
   name: string
   symbol: string | null
@@ -99,6 +121,7 @@ export interface Currency {
 }
 
 export interface NotificationAudience {
+  actions?: QueryRowAction[]
   type: string
   label: string
   icon: string
@@ -127,6 +150,7 @@ export interface ActivityLogCauser {
 }
 
 export interface ActivityLog {
+  actions?: QueryRowAction[]
   id: number
   log_name: string | null
   description: string | null
@@ -154,6 +178,7 @@ export interface ErrorLogResolver {
 }
 
 export interface ErrorLog {
+  actions?: QueryRowAction[]
   id: number
   fingerprint: string | null
   type: string | null
@@ -246,6 +271,7 @@ export interface UserAssignableRole {
 }
 
 export interface UserManagement {
+  actions?: QueryRowAction[]
   id: string
   name: string
   email: string
@@ -269,13 +295,19 @@ export interface DiscordConnection {
   revoked: boolean
 }
 
-export interface ProfileConnections {
-  discord_connected: boolean
-  discord_oauth_configured: boolean
-  discord_synced_at: string | null
-  discord_synced_at_formatted: string | null
-  discord_synced_at_human: string | null
+export interface OAuthProviderConnection {
+  key: string
+  connected: boolean
+  oauth_configured: boolean
+  supports_sync: boolean
+  synced_at: string | null
+  synced_at_formatted: string | null
+  synced_at_human: string | null
   connections: DiscordConnection[]
+}
+
+export interface ProfileConnections {
+  providers: OAuthProviderConnection[]
 }
 
 export interface DiscordAuthorizeUrl {
@@ -284,6 +316,7 @@ export interface DiscordAuthorizeUrl {
 
 // --- Navigation/Menus ---
 export interface MenuListItem {
+  actions?: QueryRowAction[]
   id: string
   parent_id: string | null
   layout: string
@@ -327,6 +360,7 @@ export interface MenuTrashedItem extends MenuListItem {
 
 // --- Inference Model Cards ---
 export interface AiModelCard {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   display_name: string | null
@@ -519,6 +553,7 @@ export interface PaymentIncomeInvoicesPayload {
 
 // --- Microstock Usage ---
 export interface MicrostockCredential {
+  actions?: QueryRowAction[]
   id: string
   marketplace: string
   label: string
@@ -695,6 +730,7 @@ export interface SyncStatusResult {
 
 // --- Inference Providers ---
 export interface InferenceProvider {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   name: string
@@ -724,6 +760,7 @@ export interface ProviderModelRate {
 
 // --- Payment Gateways ---
 export interface PaymentGateway {
+  actions?: QueryRowAction[]
   id: string
   name: string
   display_name: string
@@ -745,6 +782,7 @@ export interface InvoicePaymentGateway {
 }
 
 export interface Invoice {
+  actions?: QueryRowAction[]
   id: string
   invoiceable_id: string | null
   invoiceable_type?: string | null
@@ -960,6 +998,7 @@ export interface VtualExternalLink {
 }
 
 export interface VtualPlatform {
+  actions?: QueryRowAction[]
   id: string
   key: string
   name: string
@@ -969,6 +1008,7 @@ export interface VtualPlatform {
 }
 
 export interface VtualCreator {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   display_name: string
@@ -990,6 +1030,7 @@ export interface VtualCreator {
 }
 
 export interface VtualPlatformCredential {
+  actions?: QueryRowAction[]
   id: string
   platform_id: string
   platform_key?: string
@@ -1027,8 +1068,14 @@ export interface VtualPlatformCredential {
   updated_at_human: string | null
 }
 
+export interface VtualPlatformCredentialTestPayload {
+  credential: VtualPlatformCredential
+  test: { ok: boolean; message: string; platform: string }
+}
+
 // --- Subscriptions ---
 export interface Subscription {
+  actions?: QueryRowAction[]
   id: string
   subscription_number: string
   subscriber_name: string
@@ -1071,6 +1118,7 @@ export interface ServicePrice {
 }
 
 export interface Service {
+  actions?: QueryRowAction[]
   id: string
   code: string
   name: string
@@ -1098,9 +1146,9 @@ export interface ServiceOptions {
   purchase_max_quantity: number
 }
 
-// --- File Hosting ---
+// --- Archivd ---
 
-export interface FhMicrostock {
+export interface ArMicrostock {
   title: string | null
   keywords: string[]
   status: string | null
@@ -1125,7 +1173,7 @@ export interface HostedFile {
   is_hash_blocked: boolean
   visibility: string
   share_url: string | null
-  microstock?: FhMicrostock | null
+  microstock?: ArMicrostock | null
   workspace?: { id: string; kind: string; name: string } | null
   download_count: number
   view_count: number
@@ -1146,7 +1194,7 @@ export interface HostedFile {
   updated_at_human?: string | null
 }
 
-export interface FhFolder {
+export interface ArFolder {
   id: string
   user_id: string | null
   workspace_id: string | null
@@ -1169,13 +1217,13 @@ export interface FhFolder {
   updated_at_human?: string | null
 }
 
-export interface FhBreadcrumbItem {
+export interface ArBreadcrumbItem {
   id: string
   name: string
   parent_id: string | null
 }
 
-export interface FhWorkspace {
+export interface ArWorkspace {
   id: string
   owner_user_id: string
   name: string
@@ -1191,22 +1239,22 @@ export interface FhWorkspace {
   updated_at_human?: string | null
 }
 
-export interface FhBrowsePayload {
+export interface ArBrowsePayload {
   owner_id: string
   workspace_id: string | null
   workspace: { id: string; kind: string; name: string } | null
-  folder: FhFolder | null
-  breadcrumb: FhBreadcrumbItem[]
-  folders: FhFolder[]
+  folder: ArFolder | null
+  breadcrumb: ArBreadcrumbItem[]
+  folders: ArFolder[]
   files: HostedFile[]
 }
 
-export interface FhTrashPayload {
-  folders: FhFolder[]
+export interface ArTrashPayload {
+  folders: ArFolder[]
   files: HostedFile[]
 }
 
-export interface FhQuota {
+export interface ArQuota {
   used_bytes: number
   used_bytes_human: string | null
   pending_bytes: number
@@ -1224,7 +1272,7 @@ export interface FhQuota {
   owned_workspace_limit: number
 }
 
-export interface FhPublicFile {
+export interface ArPublicFile {
   id: string
   name: string
   mime: string
@@ -1232,20 +1280,21 @@ export interface FhPublicFile {
   size_human: string
 }
 
-export interface FhPublicFolder {
+export interface ArPublicFolder {
   id: string
   name: string
 }
 
-export interface FhPublicBrowsePayload {
+export interface ArPublicBrowsePayload {
   owner_id?: string
-  folder: FhPublicFolder
-  breadcrumb: FhBreadcrumbItem[]
-  folders: FhPublicFolder[]
-  files: FhPublicFile[]
+  folder: ArPublicFolder
+  breadcrumb: ArBreadcrumbItem[]
+  folders: ArPublicFolder[]
+  files: ArPublicFile[]
 }
 
-export interface FhHashBlocklistEntry {
+export interface ArHashBlocklistEntry {
+  actions?: QueryRowAction[]
   id: string
   sha256: string
   reason: string | null
@@ -1327,10 +1376,34 @@ export interface VtualVtuberProfile {
 
 export interface VtualManagementMember {
   id: string
-  management_id: string
-  user_id: string
+  management_id?: string
+  user_id?: string
   role: string
   user?: { id: string; name: string; email?: string } | null
+  created_at?: string | null
+}
+
+export type VtualManagementInviteStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'cancelled'
+  | 'revoked'
+  | 'expired'
+
+export interface VtualManagementInvite {
+  id: string
+  email: string
+  role: string
+  status: VtualManagementInviteStatus
+  invited_by?: { id: string; name: string } | null
+  management?: { id: string; name: string; slug: string } | null
+  expires_at?: string | null
+  expires_at_formatted?: string | null
+  expires_at_human?: string | null
+  responded_at?: string | null
+  created_at?: string | null
+  created_at_formatted?: string | null
 }
 
 export interface VtualManagementCreatorAssignment {
@@ -1341,7 +1414,34 @@ export interface VtualManagementCreatorAssignment {
   creator: VtualCreator
 }
 
+export type VtualCreatorInviteMode = 'existing' | 'new'
+
+export interface VtualCreatorInvite {
+  id: string
+  email: string
+  mode: VtualCreatorInviteMode
+  status: VtualManagementInviteStatus
+  new_display_name?: string | null
+  creator?: { id: string; name: string; slug: string } | null
+  invited_by?: { id: string; name: string } | null
+  management?: { id: string; name: string; slug: string } | null
+  expires_at?: string | null
+  expires_at_formatted?: string | null
+  expires_at_human?: string | null
+  responded_at?: string | null
+  created_at?: string | null
+  created_at_formatted?: string | null
+}
+
+export interface VtualCreatorInviteCandidate {
+  id: string
+  slug: string
+  name: string
+  avatar_url?: string | null
+}
+
 export interface VtualManagement {
+  actions?: QueryRowAction[]
   id: string
   slug: string
   name: string
@@ -1357,6 +1457,53 @@ export interface VtualManagement {
   updated_at: string | null
   updated_at_formatted?: string | null
   updated_at_human?: string | null
+}
+
+// --- Vtual events (management-submitted) ---
+
+export interface VtualEventManagementRef {
+  id?: string
+  slug: string
+  name: string
+}
+
+export interface VtualEventCreatorRef {
+  id?: string
+  slug: string
+  display_name: string
+  avatar_url: string | null
+}
+
+export interface VtualManagementEvent {
+  id: string
+  management_id: string
+  creator_id: string | null
+  slug: string
+  title: string
+  description: string | null
+  thumbnail_url: string | null
+  url: string | null
+  starts_at: string | null
+  ends_at: string | null
+  timezone: string | null
+  status: string
+  is_featured: boolean
+  management?: VtualEventManagementRef | null
+  creator?: VtualEventCreatorRef | null
+  /** List-action rows attached server-side by QueryRowActionAttacher. */
+  actions?: QueryRowAction[]
+}
+
+export interface VtualEventListPagination {
+  current_page: number
+  per_page: number
+  total: number
+  has_more: boolean
+}
+
+export interface VtualEventPagedList {
+  items: VtualManagementEvent[]
+  pagination: VtualEventListPagination
 }
 
 // --- Vtual public (guest-safe, slug-addressed — no UUID, no claim URLs) ---
@@ -1446,6 +1593,15 @@ export interface VtualPublicProfile {
   contents: VtualPublicContentFeed
 }
 
+export interface VtualPublicManagementProfile {
+  slug: string
+  name: string
+  description: string | null
+  logo_url: string | null
+  links: VtualPublicLink[]
+  creators: VtualPublicVtuber[]
+}
+
 export interface VtualPublicLandingEvent {
   title: string
   starts_at: string
@@ -1464,7 +1620,23 @@ export interface VtualPublicLanding {
   event: VtualPublicLandingEvent | null
   live_now: VtualPublicContent[]
   schedule: VtualPublicContent[]
+  events?: VtualPublicEvent[]
   stats: VtualPublicStats
+}
+
+export interface VtualPublicEvent {
+  title: string
+  slug: string
+  description: string | null
+  thumbnail_url: string | null
+  url: string | null
+  starts_at: string | null
+  ends_at: string | null
+  timezone: string | null
+  status: string
+  is_featured: boolean
+  management?: { slug: string; name: string } | null
+  creator?: { slug: string; display_name: string; avatar_url: string | null } | null
 }
 
 export interface VtualPublicItems {
@@ -1498,8 +1670,10 @@ export interface VtualCreatorClaim {
   verified_at_human?: string | null
   verified_via: string | null
   verified_by_user_id: string | null
+  verified_channel_id: string | null
   creator?: VtualCreator | null
   channel?: VtualChannel | null
+  verified_channel?: VtualChannel | null
   user?: { id: string; name: string; email?: string } | null
   created_at: string | null
   created_at_formatted?: string | null
@@ -1544,13 +1718,13 @@ export interface VtualChannelClaim {
   updated_at_human?: string | null
 }
 
-export interface FhWorkspaceOwner {
+export interface ArWorkspaceOwner {
   id: string
   name: string
   email?: string
 }
 
-export interface FhWorkspace {
+export interface ArWorkspace {
   id: string
   owner_user_id: string
   name: string
@@ -1558,8 +1732,8 @@ export interface FhWorkspace {
   status: string
   is_owner: boolean
   my_role: string | null
-  owner?: FhWorkspaceOwner | null
-  members?: FhWorkspaceMember[]
+  owner?: ArWorkspaceOwner | null
+  members?: ArWorkspaceMember[]
   created_at: string | null
   created_at_formatted?: string | null
   created_at_human?: string | null
@@ -1568,7 +1742,7 @@ export interface FhWorkspace {
   updated_at_human?: string | null
 }
 
-export interface FhWorkspaceMember {
+export interface ArWorkspaceMember {
   id: string
   workspace_id: string
   user_id: string
@@ -1580,7 +1754,7 @@ export interface FhWorkspaceMember {
   user?: { id: string; name: string; email?: string } | null
 }
 
-export interface FhWorkspaceInvite {
+export interface ArWorkspaceInvite {
   id: string
   workspace_id: string
   email: string
@@ -1598,7 +1772,7 @@ export interface FhWorkspaceInvite {
   created_at_human?: string | null
 }
 
-export interface FhWorkspaceActivity {
+export interface ArWorkspaceActivity {
   id: string
   event: string | null
   description: string | null
@@ -1609,26 +1783,26 @@ export interface FhWorkspaceActivity {
   created_at: string | null
 }
 
-export interface FhUploadPart {
+export interface ArUploadPart {
   part_number: number
   url: string
   headers?: Record<string, string[]> | null
 }
 
-export interface FhUploadSession {
+export interface ArUploadSession {
   upload_id: string
   strategy: 'single' | 'multipart'
   path: string
   chunk_size: number
   part_count: number
-  parts: FhUploadPart[]
+  parts: ArUploadPart[]
   expires_at: string | null
   expires_at_formatted?: string | null
   expires_at_human?: string | null
   folder_id: string | null
 }
 
-export interface FhUploadCompleteResult {
+export interface ArUploadCompleteResult {
   upload_id: string
   file: HostedFile
 }

@@ -1,72 +1,122 @@
-import { batch } from '@/api/client'
-import { bodyOf } from '@/api/batch'
+import { batch, isSessionSettling, settleBackoff } from '@/api/client'
+import { bodyOf, isTerminalEntry } from '@/api/batch'
 import { useAuth } from '@/stores/auth'
-import { useNavigation } from '@/composables/useNavigation'
-import { useNotifications } from '@/composables/useNotifications'
-import type { ApiResponse, NavigationTreeNode, UnreadCountPayload, User, AppNotification } from '@/api/types'
+import { useNavigation } from '@/composables/navigation/useNavigation'
+import { useNotifications } from '@/composables/notification/useNotifications'
+import type { NavigationTreeNode, UnreadCountPayload, User, AppNotification } from '@/api/types'
+
+export type ShellWidget = 'sidebar' | 'navbar' | 'unread' | 'list'
 
 let hydrated = false
 let inflight: Promise<void> | null = null
+const blockedFallbacks = new Set<ShellWidget>()
 
 /**
- * Fan the authenticated shell's bootstrap reads into one Worker invocation.
+ * Fan the authenticated shell's bootstrap reads into one HTTP batch.
+ *
+ * Callers must already have a session: the route guard probes GET auth/me
+ * first and only then invokes this. A guest POST /batch would mint CSRF
+ * before the JWT cookie exists and race the first authenticated batch.
  *
  * Each entry is checked independently: a sub-response only seeds its store when
- * it is a 200 success envelope, and anything that fails leaves the owning
- * composable untouched so its own lazy loader stays the fallback. The shell is
- * never blocked by a single bad sub-request.
+ * it is a 200 success envelope. Terminal sub-statuses (401/403/429) block the
+ * standalone GET fallback (re-firing would repeat the rejection). Transient
+ * failures leave the owning composable untouched so chrome can retry after
+ * the batch settles. During the post-login settle window a failed batch is
+ * retried with backoff instead of immediately falling through to GET menus.
  */
 export async function hydrateShell(): Promise<void> {
   if (hydrated) return
   if (inflight) return inflight
 
   inflight = (async () => {
-    const { setUser } = useAuth()
+    const { setUser, getSessionEpoch } = useAuth()
+    const epoch = getSessionEpoch()
     const { seedTree } = useNavigation()
     const { seedUnreadCount, seedList } = useNotifications()
 
-    try {
-      const [me, sidebar, navbar, unread, notifList] = await batch<unknown>([
-        { path: 'auth/me' },
-        { path: 'navigation/menus', query: { layout: 'sidebar' } },
-        { path: 'navigation/menus', query: { layout: 'navbar' } },
-        { path: 'notifications/unread-count' },
-        { path: 'notifications', query: { display_mode: 'query', limit: '5' } },
-      ])
+    let attempt = 0
+    while (true) {
+      blockedFallbacks.clear()
+      try {
+        const [me, sidebar, navbar, unread, notifList] = await batch<unknown>([
+          { path: 'auth/me' },
+          { path: 'navigation/menus', query: { layout: 'sidebar' } },
+          { path: 'navigation/menus', query: { layout: 'navbar' } },
+          { path: 'notifications/unread-count' },
+          { path: 'notifications', query: { display_mode: 'query', limit: '5' } },
+        ])
 
-      const meBody = bodyOf<User>(me)
-      if (meBody?.data) setUser(meBody.data)
+        if (getSessionEpoch() !== epoch) {
+          return
+        }
 
-      const sidebarBody = bodyOf<NavigationTreeNode[]>(sidebar)
-      if (Array.isArray(sidebarBody?.data)) seedTree('sidebar', sidebarBody.data)
+        const meBody = bodyOf<User>(me)
+        if (meBody?.data) setUser(meBody.data)
 
-      const navbarBody = bodyOf<NavigationTreeNode[]>(navbar)
-      if (Array.isArray(navbarBody?.data)) seedTree('navbar', navbarBody.data)
+        seedOrBlock('sidebar', sidebar, (nodes: NavigationTreeNode[]) => seedTree('sidebar', nodes))
+        seedOrBlock('navbar', navbar, (nodes: NavigationTreeNode[]) => seedTree('navbar', nodes))
 
-      const unreadBody = bodyOf<UnreadCountPayload>(unread)
-      if (typeof unreadBody?.data?.unread === 'number') seedUnreadCount(unreadBody.data.unread)
+        if (isTerminalEntry(unread)) {
+          blockedFallbacks.add('unread')
+        } else {
+          const unreadBody = bodyOf<UnreadCountPayload>(unread)
+          if (typeof unreadBody?.data?.unread === 'number') seedUnreadCount(unreadBody.data.unread)
+        }
 
-      const notifListBody = bodyOf<AppNotification[]>(notifList)
-      if (Array.isArray(notifListBody?.data)) seedList(notifListBody.data)
+        if (isTerminalEntry(notifList)) {
+          blockedFallbacks.add('list')
+        } else {
+          const notifListBody = bodyOf<AppNotification[]>(notifList)
+          if (Array.isArray(notifListBody?.data)) seedList(notifListBody.data)
+        }
 
-      hydrated = true
-    } catch {
-      // Batch itself failed (401 handled by the client's refresh path, or a
-      // network/Worker error). Leave every store untouched — the per-feature
-      // loaders in AppLayout/AppNavbar remain the source of truth.
-    } finally {
-      inflight = null
+        hydrated = true
+        return
+      } catch {
+        if (!isSessionSettling()) {
+          return
+        }
+        await settleBackoff(attempt++)
+        if (!isSessionSettling()) {
+          return
+        }
+      }
     }
-  })()
+  })().finally(() => {
+    inflight = null
+  })
 
   return inflight
+}
+
+function seedOrBlock(
+  widget: 'sidebar' | 'navbar',
+  entry: { status: number; body: unknown } | undefined,
+  seed: (nodes: NavigationTreeNode[]) => void,
+): void {
+  if (isTerminalEntry(entry)) {
+    blockedFallbacks.add(widget)
+    return
+  }
+        const body = bodyOf<NavigationTreeNode[]>(entry)
+        if (body && Array.isArray(body.data)) seed(body.data)
+}
+
+export function isShellFallbackBlocked(widget: ShellWidget): boolean {
+  return blockedFallbacks.has(widget)
+}
+
+export function isShellHydrated(): boolean {
+  return hydrated
 }
 
 /** Test/diagnostic hook: allow re-hydration after logout. Not used by views. */
 export function resetShellHydration(): void {
   hydrated = false
+  blockedFallbacks.clear()
 }
 
 export function useShellHydrate() {
-  return { hydrateShell, resetShellHydration }
+  return { hydrateShell, resetShellHydration, isShellFallbackBlocked, isShellHydrated }
 }

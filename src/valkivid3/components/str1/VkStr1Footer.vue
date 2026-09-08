@@ -41,7 +41,7 @@ onMounted(() => {
           </nav>
         </div>
 
-        <div class="col-span-full lg:col-span-4 lg:text-right">
+        <div class="col-span-full lg:col-span-4 lg:text-end">
           <p class="text-sm leading-relaxed">
             {{ t('web.vtual.public.footer.tagline') }}
           </p>

@@ -9,6 +9,8 @@ export interface RowAction {
   variant?: string
   disabled?: boolean
   to?: RouteLocationRaw
+  href?: string
+  target?: string
   onClick?: () => void
 }
 
@@ -39,6 +41,21 @@ function iconClass(icon: string): string {
       >
         <i :class="iconClass(action.icon)" aria-hidden="true"></i>
       </router-link>
+      <a
+        v-else-if="action.href"
+        :href="action.href"
+        :target="action.target"
+        :rel="action.target === '_blank' ? 'noopener noreferrer' : undefined"
+        class="btn btn-sm"
+        :class="[`btn-outline-${action.variant ?? 'secondary'}`, { disabled: action.disabled }]"
+        :aria-label="action.label"
+        :title="action.label"
+        :aria-disabled="action.disabled ? 'true' : undefined"
+        :tabindex="action.disabled ? -1 : undefined"
+        @click.stop
+      >
+        <i :class="iconClass(action.icon)" aria-hidden="true"></i>
+      </a>
       <button
         v-else
         type="button"

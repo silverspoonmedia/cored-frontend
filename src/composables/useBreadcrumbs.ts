@@ -103,8 +103,8 @@ const BREADCRUMB_MAP: Record<string, BreadcrumbConfig> = {
   'product-activations.index.view': { labelKey: 'web.product-activations.title', routeName: 'product-activations.index.view' },
   'product-activations.show.view': { parent: 'product-activations.index.view', labelKey: 'ui.breadcrumb.edit' },
 
-  'file-hosting.microstock-usage.view': { labelKey: 'web.file-hosting.microstock_title', routeName: 'file-hosting.microstock-usage.view' },
-  'file-hosting.blocklist.index.view': { labelKey: 'web.file-hosting.blocklist_title', routeName: 'file-hosting.blocklist.index.view' },
+  'archivd.microstock-usage.view': { labelKey: 'web.archivd.microstock_title', routeName: 'archivd.microstock-usage.view' },
+  'archivd.blocklist.index.view': { labelKey: 'web.archivd.blocklist_title', routeName: 'archivd.blocklist.index.view' },
 }
 
 export function useBreadcrumbs() {

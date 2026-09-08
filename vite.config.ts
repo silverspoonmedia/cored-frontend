@@ -48,6 +48,18 @@ export default defineConfig(({ command }) => ({
 					if (id.includes('node_modules/laravel-echo') || id.includes('node_modules/pusher-js')) {
 						return 'echo'
 					}
+					if (id.includes('node_modules/jquery') || id.includes('node_modules/select2')) {
+						return 'jquery-select2'
+					}
+					if (id.includes('node_modules/sweetalert2')) {
+						return 'sweetalert2'
+					}
+					if (id.includes('node_modules/overlayscrollbars')) {
+						return 'overlayscrollbars'
+					}
+					if (id.includes('node_modules/admin-lte') || id.includes('node_modules/@s')) {
+						return 'admin-lte'
+					}
 					return undefined
 				},
 			},

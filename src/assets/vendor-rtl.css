@@ -1,0 +1,14 @@
+/* Vendor CSS bundle (RTL) — same layers as vendor.css but Bootstrap/AdminLTE
+   resolve to their official RTL dist builds. Kept as a separate entry because
+   Vite CSS @import is processed via postcss, not the JS resolveId pipeline, so
+   a resolveId-based swap does not apply to production CSS builds. Keep the
+   import list in sync with vendor.css. */
+@import '@fontsource/source-sans-3/latin-400.css';
+@import '@fontsource/source-sans-3/latin-600.css';
+@import '@fontsource/source-sans-3/latin-700.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import 'overlayscrollbars/styles/overlayscrollbars.css';
+@import 'bootstrap/dist/css/bootstrap.rtl.min.css';
+@import 'admin-lte/dist/css/adminlte.rtl.min.css';
+@import 'select2/dist/css/select2.min.css';
+@import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';

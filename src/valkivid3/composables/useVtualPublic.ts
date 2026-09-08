@@ -4,6 +4,7 @@ import type {
   VtualPublicContentFeed,
   VtualPublicDirectory,
   VtualPublicLanding,
+  VtualPublicManagementProfile,
   VtualPublicProfile,
 } from '@/api/types'
 
@@ -102,6 +103,13 @@ async function fetchVtualLanding(): Promise<VtualPublicLanding> {
   return res.data as VtualPublicLanding
 }
 
+async function fetchVtualManagementProfile(slug: string): Promise<VtualPublicManagementProfile> {
+  const res = await get<ApiResponse<VtualPublicManagementProfile>>(
+    `vtual/public/managements/${encodeURIComponent(slug)}`,
+  )
+  return res.data as VtualPublicManagementProfile
+}
+
 export function useVtualPublic() {
   function fetchDirectory(
     page: number = 1,
@@ -128,11 +136,16 @@ export function useVtualPublic() {
     return swr('landing', () => fetchVtualLanding())
   }
 
+  function fetchManagementProfile(slug: string): Promise<VtualPublicManagementProfile> {
+    return swr(`mgmt-profile:${slug}`, () => fetchVtualManagementProfile(slug))
+  }
+
   return {
     fetchDirectory,
     fetchContents,
     fetchProfile,
     fetchLanding,
+    fetchManagementProfile,
     prefetchProfile: prefetchVtualProfile,
   }
 }
