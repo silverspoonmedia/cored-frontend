@@ -1,6 +1,6 @@
 import i18n from '@/i18n'
 import { apiUrl, isCrossOrigin } from './baseUrl'
-import { applyCsrfHeader, ensureCsrf, refreshCsrf, whenCsrfCookieQuiet } from './csrf'
+import { applyCsrfHeader, ensureCsrf, refreshCsrfOnce, whenCsrfCookieQuiet } from './csrf'
 import { applySpaRequestHeader } from './requestHeaders'
 import { translateFallback } from '@/i18n/fallbacks'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
@@ -253,8 +253,10 @@ async function request<T>(
   let response = await fetchUntilSettled(doFetch)
 
   // Stale/rotated CSRF nonce: refresh once and retry before treating as an error.
+  // Single-flighted: N concurrent 419s share one nonce mint (see csrf.ts) so the
+  // retries do not invalidate each other's header-vs-cookie pair.
   if (response.status === 419 && crossOrigin && mutating && !isAuthSessionPath(uri)) {
-    await refreshCsrf()
+    await refreshCsrfOnce()
     response = await fetchUntilSettled(doFetch)
   }
 

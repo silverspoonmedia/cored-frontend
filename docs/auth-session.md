@@ -32,6 +32,7 @@ A guest 401 is not session death: `unauthorizedHandler` only `clearAuth()` when 
 
 - `BroadcastChannel('monolith-auth')` coordinates refresh: only one tab performs `POST auth/refresh`; others wait for `refresh-done` (prevents the blacklist race where two refreshes invalidate each other). Messages: `refresh-request`, `refresh-response`, `refresh-done`, `logout` — **none carry the JWT**.
 - CSRF nonce has the same shared-cookie/per-tab-memory split and its own channel: `BroadcastChannel('monolith-csrf')` broadcasts each fresh nonce; all consumers read through `src/api/csrf.ts` so every tab stays on the same nonce.
+- The 419-retry path uses `refreshCsrfOnce()` — single-flighted across concurrent callers (one nonce mint per 419 burst), so a burst of parallel mutations (Echo channel auth after connect) cannot rotate the shared cookie against each other's retries. Detail: [api-client.md](api-client.md#419-csrf-mismatch).
 
 ## Logout (barrier + epoch)
 

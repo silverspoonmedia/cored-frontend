@@ -35,6 +35,7 @@ type CsrfChannelMessage = { type: 'csrf'; token: string } | { type: 'csrf-clear'
 
 let token: string | null = null
 let pendingFetch: Promise<void> | null = null
+let pendingRefresh: Promise<void> | null = null
 
 const csrfChannel: BroadcastChannel | null =
   typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('monolith-csrf') : null
@@ -151,6 +152,21 @@ export async function refreshCsrf(): Promise<void> {
   })
 
   return pendingFetch
+}
+
+/**
+ * Single-flight wrapper for the 419-retry path: N concurrent callers that hit
+ * 419 at once (e.g. the burst of broadcasting/auth requests when Echo
+ * connects) share ONE nonce refresh. Without this, each caller's refresh
+ * rotates the shared cookie again and strands the other callers' retries on
+ * a nonce that no longer matches the cookie — repeat 419, hard failure.
+ */
+export function refreshCsrfOnce(): Promise<void> {
+  if (pendingRefresh) return pendingRefresh
+  pendingRefresh = refreshCsrf().finally(() => {
+    pendingRefresh = null
+  })
+  return pendingRefresh
 }
 
 /** Attach the CSRF header to a cross-origin mutation request. */

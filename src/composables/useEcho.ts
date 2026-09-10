@@ -108,13 +108,26 @@ function readConfig(): BroadcastConfig | null {
 }
 
 function createEcho(config: BroadcastConfig): PusherEcho {
+  // Serialized authorizer: pusher-js fires one authorize per channel in
+  // parallel, and when Echo connects right after init that is a ~15-request
+  // burst of POST /broadcasting/auth. Parallel 419s would rotate the shared
+  // CSRF cookie against in-flight retries (surfacing as CORS TypeErrors),
+  // and the burst pressures the global rate limiter. Queueing keeps at most
+  // one auth request in flight — each takes ~10-50ms, so total connect time
+  // stays well under a second.
+  let authQueue: Promise<void> = Promise.resolve()
+
   const authorizer: ChannelAuthorizerGenerator = (channel) => ({
     authorize: (socketId, callback) => {
-      authorizeBroadcastChannel(channel.name, socketId)
-        .then((auth) => callback(null, auth))
-        .catch((err: unknown) => {
+      const run = authQueue.then(async () => {
+        try {
+          const auth = await authorizeBroadcastChannel(channel.name, socketId)
+          callback(null, auth)
+        } catch (err: unknown) {
           callback(err instanceof Error ? err : new Error(String(err)), null)
-        })
+        }
+      })
+      authQueue = run.catch(() => undefined)
     },
   })
 

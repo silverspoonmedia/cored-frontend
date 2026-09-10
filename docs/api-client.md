@@ -23,7 +23,9 @@ Fallback messages go through `translateFallback(i18n.global.t, key)` from `src/i
 
 ## 419 (CSRF mismatch)
 
-Cross-origin mutation gets 419 → `refreshCsrf()` once → retry the original request. Only one retry; auth-session paths are excluded (a 419 there is not a stale nonce).
+Cross-origin mutation gets 419 → `refreshCsrfOnce()` → retry the original request. Only one retry; auth-session paths are excluded (a 419 there is not a stale nonce).
+
+`refreshCsrfOnce()` ([csrf.ts](../src/api/csrf.ts)) is single-flighted across callers: N concurrent 419s (e.g. the channel-auth burst when Echo connects) share ONE nonce mint. Plain per-caller `refreshCsrf()` would rotate the shared `spa_csrf` cookie again and strand the other callers' in-flight retries on a nonce that no longer matches the cookie — repeat 419, hard failure.
 
 ## 401 handling
 
@@ -43,6 +45,8 @@ Cross-origin mutation gets 419 → `refreshCsrf()` once → retry the original r
 ## Echo broadcast auth
 
 The Echo authorizer goes through `client.post('broadcasting/auth')` (not a private `fetch`) so it inherits CSRF/419 retry. `AppNavbar` awaits `hydrateShell()` before `initEcho()`. Details: [auth-session.md](auth-session.md) + `monolith/docs/integration/vue-workers-spa.md#auth`.
+
+Authorizers are **serialized** in `useEcho.ts` (a promise queue — at most one `broadcasting/auth` in flight per socket). pusher-js fires one authorize per channel in parallel; on connect after init that is a ~15-request burst. Parallel 419s would rotate the CSRF cookie against in-flight retries (surfacing in Chrome as a CORS TypeError on the overlapping cookie write) and pressure the API rate limiter; the queue turns the burst into an ordered sequence (~10-50 ms each). Backend side: a dedicated `throttle:broadcast` limiter (120/min per user) on `api/v1/broadcasting/auth`.
 
 ## Tests
 

@@ -179,4 +179,54 @@ describe('csrf nonce multi-tab sync', () => {
     csrf.applyCsrfHeader(headers)
     expect(headers.get('X-CSRF-Token')).toBeNull()
   })
+
+  it('refreshCsrfOnce single-flights concurrent 419 refreshes into one nonce mint', async () => {
+    let resolveFetch: ((r: Response) => void) | null = null
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise<Response>((res) => (resolveFetch = res)),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+
+    // Simulate the broadcast-auth storm: 15 concurrent callers all hit 419 and
+    // call refreshCsrfOnce() in the same tick.
+    const refreshes = Array.from({ length: 15 }, () => csrf.refreshCsrfOnce())
+
+    resolveFetch?.(nonceResponse('nonce-shared'))
+    await Promise.all(refreshes)
+
+    // Exactly ONE nonce mint — the shared cookie and every caller's retry
+    // header stay in sync.
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(csrf.csrfToken()).toBe('nonce-shared')
+
+    // A later 419 (new storm) mints a fresh nonce again — the single-flight
+    // lock must release after settling.
+    const later = csrf.refreshCsrfOnce()
+    resolveFetch?.(nonceResponse('nonce-next'))
+    await later
+    expect(csrf.csrfToken()).toBe('nonce-next')
+  })
+
+  it('refreshCsrfOnce reuses the shared lock for sequential callers mid-refresh', async () => {
+    const resolvers: Array<(r: Response) => void> = []
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise<Response>((res) => resolvers.push(res)),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+
+    // First storm caller starts the refresh; a second caller joining while
+    // that refresh is still in flight must join it, not queue a second mint.
+    const p1 = csrf.refreshCsrfOnce()
+    const p2 = csrf.refreshCsrfOnce()
+
+    resolvers[0]?.(nonceResponse('nonce-shared'))
+    await Promise.all([p1, p2])
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(csrf.csrfToken()).toBe('nonce-shared')
+  })
 })
