@@ -1,4 +1,4 @@
-import { getEcho } from '@/composables/useEcho'
+import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
 
 export type InferenceRealtimeHandlers = {
   onCatalogChanged?: (payload: { entity: string; action: string; entity_id: string | null }) => void
@@ -39,7 +39,8 @@ function maybeLeave(): void {
 
 export function subscribeInferenceCatalogRealtime(handlers: InferenceRealtimeHandlers): boolean {
   handlerSet.add(handlers)
-  return ensureChannel()
+  subscribeWhenEchoReady(ensureChannel)
+  return channelActive
 }
 
 export function unsubscribeInferenceCatalogRealtime(handlers: InferenceRealtimeHandlers): void {

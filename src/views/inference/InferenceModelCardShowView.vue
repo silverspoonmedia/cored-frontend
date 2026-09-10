@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -9,6 +9,8 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useInferenceUsage } from '@/composables/inference/useInferenceUsage'
 import { useInferenceHydrate } from '@/composables/inference/useInferenceHydrate'
+import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { AiModelCardDetail, InferenceUsageEvent } from '@/api/types'
@@ -61,6 +63,19 @@ async function loadEvents(): Promise<void> {
   }
 }
 
+// Live update: this model card edited elsewhere reloads it.
+const { subscribe, unsubscribe } = useInferenceRealtime()
+const realtimeHandlers = {
+  onCatalogChanged: (e: { entity: string; entity_id: string | null }) => {
+    if (e.entity === 'model_card' && (!e.entity_id || e.entity_id === route.params.id)) {
+      void loadCard()
+      void loadEvents()
+    }
+  },
+}
+
+useEchoResync(() => { void loadCard(); void loadEvents() })
+
 onMounted(async () => {
   const id = route.params.id as string
   const batchResult = await hydrateModelCardShow(id).catch(() => null)
@@ -72,6 +87,11 @@ onMounted(async () => {
   }
   if (!card.value) await loadCard()
   if (events.value.length === 0) await loadEvents()
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
 })
 </script>
 

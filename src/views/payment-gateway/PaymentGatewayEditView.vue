@@ -7,6 +7,7 @@ import FormInput from '@/components/FormInput.vue'
 import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { usePaymentGateways } from '@/composables/payment-gateway/usePaymentGateways'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 
@@ -89,6 +90,8 @@ async function handleSubmit(): Promise<void> {
 }
 
 onMounted(load)
+
+useEchoResync(() => { void load() })
 </script>
 
 <template>

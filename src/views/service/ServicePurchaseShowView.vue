@@ -12,6 +12,7 @@ import { useServicePurchases } from '@/composables/service/useServicePurchases'
 import { useServices } from '@/composables/service/useServices'
 import { useServicesHydrate } from '@/composables/service/useServicesHydrate'
 import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { ServicePurchase, InvoiceStatusPayload } from '@/api/types'
 
@@ -135,6 +136,8 @@ onMounted(loadPurchase)
 onUnmounted(() => {
   unsubscribePurchase(purchaseHandlers)
 })
+
+useEchoResync(() => { void loadPurchase() })
 
 async function handleUpdateQty(): Promise<void> {
   if (!purchase.value || updatingQty.value) return

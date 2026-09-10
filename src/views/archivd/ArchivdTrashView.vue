@@ -8,6 +8,7 @@ import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import ArIcon from '@/components/archivd/ArIcon.vue'
 import { useArchivd } from '@/composables/archivd/useArchivd'
 import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { ArTrashPayload } from '@/api/types'
 
@@ -47,6 +48,9 @@ async function loadTrash(): Promise<void> {
 const trashHandlers = {
   onListingChanged: () => loadTrash(),
 }
+
+// Socket-outage recovery: re-pull the trash the realtime handler reloads.
+useEchoResync(() => { void loadTrash() })
 
 onMounted(() => {
   loadTrash()

@@ -12,6 +12,7 @@ import { useSettings } from '@/composables/settings/useSettings'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import { useSettingsRealtime } from '@/composables/settings/useSettingsRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import type { SettingEntry } from '@/api/types'
 import { lookupDotted } from '@/utils/settingsI18n'
 import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
@@ -171,6 +172,8 @@ onMounted(() => {
 onUnmounted(() => {
   unsubscribe(realtimeHandlers)
 })
+
+useEchoResync(() => { void loadGroup() })
 </script>
 
 <template>

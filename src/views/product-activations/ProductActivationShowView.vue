@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -9,6 +9,8 @@ import FormSelect from '@/components/FormSelect.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useProductActivations } from '@/composables/product-activations/useProductActivations'
+import { useAdminRealtime } from '@/composables/useAdminRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { inputDialog } from '@/lib/swal'
@@ -56,7 +58,29 @@ async function load(): Promise<void> {
 }
 
 watch(stateFilter, () => load())
-onMounted(load)
+
+// Live update: activation state changes anywhere refresh this product detail.
+const { subscribe, unsubscribe } = useAdminRealtime()
+const realtimeHandlers = {
+  onProductActivationChanged: (e: { product_key: string }) => {
+    if (e.product_key === productKey.value) {
+      void load()
+    }
+  },
+}
+
+// Socket-outage recovery: re-pull this product (state filter may have moved on
+// since mount; load() re-reads the current filter, unlike the realtime handler).
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  load()
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 
 async function handleApprove(act: ProductActivation): Promise<void> {
   actionLoading.value = act.id

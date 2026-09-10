@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useErrorLogs } from '@/composables/error-log/useErrorLogs'
+import { useLogsRealtime } from '@/composables/error-log/useLogsRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useDetailLoader } from '@/composables/useDetailLoader'
 import { useAlert } from '@/composables/useAlert'
 
@@ -18,6 +20,21 @@ const { data: entry, loading, error: loadError, load } = useDetailLoader(
   () => fetchOne(route.params.id as string),
   { fallbackMessage: t('web.error-log.load_failed') },
 )
+
+// Live update: this error row (its fingerprint group) receives new
+// occurrences elsewhere — reload status/occurrence data.
+const { subscribeErrors, unsubscribeErrors } = useLogsRealtime()
+const realtimeHandlers = { onErrorRecorded: () => { void load() } }
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  subscribeErrors(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeErrors(realtimeHandlers)
+})
 const actionLoading = ref(false)
 
 const contextJson = computed(() => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
@@ -10,6 +10,8 @@ import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useInferenceUsage } from '@/composables/inference/useInferenceUsage'
 import { useInferenceModelCards } from '@/composables/inference/useInferenceModelCards'
 import { useInferenceHydrate } from '@/composables/inference/useInferenceHydrate'
+import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { InferenceUsageOverview, InferenceUsageEvent } from '@/api/types'
 
@@ -108,6 +110,17 @@ async function applyFilters(): Promise<void> {
   await loadEvents(true)
 }
 
+// Live update: catalog changes (rates synced, model cards) shift usage data.
+const { subscribe, unsubscribe } = useInferenceRealtime()
+const realtimeHandlers = {
+  onCatalogChanged: () => {
+    void loadOverview()
+    void loadEvents(true)
+  },
+}
+
+useEchoResync(() => { void loadOverview(); void loadEvents(true) })
+
 onMounted(async () => {
   const batchResult = await hydrateUsageEvents(buildParams()).catch(() => null)
   if (batchResult) {
@@ -121,6 +134,11 @@ onMounted(async () => {
   if (!overview.value) await loadOverview()
   if (events.value.length === 0) await loadEvents(true)
   if (modelCards.value.length === 0) await fetchModelCards()
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
 })
 </script>
 

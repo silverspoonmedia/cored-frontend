@@ -6,6 +6,7 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useDomainAccess } from '@/composables/domain-access/useDomainAccess'
 import { useAdminRealtime } from '@/composables/useAdminRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { DomainAccess } from '@/api/types'
@@ -33,6 +34,9 @@ const realtimeHandlers = {
     void fetchList()
   },
 }
+
+// Socket-outage recovery: mirror the realtime handler.
+useEchoResync(() => { void fetchList() })
 
 onMounted(() => {
   fetchList()

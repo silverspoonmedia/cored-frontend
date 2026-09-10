@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import RowActions from '@/components/RowActions.vue'
@@ -8,6 +8,8 @@ import ErrorState from '@/components/ErrorState.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useMenus } from '@/composables/navigation/useMenus'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
+import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { MenuListItem, QueryRowAction } from '@/api/types'
@@ -75,7 +77,20 @@ async function load(): Promise<void> {
   await fetchList(layout.value)
 }
 
-onMounted(load)
+// Live update: menu mutations anywhere refresh the admin list live.
+const { subscribe: subscribeMenus, unsubscribe: unsubscribeMenus } = useMenusRealtime()
+const realtimeHandlers = { onMenuTreeChanged: () => { void load() } }
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  load()
+  subscribeMenus(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeMenus(realtimeHandlers)
+})
 </script>
 
 <template>

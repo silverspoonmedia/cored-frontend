@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
@@ -8,6 +8,8 @@ import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import RowActions from '@/components/RowActions.vue'
 import { useMicrostockCredentials } from '@/composables/microstock/useMicrostockCredentials'
+import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 import type { MicrostockCredential, QueryRowAction } from '@/api/types'
@@ -107,8 +109,20 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'created_at', label: t('web.microstock-credentials.columns.created_at'), sortable: true },
 ])
 
+// Live update: credentials added/deleted in another tab refresh the list.
+const { subscribe: subscribeArchivd, unsubscribe: unsubscribeArchivd } = useArchivdRealtime()
+const realtimeHandlers = { onMicrostockCredentialsChanged: () => { void fetchList() } }
+
+// Socket-outage recovery: mirror the realtime handler.
+useEchoResync(() => { void fetchList() })
+
 onMounted(() => {
   void fetchList()
+  subscribeArchivd(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeArchivd(realtimeHandlers)
 })
 </script>
 

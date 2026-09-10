@@ -1,4 +1,4 @@
-import { getEcho } from '@/composables/useEcho'
+import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
 
 export type ServicesRealtimeHandlers = {
   onCatalogChanged?: () => void
@@ -43,7 +43,8 @@ function maybeLeaveCatalog(): void {
 
 export function subscribeServiceCatalogRealtime(handlers: ServicesRealtimeHandlers): boolean {
   catalogHandlers.add(handlers)
-  return ensureCatalogChannel()
+  subscribeWhenEchoReady(ensureCatalogChannel)
+  return catalogChannelActive
 }
 
 export function unsubscribeServiceCatalogRealtime(handlers: ServicesRealtimeHandlers): void {
@@ -97,7 +98,8 @@ function maybeLeavePurchase(): void {
 
 export function subscribePurchaseRealtime(purchaseId: string, handlers: PurchaseRealtimeHandlers): boolean {
   purchaseHandlers.add(handlers)
-  return ensurePurchaseChannel(purchaseId)
+  subscribeWhenEchoReady(() => ensurePurchaseChannel(purchaseId))
+  return purchaseChannelId === purchaseId
 }
 
 export function unsubscribePurchaseRealtime(handlers: PurchaseRealtimeHandlers): void {

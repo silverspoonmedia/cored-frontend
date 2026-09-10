@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import i18n from '@/i18n'
 import { get } from '@/api/client'
-import { getEcho } from '@/composables/useEcho'
+import { listenMenusChannel } from '@/composables/navigation/useMenusChannel'
 import { useAuth } from '@/stores/auth'
 import type { ApiResponse, NavigationTreeNode } from '@/api/types'
 
@@ -12,7 +12,7 @@ const fetchPromises: Record<string, Promise<void> | null> = {}
 const reactiveTrees = ref<Record<string, NavigationTreeNode[]>>({})
 const loading = ref(false)
 const error = ref<string | null>(null)
-let echoListener: (() => void) | null = null
+let detachMenus: (() => void) | null = null
 
 function ensureLayoutBucket(layout: string): void {
   if (!(layout in treeMap)) {
@@ -83,37 +83,31 @@ const sidebarTree = computed(() => tree('sidebar'))
 const navbarTree = computed(() => tree('navbar'))
 
 function startRealtime(): void {
-  if (echoListener) return
-  const echo = getEcho()
-  if (!echo) return
+  if (detachMenus) return
 
-  try {
-    const channel = echo.private('navigation.menus')
-    channel.listen('.menu.tree.changed', (e: { layout?: string; target_user_id?: string | null }) => {
-      // Targeted refresh (e.g. vTual management membership changed): ignore
-      // events meant for other viewers; broadcast-all events keep old behavior.
-      const { user } = useAuth()
-      if (e.target_user_id && String(e.target_user_id) !== String(user.value?.id ?? '')) {
-        return
-      }
-      const layout = e.layout
-      if (layout) {
-        refetch(layout)
-      } else {
-        refetch('sidebar')
-        refetch('navbar')
-      }
-    })
-    echoListener = () => echo.leave('navigation.menus')
-  } catch {
-    // Echo unavailable — polling fallback covers it
-  }
+  // Shared navigation.menus channel (useMenusChannel) — ref-counted with the
+  // Menus admin views, so unmounting a view can't kill shell nav updates.
+  detachMenus = listenMenusChannel((e) => {
+    // Targeted refresh (e.g. vTual management membership changed): ignore
+    // events meant for other viewers; broadcast-all events keep old behavior.
+    const { user } = useAuth()
+    if (e.target_user_id && String(e.target_user_id) !== String(user.value?.id ?? '')) {
+      return
+    }
+    const layout = e.layout
+    if (layout) {
+      void refetch(layout)
+    } else {
+      void refetch('sidebar')
+      void refetch('navbar')
+    }
+  })
 }
 
 function stopRealtime(): void {
-  if (echoListener) {
-    echoListener()
-    echoListener = null
+  if (detachMenus) {
+    detachMenus()
+    detachMenus = null
   }
 }
 

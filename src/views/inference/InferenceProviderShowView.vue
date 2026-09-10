@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -10,6 +10,8 @@ import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useInferenceProviders } from '@/composables/inference/useInferenceProviders'
 import { useInferenceModelCards } from '@/composables/inference/useInferenceModelCards'
 import { useInferenceHydrate } from '@/composables/inference/useInferenceHydrate'
+import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useRatePlanAdmin } from '@/composables/microstock/useRatePlanAdmin'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
@@ -91,6 +93,26 @@ async function handleSave(): Promise<void> {
 }
 
 watch(providerId, load, { immediate: true })
+
+// Live update: this provider's rates synced/edited elsewhere reload the view.
+const { subscribe, unsubscribe } = useInferenceRealtime()
+const realtimeHandlers = {
+  onCatalogChanged: (e: { entity: string; action: string; entity_id: string | null }) => {
+    if ((e.entity === 'provider' || e.entity === 'model_card') && (!e.entity_id || e.entity_id === providerId.value)) {
+      void load()
+    }
+  },
+}
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 </script>
 
 <template>

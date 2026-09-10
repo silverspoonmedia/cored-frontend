@@ -1,4 +1,4 @@
-import { getEcho } from '@/composables/useEcho'
+import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
 
 export type PlatformCredentialChangedPayload = {
   platform_id: string
@@ -46,7 +46,8 @@ function maybeLeave(): void {
 
 export function subscribeVtualPlatformCredentialsRealtime(handlers: VtualRealtimeHandlers): boolean {
   handlerSet.add(handlers)
-  return ensureChannel()
+  subscribeWhenEchoReady(ensureChannel)
+  return channelActive
 }
 
 export function unsubscribeVtualPlatformCredentialsRealtime(handlers: VtualRealtimeHandlers): void {
@@ -92,7 +93,8 @@ export function subscribeVtualCreatorSnapshots(
     snapshotHandlers.set(creatorId, set)
   }
   set.add(handler)
-  return ensureSnapshotChannel(creatorId)
+  subscribeWhenEchoReady(() => ensureSnapshotChannel(creatorId))
+  return snapshotChannels.has(creatorId)
 }
 
 export function unsubscribeVtualCreatorSnapshots(
@@ -156,7 +158,8 @@ export function subscribeVtualManagement(
     managementHandlers.set(managementId, set)
   }
   set.add(handler)
-  return ensureManagementChannel(managementId)
+  subscribeWhenEchoReady(() => ensureManagementChannel(managementId))
+  return managementChannels.has(managementId)
 }
 
 export function unsubscribeVtualManagement(

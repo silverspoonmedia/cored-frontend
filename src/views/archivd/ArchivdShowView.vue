@@ -11,6 +11,7 @@ import ArShareModal from '@/components/archivd/ArShareModal.vue'
 import ArMicrostockReviewModal from '@/components/archivd/ArMicrostockReviewModal.vue'
 import { useArchivd } from '@/composables/archivd/useArchivd'
 import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { HostedFile } from '@/api/types'
@@ -66,6 +67,9 @@ async function loadFile(): Promise<void> {
 const showHandlers = {
   onListingChanged: () => loadFile(),
 }
+
+// Socket-outage recovery: re-pull the file the realtime handler reloads.
+useEchoResync(() => { void loadFile() })
 
 onMounted(() => {
   loadFile()

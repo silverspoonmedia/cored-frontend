@@ -7,6 +7,7 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useProductActivations } from '@/composables/product-activations/useProductActivations'
 import { useAdminRealtime } from '@/composables/useAdminRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import type { ProductActivationSummary } from '@/api/types'
 
 const router = useRouter()
@@ -23,6 +24,9 @@ const realtimeHandlers = {
     void fetchProducts().then((p) => { products.value = p }).catch(() => {})
   },
 }
+
+// Socket-outage recovery: mirror the realtime handler (fetchProducts → assign).
+useEchoResync(() => { void fetchProducts().then((p) => { products.value = p }).catch(() => {}) })
 
 async function loadProducts(): Promise<void> {
   loading.value = true

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useActivityLogs } from '@/composables/activity-log/useActivityLogs'
+import { useActivityLogRealtime } from '@/composables/activity-log/useActivityLogRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useDetailLoader } from '@/composables/useDetailLoader'
 
 const route = useRoute()
@@ -15,6 +17,28 @@ const { t } = useI18n()
 const { data: entry, loading, error: loadError, load } = useDetailLoader(
   () => fetchOne(route.params.id as string),
 )
+
+// Live update: new activity rows appended elsewhere don't alter a historical
+// entry — no realtime refetch needed on show view; subscribe is a no-op here
+// by design. Index view handles list refresh.
+const { subscribe: subscribeActivity, unsubscribe: unsubscribeActivity } = useActivityLogRealtime()
+const realtimeHandlers = {
+  onActivityAppended: (e: { log_name: string; event: string }) => {
+    if (entry.value && e.log_name === entry.value.log_name && e.event === entry.value.event) {
+      void load()
+    }
+  },
+}
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  subscribeActivity(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeActivity(realtimeHandlers)
+})
 
 const attributes = computed<string[]>(() => {
   const changes = entry.value?.attribute_changes

@@ -12,6 +12,7 @@ import { usePaymentsIncome } from '@/composables/payment-gateway/usePaymentsInco
 import { useInvoices } from '@/composables/payment-gateway/useInvoices'
 import { usePaymentsHydrate } from '@/composables/payment-gateway/usePaymentsHydrate'
 import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { PaymentIncomeOverview, Invoice } from '@/api/types'
 import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
@@ -149,14 +150,18 @@ async function handleExport(): Promise<void> {
 
 const { subscribeAdminList, unsubscribeAdminList } = usePaymentRealtime()
 
+const reloadIncome = () => { void applyFilters() }
+
 onMounted(() => {
   void applyFilters()
-  subscribeAdminList(() => { void applyFilters() })
+  subscribeAdminList(reloadIncome)
 })
 
 onUnmounted(() => {
-  unsubscribeAdminList()
+  unsubscribeAdminList(reloadIncome)
 })
+
+useEchoResync(reloadIncome)
 
 </script>
 

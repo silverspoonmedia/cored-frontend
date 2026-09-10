@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,6 +7,8 @@ import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { usePaymentGateways } from '@/composables/payment-gateway/usePaymentGateways'
+import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
@@ -57,6 +59,19 @@ async function handleDelete(): Promise<void> {
     showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
   }
 }
+
+const { subscribeGatewayList, unsubscribeGatewayList } = usePaymentRealtime()
+const onGatewayChanged = () => { void fetchList() }
+
+onMounted(() => {
+  subscribeGatewayList(onGatewayChanged)
+})
+
+onUnmounted(() => {
+  unsubscribeGatewayList(onGatewayChanged)
+})
+
+useEchoResync(() => { void fetchList() })
 </script>
 
 <template>

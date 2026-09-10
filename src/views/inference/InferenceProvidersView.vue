@@ -12,6 +12,7 @@ import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import type { InferenceProvider } from '@/api/types'
 import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
@@ -28,6 +29,8 @@ useListingLiveUpdate('inference-providers', fetchList)
 
 const { subscribe, unsubscribe } = useInferenceRealtime()
 const realtimeHandlers = { onCatalogChanged: () => fetchList() }
+
+useEchoResync(() => { void fetchList() })
 
 const columns: DataTableColumn[] = [
   { key: 'slug', label: t('web.inference.providers.datatable.columns.slug'), sortable: true },

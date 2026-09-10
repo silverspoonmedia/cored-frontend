@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch, defineAsyncComponent } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, watch, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -13,6 +13,8 @@ import { useMenus } from '@/composables/navigation/useMenus'
 import { useLookups } from '@/composables/useLookups'
 import { useNavigationHydrate } from '@/composables/navigation/useNavigationHydrate'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
+import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 import type { SelectOption } from '@/components/FormSelect2.vue'
@@ -206,7 +208,26 @@ watch(() => form.type, () => {
   if (form.type === 'h') form.parent = null
 })
 
-onMounted(load)
+// Live update: this menu edited elsewhere reloads the form data.
+const { subscribe: subscribeMenus, unsubscribe: unsubscribeMenus } = useMenusRealtime()
+const realtimeHandlers = {
+  onMenuTreeChanged: (e: { layout: string; target_user_id?: string | null }) => {
+    if (!e.target_user_id && (!e.layout || e.layout === layout.value)) {
+      void load()
+    }
+  },
+}
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  load()
+  subscribeMenus(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeMenus(realtimeHandlers)
+})
 </script>
 
 <template>

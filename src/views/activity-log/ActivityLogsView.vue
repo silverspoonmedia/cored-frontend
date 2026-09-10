@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions from '@/components/RowActions.vue'
 import { useActivityLogs } from '@/composables/activity-log/useActivityLogs'
+import { useActivityLogRealtime } from '@/composables/activity-log/useActivityLogRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { ActivityLog } from '@/api/types'
 import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
@@ -13,6 +16,19 @@ const router = useRouter()
 const { t } = useI18n()
 const { items, loading, error, fetchList, pagination } = useActivityLogs()
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
+
+const { subscribe: subscribeActivity, unsubscribe: unsubscribeActivity } = useActivityLogRealtime()
+const realtimeHandlers = { onActivityAppended: () => fetchList() }
+
+useEchoResync(() => { void fetchList() })
+
+onMounted(() => {
+  subscribeActivity(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeActivity(realtimeHandlers)
+})
 
 const columns: DataTableColumn[] = [
   { key: 'event', label: t('web.activity-log.columns.event'), sortable: true },

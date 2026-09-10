@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions from '@/components/RowActions.vue'
 import { useMenus } from '@/composables/navigation/useMenus'
+import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { MenuTrashedItem } from '@/api/types'
@@ -54,7 +56,20 @@ function trashedActions(row: MenuTrashedItem) {
   }))
 }
 
-onMounted(load)
+// Live update: deletes/restores elsewhere refresh the trashed list.
+const { subscribe: subscribeMenus, unsubscribe: unsubscribeMenus } = useMenusRealtime()
+const realtimeHandlers = { onMenuTreeChanged: () => { void load() } }
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  load()
+  subscribeMenus(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeMenus(realtimeHandlers)
+})
 </script>
 
 <template>

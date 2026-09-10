@@ -1,21 +1,23 @@
-import { getEcho } from '@/composables/useEcho'
+import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
 
 export type AdminRealtimeHandlers = {
   onProductActivationChanged?: (payload: { product_key: string; action: string; user_id: string | null }) => void
   onDomainVisibilityChanged?: (payload: { product_key: string; visibility: string }) => void
   onRbacChanged?: (payload: { action: string; role_id: string | null; user_id: string | null }) => void
+  onUserListChanged?: (payload: { action: string; user_id: string | null }) => void
+  onRoleListChanged?: (payload: { action: string; role_id: string | null }) => void
 }
 
 const handlerSet = new Set<AdminRealtimeHandlers>()
 const activeChannels = new Set<string>()
 
-function ensureChannels(): void {
+const WANTED_CHANNELS = ['product-activations', 'domain-access', 'rbac', 'rbac.users', 'rbac.roles']
+
+function ensureChannels(): boolean {
   const echo = getEcho()
-  if (!echo) return
+  if (!echo) return false
 
-  const wanted = ['product-activations', 'domain-access', 'rbac']
-
-  for (const channel of wanted) {
+  for (const channel of WANTED_CHANNELS) {
     if (activeChannels.has(channel)) continue
     try {
       const ch = echo.private(channel)
@@ -31,12 +33,21 @@ function ensureChannels(): void {
         ch.listen('.rbac.role.permission.changed', (e: { action: string; role_id: string | null; user_id: string | null }) => {
           for (const h of handlerSet) h.onRbacChanged?.(e)
         })
+      } else if (channel === 'rbac.users') {
+        ch.listen('.rbac.user.list.changed', (e: { action: string; user_id: string | null }) => {
+          for (const h of handlerSet) h.onUserListChanged?.(e)
+        })
+      } else if (channel === 'rbac.roles') {
+        ch.listen('.rbac.role.list.changed', (e: { action: string; role_id: string | null }) => {
+          for (const h of handlerSet) h.onRoleListChanged?.(e)
+        })
       }
       activeChannels.add(channel)
     } catch {
       // ignore
     }
   }
+  return true
 }
 
 function maybeLeave(): void {
@@ -55,7 +66,7 @@ function maybeLeave(): void {
 
 export function subscribeAdminRealtime(handlers: AdminRealtimeHandlers): void {
   handlerSet.add(handlers)
-  ensureChannels()
+  subscribeWhenEchoReady(ensureChannels)
 }
 
 export function unsubscribeAdminRealtime(handlers: AdminRealtimeHandlers): void {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,7 +8,9 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useInvoices } from '@/composables/payment-gateway/useInvoices'
+import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
 import { useDetailLoader } from '@/composables/useDetailLoader'
+import { useEchoResync } from '@/composables/useEcho'
 import type { InvoiceStatusPayload } from '@/api/types'
 import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
 
@@ -37,6 +40,23 @@ function onInvoiceUpdated(payload: InvoiceStatusPayload): void {
     }
   }
 }
+
+// Live update: direct status subscription when the checkout panel is not
+// rendered (e.g. already-paid invoices viewed elsewhere/another tab).
+const { subscribeInvoice, unsubscribeInvoice } = usePaymentRealtime()
+
+onMounted(() => {
+  const id = route.params.id as string
+  if (id) {
+    subscribeInvoice(id, onInvoiceUpdated)
+  }
+})
+
+onUnmounted(() => {
+  unsubscribeInvoice()
+})
+
+useEchoResync(() => { void load() })
 </script>
 
 <template>

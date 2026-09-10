@@ -1,9 +1,10 @@
 import Echo, { type EchoOptions } from 'laravel-echo'
 import Pusher from 'pusher-js'
 import type { ChannelAuthorizerGenerator } from 'pusher-js'
-import { ref, type Ref } from 'vue'
+import { onUnmounted, ref, type Ref } from 'vue'
 import { post } from '@/api/client'
 import { resolveApiUrl } from '@/api/baseUrl'
+import { useAuth } from '@/stores/auth'
 import i18n from '@/i18n'
 
 type PusherEcho = Echo<'pusher'>
@@ -170,6 +171,8 @@ export function useEcho(): {
       })
       connected.value = echoInstance.connectionStatus() === 'connected'
 
+      fireReady()
+
       return true
     } catch {
       echoInstance = null
@@ -187,6 +190,7 @@ export function useEcho(): {
       connected.value = false
       hadOutage = false
     }
+    readyListeners.clear()
   }
 
   return {
@@ -199,3 +203,123 @@ export function useEcho(): {
 export function getEcho(): PusherEcho | null {
   return echoInstance
 }
+
+/** Test hook: inject/remove a fake Echo instance (unit tests only). */
+export function __setEchoForTests(echo: PusherEcho | null): void {
+  echoInstance = echo
+  if (echo !== null) fireReady()
+}
+
+// Ready bus: composables that subscribe before Echo is initialized (init is
+// async in AppNavbar, after the shell batch) can re-attach here. Listeners
+// registered after init run immediately.
+type ReadyFn = () => void
+const readyListeners = new Set<ReadyFn>()
+
+export function onEchoReady(fn: ReadyFn): () => void {
+  if (echoInstance) {
+    fn()
+    return () => readyListeners.delete(fn)
+  }
+  readyListeners.add(fn)
+  return () => readyListeners.delete(fn)
+}
+
+function fireReady(): void {
+  for (const fn of readyListeners) {
+    try {
+      fn()
+    } catch {
+      // a failing listener must not block the others
+    }
+  }
+  readyListeners.clear()
+}
+
+/**
+ * Race-safe subscribe for realtime composables. Views mount before Echo is
+ * initialized (init is async in AppNavbar after the shell batch), so a plain
+ * `if (!echo) return` leaves the tab deaf for the whole session. This runs
+ * `attach()` immediately when Echo exists, otherwise defers it to the ready
+ * bus. Returns an unsubscribe that also cancels a pending defer.
+ *
+ * @param attach  Bind channel listeners; return true when attached.
+ */
+export function subscribeWhenEchoReady(attach: () => boolean): () => void {
+  if (echoInstance !== null) {
+    attach()
+    return () => {}
+  }
+
+  let stopReady: (() => void) | null = onEchoReady(() => {
+    attach()
+    stopReady = null
+  })
+
+  return () => {
+    stopReady?.()
+    stopReady = null
+  }
+}
+
+/**
+ * View-level resync registration: refetch after a socket outage, auto-stopped
+ * on unmount. One line per view instead of the mount/unmount boilerplate.
+ */
+export function useEchoResync(fn: ResyncFn): void {
+  const stop = onEchoResync(fn)
+  onUnmounted(() => {
+    stop()
+  })
+}
+
+// ---- Personal channel (App.Models.User.{id}) --------------------------------
+// Shared by the notification bell (useNotifications) and auth-self events
+// (useAuthSelfRealtime). Ref-counted here so one consumer unsubscribing never
+// tears the channel out from under the other.
+
+type PersonalListener = (e: unknown) => void
+const personalBindings = new Set<symbol>()
+let personalUserId: string | null = null
+
+function resolvePersonalChannel(): string | null {
+  const { user } = useAuth()
+  const id = user.value?.id
+  return id ? `App.Models.User.${id}` : null
+}
+
+/**
+ * Listen on the user's personal channel with shared ownership. Returns an
+ * unsubscribe; the channel is left only when the last listener detaches (or
+ * the user id changes, e.g. logout/login).
+ */
+export function listenPersonalChannel(events: Record<string, PersonalListener>): () => void {
+  const channel = resolvePersonalChannel()
+  const key = Symbol('personal-listener')
+  personalBindings.add(key)
+  personalUserId = channel ? channel.replace('App.Models.User.', '') : null
+
+  const echo = getEcho()
+  if (echo !== null && channel !== null) {
+    const ch = echo.private(channel)
+    for (const [event, fn] of Object.entries(events)) {
+      ch.listen(event, fn)
+    }
+  }
+
+  return () => {
+    personalBindings.delete(key)
+    if (personalBindings.size > 0) return
+    const current = resolvePersonalChannel()
+    if (getEcho() !== null && current !== null) {
+      try {
+        getEcho()!.leave(current)
+      } catch {
+        // ignore
+      }
+    }
+    personalUserId = null
+  }
+}
+
+

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { usePaymentChannels } from '@/composables/payment-gateway/usePaymentChannels'
+import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { PaymentChannel, PaymentChannelRoute } from '@/api/types'
@@ -112,7 +114,19 @@ async function loadChannels(): Promise<void> {
   }
 }
 
-onMounted(loadChannels)
+const { subscribeChannelList, unsubscribeChannelList } = usePaymentRealtime()
+const onChannelChanged = () => { void loadChannels() }
+
+onMounted(() => {
+  void loadChannels()
+  subscribeChannelList(onChannelChanged)
+})
+
+onUnmounted(() => {
+  unsubscribeChannelList(onChannelChanged)
+})
+
+useEchoResync(() => { void loadChannels() })
 
 async function toggleChannel(ch: PaymentChannel): Promise<void> {
   try {

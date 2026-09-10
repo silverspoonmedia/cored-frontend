@@ -10,6 +10,7 @@ import { useInferenceModelCards } from '@/composables/inference/useInferenceMode
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import type { AiModelCard } from '@/api/types'
@@ -36,6 +37,8 @@ useListingLiveUpdate('inference-model-cards-table', () => fetchList())
 
 const { subscribe, unsubscribe } = useInferenceRealtime()
 const realtimeHandlers = { onCatalogChanged: () => fetchList() }
+
+useEchoResync(() => { void fetchList() })
 
 function showCard(row: AiModelCard): void {
   const to = queryRowActionTo(findQueryRowAction(row.actions, 'view'))

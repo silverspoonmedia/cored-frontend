@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -9,6 +9,8 @@ import { useVtual } from '@/composables/vtual/useVtual'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useServerDataTable } from '@/composables/useServerDataTable'
+import { useNavigation } from '@/composables/navigation/useNavigation'
+import { useEchoResync } from '@/composables/useEcho'
 import type { ListParams } from '@/composables/useResource'
 import type { QueryRowAction, VtualCreator } from '@/api/types'
 import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
@@ -46,6 +48,20 @@ async function fetchList(params?: ListParams): Promise<VtualCreator[]> {
 }
 
 const { load, onPage, onPerPage, onSearch } = useServerDataTable(fetchList, orphanPagination)
+
+// Live update: creator assignment (claim) changes reload the orphan pool.
+const { startRealtime: startNavRealtime, stopRealtime: stopNavRealtime } = useNavigation()
+
+// Socket-outage recovery: re-pull the list.
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  startNavRealtime()
+})
+
+onUnmounted(() => {
+  stopNavRealtime()
+})
 
 function handleSearch(search: string): void {
   searchQuery.value = search

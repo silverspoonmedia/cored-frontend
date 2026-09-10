@@ -7,14 +7,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const post = vi.fn()
 
-vi.mock('@/api/client', () => ({
-  post: (...args: unknown[]) => post(...args),
-}))
+vi.mock('@/api/client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/api/client')>()
+  return {
+    ...actual,
+    post: (...args: unknown[]) => post(...args),
+  }
+})
 
 describe('authorizeBroadcastChannel', () => {
   beforeEach(() => {
     post.mockReset()
-    vi.stubGlobal('window', { location: { origin: 'http://localhost:5173' } })
+    vi.stubGlobal('window', {
+      location: { origin: 'http://localhost:5173' },
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })
   })
 
   afterEach(() => {

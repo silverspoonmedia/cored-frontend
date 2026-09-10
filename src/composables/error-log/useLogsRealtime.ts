@@ -1,4 +1,4 @@
-import { getEcho } from '@/composables/useEcho'
+import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
 
 export type LogsRealtimeHandlers = {
   onErrorRecorded?: (payload: { level: string; type: string }) => void
@@ -39,7 +39,8 @@ function maybeLeave(): void {
 
 export function subscribeErrorLogsRealtime(handlers: LogsRealtimeHandlers): boolean {
   handlerSet.add(handlers)
-  return ensureChannel()
+  subscribeWhenEchoReady(ensureChannel)
+  return channelActive
 }
 
 export function unsubscribeErrorLogsRealtime(handlers: LogsRealtimeHandlers): void {

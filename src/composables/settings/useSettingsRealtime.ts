@@ -1,4 +1,4 @@
-import { getEcho } from '@/composables/useEcho'
+import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
 
 export type SettingsRealtimeHandlers = {
   onGroupChanged?: (payload: { group: string; action: string }) => void
@@ -50,7 +50,8 @@ function maybeLeave(): void {
 
 export function subscribeSettingsRealtime(group: string, handlers: SettingsRealtimeHandlers): boolean {
   handlerSet.add(handlers)
-  return ensureChannel(group)
+  subscribeWhenEchoReady(() => ensureChannel(group))
+  return activeGroup === group
 }
 
 export function unsubscribeSettingsRealtime(handlers: SettingsRealtimeHandlers): void {

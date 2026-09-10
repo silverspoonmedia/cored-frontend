@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useCurrencies } from '@/composables/payment-gateway/useCurrencies'
+import { useCurrenciesRealtime } from '@/composables/payment-gateway/useCurrenciesRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import type { Currency } from '@/api/types'
 import { findQueryRowAction } from '@/utils/mapQueryRowActions'
@@ -12,6 +14,9 @@ import { findQueryRowAction } from '@/utils/mapQueryRowActions'
 const { currencies, loading, updating, error, load, toggleActive, setSettlement } = useCurrencies()
 const { hasPermission } = useAuth()
 const { t } = useI18n()
+
+const { subscribe: subscribeCurrencies, unsubscribe: unsubscribeCurrencies } = useCurrenciesRealtime()
+const realtimeHandlers = { onCurrencyChanged: () => load() }
 
 const canManage = computed(() => hasPermission('manage settings'))
 
@@ -25,7 +30,14 @@ const columns = computed<DataTableColumn[]>(() => [
 
 onMounted(() => {
   load()
+  subscribeCurrencies(realtimeHandlers)
 })
+
+onUnmounted(() => {
+  unsubscribeCurrencies(realtimeHandlers)
+})
+
+useEchoResync(() => { void load() })
 </script>
 
 <template>

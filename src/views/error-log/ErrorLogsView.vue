@@ -9,6 +9,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useErrorLogs } from '@/composables/error-log/useErrorLogs'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useLogsRealtime } from '@/composables/error-log/useLogsRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import type { ErrorLog } from '@/api/types'
 import { ERROR_LOG_LEVEL_BADGE, ERROR_LOG_STATUS_BADGE } from '@/utils/statusBadge'
 import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
@@ -56,6 +57,8 @@ function resetFilters(): void {
 
 const { subscribeErrors, unsubscribeErrors } = useLogsRealtime()
 const realtimeHandlers = { onErrorRecorded: () => fetchList() }
+
+useEchoResync(() => { void fetchList() })
 
 onMounted(() => {
   subscribeErrors(realtimeHandlers)
