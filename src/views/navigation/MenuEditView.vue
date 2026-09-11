@@ -123,7 +123,12 @@ async function load(): Promise<void> {
       menuName.value = menu.name
 
       if (batchResult) {
-        selectedParent.value = batchResult.parentOptions.map((r) => ({ value: r.id, label: r.text }))
+        selectedParent.value = batchResult.parentOptions.map((r) => ({
+          value: r.id,
+          label: r.text,
+          group: r.group,
+          level: r.level,
+        }))
         selectedRoles.value = batchResult.roleOptions.map((r) => ({ value: r.id, label: r.text }))
         selectedUserIncludes.value = batchResult.userIncludeOptions.map((r) => ({ value: r.id, label: r.text }))
         selectedUserExcludes.value = batchResult.userExcludeOptions.map((r) => ({ value: r.id, label: r.text }))
@@ -308,6 +313,7 @@ onUnmounted(() => {
         :ajax-url="'lookups/menus'"
         :ajax-params="menuAjaxParams"
         :selected-options="selectedParent"
+        grouped
         :error="fieldError('parent')"
         :placeholder="t('web.menus.form.parent_placeholder')"
         :disabled="saving || form.type === 'h'"
@@ -428,6 +434,7 @@ onUnmounted(() => {
             :ajax-url="'lookups/menus'"
             :ajax-params="menuAjaxParams"
             :selected-options="selectedReference"
+            grouped
             :error="fieldError('reference_id')"
             :placeholder="t('web.menus.form.reference_placeholder')"
             :hint="isEdit ? t('web.menus.form.reference_hint_edit') : t('web.menus.form.reference_hint_create')"

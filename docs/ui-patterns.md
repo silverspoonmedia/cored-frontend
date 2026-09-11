@@ -43,6 +43,16 @@ Large admin views stay maintainable by splitting along two axes (pattern used by
 
 Views with heavy vendor widgets (`FormSelect2` → jQuery + select2) must import them via `defineAsyncComponent(() => import(...))` (see `UserEditView`, `MenuEditView`) so the vendor chunk loads only when the widget's view is visited — never eager-import a jQuery-dependent component from a shared entry path.
 
+## Nested selects (optgroup)
+
+Select2 renders grouping **one level deep** only. `FormSelect` and `FormSelect2` support three mechanisms, all opt-in via a `grouped` prop:
+
+- **Explicit children:** a `SelectOption` with `children: SelectOption[]` renders as `<optgroup label>`; its children flatten in place (no nested optgroups — the browser spec forbids nesting).
+- **Group metadata:** options carrying `group` (top-level ancestor label) and `level` (depth, 0 = top) are bucketed into `<optgroup>`s by first appearance; deeper levels render with indentation (nbsp prefix in the label / `padding-left` via select2 `templateResult`).
+- **Nested tree (ajax):** for `lookups/menus`, the backend returns nested trees — one node per top-level root menu, each root carrying its full recursive `children` subtree plus `level` per node. Because select2 renders only one level of `children` (nested beyond it breaks selection — unselectable options, scroll jumps), `flattenTreeForSelect2()` in `src/utils/select2-lookup.ts` converts the tree before rendering: each root becomes an `<optgroup>` whose first leaf is the root itself (selectable), followed by descendants flattened with their `level` (`padding-left = level * 16px`). Pagination is per root group (lazy load fetches the next root, a group is never split across pages); search returns matching branches with ancestors retained. Selecting an option in a grouped select2 triggers a viewport scroll (select2#3663 — closing the dropdown re-focuses the selection element); `FormSelect2` works around it by restoring the window scroll position and re-focusing the selection with `preventScroll: true` after `select2:select`.
+
+Backend lookup endpoint `lookups/menus` pre-sorts every level by sibling rank (type h<p<c, then `order` — the same comparator as the Dynamic Menu sidebar), so the SPA renders without re-sorting. The hydrate path (`ids[]` pre-selection) stays flat with `group`/`parent_text`/`level` metadata. Use the tree pattern for tree-shaped selects (menu parent/reference in `MenuEditView`); do not hand-roll flat lists with dash prefixes.
+
 ## Loading & error states
 
 Every data-loading view renders three explicit states, in priority order: **skeleton** while loading → **error with retry** on failure → **empty/data** otherwise. No view goes blank on fetch failure.
