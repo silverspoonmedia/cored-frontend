@@ -21,6 +21,7 @@ interface Select2ResultNode {
   id?: string | number
   text: string
   level?: number
+  group?: string
   children?: Select2ResultNode[]
 }
 
@@ -46,8 +47,8 @@ interface Select2Options {
   placeholder?: string
   minimumInputLength?: number
   ajax?: Select2AjaxSettings
-  templateResult?: (option: Select2ResultNode | { text?: string }) => string | object
-  templateSelection?: (option: Select2ResultNode | { text?: string }) => string
+  templateResult?: (option: Select2ResultNode) => string | object
+  templateSelection?: (option: Select2ResultNode) => string
 }
 
 interface JQuery {
