@@ -2333,6 +2333,7 @@
       }
     },
     "menus": {
+      "hydrate_partial_warning": "Some fields could not be loaded, so their saved values are hidden. They will be left unchanged when you save.",
       "load_failed": "Could not load the menu.",
       "load_trashed_failed": "Could not load deleted menus.",
       "save_failed": "Could not save the menu.",

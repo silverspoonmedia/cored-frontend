@@ -55,6 +55,27 @@ Backend lookup endpoint `lookups/menus` pre-sorts every level by sibling rank (t
 
 For ajax-backed selects, pre-selected rows arrive **after** mount (edit-form hydrate, realtime reload). `FormSelect2` appends late `selectedOptions` in place and re-applies the value instead of re-initializing select2, which would drop the ajax adapter state. Multi-value `ids[]` must therefore be passed as an array (`{ 'ids[]': menu.role_ids }`) — query serialization and the silent-non-200 batch semantics are in [api-client.md](api-client.md).
 
+### Select2 sizing
+
+Text size is already uniform — single rendered text, `.select2-selection--multiple`, chips, and the search field all resolve to `1rem`, the same as `.form-control`. Only the box height differed.
+
+The bundled `select2-bootstrap-5-theme` renders the inline search as a **sibling** of `ul.select2-selection__rendered`, not a child: `Search.prototype.render()` appends it to the selection span, and the theme relies on that relationship (`.select2-selection--multiple .select2-selection__rendered:not(:empty) + .select2-search`). Both are block-level with `width: 100%`, so a one-chip select stacks a chip row over a full-width 24px search row: 81px against a 38px `.form-control` (measured with select2 building its own DOM).
+
+The fix is the unlayered `Select2 sizing` block in `src/assets/monolith-overrides.css` (same layer discipline as the `Select2 dark mode` block — the theme CSS is unlayered, so a layered override would lose):
+
+- `.select2-selection--multiple` becomes a single-line flex row (`display: flex; align-items: flex-end`). Do **not** add `flex-wrap` here: the chip list's max-content basis would then exceed the line, take a whole line for itself, and the search could never share it. This is why putting `flex` on `.select2-search` alone was inert — its parent is a block box, not a flex container.
+- the chip list keeps the theme's own `flex-wrap: wrap` and gets `flex: 0 1 auto; min-width: 0`, so it wraps internally, never grows into the search, and shrinks when a long chip row meets it.
+- the search gets `flex: 1 1 4rem; width: auto; min-width: 4rem; height: auto` — it sits right after the last chip and takes the leftover width, so an empty multi-select still has a full-width typing area.
+- the chip is forced to `height: 1.5rem` + `padding: 0 .5rem` + `line-height: 1` (theme chip padding is `em`-based: `.35em .65em` → 37px).
+
+Measured: one chip **38px**, identical to `.form-control` and `.select2-selection--single`; six chips **66px** (two rows) with the search on the last chip row via `align-items: flex-end`; each extra row adds `24 + 4` (row-gap). The search field needs `width: 100% !important` because select2's `Search.prototype.resizeSearch()` writes an inline width (`0.75em` when empty) that would otherwise clip typing to about one character. Do not add a size prop to `FormSelect2` for this — no consumer passes a size class.
+
+### Select2 values must survive a failed hydrate
+
+`FormSelect2.applyValue()` writes the parent's value into the DOM and then triggers `change.select2`. That namespaced trigger also reaches the component's plain `change` handler, so an unguarded programmatic write echoes straight back through `update:modelValue`. The echo is destructive on AJAX selects: an id whose `<option>` row has not been hydrated yet cannot be represented, `$el.val()` reads empty, and the parent is told the field was cleared — which the edit form then submits, wiping the stored pivots. An `applyingValue` flag suppresses the echo; user selections (select2's `select`/`unselect` → plain `change`) still emit.
+
+With the model authoritative, `MenuEditView` prunes unresolvable ids itself by calling `pruneUnresolvedReferences()` ([`src/utils/navigation/pruneUnresolvedReferences.ts`](../src/utils/navigation/pruneUnresolvedReferences.ts)), and only for lookups that actually succeeded. A lookup that failed is recorded in `failedLookups` by `useNavigationHydrate` (`bodyOfOrThrow` instead of degrading to `[]`): the field is left untouched, the admin is warned with `web.menus.hydrate_partial_warning`, and pruning is skipped — so a failed request can never delete stored `parent`/`roles`/`user_includes`/`user_excludes`. Never "fix" an empty select by submitting it as empty.
+
 ## Loading & error states
 
 Every data-loading view renders three explicit states, in priority order: **skeleton** while loading → **error with retry** on failure → **empty/data** otherwise. No view goes blank on fetch failure.

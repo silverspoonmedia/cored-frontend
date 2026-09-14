@@ -525,6 +525,61 @@ html[dir='rtl'] .app-sidebar {
 }
 
 /* ============================================================
+   Select2 sizing — match the .form-control baseline
+   -----
+   select2 renders the inline search as a SIBLING of
+   `ul.select2-selection__rendered`, not a child: Search.prototype.render
+   appends it to the selection span, and the bundled theme depends on that
+   (`.select2-selection__rendered:not(:empty) + .select2-search`).
+   The theme makes both block-level with `width: 100%`, so a one-chip select
+   stacks a chip row (43px) over a search row (24px) = 81px against the 38px
+   `.form-control` / `--single` baseline.
+   Fix: the selection becomes a single-line flex row holding both children.
+   The chip list keeps its own `flex-wrap: wrap` so chips still wrap, its
+   `flex-grow: 0` keeps the inline search right after the last chip instead of
+   pushing it to the far edge, and `align-items: flex-end` keeps the search on
+   the last chip row once chips wrap.
+   Text was never the problem (everything is already 1rem) — only the chrome
+   is compacted so single and multiple selects share one control height.
+   MUST stay unlayered (same reason as the dark-mode block above).
+   ============================================================ */
+
+.select2-container--bootstrap-5 .select2-selection--multiple {
+    display: flex;
+    align-items: flex-end;
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+    flex: 0 1 auto;
+    min-width: 0;
+    row-gap: 0.25rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice {
+    box-sizing: border-box;
+    height: 1.5rem;
+    padding: 0 0.5rem;
+    margin-bottom: 0;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Shares the chip row instead of taking a full-width row of its own. */
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-search {
+    flex: 1 1 4rem;
+    width: auto;
+    min-width: 4rem;
+    height: auto;
+}
+
+/* select2's Search.resizeSearch() writes an inline width (0.75em when
+   empty), so `!important` is required to let the field fill the row. */
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-search .select2-search__field {
+    width: 100% !important;
+    height: 1.5rem;
+}
+
+/* ============================================================
    Dark mode: fix Bootstrap utility classes that clash
    -----
    .bg-light, .text-bg-light, pre.bg-light, table-bordered,

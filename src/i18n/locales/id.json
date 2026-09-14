@@ -2333,6 +2333,7 @@
       }
     },
     "menus": {
+      "hydrate_partial_warning": "Beberapa field tidak dapat dimuat sehingga nilai tersimpannya tidak ditampilkan. Nilainya akan dibiarkan tidak berubah saat Anda menyimpan.",
       "load_failed": "Menu tidak dapat dimuat.",
       "load_trashed_failed": "Menu yang dihapus tidak dapat dimuat.",
       "save_failed": "Menu tidak dapat disimpan.",

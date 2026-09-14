@@ -2333,6 +2333,7 @@
       }
     },
     "menus": {
+      "hydrate_partial_warning": "部分字段加载失败，已保存的值暂不显示。保存时这些值将保持不变。",
       "load_failed": "无法加载菜单。",
       "load_trashed_failed": "无法加载已删除的菜单。",
       "save_failed": "无法保存菜单。",

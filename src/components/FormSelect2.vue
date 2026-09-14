@@ -224,15 +224,33 @@ function syncOptionsToDom() {
   }
 }
 
+/**
+ * True while {@link applyValue} writes the parent's value into the DOM.
+ *
+ * `change.select2` also reaches the plain `change` handler below, so without
+ * this guard a programmatic write would echo back through `update:modelValue`.
+ * That echo is destructive: an AJAX select whose `<option>` rows have not been
+ * hydrated yet (a failed `lookups/*` call, or a late hydrate) cannot represent
+ * the requested ids, so `$el.val()` reads empty and the parent would be told
+ * the field was cleared — which the edit form then submits, wiping the pivots.
+ * The parent's value stays authoritative; real user selections still emit.
+ */
+let applyingValue = false
+
 function applyValue() {
   const el = selectRef.value
   if (!el) return
   const $el = $(el)
-  if (props.multiple) {
-    const vals = Array.isArray(props.modelValue) ? props.modelValue.map(String) : []
-    $el.val(vals).trigger('change.select2')
-  } else {
-    $el.val(props.modelValue ? String(props.modelValue) : '').trigger('change.select2')
+  applyingValue = true
+  try {
+    if (props.multiple) {
+      const vals = Array.isArray(props.modelValue) ? props.modelValue.map(String) : []
+      $el.val(vals).trigger('change.select2')
+    } else {
+      $el.val(props.modelValue ? String(props.modelValue) : '').trigger('change.select2')
+    }
+  } finally {
+    applyingValue = false
   }
 }
 
@@ -267,6 +285,8 @@ function initSelect2() {
   })
 
   $el.on('change', () => {
+    // Programmatic writes are not user intent — see `applyingValue`.
+    if (applyingValue) return
     const val = $el.val()
     if (props.multiple) {
       const arr = Array.isArray(val) ? val.map(String) : val ? [String(val)] : []

@@ -891,6 +891,7 @@
       }
     },
     "menus": {
+      "hydrate_partial_warning": "일부 항목을 불러오지 못해 저장된 값이 표시되지 않습니다. 저장할 때 해당 값은 변경되지 않습니다.",
       "card_title": "메뉴",
       "new_card_title": "새 메뉴",
       "edit_card_title": "메뉴 수정: {name}",

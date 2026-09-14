@@ -12,10 +12,13 @@ import { useMenus } from '@/composables/navigation/useMenus'
 import { normalizeTranslatableMap } from '@/i18n'
 import { useLookups } from '@/composables/useLookups'
 import { useNavigationHydrate } from '@/composables/navigation/useNavigationHydrate'
+import type { MenuLookupKey } from '@/composables/navigation/useNavigationHydrate'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
 import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { isTerminalBatchError } from '@/api/batch'
+import { pruneUnresolvedReferences } from '@/utils/navigation/pruneUnresolvedReferences'
 import { ApiError } from '@/api/types'
 import type { MenuAudience } from '@/api/types'
 import type { SelectOption } from '@/components/FormSelect2.vue'
@@ -97,6 +100,46 @@ const selectedUserIncludes = ref<SelectOption[]>([])
 const selectedUserExcludes = ref<SelectOption[]>([])
 const selectedReference = ref<SelectOption[]>([])
 
+/**
+ * Lookups whose hydrate batch entry did not succeed.
+ *
+ * A failed lookup leaves its select showing nothing while `form` still holds the
+ * ids the menu resource returned, so this list is only used to warn the admin
+ * and to skip pruning — pruning a field whose lookup failed
+ * would delete stored references on the strength of a failed request.
+ */
+const failedLookups = ref<MenuLookupKey[]>([])
+
+/**
+ * Apply {@link pruneUnresolvedReferences} to the form.
+ *
+ * The rule itself lives in `src/utils/navigation/pruneUnresolvedReferences.ts`
+ * so it can be unit-tested without a component render; this is the adapter that
+ * maps the form refs in and the pruned fields back out.
+ */
+function pruneUnresolved(failed: MenuLookupKey[]): void {
+  const pruned = pruneUnresolvedReferences(
+    {
+      parent: form.parent,
+      roles: form.roles,
+      userIncludes: form.user_includes,
+      userExcludes: form.user_excludes,
+    },
+    {
+      parent: selectedParent.value.map((o) => String(o.value)),
+      roles: selectedRoles.value.map((o) => String(o.value)),
+      includes: selectedUserIncludes.value.map((o) => String(o.value)),
+      excludes: selectedUserExcludes.value.map((o) => String(o.value)),
+    },
+    failed,
+  )
+
+  form.parent = pruned.parent
+  form.roles = pruned.roles
+  form.user_includes = pruned.userIncludes
+  form.user_excludes = pruned.userExcludes
+}
+
 const menuAjaxParams = computed(() => ({
   layout: form.layout,
   exclude: menuId.value ?? undefined,
@@ -108,10 +151,16 @@ function fieldError(field: string): string | string[] | null {
 
 async function load(): Promise<void> {
   loading.value = true
+  failedLookups.value = []
   loadLayouts().catch(() => {})
   try {
     if (isEdit.value && menuId.value) {
-      const batchResult = await hydrateMenuEdit(menuId.value).catch(() => null)
+      const batchResult = await hydrateMenuEdit(menuId.value).catch((e) => {
+        // A terminal rejection (401/403/429) must not be re-fired standalone:
+        // it would just repeat the rejection and a 401 trips global logout.
+        if (isTerminalBatchError(e)) throw e
+        return null
+      })
 
       const menu = batchResult?.menu ?? await fetchOne(menuId.value)
       form.name = { ...(menu.name_translations ?? {}) }
@@ -129,6 +178,7 @@ async function load(): Promise<void> {
       menuName.value = menu.name
 
       if (batchResult) {
+        failedLookups.value = batchResult.failedLookups
         selectedParent.value = batchResult.parentOptions.map((r) => ({
           value: r.id,
           label: r.text,
@@ -138,6 +188,12 @@ async function load(): Promise<void> {
         selectedRoles.value = batchResult.roleOptions.map((r) => ({ value: r.id, label: r.text }))
         selectedUserIncludes.value = batchResult.userIncludeOptions.map((r) => ({ value: r.id, label: r.text }))
         selectedUserExcludes.value = batchResult.userExcludeOptions.map((r) => ({ value: r.id, label: r.text }))
+
+        // A lookup that succeeded but omitted an id means the reference is
+        // genuinely gone (deleted role/user). Drop it so a save cannot send a
+        // stale id. Skipped when the lookup itself failed — its emptiness is
+        // not evidence.
+        pruneUnresolved(batchResult.failedLookups)
       } else {
         const [parent, roles, includes, excludes] = await Promise.all([
           menu.parent_id
@@ -152,6 +208,13 @@ async function load(): Promise<void> {
         selectedRoles.value = roles.map((r) => ({ value: r.id, label: r.text }))
         selectedUserIncludes.value = includes.map((r) => ({ value: r.id, label: r.text }))
         selectedUserExcludes.value = excludes.map((r) => ({ value: r.id, label: r.text }))
+      }
+
+      // Tell the admin the selects are showing empty because the lookup failed,
+      // not because the menu has no roles/users. Without this the form looks
+      // loaded and correct but is missing the stored restrictions.
+      if (failedLookups.value.length > 0) {
+        showError(t('web.menus.hydrate_partial_warning'))
       }
     }
   } catch (e) {
