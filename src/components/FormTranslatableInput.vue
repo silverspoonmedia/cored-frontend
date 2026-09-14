@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { SUPPORTED_LOCALES } from '@/i18n'
+import { backendLocale, normalizeTranslatableMap, SUPPORTED_LOCALES, translatableValue, type AppLocale } from '@/i18n'
 
 const props = withDefaults(defineProps<{
   name: string
@@ -35,14 +35,19 @@ const errorText = computed<string | null>(() => {
   return props.error
 })
 
-function onInput(locale: string, event: Event): void {
+function onInput(locale: AppLocale, event: Event): void {
   const target = event.target as HTMLInputElement
-  const next = { ...props.modelValue, [locale]: target.value }
+  // Read the current map through the backend-key normalizer so a prefill map
+  // keyed `zh_CN` (or a legacy `zh-CN` alias) never leaks alongside the write,
+  // and write the canonical backend key so the map stays canonical mid-edit.
+  const next = { ...normalizeTranslatableMap(props.modelValue), [backendLocale(locale)]: target.value }
   emit('update:modelValue', next)
 }
 
-function valueFor(locale: string): string {
-  return props.modelValue?.[locale] ?? ''
+function valueFor(locale: AppLocale): string {
+  // Maps arrive backend-keyed (`zh_CN`) while rows are rendered per SPA code
+  // (`zh-CN`); resolve through the canonical key so the row is not blank.
+  return translatableValue(props.modelValue, locale)
 }
 </script>
 

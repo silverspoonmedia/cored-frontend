@@ -32,7 +32,7 @@ function isTransientFetchError(error: unknown): boolean {
  * session-settle window, so `whenCsrfCookieQuiet()` guarding inside request()
  * cannot see another tab's in-flight nonce fetch (GET /api/v1/csrf rotates
  * the shared __Host-spa_csrf cookie; the abort mid-request surfaces here as
- * a bare TypeError "Failed to fetch", indistinguishable from a CORS error).
+ * a bare TypeError from fetch(), indistinguishable from a CORS error).
  * Retrying after a short backoff re-runs with the settled cookie pair.
  */
 async function postWithTransientRetry<T>(

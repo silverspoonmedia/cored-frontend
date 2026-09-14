@@ -10,6 +10,7 @@ const FormSelect2 = defineAsyncComponent(() => import('@/components/FormSelect2.
 import FormTranslatableInput from '@/components/FormTranslatableInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useMenus } from '@/composables/navigation/useMenus'
+import { normalizeTranslatableMap } from '@/i18n'
 import { useLookups } from '@/composables/useLookups'
 import { useNavigationHydrate } from '@/composables/navigation/useNavigationHydrate'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
@@ -161,8 +162,11 @@ async function handleSubmit(): Promise<void> {
   errors.value = {}
 
   const payload: Record<string, unknown> = {
-    name: form.name,
-    description: form.description,
+    // Defense in depth: the translatable inputs already normalize keys to
+    // backend locale codes (`zh_CN`); re-normalize here in case another
+    // writer ever feeds the form with SPA keys (`zh-CN`).
+    name: normalizeTranslatableMap(form.name),
+    description: normalizeTranslatableMap(form.description),
     type: form.type,
     layout: form.layout,
   }

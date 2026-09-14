@@ -41,6 +41,46 @@ export function spaLocale(locale: string): AppLocale | null {
   return null
 }
 
+/**
+ * Translatable payload maps (menu name/description, …) are keyed by the
+ * canonical BACKEND locale code (`zh_CN`), not the SPA code (`zh-CN`).
+ * `zh-CN` is accepted as a read alias so pre-existing maps mixed with edits
+ * still resolve, but writes always normalize to the backend key and drop the
+ * alias so the API never receives `zh-CN` keys.
+ */
+export function normalizeTranslatableMap(
+  map: Record<string, string> | null | undefined,
+): Record<string, string> {
+  if (!map) return {}
+
+  const out: Record<string, string> = {}
+
+  for (const [key, value] of Object.entries(map)) {
+    if (typeof value !== 'string') continue
+
+    const spa = spaLocale(key)
+    if (spa === null) continue
+
+    out[backendLocale(spa)] = value
+  }
+
+  return out
+}
+
+/**
+ * Read one locale out of a backend-keyed translatable map (`zh_CN`) using an
+ * SPA locale code (`zh-CN`). Falls back to the raw SPA key so maps written by
+ * an older writer still render.
+ */
+export function translatableValue(
+  map: Record<string, string> | null | undefined,
+  locale: AppLocale,
+): string {
+  if (!map) return ''
+
+  return map[backendLocale(locale)] ?? map[locale] ?? ''
+}
+
 export function isRtl(locale: string = i18n.global.locale.value): boolean {
   return spaLocale(locale) === 'ar'
 }
