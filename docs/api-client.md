@@ -4,7 +4,7 @@ The only HTTP layer. Views/composables never call `fetch` directly against the A
 
 ## Request conventions
 
-- URL resolution: `apiUrl(uri)` in `baseUrl.ts` joins `VITE_API_BASE_URL`; `isCrossOrigin()` decides credentials mode (`include` cross-site, `same-origin` local dev).
+- URL resolution: `apiUrl(uri)` in `baseUrl.ts` joins `VITE_API_BASE_URL`; `isCrossOrigin()` decides credentials mode (`include` cross-site, `same-origin` local dev). Array query values serialize as **repeated params** (`apiUrl('lookups/roles', { 'ids[]': ids })` → `ids[]=a&ids[]=b`) — pass the array, never a pre-joined comma string (Laravel's `ids.* => uuid` rejects the latter with 422). `null`/`undefined` values are skipped, including inside arrays.
 - Headers on every request: `Accept: application/json`, `X-Requested-With: XMLHttpRequest`, `X-SPA-Origin: 1`, `X-SPA-Locale: <backend locale code>` (`requestHeaders.ts` — `zh-CN` maps to `zh_CN` via `backendLocale()`).
 - Cross-origin mutations (`POST`/`PUT`/`PATCH`/`DELETE`) attach the double-submit `X-CSRF-Token` header and call `ensureCsrf()` first. **Auth-session paths** (`auth/login`, `auth/register`, `auth/refresh`, `auth/logout`, `auth/forgot-password`, `auth/reset-password`, `auth/two-factor/login`) skip the nonce fetch — the server skips CSRF there and pre-minting a nonce races the first authenticated batch (see [auth-session.md](auth-session.md)).
 - `FormData` bodies skip the JSON `Content-Type` (browser sets the multipart boundary).
@@ -36,7 +36,7 @@ Cross-origin mutation gets 419 → `refreshCsrfOnce()` → retry the original re
 
 ## Batch hydration
 
-`batch(requests)` fans read-only GET/HEAD calls into `POST batch` (server cap 10 per call — `MAX_BATCH_REQUESTS` mirrors `BatchController::MAX_REQUESTS`). Larger fan-outs split into sequential chunks and re-join positionally. Each entry returns `{ status, body }` where `body` keeps its own full API envelope; the outer response is always 200 — callers must inspect per-entry `status`. Backend contract: `monolith/docs/platform/api-envelope.md#batch`. Which views hydrate through batch: `monolith/docs/integration/vue-workers-spa.md#invocation-budget-controls`.
+`batch(requests)` fans read-only GET/HEAD calls into `POST batch` (server cap 10 per call — `MAX_BATCH_REQUESTS` mirrors `BatchController::MAX_REQUESTS`). Larger fan-outs split into sequential chunks and re-join positionally. Each entry returns `{ status, body }` where `body` keeps its own full API envelope; the outer response is always 200 — callers must inspect per-entry `status`. `bodyOf()` / `dataOf()` unwrap only a 200 success envelope and return `null` for anything else, so a rejected sub-request (malformed query → 422) is **silent**: the field pre-selects nothing instead of erroring. `bodyOfOrThrow()` is the exception — it throws `TerminalBatchError` on 401/403/429 so callers know not to retry standalone. Backend contract: `monolith/docs/platform/api-envelope.md#batch`. Which views hydrate through batch: `monolith/docs/integration/vue-workers-spa.md#invocation-budget-controls`.
 
 ## Blob downloads
 

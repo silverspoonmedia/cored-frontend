@@ -11,7 +11,7 @@ Vitest (`vitest run`), tests in `tests/*.test.ts`. CI runs `type-check` → `che
 | Shell hydrate | `shellHydrate.test.ts` | settle batch retry, terminal sub-entry blocks GET fallback, revoked-session stale-response discard |
 | Cross-tab logout | `authCrossTabLogout.test.ts` | `BroadcastChannel` + `localStorage` fallback receiver teardown |
 | Echo | `echo.test.ts` | authorizer calls `client.post('broadcasting/auth')` |
-| Headers/base URL | `requestHeaders.test.ts`, `baseUrl.test.ts` | `X-SPA-Origin`/`X-SPA-Locale` application, URL resolution |
+| Headers/base URL | `requestHeaders.test.ts`, `baseUrl.test.ts` | `X-SPA-Origin`/`X-SPA-Locale` application, URL resolution, query serialization (array → repeated params, `null`/`undefined` skipped) |
 | i18n | `i18n.test.ts`, `settingsI18n.test.ts`, `translatableLocaleMap.test.ts` | locale mapping, settings label lookup (`tm()`/`rt()`), translatable map key normalization (backend-keyed prefill read, `zh-CN` alias merge, one-to-one locales) |
 | URL safety | `safeUrl.test.ts`, `safeRedirect.test.ts` | scheme/credential rejection, internal-redirect rules |
 | Misc contracts | `notificationTarget.test.ts`, `providerByKey.test.ts`, `vkStr1Theme.test.ts`, `vtualCredentialTestUnwrap.test.ts` | deep-link resolver, provider map, Valkivid3 theme, credential unwrap |
