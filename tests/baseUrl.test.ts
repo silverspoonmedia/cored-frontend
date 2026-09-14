@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { isCrossOrigin, resolveApiUrl } from '../src/api/baseUrl'
+import { apiUrl, isCrossOrigin, resolveApiUrl } from '../src/api/baseUrl'
 
 // Note on stubbing the API origin: `resolveApiUrl` reads `import.meta.env` at call
 // time. Each test sets `VITE_API_BASE_URL` before calling, and resets after.
@@ -54,6 +54,62 @@ describe('resolveApiUrl', () => {
       ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = value
       expect(resolveApiUrl('auth/me')).toBe('/api/v1/auth/me')
     }
+  })
+})
+
+describe('apiUrl', () => {
+  const g = globalThis as Record<string, unknown>
+  let originalWindow: unknown
+
+  beforeEach(() => {
+    originalWindow = g.window
+    g.window = { location: { origin: 'http://localhost:5173' } }
+    ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = ''
+  })
+
+  afterEach(() => {
+    if (originalWindow === undefined) {
+      delete g.window
+    } else {
+      g.window = originalWindow
+    }
+  })
+
+  it('resolves relative paths against the API prefix', () => {
+    expect(apiUrl('lookups/roles').toString()).toBe(
+      'http://localhost:5173/api/v1/lookups/roles',
+    )
+  })
+
+  it('serializes array values as repeated params (Laravel `ids[]` contract)', () => {
+    const url = apiUrl('lookups/roles', { 'ids[]': ['a', 'b'] })
+
+    expect(url.searchParams.getAll('ids[]')).toEqual(['a', 'b'])
+    expect(url.search).toBe('?ids%5B%5D=a&ids%5B%5D=b')
+  })
+
+  it('skips null and undefined values, including inside arrays', () => {
+    const url = apiUrl('lookups/roles', {
+      'ids[]': ['a', null, undefined, 'b'],
+      q: null,
+      page: undefined,
+    })
+
+    expect(url.searchParams.getAll('ids[]')).toEqual(['a', 'b'])
+    expect(url.searchParams.has('q')).toBe(false)
+    expect(url.searchParams.has('page')).toBe(false)
+  })
+
+  it('keeps scalar values as single params', () => {
+    const url = apiUrl('lookups/menus', { layout: 'sidebar', exclude: 'menu-1' })
+
+    expect(url.searchParams.get('layout')).toBe('sidebar')
+    expect(url.searchParams.get('exclude')).toBe('menu-1')
+  })
+
+  it('returns an untouched URL when no query is given', () => {
+    expect(apiUrl('lookups/roles', null).search).toBe('')
+    expect(apiUrl('lookups/roles').search).toBe('')
   })
 })
 

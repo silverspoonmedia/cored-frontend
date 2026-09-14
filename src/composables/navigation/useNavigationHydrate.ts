@@ -38,7 +38,9 @@ async function hydrateMenuEdit(menuId: string): Promise<MenuEditResult> {
     return { menu: null, parentOptions: [], roleOptions: [], userIncludeOptions: [], userExcludeOptions: [] }
   }
 
-  const requests: Array<{ path: string; query?: Record<string, string> }> = []
+  // `ids[]` must stay an array: `apiUrl` serializes it to repeated params
+  // (`ids[]=a&ids[]=b`). A comma-joined string fails `ids.* => uuid` (422).
+  const requests: Array<{ path: string; query?: Record<string, unknown> }> = []
   const keys: string[] = []
 
   if (menu.parent_id) {
@@ -47,15 +49,15 @@ async function hydrateMenuEdit(menuId: string): Promise<MenuEditResult> {
   }
   if (menu.role_ids && menu.role_ids.length > 0) {
     keys.push('roles')
-    requests.push({ path: 'lookups/roles', query: { 'ids[]': menu.role_ids.join(',') } })
+    requests.push({ path: 'lookups/roles', query: { 'ids[]': menu.role_ids } })
   }
   if (menu.user_include_ids && menu.user_include_ids.length > 0) {
     keys.push('includes')
-    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_include_ids.join(',') } })
+    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_include_ids } })
   }
   if (menu.user_exclude_ids && menu.user_exclude_ids.length > 0) {
     keys.push('excludes')
-    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_exclude_ids.join(',') } })
+    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_exclude_ids } })
   }
 
   const lookups: Record<string, Select2Result[]> = { parent: [], roles: [], includes: [], excludes: [] }

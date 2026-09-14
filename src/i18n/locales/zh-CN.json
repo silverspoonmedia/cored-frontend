@@ -2385,6 +2385,13 @@
       "search_aria_label": "搜索菜单",
       "attributes": {
         "auth": "需登录",
+        "role": "角色",
+        "guest": "仅限访客"
+      },
+      "audience": {
+        "all": "所有人（访客与已登录）",
+        "auth": "已登录用户",
+        "role": "具有所选角色的已登录用户",
         "guest": "仅限访客"
       },
       "trashed_card_title": "已删除菜单",
@@ -2423,10 +2430,10 @@
         "hash_hint": "可选的页面内锚点（例如 #section）。",
         "icon_label": "图标",
         "icon_hint": "Bootstrap Icons 类名（例如 bi bi-house）。",
-        "authenticate": "需要登录",
-        "guest_only": "仅限访客",
+        "audience_label": "谁可以看此菜单？",
+        "audience_hint": "选择“具有所选角色的已登录用户”可将菜单限制为下方的角色。",
         "roles_label": "角色",
-        "roles_hint": "对于通过其他规则的每个人都留空。仅与客人不兼容。",
+        "roles_hint": "仅由“具有所选角色的已登录用户”受众使用。请在那里至少选择一个角色。",
         "user_includes": "包含的用户（白名单）",
         "user_excludes": "排除的用户（黑名单）",
         "position_no_change": "不更改顺序",

@@ -2385,7 +2385,14 @@
       "search_aria_label": "Cari menu",
       "attributes": {
         "auth": "terautentikasi",
+        "role": "peran",
         "guest": "tamu"
+      },
+      "audience": {
+        "all": "Semua orang (tamu dan pengguna masuk)",
+        "auth": "Pengguna yang sudah masuk",
+        "role": "Pengguna masuk dengan peran terpilih",
+        "guest": "Hanya tamu"
       },
       "trashed_card_title": "Menu yang dihapus",
       "new_card_title": "Data menu baru",
@@ -2423,10 +2430,10 @@
         "hash_hint": "Anchor halaman opsional (mis. #vtubers) ditambahkan ke route yang diresolve.",
         "icon_label": "Ikon",
         "icon_hint": "Kelas ikon lengkap, mis. bi bi-house.",
-        "authenticate": "Hanya untuk pengguna terautentikasi",
-        "guest_only": "Hanya untuk tamu (guest)",
+        "audience_label": "Siapa yang bisa melihat menu ini?",
+        "audience_hint": "Pilih \"Pengguna masuk dengan peran terpilih\" untuk membatasi menu ke peran di bawah.",
         "roles_label": "Role yang boleh melihat",
-        "roles_hint": "Kosongkan agar terlihat oleh semua yang lolos aturan lain. Tidak kompatibel dengan guest only.",
+        "roles_hint": "Hanya dipakai oleh audiens \"Pengguna masuk dengan peran terpilih\". Pilih minimal satu role di sana.",
         "user_includes": "Pengguna disertakan (allowlist)",
         "user_excludes": "Pengguna dikecualikan (blacklist)",
         "position_no_change": "Tidak ubah urutan",

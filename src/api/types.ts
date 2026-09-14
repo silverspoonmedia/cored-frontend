@@ -315,6 +315,13 @@ export interface DiscordAuthorizeUrl {
 }
 
 // --- Navigation/Menus ---
+
+/**
+ * Who may see a menu node. `role` is the only audience that carries role
+ * restrictions; switching away from it clears the attached roles.
+ */
+export type MenuAudience = 'all' | 'auth' | 'role' | 'guest'
+
 export interface MenuListItem {
   actions?: QueryRowAction[]
   id: string
@@ -329,8 +336,7 @@ export interface MenuListItem {
   hash: string | null
   type: string
   order: number | null
-  is_authenticate: boolean
-  is_guest_only: boolean
+  audience: MenuAudience
   role_ids: string[]
   user_include_ids: string[]
   user_exclude_ids: string[]

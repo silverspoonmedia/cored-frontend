@@ -53,6 +53,10 @@ Select2 renders grouping **one level deep** only. `FormSelect` and `FormSelect2`
 
 Backend lookup endpoint `lookups/menus` pre-sorts every level by sibling rank (type h<p<c, then `order` — the same comparator as the Dynamic Menu sidebar), so the SPA renders without re-sorting. The hydrate path (`ids[]` pre-selection) stays flat with `group`/`parent_text`/`level` metadata. Use the tree pattern for tree-shaped selects (menu parent/reference in `MenuEditView`); do not hand-roll flat lists with dash prefixes.
 
+**Multi-value `ids[]` contract:** pass the ids as an **array** (`{ 'ids[]': menu.role_ids }`), never a comma-joined string. `apiUrl()` (`src/api/baseUrl.ts`) appends one repeated param per element (`ids[]=a&ids[]=b`), which is what Laravel's `ids` + `ids.* => uuid` validation accepts; `searchParams.set` would stringify the array into a single comma-joined value and the lookup answers 422. Batch sub-request failures are silent by design (`bodyOf()` returns `null` for any non-200), so a malformed query shows up as an empty pre-selection, not an error.
+
+For ajax-backed selects, pre-selected rows arrive **after** mount (edit-form hydrate, realtime reload). `FormSelect2` appends late `selectedOptions` in place and re-applies the value instead of re-initializing select2, which would drop the ajax adapter state.
+
 ## Loading & error states
 
 Every data-loading view renders three explicit states, in priority order: **skeleton** while loading → **error with retry** on failure → **empty/data** otherwise. No view goes blank on fetch failure.

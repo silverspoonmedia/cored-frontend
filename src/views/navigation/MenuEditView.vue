@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
-import FormCheckbox from '@/components/FormCheckbox.vue'
 // select2 pulls jQuery — load async so non-form views never download it.
 const FormSelect2 = defineAsyncComponent(() => import('@/components/FormSelect2.vue'))
 import FormTranslatableInput from '@/components/FormTranslatableInput.vue'
@@ -18,6 +17,7 @@ import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
+import type { MenuAudience } from '@/api/types'
 import type { SelectOption } from '@/components/FormSelect2.vue'
 
 const route = useRoute()
@@ -51,8 +51,7 @@ const form = reactive({
   route: '',
   hash: '',
   icon: '',
-  authenticate: false,
-  guest_only: false,
+  audience: 'auth' as MenuAudience,
   roles: [] as string[],
   user_includes: [] as string[],
   user_excludes: [] as string[],
@@ -64,6 +63,13 @@ const typeOptions = computed<Record<string, string>>(() => ({
   h: t('web.menus.form.types.h'),
   p: t('web.menus.form.types.p'),
   c: t('web.menus.form.types.c'),
+}))
+
+const audienceOptions = computed<Record<string, string>>(() => ({
+  all: t('web.menus.audience.all'),
+  auth: t('web.menus.audience.auth'),
+  role: t('web.menus.audience.role'),
+  guest: t('web.menus.audience.guest'),
 }))
 
 const layoutOptions = computed<Record<string, string>>(() => {
@@ -115,8 +121,7 @@ async function load(): Promise<void> {
       form.route = menu.route ?? ''
       form.hash = menu.hash ?? ''
       form.icon = menu.icon ?? ''
-      form.authenticate = menu.is_authenticate
-      form.guest_only = menu.is_guest_only
+      form.audience = menu.audience
       form.parent = menu.parent_id ?? ''
       form.roles = [...(menu.role_ids ?? [])]
       form.user_includes = [...(menu.user_include_ids ?? [])]
@@ -175,9 +180,11 @@ async function handleSubmit(): Promise<void> {
   if (form.hash) payload.hash = form.hash
   if (form.icon) payload.icon = form.icon
   payload.parent = form.parent || null
-  payload.authenticate = form.authenticate
-  payload.guest_only = form.guest_only
-  payload.roles = form.roles
+  payload.audience = form.audience
+  // Role restrictions only exist for the `role` audience; sending them for any
+  // other audience would be rejected, and the local selection is kept so
+  // toggling back and forth does not lose the admin's picks.
+  payload.roles = form.audience === 'role' ? form.roles : []
   payload.user_includes = form.user_includes
   payload.user_excludes = form.user_excludes
 
@@ -355,26 +362,15 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6">
-          <FormCheckbox
-            name="authenticate"
-            :label="t('web.menus.form.authenticate')"
-            v-model="form.authenticate"
-            :error="fieldError('authenticate')"
-            :disabled="saving"
-          />
-        </div>
-        <div class="col-md-6">
-          <FormCheckbox
-            name="guest_only"
-            :label="t('web.menus.form.guest_only')"
-            v-model="form.guest_only"
-            :error="fieldError('guest_only')"
-            :disabled="saving"
-          />
-        </div>
-      </div>
+      <FormSelect2
+        name="audience"
+        :label="t('web.menus.form.audience_label')"
+        v-model="form.audience"
+        :options="audienceOptions"
+        :error="fieldError('audience')"
+        :hint="t('web.menus.form.audience_hint')"
+        :disabled="saving"
+      />
 
       <FormSelect2
         name="roles"
@@ -385,7 +381,7 @@ onUnmounted(() => {
         :selected-options="selectedRoles"
         :error="fieldError('roles')"
         :hint="t('web.menus.form.roles_hint')"
-        :disabled="saving"
+        :disabled="saving || form.audience !== 'role'"
       />
 
       <div class="row">

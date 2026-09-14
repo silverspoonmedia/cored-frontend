@@ -151,6 +151,22 @@ function selectionTemplate(option: Select2GroupedResult | Select2Result): string
   return option.text ?? ''
 }
 
+/** Append `<option>` rows for already-selected AJAX values so Select2 can render
+ * their labels without a search. Values already in the DOM are skipped so a
+ * late-arriving hydrate never duplicates a row. */
+function appendSelectedOptions(el: HTMLSelectElement) {
+  const existing = new Set(Array.from(el.options).map((o) => o.value))
+  for (const opt of props.selectedOptions) {
+    const value = String(opt.value)
+    if (existing.has(value)) continue
+    existing.add(value)
+    const o = document.createElement('option')
+    o.value = value
+    o.textContent = indentLabel(opt.label, opt.level)
+    el.appendChild(o)
+  }
+}
+
 function syncOptionsToDom() {
   const el = selectRef.value
   if (!el) return
@@ -204,12 +220,7 @@ function syncOptionsToDom() {
   }
 
   if (props.ajaxUrl) {
-    for (const opt of props.selectedOptions) {
-      const o = document.createElement('option')
-      o.value = String(opt.value)
-      o.textContent = indentLabel(opt.label, opt.level)
-      el.appendChild(o)
-    }
+    appendSelectedOptions(el)
   }
 }
 
@@ -311,6 +322,33 @@ watch(
   () => props.modelValue,
   () => {
     applyValue()
+  },
+)
+
+// AJAX selects hydrate their pre-selected labels asynchronously (edit-form
+// hydrate or a realtime reload). Append the late rows in place and re-apply the
+// value — re-initializing select2 would drop its ajax adapter state.
+watch(
+  () => props.selectedOptions,
+  () => {
+    const el = selectRef.value
+    if (!el || !props.ajaxUrl) return
+    appendSelectedOptions(el)
+    applyValue()
+  },
+  { deep: false },
+)
+
+// Vue patches `disabled` as an attribute; mirror it onto the DOM property so
+// the widget is interactive the moment the audience switches to `role`.
+// select2's own MutationObserver then syncs its `disabled` state.
+watch(
+  () => props.disabled,
+  (value) => {
+    const el = selectRef.value
+    if (el && el.disabled !== value) {
+      el.disabled = value
+    }
   },
 )
 </script>

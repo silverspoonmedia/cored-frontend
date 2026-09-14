@@ -62,9 +62,19 @@ export function apiUrl(uri: string, query?: Record<string, unknown> | null): URL
   const url = new URL(resolveApiUrl(uri), window.location.origin)
   if (query) {
     for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null) {
-        url.searchParams.set(key, String(value))
+      if (value === undefined || value === null) continue
+      // Array values become repeated params (`ids[]=a&ids[]=b`), matching the
+      // Laravel `ids[]` contract. `searchParams.set` would stringify the array
+      // into one comma-joined value, which `ids.* => uuid` validation rejects.
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item !== undefined && item !== null) {
+            url.searchParams.append(key, String(item))
+          }
+        }
+        continue
       }
+      url.searchParams.set(key, String(value))
     }
   }
   return url

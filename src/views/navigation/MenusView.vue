@@ -155,9 +155,10 @@ onUnmounted(() => {
               <td>{{ row.route ?? '—' }}</td>
               <td class="text-center">{{ row.order ?? '—' }}</td>
               <td>
-                <span v-if="row.is_authenticate" class="badge text-bg-info me-1">{{ t('web.menus.attributes.auth') }}</span>
-                <span v-if="row.is_guest_only" class="badge text-bg-secondary me-1">{{ t('web.menus.attributes.guest') }}</span>
-                <span v-if="!row.is_authenticate && !row.is_guest_only" class="text-muted">—</span>
+                <span v-if="row.audience === 'auth'" class="badge text-bg-info me-1">{{ t('web.menus.attributes.auth') }}</span>
+                <span v-else-if="row.audience === 'role'" class="badge text-bg-warning me-1">{{ t('web.menus.attributes.role') }}</span>
+                <span v-else-if="row.audience === 'guest'" class="badge text-bg-secondary me-1">{{ t('web.menus.attributes.guest') }}</span>
+                <span v-else class="text-muted">—</span>
               </td>
               <td v-if="canManage" class="text-end">
                 <RowActions :actions="menuActions(row)" />
