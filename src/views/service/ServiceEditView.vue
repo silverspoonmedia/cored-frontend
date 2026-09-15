@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -8,6 +8,8 @@ import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useServices } from '@/composables/service/useServices'
 import { useServicesHydrate } from '@/composables/service/useServicesHydrate'
+import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { isTerminalBatchError } from '@/api/batch'
 import { ApiError, type ServicePrice } from '@/api/types'
@@ -158,7 +160,20 @@ async function handleSubmit(): Promise<void> {
   }
 }
 
-onMounted(load)
+// Live update: another admin edits this service — reload the form data.
+const { subscribeCatalog, unsubscribeCatalog } = useServicesRealtime()
+const catalogHandlers = { onCatalogChanged: () => { void load() } }
+
+onMounted(() => {
+  load()
+  subscribeCatalog(catalogHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeCatalog(catalogHandlers)
+})
+
+useEchoResync(() => { void load() })
 </script>
 
 <template>

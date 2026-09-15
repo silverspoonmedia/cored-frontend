@@ -11,6 +11,7 @@ import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useEchoResync } from '@/composables/useEcho'
 import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
 import type { Service } from '@/api/types'
 import { SERVICE_STATUS_BADGE } from '@/utils/statusBadge'
@@ -73,6 +74,8 @@ onMounted(() => {
 onUnmounted(() => {
   unsubscribeCatalog(catalogHandlers)
 })
+
+useEchoResync(() => { void fetchList() })
 </script>
 
 <template>

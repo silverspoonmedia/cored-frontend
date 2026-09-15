@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import i18n from '@/i18n'
 import { get, post } from '@/api/client'
-import { getEcho } from '@/composables/useEcho'
+import { listenPersonalChannel } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { triggerListingReload } from '@/composables/useListingReload'
 import type { AppNotification, ApiResponse, UnreadCountPayload } from '@/api/types'
@@ -97,12 +97,12 @@ export function useNotifications() {
       })
     }
 
-    const echo = getEcho()
-    if (!echo) return
-
-    try {
-      const channel = echo.private(`App.Models.User.${userId}`)
-      channel.listen('.activity-notification.received', (e: { unread_count?: number; table_id?: string }) => {
+    // Personal channel is ref-counted in useEcho.ts (shared with
+    // useAuthSelfRealtime) — this detach never leaves the channel while the
+    // other consumer is still listening.
+    echoListener = listenPersonalChannel({
+      '.activity-notification.received': (raw) => {
+        const e = raw as { unread_count?: number; table_id?: string }
         if (typeof e.unread_count === 'number') {
           unreadCount.value = e.unread_count
         } else {
@@ -112,14 +112,8 @@ export function useNotifications() {
         if (typeof e.table_id === 'string') {
           triggerListingReload(e.table_id)
         }
-      })
-
-      echoListener = () => {
-        echo.leave(`App.Models.User.${userId}`)
-      }
-    } catch {
-      // Echo not available or channel failed — polling fallback handles it
-    }
+      },
+    })
   }
 
   function stopRealtime(): void {

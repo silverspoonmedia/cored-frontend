@@ -1,20 +1,26 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch, defineAsyncComponent } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, watch, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import FormInput from '@/components/FormInput.vue'
-import FormCheckbox from '@/components/FormCheckbox.vue'
 // select2 pulls jQuery — load async so non-form views never download it.
 const FormSelect2 = defineAsyncComponent(() => import('@/components/FormSelect2.vue'))
 import FormTranslatableInput from '@/components/FormTranslatableInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useMenus } from '@/composables/navigation/useMenus'
+import { normalizeTranslatableMap } from '@/i18n'
 import { useLookups } from '@/composables/useLookups'
 import { useNavigationHydrate } from '@/composables/navigation/useNavigationHydrate'
+import type { MenuLookupKey } from '@/composables/navigation/useNavigationHydrate'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
+import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { isTerminalBatchError } from '@/api/batch'
+import { pruneUnresolvedReferences } from '@/utils/navigation/pruneUnresolvedReferences'
 import { ApiError } from '@/api/types'
+import type { MenuAudience } from '@/api/types'
 import type { SelectOption } from '@/components/FormSelect2.vue'
 
 const route = useRoute()
@@ -48,8 +54,7 @@ const form = reactive({
   route: '',
   hash: '',
   icon: '',
-  authenticate: false,
-  guest_only: false,
+  audience: 'auth' as MenuAudience,
   roles: [] as string[],
   user_includes: [] as string[],
   user_excludes: [] as string[],
@@ -61,6 +66,13 @@ const typeOptions = computed<Record<string, string>>(() => ({
   h: t('web.menus.form.types.h'),
   p: t('web.menus.form.types.p'),
   c: t('web.menus.form.types.c'),
+}))
+
+const audienceOptions = computed<Record<string, string>>(() => ({
+  all: t('web.menus.audience.all'),
+  auth: t('web.menus.audience.auth'),
+  role: t('web.menus.audience.role'),
+  guest: t('web.menus.audience.guest'),
 }))
 
 const layoutOptions = computed<Record<string, string>>(() => {
@@ -88,6 +100,46 @@ const selectedUserIncludes = ref<SelectOption[]>([])
 const selectedUserExcludes = ref<SelectOption[]>([])
 const selectedReference = ref<SelectOption[]>([])
 
+/**
+ * Lookups whose hydrate batch entry did not succeed.
+ *
+ * A failed lookup leaves its select showing nothing while `form` still holds the
+ * ids the menu resource returned, so this list is only used to warn the admin
+ * and to skip pruning — pruning a field whose lookup failed
+ * would delete stored references on the strength of a failed request.
+ */
+const failedLookups = ref<MenuLookupKey[]>([])
+
+/**
+ * Apply {@link pruneUnresolvedReferences} to the form.
+ *
+ * The rule itself lives in `src/utils/navigation/pruneUnresolvedReferences.ts`
+ * so it can be unit-tested without a component render; this is the adapter that
+ * maps the form refs in and the pruned fields back out.
+ */
+function pruneUnresolved(failed: MenuLookupKey[]): void {
+  const pruned = pruneUnresolvedReferences(
+    {
+      parent: form.parent,
+      roles: form.roles,
+      userIncludes: form.user_includes,
+      userExcludes: form.user_excludes,
+    },
+    {
+      parent: selectedParent.value.map((o) => String(o.value)),
+      roles: selectedRoles.value.map((o) => String(o.value)),
+      includes: selectedUserIncludes.value.map((o) => String(o.value)),
+      excludes: selectedUserExcludes.value.map((o) => String(o.value)),
+    },
+    failed,
+  )
+
+  form.parent = pruned.parent
+  form.roles = pruned.roles
+  form.user_includes = pruned.userIncludes
+  form.user_excludes = pruned.userExcludes
+}
+
 const menuAjaxParams = computed(() => ({
   layout: form.layout,
   exclude: menuId.value ?? undefined,
@@ -99,10 +151,16 @@ function fieldError(field: string): string | string[] | null {
 
 async function load(): Promise<void> {
   loading.value = true
+  failedLookups.value = []
   loadLayouts().catch(() => {})
   try {
     if (isEdit.value && menuId.value) {
-      const batchResult = await hydrateMenuEdit(menuId.value).catch(() => null)
+      const batchResult = await hydrateMenuEdit(menuId.value).catch((e) => {
+        // A terminal rejection (401/403/429) must not be re-fired standalone:
+        // it would just repeat the rejection and a 401 trips global logout.
+        if (isTerminalBatchError(e)) throw e
+        return null
+      })
 
       const menu = batchResult?.menu ?? await fetchOne(menuId.value)
       form.name = { ...(menu.name_translations ?? {}) }
@@ -112,8 +170,7 @@ async function load(): Promise<void> {
       form.route = menu.route ?? ''
       form.hash = menu.hash ?? ''
       form.icon = menu.icon ?? ''
-      form.authenticate = menu.is_authenticate
-      form.guest_only = menu.is_guest_only
+      form.audience = menu.audience
       form.parent = menu.parent_id ?? ''
       form.roles = [...(menu.role_ids ?? [])]
       form.user_includes = [...(menu.user_include_ids ?? [])]
@@ -121,10 +178,22 @@ async function load(): Promise<void> {
       menuName.value = menu.name
 
       if (batchResult) {
-        selectedParent.value = batchResult.parentOptions.map((r) => ({ value: r.id, label: r.text }))
+        failedLookups.value = batchResult.failedLookups
+        selectedParent.value = batchResult.parentOptions.map((r) => ({
+          value: r.id,
+          label: r.text,
+          group: r.group,
+          level: r.level,
+        }))
         selectedRoles.value = batchResult.roleOptions.map((r) => ({ value: r.id, label: r.text }))
         selectedUserIncludes.value = batchResult.userIncludeOptions.map((r) => ({ value: r.id, label: r.text }))
         selectedUserExcludes.value = batchResult.userExcludeOptions.map((r) => ({ value: r.id, label: r.text }))
+
+        // A lookup that succeeded but omitted an id means the reference is
+        // genuinely gone (deleted role/user). Drop it so a save cannot send a
+        // stale id. Skipped when the lookup itself failed — its emptiness is
+        // not evidence.
+        pruneUnresolved(batchResult.failedLookups)
       } else {
         const [parent, roles, includes, excludes] = await Promise.all([
           menu.parent_id
@@ -140,6 +209,13 @@ async function load(): Promise<void> {
         selectedUserIncludes.value = includes.map((r) => ({ value: r.id, label: r.text }))
         selectedUserExcludes.value = excludes.map((r) => ({ value: r.id, label: r.text }))
       }
+
+      // Tell the admin the selects are showing empty because the lookup failed,
+      // not because the menu has no roles/users. Without this the form looks
+      // loaded and correct but is missing the stored restrictions.
+      if (failedLookups.value.length > 0) {
+        showError(t('web.menus.hydrate_partial_warning'))
+      }
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.menus.load_failed'))
@@ -154,8 +230,11 @@ async function handleSubmit(): Promise<void> {
   errors.value = {}
 
   const payload: Record<string, unknown> = {
-    name: form.name,
-    description: form.description,
+    // Defense in depth: the translatable inputs already normalize keys to
+    // backend locale codes (`zh_CN`); re-normalize here in case another
+    // writer ever feeds the form with SPA keys (`zh-CN`).
+    name: normalizeTranslatableMap(form.name),
+    description: normalizeTranslatableMap(form.description),
     type: form.type,
     layout: form.layout,
   }
@@ -164,9 +243,11 @@ async function handleSubmit(): Promise<void> {
   if (form.hash) payload.hash = form.hash
   if (form.icon) payload.icon = form.icon
   payload.parent = form.parent || null
-  payload.authenticate = form.authenticate
-  payload.guest_only = form.guest_only
-  payload.roles = form.roles
+  payload.audience = form.audience
+  // Role restrictions only exist for the `role` audience; sending them for any
+  // other audience would be rejected, and the local selection is kept so
+  // toggling back and forth does not lose the admin's picks.
+  payload.roles = form.audience === 'role' ? form.roles : []
   payload.user_includes = form.user_includes
   payload.user_excludes = form.user_excludes
 
@@ -206,7 +287,26 @@ watch(() => form.type, () => {
   if (form.type === 'h') form.parent = null
 })
 
-onMounted(load)
+// Live update: this menu edited elsewhere reloads the form data.
+const { subscribe: subscribeMenus, unsubscribe: unsubscribeMenus } = useMenusRealtime()
+const realtimeHandlers = {
+  onMenuTreeChanged: (e: { layout: string; target_user_id?: string | null }) => {
+    if (!e.target_user_id && (!e.layout || e.layout === layout.value)) {
+      void load()
+    }
+  },
+}
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  load()
+  subscribeMenus(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeMenus(realtimeHandlers)
+})
 </script>
 
 <template>
@@ -287,6 +387,7 @@ onMounted(load)
         :ajax-url="'lookups/menus'"
         :ajax-params="menuAjaxParams"
         :selected-options="selectedParent"
+        grouped
         :error="fieldError('parent')"
         :placeholder="t('web.menus.form.parent_placeholder')"
         :disabled="saving || form.type === 'h'"
@@ -324,26 +425,15 @@ onMounted(load)
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6">
-          <FormCheckbox
-            name="authenticate"
-            :label="t('web.menus.form.authenticate')"
-            v-model="form.authenticate"
-            :error="fieldError('authenticate')"
-            :disabled="saving"
-          />
-        </div>
-        <div class="col-md-6">
-          <FormCheckbox
-            name="guest_only"
-            :label="t('web.menus.form.guest_only')"
-            v-model="form.guest_only"
-            :error="fieldError('guest_only')"
-            :disabled="saving"
-          />
-        </div>
-      </div>
+      <FormSelect2
+        name="audience"
+        :label="t('web.menus.form.audience_label')"
+        v-model="form.audience"
+        :options="audienceOptions"
+        :error="fieldError('audience')"
+        :hint="t('web.menus.form.audience_hint')"
+        :disabled="saving"
+      />
 
       <FormSelect2
         name="roles"
@@ -354,7 +444,7 @@ onMounted(load)
         :selected-options="selectedRoles"
         :error="fieldError('roles')"
         :hint="t('web.menus.form.roles_hint')"
-        :disabled="saving"
+        :disabled="saving || form.audience !== 'role'"
       />
 
       <div class="row">
@@ -407,6 +497,7 @@ onMounted(load)
             :ajax-url="'lookups/menus'"
             :ajax-params="menuAjaxParams"
             :selected-options="selectedReference"
+            grouped
             :error="fieldError('reference_id')"
             :placeholder="t('web.menus.form.reference_placeholder')"
             :hint="isEdit ? t('web.menus.form.reference_hint_edit') : t('web.menus.form.reference_hint_create')"

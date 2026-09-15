@@ -17,15 +17,25 @@ interface ImportMeta {
   readonly env: ImportMetaEnv
 }
 
+interface Select2ResultNode {
+  id?: string | number
+  text: string
+  level?: number
+  group?: string
+  children?: Select2ResultNode[]
+}
+
 interface Select2AjaxSettings {
   url?: string
   dataType?: string
   delay?: number
+  cache?: boolean
   headers?: Record<string, string>
+  xhrFields?: Record<string, unknown>
   beforeSend?: (xhr: JQuery.jqXHR) => void
   data?: (params: { term?: string; page?: number }) => Record<string, unknown>
   processResults?: (data: unknown) => {
-    results: Array<{ id: string | number; text: string }>
+    results: Array<{ id: string | number; text: string } | Select2ResultNode>
     pagination: { more: boolean }
   }
 }
@@ -37,6 +47,8 @@ interface Select2Options {
   placeholder?: string
   minimumInputLength?: number
   ajax?: Select2AjaxSettings
+  templateResult?: (option: Select2ResultNode) => string | object
+  templateSelection?: (option: Select2ResultNode) => string
 }
 
 interface JQuery {

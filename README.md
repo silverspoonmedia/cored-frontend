@@ -2,9 +2,9 @@
 
 Leading Vue 3 SPA for the Monolith `/api/v1/*` API — the **sole browser UI**. Deployed to Cloudflare Workers as static assets; the Worker is not an API or auth proxy. Browser requests go directly to the Laravel API origin, authenticated by the cross-site HttpOnly `__Host-spa_jwt` cookie (`credentials: 'include'`) plus public `X-SPA-Origin: 1` marker and double-submit `X-CSRF-Token` on mutations.
 
-Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md`.
+Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md` (open only when headers, cookies/CSRF, envelopes, or route names change).
 
-**Docs:** agent protocol in [AGENTS.md](AGENTS.md) · full doc map in [docs/README.md](docs/README.md) — architecture, auth/session, API client, i18n, UI patterns, routes, testing, worker, deployment.
+**Docs:** agent protocol in [AGENTS.md](AGENTS.md) · full doc map in [docs/README.md](docs/README.md) — architecture, auth/session, API client, i18n, UI patterns, routes, testing, worker, deployment. IDE: open [Monolith-SPA.code-workspace](Monolith-SPA.code-workspace) for UI-only work; sibling fullstack workspace only when the API contract moves.
 
 ## Scripts
 
@@ -52,7 +52,7 @@ Vite stacks env files by mode: `.env` (baseline) → `.env.local` (dev) → `.en
 
 | Var | Where | Bundled? | Notes |
 |-----|--------|----------|--------|
-| `VITE_API_BASE_URL` | `.env` (baseline), `.env.local` (dev override), `.env.production` / `.env.sandbox` (tracked, per-environment deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
+| `VITE_API_BASE_URL` | `.env` (baseline), `.env.local` (dev override), `.env.production` / `.env.sandbox` (tracked, per-environment deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. `apiOrigin()` appends `/api/v1` when the value omits it and warns in DEV, so a hand-written base cannot silently land on the backend's web twin (`POST /broadcasting/auth`). Do not place secrets here. |
 | `VITE_HCAPTCHA_SITE_KEY` | Same file matrix as above | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
 | `VITE_PUSHER_*` | Same file matrix as above | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
 
@@ -74,7 +74,7 @@ On **Vue-Workers**:
 
 1. Custom domain on each Worker (or the default `<name>.<account>.workers.dev`); deploy per environment: `npm run deploy:production` (worker `monolith-spa-prod`) or `npm run deploy:sandbox` (worker `monolith-spa-sandbox`). Each script pairs `vite build --mode <env>` with `wrangler deploy --env <env>` and sets `CLOUDFLARE_ENV=<env>` on the build — wrangler **hard-fails** any `deploy --env` that mismatches the built `targetEnvironment`, so a mode/env mixup cannot deploy at all.
 2. `VITE_API_BASE_URL` set to that environment's API origin over HTTPS via the **tracked** `.env.production` / `.env.sandbox`. Never rely on `wrangler.jsonc` `vars` for `VITE_*` — those are runtime isolate env and never reach the browser bundle; a build without the env file bakes an empty base and every API call 404s on the SPA origin. During builds the mode file wins over `.env.local` (verified on Vite 8), so deploy builds stay reproducible on any machine.
-3. Monolith `SPA_URL` and CORS allowlist include the Worker origin of the matching environment; CORS must allow `X-SPA-Origin` for cross-origin preflights. Provider webhook paths do not use this browser marker.
+3. Monolith `SPA_URL` and CORS allowlist include the Worker origin of the matching environment; CORS must allow `X-SPA-Origin` for cross-origin preflights and expose `Content-Disposition` for CSV/file downloads. Provider webhook paths do not use this browser marker.
 4. Static security headers live in `public/_headers` (CSP, frame deny, HSTS). Worker-generated JSON/404 responses also stamp `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`. **Do not add API proxy paths to the Worker.** The marker is browser metadata; adding it does not invoke or bill the Worker.
 
 When `SPA_URL` is set, Laravel mints password-reset, email-verify, public share, and iPaymu hosted return/cancel URLs onto the SPA. Email verify signs the **API** route (HMAC on `APP_URL`); the browser lands on `/verify-email/{id}/{hash}?expires=&signature=` and the SPA GETs the API directly (cross-site cookie).

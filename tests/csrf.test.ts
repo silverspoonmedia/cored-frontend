@@ -53,6 +53,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
@@ -159,6 +160,30 @@ describe('csrf nonce multi-tab sync', () => {
     expect(csrf.csrfToken()).toBe('nonce-wait')
   })
 
+  it('whenCsrfCookieQuiet waits out the settle window after a mint', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi.fn().mockResolvedValue(nonceResponse('nonce-settled'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+    await csrf.ensureCsrf()
+
+    let quiet = false
+    const quietP = csrf.whenCsrfCookieQuiet().then(() => {
+      quiet = true
+    })
+
+    // The nonce fetch has settled, but the browser is still committing its
+    // Set-Cookie — an overlapping credentialed call would abort (surfacing as a
+    // CORS error), so the gate must hold for the settle window.
+    await vi.advanceTimersByTimeAsync(csrf.CSRF_COOKIE_SETTLE_MS - 1)
+    expect(quiet).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(2)
+    await quietP
+    expect(quiet).toBe(true)
+  })
+
   it('applyCsrfHeader writes the X-CSRF-Token header when a token exists', async () => {
     const fetchMock = vi.fn().mockResolvedValue(nonceResponse('nonce-A'))
     vi.stubGlobal('fetch', fetchMock)
@@ -178,5 +203,86 @@ describe('csrf nonce multi-tab sync', () => {
     const headers = new Headers()
     csrf.applyCsrfHeader(headers)
     expect(headers.get('X-CSRF-Token')).toBeNull()
+  })
+
+  it('refreshCsrfOnce single-flights concurrent 419 refreshes into one nonce mint', async () => {
+    let resolveFetch: ((r: Response) => void) | null = null
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise<Response>((res) => (resolveFetch = res)),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+
+    // Simulate the broadcast-auth storm: 15 concurrent callers all hit 419 and
+    // call refreshCsrfOnce() in the same tick.
+    const refreshes = Array.from({ length: 15 }, () => csrf.refreshCsrfOnce())
+
+    resolveFetch?.(nonceResponse('nonce-shared'))
+    await Promise.all(refreshes)
+
+    // Exactly ONE nonce mint — the shared cookie and every caller's retry
+    // header stay in sync.
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(csrf.csrfToken()).toBe('nonce-shared')
+
+    // A later 419 (new storm) mints a fresh nonce again — the single-flight
+    // lock must release after settling.
+    const later = csrf.refreshCsrfOnce()
+    resolveFetch?.(nonceResponse('nonce-next'))
+    await later
+    expect(csrf.csrfToken()).toBe('nonce-next')
+  })
+
+  it('refreshCsrfOnce reuses the shared lock for sequential callers mid-refresh', async () => {
+    const resolvers: Array<(r: Response) => void> = []
+    const fetchMock = vi.fn().mockImplementation(
+      () => new Promise<Response>((res) => resolvers.push(res)),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+
+    // First storm caller starts the refresh; a second caller joining while
+    // that refresh is still in flight must join it, not queue a second mint.
+    const p1 = csrf.refreshCsrfOnce()
+    const p2 = csrf.refreshCsrfOnce()
+
+    resolvers[0]?.(nonceResponse('nonce-shared'))
+    await Promise.all([p1, p2])
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(csrf.csrfToken()).toBe('nonce-shared')
+  })
+
+  it('retries a transient fetch TypeError in the nonce fetch', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(nonceResponse('nonce-after-race'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+    await csrf.ensureCsrf()
+
+    // A peer tab rotating __Host-spa_csrf must not leave the nonce null and
+    // defer the failure to a 419 on the real mutation.
+    expect(csrf.csrfToken()).toBe('nonce-after-race')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not deadlock on its own pendingFetch when retrying the nonce', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(nonceResponse('nonce-no-deadlock'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+
+    // fetchNonce must not await whenCsrfCookieQuiet(): ensureCsrf assigns
+    // pendingFetch before it runs, so the quiet gate would await itself.
+    await expect(csrf.ensureCsrf()).resolves.toBeUndefined()
+    expect(csrf.csrfToken()).toBe('nonce-no-deadlock')
   })
 })

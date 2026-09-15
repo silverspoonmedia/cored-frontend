@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
+import { useEchoResync } from '@/composables/useEcho'
+import { subscribeVtualCreatorSnapshots, unsubscribeVtualCreatorSnapshots } from '@/composables/vtual/useVtualRealtime'
 import type { VtualVtuberProfile } from '@/api/types'
 import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
@@ -37,7 +39,33 @@ async function load(): Promise<void> {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+})
+
+// Live update: channel snapshots synced elsewhere refresh the public profile.
+const snapshotHandler = () => { void load() }
+// Socket-outage recovery: re-pull the profile the snapshot handler reloads.
+useEchoResync(() => { void load() })
+let subscribedCreatorId: string | null = null
+
+watch(profile, (p) => {
+  const id = p?.id ? String(p.id) : null
+  if (subscribedCreatorId && subscribedCreatorId !== id) {
+    unsubscribeVtualCreatorSnapshots(subscribedCreatorId, snapshotHandler)
+    subscribedCreatorId = null
+  }
+  if (id && subscribedCreatorId !== id && subscribeVtualCreatorSnapshots(id, snapshotHandler)) {
+    subscribedCreatorId = id
+  }
+})
+
+onUnmounted(() => {
+  if (subscribedCreatorId) {
+    unsubscribeVtualCreatorSnapshots(subscribedCreatorId, snapshotHandler)
+    subscribedCreatorId = null
+  }
+})
 
 function platformIcon(key: string): string {
   if (key === 'youtube') return 'bi-youtube'

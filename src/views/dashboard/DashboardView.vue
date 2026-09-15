@@ -1,18 +1,55 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DashboardSessionCard from '@/components/dashboard/DashboardSessionCard.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useAuthSelfRealtime } from '@/composables/identity/useAuthSelfRealtime'
+import { useAdminRealtime } from '@/composables/useAdminRealtime'
+import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 
-const { user, hasPermission, resendVerification } = useAuth()
+const { user, hasPermission, resendVerification, fetchMe } = useAuth()
 const { t } = useI18n()
 const { success: showSuccess, error: showError } = useAlert()
 
 const canViewUser = computed(() => hasPermission('view user'))
 const canViewMenu = computed(() => hasPermission('view menu'))
 const resending = ref(false)
+
+// Live update: session/2FA state changes (any tab) + RBAC role changes +
+// personal Archivd quota changes refresh the dashboard summary live.
+const { subscribe: subscribeAuthSelf, unsubscribe: unsubscribeAuthSelf } = useAuthSelfRealtime()
+const authSelfHandlers = {
+  onSecurityStateChanged: () => { void fetchMe() },
+  onAuthStateChanged: () => { void fetchMe() },
+}
+
+const { subscribe: subscribeAdmin, unsubscribe: unsubscribeAdmin } = useAdminRealtime()
+const adminHandlers = {
+  onRbacChanged: () => { void fetchMe() },
+  onUserListChanged: (e: { user_id: string | null }) => {
+    if (e.user_id === user.value?.id) void fetchMe()
+  },
+}
+
+const { subscribe: subscribeArchivd, unsubscribe: unsubscribeArchivd } = useArchivdRealtime()
+const archivdHandlers = { onQuotaChanged: () => { void fetchMe() } }
+
+useEchoResync(() => { void fetchMe() })
+
+onMounted(() => {
+  subscribeAuthSelf(authSelfHandlers)
+  subscribeAdmin(adminHandlers)
+  subscribeArchivd(archivdHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeAuthSelf(authSelfHandlers)
+  unsubscribeAdmin(adminHandlers)
+  unsubscribeArchivd(archivdHandlers)
+})
 
 const sessionLabels = computed(() => ({
   title: t('web.dashboard.session_island.title'),

@@ -891,6 +891,7 @@
       }
     },
     "menus": {
+      "hydrate_partial_warning": "일부 항목을 불러오지 못해 저장된 값이 표시되지 않습니다. 저장할 때 해당 값은 변경되지 않습니다.",
       "card_title": "메뉴",
       "new_card_title": "새 메뉴",
       "edit_card_title": "메뉴 수정: {name}",
@@ -943,14 +944,14 @@
         "parent_label": "상위 메뉴",
         "parent_placeholder": "상위 메뉴 선택",
         "headers_no_parent": "헤더에는 상위 메뉴를 지정할 수 없습니다.",
-        "authenticate": "인증 필요",
-        "guest_only": "게스트 전용",
+        "audience_label": "이 메뉴를 볼 수 있는 대상",
+        "audience_hint": "선택한 역할을 가진 로그인 사용자로 제한하려면 \"선택한 역할을 가진 로그인 사용자\"를 선택하세요.",
         "roles_label": "역할",
+        "roles_hint": "\"선택한 역할을 가진 로그인 사용자\" 오디언스에서만 사용됩니다. 거기서 역할을 하나 이상 선택하세요.",
         "position_label": "위치",
         "reference_label": "기준 메뉴",
         "reference_placeholder": "기준 메뉴 선택",
         "placement_heading": "배치 (선택 사항)",
-        "roles_hint": "다른 규칙을 통과한 모든 사용자에게 적용하려면 비워 두세요. 게스트 전용과 함께 사용할 수 없습니다.",
         "user_includes": "포함된 사용자(허용 목록)",
         "user_excludes": "제외된 사용자(차단 목록)",
         "position_no_change": "순서를 변경하지 않음",
@@ -993,6 +994,13 @@
       "search_aria_label": "메뉴 검색",
       "attributes": {
         "auth": "인증 필요",
+        "role": "역할",
+        "guest": "게스트 전용"
+      },
+      "audience": {
+        "all": "모든 사용자(게스트 및 로그인 사용자)",
+        "auth": "로그인한 사용자",
+        "role": "선택한 역할을 가진 로그인 사용자",
         "guest": "게스트 전용"
       },
       "trashed_card_title": "삭제된 메뉴"
@@ -1008,7 +1016,7 @@
       "source": "현재 출처: {source}",
       "groups": {
         "platform": "플랫폼",
-        "archivd": "파일 호스팅",
+        "archivd": "Archivd",
         "microstock": "마이크로스톡",
         "vtual": "vTual",
         "identity": "계정",
@@ -1946,7 +1954,7 @@
       "back_to_list_button": "목록으로 돌아가기"
     },
     "archivd": {
-      "title": "파일 호스팅",
+      "title": "Archivd",
       "blocklist_title": "해시 차단 목록(DMCA)",
       "blocklist_add": "해시 차단",
       "blocklist_sha256": "sha256",
@@ -2248,7 +2256,7 @@
       "quota_remaining": "남음",
       "quota_unlimited": "무제한",
       "load_failed": "불러오지 못했습니다.",
-      "vue_mount_failed": "파일 호스팅 화면을 불러오지 못했습니다. 페이지를 새로 고치세요.",
+      "vue_mount_failed": "Archivd 화면을 불러오지 못했습니다. 페이지를 새로 고치세요.",
       "link_copied": "링크가 클립보드에 복사되었습니다.",
       "ajax_success": "작업이 완료되었습니다.",
       "ajax_error": "작업에 실패했습니다.",
@@ -3307,7 +3315,7 @@
       },
       "microstock": {
         "title": "Microstock",
-        "slot_desc": "무료 Microstock 작업 공간을 활성화한 다음 추가 작업 공간 슬롯을 구매하세요. 슬롯은 파일 호스팅 팀 작업 공간과 별개입니다.",
+        "slot_desc": "무료 Microstock 작업 공간을 활성화한 다음 추가 작업 공간 슬롯을 구매하세요. 슬롯은 Archivd 팀 작업 공간과 별개입니다.",
         "activate_free": "무료 활성화",
         "active_badge": "활성",
         "buy_slot": "슬롯 구매($1/월)",

@@ -8,6 +8,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
 import { useVtualRealtime, type PlatformCredentialChangedPayload } from '@/composables/vtual/useVtualRealtime'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { VtualPlatformCredential } from '@/api/types'
@@ -53,6 +54,9 @@ const realtimeHandlers = {
     }
   },
 }
+
+// Socket-outage recovery: mirror the realtime handler (silent reload).
+useEchoResync(() => { void loadCredentials(true) })
 
 onMounted(() => {
   void loadCredentials()

@@ -1,9 +1,12 @@
 import Echo, { type EchoOptions } from 'laravel-echo'
 import Pusher from 'pusher-js'
 import type { ChannelAuthorizerGenerator } from 'pusher-js'
-import { ref, type Ref } from 'vue'
+import { onUnmounted, ref, type Ref } from 'vue'
 import { post } from '@/api/client'
+import { whenCsrfCookieQuiet } from '@/api/csrf'
 import { resolveApiUrl } from '@/api/baseUrl'
+import { acquireChannel } from '@/composables/echo/channelRegistry'
+import { useAuth } from '@/stores/auth'
 import i18n from '@/i18n'
 
 type PusherEcho = Echo<'pusher'>
@@ -19,11 +22,21 @@ export interface BroadcastAuthPayload {
  * Private-channel auth via the same fetch wrapper as /batch: CSRF mint,
  * 419 refresh+retry, and 401 session refresh. A raw fetch here used to
  * surface CSRF mismatches as a browser CORS error because it never retried.
+ *
+ * Echo authorizes channels at unpredictable times (connect, reconnect, late
+ * subscribe) — usually outside the client's 5s session-settle window. That is
+ * covered because `broadcasting/auth` is server-side read-only, so
+ * `client.ts` retries its transient (cross-tab cookie-race) failures
+ * unconditionally. This authorizer additionally waits out
+ * `whenCsrfCookieQuiet()` first, so the *first* attempt does not overlap a
+ * `__Host-spa_csrf` write and never has to be retried at all.
  */
 export async function authorizeBroadcastChannel(
   channelName: string,
   socketId: string,
 ): Promise<BroadcastAuthPayload> {
+  await whenCsrfCookieQuiet()
+
   const data = await post<unknown>('broadcasting/auth', {
     socket_id: socketId,
     channel_name: channelName,
@@ -107,13 +120,26 @@ function readConfig(): BroadcastConfig | null {
 }
 
 function createEcho(config: BroadcastConfig): PusherEcho {
+  // Serialized authorizer: pusher-js fires one authorize per channel in
+  // parallel, and when Echo connects right after init that is a ~15-request
+  // burst of POST /broadcasting/auth. Parallel 419s would rotate the shared
+  // CSRF cookie against in-flight retries (surfacing as CORS TypeErrors),
+  // and the burst pressures the global rate limiter. Queueing keeps at most
+  // one auth request in flight — each takes ~10-50ms, so total connect time
+  // stays well under a second.
+  let authQueue: Promise<void> = Promise.resolve()
+
   const authorizer: ChannelAuthorizerGenerator = (channel) => ({
     authorize: (socketId, callback) => {
-      authorizeBroadcastChannel(channel.name, socketId)
-        .then((auth) => callback(null, auth))
-        .catch((err: unknown) => {
+      const run = authQueue.then(async () => {
+        try {
+          const auth = await authorizeBroadcastChannel(channel.name, socketId)
+          callback(null, auth)
+        } catch (err: unknown) {
           callback(err instanceof Error ? err : new Error(String(err)), null)
-        })
+        }
+      })
+      authQueue = run.catch(() => undefined)
     },
   })
 
@@ -170,6 +196,8 @@ export function useEcho(): {
       })
       connected.value = echoInstance.connectionStatus() === 'connected'
 
+      fireReady()
+
       return true
     } catch {
       echoInstance = null
@@ -187,6 +215,7 @@ export function useEcho(): {
       connected.value = false
       hadOutage = false
     }
+    readyListeners.clear()
   }
 
   return {
@@ -199,3 +228,105 @@ export function useEcho(): {
 export function getEcho(): PusherEcho | null {
   return echoInstance
 }
+
+/** Test hook: inject/remove a fake Echo instance (unit tests only). */
+export function __setEchoForTests(echo: PusherEcho | null): void {
+  echoInstance = echo
+  if (echo !== null) fireReady()
+}
+
+// Ready bus: composables that subscribe before Echo is initialized (init is
+// async in AppNavbar, after the shell batch) can re-attach here. Listeners
+// registered after init run immediately.
+type ReadyFn = () => void
+const readyListeners = new Set<ReadyFn>()
+
+export function onEchoReady(fn: ReadyFn): () => void {
+  if (echoInstance) {
+    fn()
+    return () => readyListeners.delete(fn)
+  }
+  readyListeners.add(fn)
+  return () => readyListeners.delete(fn)
+}
+
+function fireReady(): void {
+  for (const fn of readyListeners) {
+    try {
+      fn()
+    } catch {
+      // a failing listener must not block the others
+    }
+  }
+  readyListeners.clear()
+}
+
+/**
+ * Race-safe subscribe for realtime composables. Views mount before Echo is
+ * initialized (init is async in AppNavbar after the shell batch), so a plain
+ * `if (!echo) return` leaves the tab deaf for the whole session. This runs
+ * `attach()` immediately when Echo exists, otherwise defers it to the ready
+ * bus. Returns an unsubscribe that also cancels a pending defer.
+ *
+ * @param attach  Bind channel listeners; return true when attached.
+ */
+export function subscribeWhenEchoReady(attach: () => boolean): () => void {
+  if (echoInstance !== null) {
+    attach()
+    return () => {}
+  }
+
+  let stopReady: (() => void) | null = onEchoReady(() => {
+    attach()
+    stopReady = null
+  })
+
+  return () => {
+    stopReady?.()
+    stopReady = null
+  }
+}
+
+/**
+ * View-level resync registration: refetch after a socket outage, auto-stopped
+ * on unmount. One line per view instead of the mount/unmount boilerplate.
+ */
+export function useEchoResync(fn: ResyncFn): void {
+  const stop = onEchoResync(fn)
+  onUnmounted(() => {
+    stop()
+  })
+}
+
+// ---- Personal channel (App.Models.User.{id}) --------------------------------
+// Shared by the notification bell (useNotifications) and auth-self events
+// (useAuthSelfRealtime). Ref-counting lives in the channel registry, so one
+// consumer unsubscribing never tears the channel out from under the other.
+
+type PersonalListener = (e: unknown) => void
+
+function resolvePersonalChannel(): string | null {
+  const { user } = useAuth()
+  const id = user.value?.id
+  return id ? `App.Models.User.${id}` : null
+}
+
+/**
+ * Listen on the user's personal channel with shared ownership. Returns an
+ * unsubscribe; the channel is left only when the last listener detaches.
+ *
+ * The id is resolved per call: after logout/login the consumer re-listens and
+ * acquires the new `App.Models.User.{id}` while releasing the previous one.
+ */
+export function listenPersonalChannel(events: Record<string, PersonalListener>): () => void {
+  const channel = resolvePersonalChannel()
+  if (channel === null) {
+    return () => {}
+  }
+
+  const subscription = acquireChannel(channel, events)
+
+  return () => subscription.release()
+}
+
+

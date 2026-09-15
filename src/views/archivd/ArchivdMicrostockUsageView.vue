@@ -7,6 +7,7 @@ import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import ArMicrostockPlatformTab from '@/components/archivd/ArMicrostockPlatformTab.vue'
 import { useMicrostockUsageTabs } from '@/composables/microstock/useMicrostockUsageTabs'
+import { useEchoResync } from '@/composables/useEcho'
 import type {
   MicrostockLedgerEntry,
   MicrostockUsageEvent,
@@ -48,6 +49,23 @@ const {
   loadPlatformEvents,
   switchTab,
 } = useMicrostockUsageTabs()
+
+// Socket-outage recovery: re-pull what onMounted loads (billing + ledger) and
+// the platform tab data when the admin tab is available.
+useEchoResync(() => {
+  void loadBilling().then(() => {
+    if (ledger.value.length === 0 && !ledgerHasMore.value) {
+      void loadLedger(true)
+    }
+  })
+  void loadUsage(true)
+  if (canViewPlatform.value) {
+    void loadPlatform()
+    if (platformEvents.value.length === 0 && !platformEventsHasMore.value) {
+      void loadPlatformEvents(true)
+    }
+  }
+})
 
 const ledgerRows = computed<MicrostockLedgerEntry[]>(() => ledger.value)
 const usageRows = computed<MicrostockUsageEvent[]>(() => usageEvents.value)

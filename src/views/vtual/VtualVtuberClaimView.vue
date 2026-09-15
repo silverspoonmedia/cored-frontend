@@ -11,7 +11,7 @@ import { useAuth } from '@/stores/auth'
 import { useNavigation } from '@/composables/navigation/useNavigation'
 import { useAlert } from '@/composables/useAlert'
 import { confirmDialog } from '@/lib/swal'
-import { getEcho } from '@/composables/useEcho'
+import { subscribeVtulClaim, unsubscribeVtulClaim } from '@/composables/vtual/useVtulClaimRealtime'
 import { ApiError, type VtualVtuberProfile, type VtualCreatorClaim, type ProfileConnections } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 import { safeDiscordAuthorizeUrl, safeHttpUrl } from '@/utils/safeUrl'
@@ -32,7 +32,8 @@ const discordSnapshot = ref<ProfileConnections | null>(null)
 const discordConnected = computed(() => providerByKey(discordSnapshot.value, 'discord')?.connected === true)
 const loading = ref(true)
 const actionLoading = ref(false)
-let echoChannel: string | null = null
+let claimHandler: ((payload: { phase?: string; claim?: VtualCreatorClaim }) => void) | null = null
+let lastClaimId: string | null = null
 
 const hasActiveClaim = computed(() => activeClaim.value?.status === 'pending')
 const isBlocked = computed(() => {
@@ -127,47 +128,37 @@ onUnmounted(() => {
 })
 
 function subscribeClaimRealtime(claimId: string): void {
-  const echo = getEcho()
-  if (!echo) return
-
   unsubscribeClaimRealtime()
+  lastClaimId = claimId
 
-  try {
-    const channel = echo.private(`vtual.claim.${claimId}`)
-    channel.listen('.claim.progress', (payload: { phase?: string; claim?: VtualCreatorClaim }) => {
-      const claim = payload.claim
-      if (!claim) return
+  claimHandler = (payload) => {
+    const claim = payload.claim
+    if (!claim) return
 
-      if (payload.phase === 'verified') {
-        activeClaim.value = claim
-        showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
-        void redirectAfterClaim(claim.creator_id)
-      } else if (payload.phase === 'cancelled' || payload.phase === 'max_attempts_blocked') {
-        activeClaim.value = null
-      } else if (payload.phase === 'verify_failed') {
-        activeClaim.value = claim
-        showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
-      } else {
-        activeClaim.value = claim
-      }
-    })
-    echoChannel = `vtual.claim.${claimId}`
-  } catch {
-    // Echo not available: pending claim gets no live update until reload.
+    if (payload.phase === 'verified') {
+      activeClaim.value = claim
+      showSuccess(t('web.vtual-vtuber.claim_progress_verified'))
+      void redirectAfterClaim(claim.creator_id)
+    } else if (payload.phase === 'cancelled' || payload.phase === 'max_attempts_blocked') {
+      activeClaim.value = null
+    } else if (payload.phase === 'verify_failed') {
+      activeClaim.value = claim
+      showError(t('web.vtual-vtuber.claim_discord_verify_failed'))
+    } else {
+      activeClaim.value = claim
+    }
   }
+
+  subscribeVtulClaim(claimId, claimHandler)
 }
 
 function unsubscribeClaimRealtime(): void {
-  if (!echoChannel) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave(echoChannel)
-    } catch {
-      // ignore
-    }
+  if (!claimHandler) return
+  if (lastClaimId) {
+    unsubscribeVtulClaim(lastClaimId, claimHandler)
   }
-  echoChannel = null
+  claimHandler = null
+  lastClaimId = null
 }
 
 async function handleStartClaim(channelId: string): Promise<void> {

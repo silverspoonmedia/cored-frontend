@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -9,6 +9,8 @@ import { useVtualManagements } from '@/composables/vtual/useVtualManagements'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useServerDataTable } from '@/composables/useServerDataTable'
+import { useNavigation } from '@/composables/navigation/useNavigation'
+import { useEchoResync } from '@/composables/useEcho'
 import type { ListParams } from '@/composables/useResource'
 import type { QueryRowAction, VtualManagement } from '@/api/types'
 import { confirmQueryMutate, findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
@@ -44,6 +46,26 @@ async function loadList(params?: ListParams): Promise<VtualManagement[]> {
 }
 
 const { load, onPage, onPerPage, onSearch } = useServerDataTable(loadList, pagination)
+
+// Live update: management mutations anywhere (via targeted menu tree refresh)
+// reload this list. Backend navigation.menus events fire on membership changes.
+const { startRealtime: startNavRealtime, stopRealtime: stopNavRealtime, refetchAll } = useNavigation()
+
+function handleManagementChanged(): void {
+  void load()
+  void refetchAll()
+}
+
+// Socket-outage recovery: re-pull the list the realtime handler reloads.
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  startNavRealtime()
+})
+
+onUnmounted(() => {
+  stopNavRealtime()
+})
 
 function handleSearch(search: string): void {
   searchQuery.value = search
@@ -105,7 +127,7 @@ async function archiveManagement(row: VtualManagement, action: QueryRowAction): 
       :rows="items"
       :loading="loading"
       :error="error"
-      @retry="fetchList()"
+      @retry="handleManagementChanged"
       server
       :total="pagination.total"
       :page="pagination.current_page"

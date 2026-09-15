@@ -9,6 +9,7 @@ import { useUsers } from '@/composables/identity/useUsers'
 import { useAuth } from '@/stores/auth'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
 import { useAdminRealtime } from '@/composables/useAdminRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import { useAlert } from '@/composables/useAlert'
 import type { UserManagement } from '@/api/types'
@@ -35,7 +36,14 @@ const columns = computed<DataTableColumn[]>(() => [
 useListingLiveUpdate('users-table', () => fetchList())
 
 const { subscribe: subscribeAdmin, unsubscribe: unsubscribeAdmin } = useAdminRealtime()
-const adminHandlers = { onRbacChanged: () => fetchList() }
+const adminHandlers = {
+  onRbacChanged: () => fetchList(),
+  onUserListChanged: () => fetchList(),
+  onRoleListChanged: () => fetchList(),
+}
+
+// Socket-outage recovery: mirror the realtime handlers (fetchList).
+useEchoResync(() => { void fetchList() })
 
 function editUser(row: UserManagement): void {
   const to = queryRowActionTo(findQueryRowAction(row.actions, 'edit'))

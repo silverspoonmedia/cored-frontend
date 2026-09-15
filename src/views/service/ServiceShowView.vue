@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,6 +7,8 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useServices } from '@/composables/service/useServices'
 import { useServicesHydrate } from '@/composables/service/useServicesHydrate'
+import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import type { Service } from '@/api/types'
@@ -64,7 +66,20 @@ async function loadService(): Promise<void> {
   }
 }
 
-onMounted(loadService)
+// Live update: this service edited elsewhere reloads the detail view.
+const { subscribeCatalog, unsubscribeCatalog } = useServicesRealtime()
+const catalogHandlers = { onCatalogChanged: () => { void loadService() } }
+
+onMounted(() => {
+  loadService()
+  subscribeCatalog(catalogHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeCatalog(catalogHandlers)
+})
+
+useEchoResync(() => { void loadService() })
 
 async function handleCheckout(): Promise<void> {
   if (!service.value || submitting.value) return

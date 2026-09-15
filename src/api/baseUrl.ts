@@ -1,5 +1,31 @@
 const API_PREFIX = '/api/v1'
 
+/**
+ * Force the configured base onto the API root.
+ *
+ * `resolveApiUrl()` appends API-relative paths (`broadcasting/auth`) straight
+ * to this origin, so a base without the `/api/v1` prefix silently points them
+ * at the **web** surface — where Laravel registers a second, CSRF-guarded
+ * `POST /broadcasting/auth` that answers 403 with no CORS headers, surfacing
+ * as an opaque browser CORS error. Normalizing here keeps every caller on the
+ * versioned API regardless of how the env var was written.
+ */
+function normalizeApiPath(pathname: string): { path: string; adjusted: boolean } {
+  const path = pathname.replace(/\/+$/, '')
+
+  if (path === '' || path === '/') {
+    return { path: API_PREFIX, adjusted: true }
+  }
+  if (path.endsWith(API_PREFIX)) {
+    return { path, adjusted: false }
+  }
+  if (path.endsWith('/api')) {
+    return { path: `${path}${API_PREFIX.slice('/api'.length)}`, adjusted: true }
+  }
+
+  return { path: `${path}${API_PREFIX}`, adjusted: true }
+}
+
 function apiOrigin(): string {
   const raw = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '')
   if (raw === '') return ''
@@ -15,6 +41,15 @@ function apiOrigin(): string {
     ) {
       return ''
     }
+
+    const { path, adjusted } = normalizeApiPath(url.pathname)
+    if (adjusted && import.meta.env.DEV) {
+      console.warn(
+        `[api] VITE_API_BASE_URL must end with ${API_PREFIX}; using ${url.origin}${path} instead of ${raw}`,
+      )
+    }
+    url.pathname = path
+
     return url.toString().replace(/\/+$/, '')
   } catch {
     return ''
@@ -62,9 +97,19 @@ export function apiUrl(uri: string, query?: Record<string, unknown> | null): URL
   const url = new URL(resolveApiUrl(uri), window.location.origin)
   if (query) {
     for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null) {
-        url.searchParams.set(key, String(value))
+      if (value === undefined || value === null) continue
+      // Array values become repeated params (`ids[]=a&ids[]=b`), matching the
+      // Laravel `ids[]` contract. `searchParams.set` would stringify the array
+      // into one comma-joined value, which `ids.* => uuid` validation rejects.
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item !== undefined && item !== null) {
+            url.searchParams.append(key, String(item))
+          }
+        }
+        continue
       }
+      url.searchParams.set(key, String(value))
     }
   }
   return url

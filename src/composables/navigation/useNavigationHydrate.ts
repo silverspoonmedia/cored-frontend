@@ -1,9 +1,6 @@
 import { batch } from '@/api/client'
-import { bodyOf } from '@/api/batch'
-import type {
-  ApiResponse,
-  MenuListItem,
-} from '@/api/types'
+import { bodyOfOrThrow } from '@/api/batch'
+import type { MenuListItem } from '@/api/types'
 import type { Select2Result } from '@/utils/select2-lookup'
 
 /**
@@ -16,30 +13,63 @@ interface LookupPayload {
   pagination: { more: boolean }
 }
 
+/** Which pre-hydration lookup a batch entry belongs to. */
+export type MenuLookupKey = 'parent' | 'roles' | 'includes' | 'excludes'
+
 interface MenuEditResult {
   menu: MenuListItem | null
   parentOptions: Select2Result[]
   roleOptions: Select2Result[]
   userIncludeOptions: Select2Result[]
   userExcludeOptions: Select2Result[]
+  /**
+   * Lookups whose batch entry did not come back as a 200 success. Their select
+   * renders empty for display only, so the caller must treat that emptiness as
+   * "unknown", never as "no value" — see
+   * `src/utils/navigation/pruneUnresolvedReferences.ts`.
+   */
+  failedLookups: MenuLookupKey[]
 }
 
-function lookupResults(body: ApiResponse<LookupPayload> | null): Select2Result[] {
-  return body?.data?.results ?? []
+/**
+ * `bodyOfOrThrow` throws `TerminalBatchError` on 401/403/429 so an auth/RBAC
+ * rejection is never mistaken for "this field has no value", and a non-terminal
+ * non-200 (500/502/...) is recorded as failed instead of degrading to `[]`.
+ */
+function lookupResults(
+  entry: { status: number; body: unknown } | undefined,
+  key: MenuLookupKey,
+  failedLookups: MenuLookupKey[],
+): Select2Result[] {
+  const body = bodyOfOrThrow<LookupPayload>(entry)
+  if (body === null) {
+    failedLookups.push(key)
+    return []
+  }
+  return body.data?.results ?? []
 }
 
 async function hydrateMenuEdit(menuId: string): Promise<MenuEditResult> {
   const [menuRes] = await batch<unknown>([
     { path: `navigation/menus/${menuId}` },
   ])
-  const menu = bodyOf<MenuListItem>(menuRes)?.data ?? null
+  const menu = bodyOfOrThrow<MenuListItem>(menuRes)?.data ?? null
 
   if (!menu) {
-    return { menu: null, parentOptions: [], roleOptions: [], userIncludeOptions: [], userExcludeOptions: [] }
+    return {
+      menu: null,
+      parentOptions: [],
+      roleOptions: [],
+      userIncludeOptions: [],
+      userExcludeOptions: [],
+      failedLookups: [],
+    }
   }
 
-  const requests: Array<{ path: string; query?: Record<string, string> }> = []
-  const keys: string[] = []
+  // `ids[]` must stay an array: `apiUrl` serializes it to repeated params
+  // (`ids[]=a&ids[]=b`). A comma-joined string fails `ids.* => uuid` (422).
+  const requests: Array<{ path: string; query?: Record<string, unknown> }> = []
+  const keys: MenuLookupKey[] = []
 
   if (menu.parent_id) {
     keys.push('parent')
@@ -47,32 +77,39 @@ async function hydrateMenuEdit(menuId: string): Promise<MenuEditResult> {
   }
   if (menu.role_ids && menu.role_ids.length > 0) {
     keys.push('roles')
-    requests.push({ path: 'lookups/roles', query: { 'ids[]': menu.role_ids.join(',') } })
+    requests.push({ path: 'lookups/roles', query: { 'ids[]': menu.role_ids } })
   }
   if (menu.user_include_ids && menu.user_include_ids.length > 0) {
     keys.push('includes')
-    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_include_ids.join(',') } })
+    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_include_ids } })
   }
   if (menu.user_exclude_ids && menu.user_exclude_ids.length > 0) {
     keys.push('excludes')
-    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_exclude_ids.join(',') } })
+    requests.push({ path: 'lookups/users', query: { 'ids[]': menu.user_exclude_ids } })
   }
 
-  const lookups: Record<string, Select2Result[]> = { parent: [], roles: [], includes: [], excludes: [] }
+  const lookups: Record<MenuLookupKey, Select2Result[]> = {
+    parent: [],
+    roles: [],
+    includes: [],
+    excludes: [],
+  }
+  const failedLookups: MenuLookupKey[] = []
 
   if (requests.length > 0) {
     const responses = await batch<unknown>(requests)
     keys.forEach((key, i) => {
-      lookups[key] = lookupResults(bodyOf<LookupPayload>(responses[i])) ?? []
+      lookups[key] = lookupResults(responses[i], key, failedLookups)
     })
   }
 
   return {
     menu,
-    parentOptions: lookups.parent ?? [],
-    roleOptions: lookups.roles ?? [],
-    userIncludeOptions: lookups.includes ?? [],
-    userExcludeOptions: lookups.excludes ?? [],
+    parentOptions: lookups.parent,
+    roleOptions: lookups.roles,
+    userIncludeOptions: lookups.includes,
+    userExcludeOptions: lookups.excludes,
+    failedLookups,
   }
 }
 

@@ -28,9 +28,9 @@ Type-then-domain: screens live under `src/views/{domain}/`, with matching `src/c
 
 | Layer | Contents | Notes |
 |-------|----------|-------|
-| `src/api/` | `client.ts`, `csrf.ts`, `batch.ts`, `baseUrl.ts`, `requestHeaders.ts`, `types.ts` | The only HTTP layer — see [api-client.md](api-client.md). `types.ts` mirrors Laravel API Resources exactly (snake_case, no transform layer) |
+| `src/api/` | `client.ts`, `csrf.ts`, `netRetry.ts`, `batch.ts`, `baseUrl.ts`, `requestHeaders.ts`, `types.ts` | The only HTTP layer — see [api-client.md](api-client.md). `netRetry.ts` is the shared cross-tab cookie-race retry policy. `types.ts` mirrors Laravel API Resources exactly (snake_case, no transform layer) |
 | `src/views/{domain}/` | Vue Router page components | 17 domains (activity-log, auth, dashboard, domain-access, error-log, archivd, identity, inference, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual) |
-| `src/composables/` | Shared composables at root (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`, `useForm`, …) + `composables/{domain}/` | Stateful logic bound to component lifecycle |
+| `src/composables/` | Shared composables at root (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`, `useForm`, …) + `composables/{domain}/` + `composables/echo/` (`channelRegistry.ts`, `realtimeChannel.ts`) | Stateful logic bound to component lifecycle. `composables/echo/` is the **only** place allowed to call `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` — every private channel goes through it (rule 11, [api-client.md](api-client.md#channel-lifecycle-goes-through-the-registry)) |
 | `src/components/` | Shared UI chrome (`AppNavbar`, `DataTable`, `RowActions`, `ErrorState`, `EmptyState`, `SkeletonBlock`, …) | Cross-domain only; domain-specific components live under the view domain |
 | `src/lib/` | Side-effect wrappers around vendor libs (`swal.ts`, `safeRedirect.ts`) | Small, app-wide, not domain-scoped |
 | `src/utils/` | Pure helpers (`safeUrl.ts`, `mapQueryRowActions.ts`, `statusBadge.ts`, …) + `utils/{domain}/` | No Vue lifecycle, no fetch — pure functions |
@@ -41,7 +41,7 @@ Type-then-domain: screens live under `src/views/{domain}/`, with matching `src/c
 | `src/valkivid3/` | Self-contained Valkivid3 template tree (`layouts/components/composables/views/assets`) | Scoped CSS namespace — see [ui-patterns.md](ui-patterns.md) |
 | `src/assets/` | AdminLTE global CSS entries (`main-ltr.css`, `main-rtl.css`, `vendor*.css`), overrides | — |
 
-Placement rule of thumb: Vue-lifecycle logic → `composables/`; vendor wrapper → `lib/`; pure function → `utils/`; domain-scoped anything → the matching `{domain}/` subfolder.
+Placement rule of thumb: Vue-lifecycle logic → `composables/`; vendor wrapper → `lib/`; pure function → `utils/`; domain-scoped anything → the matching `{domain}/` subfolder. Raw Echo channel management is not a per-domain choice — it belongs to `composables/echo/` (rule 11).
 
 ## Env files
 

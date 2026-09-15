@@ -5,6 +5,7 @@ import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions from '@/components/RowActions.vue'
 import { useVtualEvents } from '@/composables/vtual/useVtualEvents'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { QueryRowAction, VtualManagementEvent } from '@/api/types'
 import { confirmQueryMutate, mapQueryRowActions } from '@/utils/mapQueryRowActions'
@@ -99,6 +100,9 @@ async function cancelEvent(row: VtualManagementEvent, action: QueryRowAction): P
 onMounted(() => {
   void loadList({ page: 1, per_page: 10 })
 })
+
+// Socket-outage recovery: mirror the onMounted load (fresh page 1).
+useEchoResync(() => { void loadList({ page: 1, per_page: 10 }) })
 </script>
 
 <template>

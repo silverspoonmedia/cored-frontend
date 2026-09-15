@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions from '@/components/RowActions.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
+import { useEchoResync } from '@/composables/useEcho'
+import { subscribeVtualCreatorSnapshots, unsubscribeVtualCreatorSnapshots } from '@/composables/vtual/useVtualRealtime'
 import type { VtualCreator } from '@/api/types'
 import { safeImageUrl } from '@/utils/safeUrl'
 import { findQueryRowAction, mapQueryRowActions, queryRowActionTo } from '@/utils/mapQueryRowActions'
@@ -49,7 +51,33 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'channels_count', label: t('web.vtual.channels_col'), sortable: true, align: 'center' },
 ])
 
-onMounted(loadProfiles)
+// Live update: channel snapshots resolved elsewhere change channels_count.
+const snapshotHandler = () => { void loadProfiles() }
+// Socket-outage recovery: re-pull the list the realtime snapshot handler uses.
+useEchoResync(() => { void loadProfiles() })
+let subscribedCreatorIds: string[] = []
+
+watch(profiles, (rows) => {
+  const ids = rows.map((r) => String(r.id))
+  for (const id of subscribedCreatorIds) {
+    if (!ids.includes(id)) unsubscribeVtualCreatorSnapshots(id, snapshotHandler)
+  }
+  for (const id of ids) {
+    if (!subscribedCreatorIds.includes(id)) subscribeVtualCreatorSnapshots(id, snapshotHandler)
+  }
+  subscribedCreatorIds = ids
+})
+
+onMounted(() => {
+  loadProfiles()
+})
+
+onUnmounted(() => {
+  for (const id of subscribedCreatorIds) {
+    unsubscribeVtualCreatorSnapshots(id, snapshotHandler)
+  }
+  subscribedCreatorIds = []
+})
 </script>
 
 <template>

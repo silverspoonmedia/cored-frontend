@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,6 +7,8 @@ import FormInput from '@/components/FormInput.vue'
 import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useInferenceProviders } from '@/composables/inference/useInferenceProviders'
+import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { ApiError } from '@/api/types'
 
@@ -85,7 +87,26 @@ async function handleSubmit(): Promise<void> {
   }
 }
 
-onMounted(load)
+// Live update: this provider edited elsewhere reloads the form data.
+const { subscribe, unsubscribe } = useInferenceRealtime()
+const realtimeHandlers = {
+  onCatalogChanged: (e: { entity: string; entity_id: string | null }) => {
+    if (isEdit.value && e.entity === 'provider' && (!e.entity_id || e.entity_id === route.params.id)) {
+      void load()
+    }
+  },
+}
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  load()
+  subscribe(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribe(realtimeHandlers)
+})
 </script>
 
 <template>

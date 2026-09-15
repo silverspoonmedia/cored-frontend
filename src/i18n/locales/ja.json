@@ -1632,7 +1632,7 @@
       "back_to_list_button": "一覧に戻る"
     },
     "archivd": {
-      "title": "ファイルホスティング",
+      "title": "Archivd",
       "blocklist_title": "ハッシュブロックリスト (DMCA)",
       "blocklist_add": "ハッシュをブロック",
       "blocklist_sha256": "sha256",
@@ -1934,7 +1934,7 @@
       "quota_remaining": "残り",
       "quota_unlimited": "無制限",
       "load_failed": "読み込みに失敗しました。",
-      "vue_mount_failed": "ファイルホスティング UI の読み込みに失敗しました。ページを再読み込みしてください。",
+      "vue_mount_failed": "Archivd UI の読み込みに失敗しました。ページを再読み込みしてください。",
       "link_copied": "リンクをクリップボードにコピーしました。",
       "ajax_success": "操作が完了しました。",
       "ajax_error": "操作に失敗しました。",
@@ -2333,6 +2333,7 @@
       }
     },
     "menus": {
+      "hydrate_partial_warning": "一部の項目を読み込めなかったため、保存済みの値は表示されていません。保存してもこれらの値は変更されません。",
       "load_failed": "メニューを読み込めませんでした。",
       "load_trashed_failed": "削除済みメニューを読み込めませんでした。",
       "save_failed": "メニューを保存できませんでした。",
@@ -2385,7 +2386,14 @@
       "search_aria_label": "メニューを検索",
       "attributes": {
         "auth": "認証済み",
+        "role": "ロール",
         "guest": "ゲスト"
+      },
+      "audience": {
+        "all": "全員（ゲストとログイン済み）",
+        "auth": "ログイン済みユーザー",
+        "role": "選択したロールを持つログイン済みユーザー",
+        "guest": "ゲストのみ"
       },
       "trashed_card_title": "削除されたメニュー",
       "new_card_title": "新規メニューの詳細",
@@ -2423,10 +2431,10 @@
         "hash_hint": "解決済みルートに追加する任意のページ内アンカー（例: #vtubers）。",
         "icon_label": "アイコン",
         "icon_hint": "完全なアイコンクラス（例: bi bi-house）。",
-        "authenticate": "認証済みユーザーのみ",
-        "guest_only": "ゲストのみ",
+        "audience_label": "このメニューを表示する対象",
+        "audience_hint": "「選択したロールを持つログイン済みユーザー」を選ぶと、下のロールに限定されます。",
         "roles_label": "閲覧を許可するロール",
-        "roles_hint": "他の条件を満たすすべての人に表示する場合は空欄にしてください。ゲストのみとは併用できません。",
+        "roles_hint": "「選択したロールを持つログイン済みユーザー」のオーディエンスでのみ使用します。そこで少なくとも1つのロールを選択してください。",
         "user_includes": "対象ユーザー（許可リスト）",
         "user_excludes": "除外ユーザー（ブロックリスト）",
         "position_no_change": "順序を変更しない",
@@ -3187,7 +3195,7 @@
       "source": "現在のソース: {source}",
       "groups": {
         "platform": "プラットフォーム",
-        "archivd": "ファイルホスティング",
+        "archivd": "Archivd",
         "microstock": "Microstock",
         "vtual": "vTual",
         "identity": "ID",

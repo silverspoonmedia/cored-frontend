@@ -2333,6 +2333,7 @@
       }
     },
     "menus": {
+      "hydrate_partial_warning": "Some fields could not be loaded, so their saved values are hidden. They will be left unchanged when you save.",
       "load_failed": "Could not load the menu.",
       "load_trashed_failed": "Could not load deleted menus.",
       "save_failed": "Could not save the menu.",
@@ -2385,7 +2386,14 @@
       "search_aria_label": "Search menus",
       "attributes": {
         "auth": "auth",
+        "role": "role",
         "guest": "guest"
+      },
+      "audience": {
+        "all": "Everyone (guests and signed-in)",
+        "auth": "Signed-in users",
+        "role": "Signed-in users with selected roles",
+        "guest": "Guests only"
       },
       "trashed_card_title": "Deleted menus",
       "new_card_title": "New menu details",
@@ -2423,10 +2431,10 @@
         "hash_hint": "Optional in-page anchor (e.g. #vtubers) appended to the resolved route.",
         "icon_label": "Icon",
         "icon_hint": "Full icon class, e.g. bi bi-house.",
-        "authenticate": "Authenticated users only",
-        "guest_only": "Guests only",
+        "audience_label": "Who can see this menu?",
+        "audience_hint": "Pick \"signed-in users with selected roles\" to restrict the menu to the roles below.",
         "roles_label": "Roles allowed to view",
-        "roles_hint": "Leave empty for everyone who passes other rules. Incompatible with guest only.",
+        "roles_hint": "Only used by the \"signed-in users with selected roles\" audience. Select at least one role there.",
         "user_includes": "Included users (allowlist)",
         "user_excludes": "Excluded users (blacklist)",
         "position_no_change": "Do not change order",

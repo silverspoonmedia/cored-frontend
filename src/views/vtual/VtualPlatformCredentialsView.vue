@@ -8,6 +8,7 @@ import { useVtual } from '@/composables/vtual/useVtual'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useVtualRealtime } from '@/composables/vtual/useVtualRealtime'
 import { useListingLiveUpdate } from '@/composables/useListingLiveUpdate'
+import { useEchoResync } from '@/composables/useEcho'
 import type { VtualPlatform } from '@/api/types'
 import { findQueryRowAction, queryRowActionTo } from '@/utils/mapQueryRowActions'
 
@@ -77,6 +78,9 @@ const realtimeHandlers = {
     void loadPlatforms(true)
   },
 }
+
+// Socket-outage recovery: mirror the realtime handler (silent reload).
+useEchoResync(() => { void loadPlatforms(true) })
 
 onMounted(() => {
   void loadPlatforms()

@@ -5,6 +5,7 @@ import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useSettings } from '@/composables/settings/useSettings'
+import { useEchoResync } from '@/composables/useEcho'
 import { isSettingsMenuGroup } from '@/utils/settingsGroup'
 
 interface SettingsCard {
@@ -49,6 +50,8 @@ const cards = computed<SettingsCard[]>(() => {
 })
 
 onMounted(fetchGroups)
+
+useEchoResync(() => { void fetchGroups() })
 </script>
 
 <template>

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import { useNotifications } from '@/composables/notification/useNotifications'
+import { useAuthSelfRealtime } from '@/composables/identity/useAuthSelfRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import type { AppNotification } from '@/api/types'
 import { resolveNotificationLocation } from '@/utils/notificationTarget'
@@ -14,7 +16,24 @@ const router = useRouter()
 const { items, loading, error, fetchList, markAllRead, markAsRead } = useNotifications()
 const { success: showSuccess, error: showError } = useAlert()
 
-onMounted(() => fetchList())
+// Live update: new notifications arriving anywhere refresh this list. The
+// channel is shared with the navbar bell (App.Models.User.{id}).
+const { subscribe: subscribeAuthSelf, unsubscribe: unsubscribeAuthSelf } = useAuthSelfRealtime()
+const authSelfHandlers = {
+  onAuthStateChanged: () => { void fetchList() },
+}
+
+// Socket-outage recovery: mirror the realtime handler.
+useEchoResync(() => { void fetchList() })
+
+onMounted(() => {
+  fetchList()
+  subscribeAuthSelf(authSelfHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeAuthSelf(authSelfHandlers)
+})
 
 async function handleMarkAllRead(): Promise<void> {
   try {

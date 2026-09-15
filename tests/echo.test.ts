@@ -6,15 +6,30 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  */
 
 const post = vi.fn()
+const whenCsrfCookieQuiet = vi.fn()
 
-vi.mock('@/api/client', () => ({
-  post: (...args: unknown[]) => post(...args),
+vi.mock('@/api/client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/api/client')>()
+  return {
+    ...actual,
+    post: (...args: unknown[]) => post(...args),
+  }
+})
+
+vi.mock('@/api/csrf', () => ({
+  whenCsrfCookieQuiet: () => whenCsrfCookieQuiet(),
 }))
 
 describe('authorizeBroadcastChannel', () => {
   beforeEach(() => {
     post.mockReset()
-    vi.stubGlobal('window', { location: { origin: 'http://localhost:5173' } })
+    whenCsrfCookieQuiet.mockReset()
+    whenCsrfCookieQuiet.mockResolvedValue(undefined)
+    vi.stubGlobal('window', {
+      location: { origin: 'http://localhost:5173' },
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })
   })
 
   afterEach(() => {
@@ -41,5 +56,25 @@ describe('authorizeBroadcastChannel', () => {
     await expect(authorizeBroadcastChannel('private-x', '1.1')).rejects.toThrow(
       'Could not authorize the realtime connection.',
     )
+  })
+
+  it('waits for the CSRF cookie to settle before posting', async () => {
+    const order: string[] = []
+    whenCsrfCookieQuiet.mockImplementation(async () => {
+      order.push('csrf-quiet')
+    })
+    post.mockImplementation(async () => {
+      order.push('post')
+      return { auth: 'key:sig' }
+    })
+
+    const { authorizeBroadcastChannel } = await import('../src/composables/useEcho')
+    await authorizeBroadcastChannel('private-logs.activity', '1.2')
+
+    // pusher-js authorizes channels at unpredictable times, so the settle gate
+    // must run BEFORE the POST — otherwise the request can overlap a
+    // `__Host-spa_csrf` write and abort as an opaque CORS error.
+    expect(order).toEqual(['csrf-quiet', 'post'])
+    expect(whenCsrfCookieQuiet).toHaveBeenCalledTimes(1)
   })
 })

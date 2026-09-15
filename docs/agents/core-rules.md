@@ -1,6 +1,6 @@
 # Core rules — Monolith-Vue-Workers (SPA)
 
-Mandatory rules for every task in this repo. Each rule has a summary + a link to the owning doc. Root protocol: [../../AGENTS.md](../../AGENTS.md).
+Mandatory rules for this repo. Each rule has a summary + a link to the owning doc — open the owning doc only when that rule is in play. Root protocol: [../../AGENTS.md](../../AGENTS.md). Context budget: sibling `monolith/docs/agents/context-budget.md`.
 
 ## Rules
 
@@ -16,12 +16,13 @@ Mandatory rules for every task in this repo. Each rule has a summary + a link to
 | 8 | **Swal only.** Notifications/confirmations go through `src/lib/swal.ts` (`useAlert`, `confirmDialog`, `inputDialog`) — never native `alert/confirm/prompt` or ad-hoc alert blocks. | [../ui-patterns.md](../ui-patterns.md) |
 | 9 | **Route names are a cross-repo contract.** Symbolic route names sync with `monolith/config/spa-routes.php` (backend menus consume them). Rename = update both repos + both integration docs. | [../routes.md](../routes.md) |
 | 10 | **Tests with behavior changes.** Auth client, CSRF, shell hydration, realtime authorizers, and route-name contracts have Vitest coverage — extend it when changing them. | [../testing.md](../testing.md) |
+| 11 | **Private channels only via the registry.** Acquire Echo channels through `src/composables/echo/channelRegistry.ts` (`acquireChannel`) or the declarative wrappers in `src/composables/echo/realtimeChannel.ts` (`createRealtimeChannel` / `createKeyedRealtimeChannel`) — never `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` outside the registry. | [../api-client.md](../api-client.md#channel-lifecycle-goes-through-the-registry) |
 
 ## Workflow checklist
 
 1. Read the owning doc for the area you touch (see [../README.md](../README.md) doc map).
-2. Check the backend contract (`monolith/docs/integration/vue-workers-spa.md`) before touching API calls, headers, auth, realtime, or route names.
-3. Implement; keep type alignment with Laravel API Resources (snake_case, no transform layer — `src/api/types.ts`).
+2. SPA-local docs first ([auth-session.md](../auth-session.md), [api-client.md](../api-client.md), [routes.md](../routes.md)). Open the backend contract (`monolith/docs/integration/vue-workers-spa.md`) only when headers, cookies/CSRF, envelopes, or route names change.
+3. Implement; keep type alignment with Laravel API Resources (snake_case, no transform layer — `src/api/types.ts`). Do not `Read` whole locale JSON files — patch keys, then `npm run check:i18n`.
 4. Run the gates: `npm run type-check` → `npm run check:i18n` → `npm test` → `npm run build-only` (CI order).
 5. Update docs in the same task.
 
@@ -30,6 +31,7 @@ Mandatory rules for every task in this repo. Each rule has a summary + a link to
 - No API proxy paths in `server/` (rule 1).
 - No JWT in `localStorage`/JS memory (rule 4).
 - No hardcoded user-facing strings; no new locale keys in one locale only (rule 3).
+- No `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` in a view or composable — the channel registry owns attach/leave (rule 11, [../api-client.md](../api-client.md#channel-lifecycle-goes-through-the-registry)).
 - No Tailwind classes in the AdminLTE namespace, no Bootstrap reliance inside Valkivid3 (rule 6).
 - No edits to the FROZEN vTual landing files without explicit user permission (rule 6).
 - No new Wrangler environments unless another API origin exists; never mix Vite `--mode` with a different `--env` ([../deployment.md](../deployment.md)).

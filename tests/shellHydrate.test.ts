@@ -116,9 +116,9 @@ describe('hydrateShell', () => {
     expect(shell.isShellHydrated()).toBe(false)
   })
 
-  it('does not retry a failed batch after the settle window', async () => {
+  it('does not retry a non-transient failure after the settle window', async () => {
     isSessionSettling.mockReturnValue(false)
-    batch.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    batch.mockRejectedValueOnce(new Error('boom'))
 
     const shell = await importShell()
     await shell.hydrateShell()
@@ -127,5 +127,28 @@ describe('hydrateShell', () => {
     expect(settleBackoff).not.toHaveBeenCalled()
     expect(shell.isShellHydrated()).toBe(false)
     expect(shell.isShellFallbackBlocked('sidebar')).toBe(false)
+  })
+
+  it('retries a transient fetch TypeError outside the settle window', async () => {
+    isSessionSettling.mockReturnValue(false)
+    batch.mockRejectedValueOnce(new TypeError('Failed to fetch')).mockResolvedValueOnce(okShellBatch())
+
+    const shell = await importShell()
+    await shell.hydrateShell()
+
+    expect(batch).toHaveBeenCalledTimes(2)
+    expect(settleBackoff).toHaveBeenCalled()
+    expect(shell.isShellHydrated()).toBe(true)
+  })
+
+  it('gives up after the transient retry budget', async () => {
+    isSessionSettling.mockReturnValue(false)
+    batch.mockRejectedValue(new TypeError('Failed to fetch'))
+
+    const shell = await importShell()
+    await shell.hydrateShell()
+
+    expect(batch).toHaveBeenCalledTimes(5)
+    expect(shell.isShellHydrated()).toBe(false)
   })
 })

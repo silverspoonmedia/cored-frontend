@@ -33,6 +33,7 @@ const duplicateEnglishAllowlist = new Set([
   'web.archivd.char_count',
   'web.archivd.microstock.name_placeholder',
   'web.archivd.microstock_title',
+  'web.archivd.title',
   'web.identity-connections.discord_heading',
   'web.identity-connections.provider_heading',
   'web.microstock.menu',

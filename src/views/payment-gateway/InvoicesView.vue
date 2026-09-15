@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,6 +7,8 @@ import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useInvoices } from '@/composables/payment-gateway/useInvoices'
+import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { Invoice } from '@/api/types'
@@ -19,6 +21,20 @@ const { items, loading, error, fetchList, exportCsv, pagination } = useInvoices(
 const { error: showError } = useAlert()
 const exporting = ref(false)
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
+
+const { subscribeAdminList, unsubscribeAdminList } = usePaymentRealtime()
+
+const reloadInvoices = () => { void fetchList() }
+
+onMounted(() => {
+  subscribeAdminList(reloadInvoices)
+})
+
+onUnmounted(() => {
+  unsubscribeAdminList(reloadInvoices)
+})
+
+useEchoResync(reloadInvoices)
 
 const columns: DataTableColumn[] = [
   { key: 'invoice_number', label: t('web.payments.invoices.datatable.columns.invoice_number'), sortable: true },

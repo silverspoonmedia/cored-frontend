@@ -1,4 +1,4 @@
-import { getEcho } from '@/composables/useEcho'
+import { createKeyedRealtimeChannel, createRealtimeChannel } from '@/composables/echo/realtimeChannel'
 
 export type PlatformCredentialChangedPayload = {
   platform_id: string
@@ -11,47 +11,24 @@ export type VtualRealtimeHandlers = {
   onCredentialChanged?: (payload: PlatformCredentialChangedPayload) => void
 }
 
-const handlerSet = new Set<VtualRealtimeHandlers>()
-let channelActive = false
-
-function ensureChannel(): boolean {
-  if (channelActive) return true
-  const echo = getEcho()
-  if (!echo) return false
-  try {
-    const ch = echo.private('vtual.platform-credentials')
-    ch.listen('.platform.credential.changed', (e: PlatformCredentialChangedPayload) => {
-      for (const h of handlerSet) h.onCredentialChanged?.(e)
-    })
-    channelActive = true
-    return true
-  } catch {
-    return false
-  }
-}
-
-function maybeLeave(): void {
-  if (handlerSet.size > 0) return
-  if (!channelActive) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave('vtual.platform-credentials')
-    } catch {
-      // ignore
-    }
-  }
-  channelActive = false
-}
+const credentialsChannel = createRealtimeChannel<VtualRealtimeHandlers>({
+  channel: 'vtual.platform-credentials',
+  events: [
+    {
+      event: '.platform.credential.changed',
+      handle: (handlers, payload: PlatformCredentialChangedPayload) => {
+        for (const h of handlers) h.onCredentialChanged?.(payload)
+      },
+    },
+  ],
+})
 
 export function subscribeVtualPlatformCredentialsRealtime(handlers: VtualRealtimeHandlers): boolean {
-  handlerSet.add(handlers)
-  return ensureChannel()
+  return credentialsChannel.subscribe(handlers)
 }
 
 export function unsubscribeVtualPlatformCredentialsRealtime(handlers: VtualRealtimeHandlers): void {
-  handlerSet.delete(handlers)
-  maybeLeave()
+  credentialsChannel.unsubscribe(handlers)
 }
 
 // --- Creator channel snapshot updates (fetch-pool flush) ---
@@ -61,59 +38,28 @@ export type ChannelSnapshotUpdatedPayload = {
   channel_ids: string[]
 }
 
-const snapshotHandlers = new Map<string, Set<(payload: ChannelSnapshotUpdatedPayload) => void>>()
-const snapshotChannels = new Set<string>()
+type SnapshotHandler = (payload: ChannelSnapshotUpdatedPayload) => void
 
-function ensureSnapshotChannel(creatorId: string): boolean {
-  if (snapshotChannels.has(creatorId)) return true
-  const echo = getEcho()
-  if (!echo) return false
-  try {
-    const ch = echo.private(`vtual.creator.${creatorId}`)
-    ch.listen('.channel.snapshot.updated', (e: ChannelSnapshotUpdatedPayload) => {
-      const set = snapshotHandlers.get(creatorId)
-      if (!set) return
-      for (const handler of set) handler(e)
-    })
-    snapshotChannels.add(creatorId)
-    return true
-  } catch {
-    return false
-  }
+// One channel per creator: VtualProfilesView tracks a set of creators at once,
+// so each id keeps its own ref-counted channel.
+const snapshotChannels = createKeyedRealtimeChannel<string, SnapshotHandler>({
+  channel: (creatorId: string) => `vtual.creator.${creatorId}`,
+  events: () => [
+    {
+      event: '.channel.snapshot.updated',
+      handle: (handlers, payload: ChannelSnapshotUpdatedPayload) => {
+        for (const h of handlers) h(payload)
+      },
+    },
+  ],
+})
+
+export function subscribeVtualCreatorSnapshots(creatorId: string, handler: SnapshotHandler): boolean {
+  return snapshotChannels.subscribe(creatorId, handler)
 }
 
-export function subscribeVtualCreatorSnapshots(
-  creatorId: string,
-  handler: (payload: ChannelSnapshotUpdatedPayload) => void,
-): boolean {
-  let set = snapshotHandlers.get(creatorId)
-  if (!set) {
-    set = new Set()
-    snapshotHandlers.set(creatorId, set)
-  }
-  set.add(handler)
-  return ensureSnapshotChannel(creatorId)
-}
-
-export function unsubscribeVtualCreatorSnapshots(
-  creatorId: string,
-  handler: (payload: ChannelSnapshotUpdatedPayload) => void,
-): void {
-  const set = snapshotHandlers.get(creatorId)
-  if (!set) return
-  set.delete(handler)
-  if (set.size > 0) return
-  snapshotHandlers.delete(creatorId)
-  if (!snapshotChannels.has(creatorId)) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave(`vtual.creator.${creatorId}`)
-    } catch {
-      // ignore
-    }
-  }
-  snapshotChannels.delete(creatorId)
+export function unsubscribeVtualCreatorSnapshots(creatorId: string, handler: SnapshotHandler): void {
+  snapshotChannels.unsubscribe(creatorId, handler)
 }
 
 // --- Management org updates (members / invites / creator assignments) ---
@@ -125,59 +71,26 @@ export type ManagementUpdatedPayload = {
   action: string
 }
 
-const managementHandlers = new Map<string, Set<(payload: ManagementUpdatedPayload) => void>>()
-const managementChannels = new Set<string>()
+type ManagementHandler = (payload: ManagementUpdatedPayload) => void
 
-function ensureManagementChannel(managementId: string): boolean {
-  if (managementChannels.has(managementId)) return true
-  const echo = getEcho()
-  if (!echo) return false
-  try {
-    const ch = echo.private(`vtual.management.${managementId}`)
-    ch.listen('.management.updated', (e: ManagementUpdatedPayload) => {
-      const set = managementHandlers.get(managementId)
-      if (!set) return
-      for (const handler of set) handler(e)
-    })
-    managementChannels.add(managementId)
-    return true
-  } catch {
-    return false
-  }
+const managementChannels = createKeyedRealtimeChannel<string, ManagementHandler>({
+  channel: (managementId: string) => `vtual.management.${managementId}`,
+  events: () => [
+    {
+      event: '.management.updated',
+      handle: (handlers, payload: ManagementUpdatedPayload) => {
+        for (const h of handlers) h(payload)
+      },
+    },
+  ],
+})
+
+export function subscribeVtualManagement(managementId: string, handler: ManagementHandler): boolean {
+  return managementChannels.subscribe(managementId, handler)
 }
 
-export function subscribeVtualManagement(
-  managementId: string,
-  handler: (payload: ManagementUpdatedPayload) => void,
-): boolean {
-  let set = managementHandlers.get(managementId)
-  if (!set) {
-    set = new Set()
-    managementHandlers.set(managementId, set)
-  }
-  set.add(handler)
-  return ensureManagementChannel(managementId)
-}
-
-export function unsubscribeVtualManagement(
-  managementId: string,
-  handler: (payload: ManagementUpdatedPayload) => void,
-): void {
-  const set = managementHandlers.get(managementId)
-  if (!set) return
-  set.delete(handler)
-  if (set.size > 0) return
-  managementHandlers.delete(managementId)
-  if (!managementChannels.has(managementId)) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave(`vtual.management.${managementId}`)
-    } catch {
-      // ignore
-    }
-  }
-  managementChannels.delete(managementId)
+export function unsubscribeVtualManagement(managementId: string, handler: ManagementHandler): void {
+  managementChannels.unsubscribe(managementId, handler)
 }
 
 export function useVtualRealtime() {

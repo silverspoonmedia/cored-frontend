@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import RowActions from '@/components/RowActions.vue'
@@ -8,6 +8,8 @@ import ErrorState from '@/components/ErrorState.vue'
 import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useMenus } from '@/composables/navigation/useMenus'
 import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
+import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import type { MenuListItem, QueryRowAction } from '@/api/types'
@@ -75,7 +77,20 @@ async function load(): Promise<void> {
   await fetchList(layout.value)
 }
 
-onMounted(load)
+// Live update: menu mutations anywhere refresh the admin list live.
+const { subscribe: subscribeMenus, unsubscribe: unsubscribeMenus } = useMenusRealtime()
+const realtimeHandlers = { onMenuTreeChanged: () => { void load() } }
+
+useEchoResync(() => { void load() })
+
+onMounted(() => {
+  load()
+  subscribeMenus(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeMenus(realtimeHandlers)
+})
 </script>
 
 <template>
@@ -140,9 +155,10 @@ onMounted(load)
               <td>{{ row.route ?? '—' }}</td>
               <td class="text-center">{{ row.order ?? '—' }}</td>
               <td>
-                <span v-if="row.is_authenticate" class="badge text-bg-info me-1">{{ t('web.menus.attributes.auth') }}</span>
-                <span v-if="row.is_guest_only" class="badge text-bg-secondary me-1">{{ t('web.menus.attributes.guest') }}</span>
-                <span v-if="!row.is_authenticate && !row.is_guest_only" class="text-muted">—</span>
+                <span v-if="row.audience === 'auth'" class="badge text-bg-info me-1">{{ t('web.menus.attributes.auth') }}</span>
+                <span v-else-if="row.audience === 'role'" class="badge text-bg-warning me-1">{{ t('web.menus.attributes.role') }}</span>
+                <span v-else-if="row.audience === 'guest'" class="badge text-bg-secondary me-1">{{ t('web.menus.attributes.guest') }}</span>
+                <span v-else class="text-muted">—</span>
               </td>
               <td v-if="canManage" class="text-end">
                 <RowActions :actions="menuActions(row)" />

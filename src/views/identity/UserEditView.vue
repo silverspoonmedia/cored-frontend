@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, defineAsyncComponent } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -11,6 +11,8 @@ import { useUsers } from '@/composables/identity/useUsers'
 import { useActivityLogs } from '@/composables/activity-log/useActivityLogs'
 import { useUsersHydrate } from '@/composables/identity/useUsersHydrate'
 import { useAlert } from '@/composables/useAlert'
+import { useAdminRealtime } from '@/composables/useAdminRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { ApiError, type ApiResponse, type UserManagement, type ActivityLog } from '@/api/types'
 
 const route = useRoute()
@@ -142,6 +144,28 @@ async function handleSubmit(): Promise<void> {
 }
 
 onMounted(load)
+
+// Live update: RBAC list changes (e.g. another admin edits this user) reload
+// the record so the form reflects fresh data.
+const { subscribe: subscribeAdmin, unsubscribe: unsubscribeAdmin } = useAdminRealtime()
+const adminHandlers = {
+  onUserListChanged: (e: { action: string; user_id: string | null }) => {
+    if (isEdit.value && userId.value && e.user_id === userId.value) {
+      void load()
+    }
+  },
+}
+
+// Socket-outage recovery: reload the record when in edit mode.
+useEchoResync(() => { if (isEdit.value) { void load() } })
+
+onMounted(() => {
+  subscribeAdmin(adminHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeAdmin(adminHandlers)
+})
 </script>
 
 <template>

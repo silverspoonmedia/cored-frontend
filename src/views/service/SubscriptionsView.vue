@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,6 +7,8 @@ import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
 import RowActions from '@/components/RowActions.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useSubscriptions } from '@/composables/service/useSubscriptions'
+import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useServerDataTable } from '@/composables/useServerDataTable'
 import type { Subscription } from '@/api/types'
@@ -19,6 +21,19 @@ const { items, loading, error, fetchList, pagination } = useSubscriptions()
 const { hasPermission } = useAuth()
 const canManage = computed(() => hasPermission('manage subscription'))
 const { onPage, onPerPage, onSearch } = useServerDataTable(fetchList, pagination)
+
+const { subscribeSubscriptionList, unsubscribeSubscriptionList } = usePaymentRealtime()
+const onSubscriptionChanged = () => { void fetchList() }
+
+onMounted(() => {
+  subscribeSubscriptionList(onSubscriptionChanged)
+})
+
+onUnmounted(() => {
+  unsubscribeSubscriptionList(onSubscriptionChanged)
+})
+
+useEchoResync(() => { void fetchList() })
 
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'subscription_number', label: t('web.payments.subscriptions.datatable.columns.subscription_number'), sortable: true },

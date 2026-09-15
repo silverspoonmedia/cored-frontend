@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { confirmDialog } from '@/lib/swal'
@@ -18,6 +18,7 @@ import { useArchivd } from '@/composables/archivd/useArchivd'
 import { useArchivdBrowse } from '@/composables/archivd/useArchivdBrowse'
 import { useMicrostock } from '@/composables/microstock/useMicrostock'
 import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
+import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
 import { useArchivdDragMove } from '@/composables/archivd/useArchivdDragMove'
 import { applyBrowseClick, listingKeys, idsByEntity } from '@/composables/archivd/useArchivdSelection'
@@ -34,7 +35,7 @@ const ar = useArchivd()
 const ms = useMicrostock()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
-const { subscribe: subscribeArRealtime, unsubscribe: unsubscribeArRealtime } = useArchivdRealtime()
+const { subscribe: subscribeArRealtime, unsubscribe: unsubscribeArRealtime, setWorkspaceChannel: setArWorkspaceChannel } = useArchivdRealtime()
 
 // ---- Selection (owned here, shared with browse composable + drag-move) ----
 const selected = ref<Set<string>>(new Set())
@@ -640,6 +641,23 @@ function onEsc(e: KeyboardEvent): void {
   }
 }
 
+// Socket-outage recovery: events missed while disconnected are gone, so
+// re-pull the listing and quota once the connection is restored.
+useEchoResync(() => {
+  loadBrowse({ keepSelection: true })
+  void loadQuota()
+})
+
+// Team uploads/mutations broadcast on archivd.workspace.{id}; join the
+// active workspace channel and follow route changes between spaces.
+watch(
+  () => (typeof route.query.workspace_id === 'string' && route.query.workspace_id !== ''
+    ? route.query.workspace_id
+    : null),
+  (workspaceId) => { setArWorkspaceChannel(workspaceId) },
+  { immediate: true },
+)
+
 onMounted(() => {
   subscribeArRealtime(ArRealtimeHandlers)
   document.addEventListener('click', closeCtx)
@@ -648,6 +666,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   unsubscribeArRealtime(ArRealtimeHandlers)
+  setArWorkspaceChannel(null)
   document.removeEventListener('click', closeCtx)
   document.removeEventListener('keydown', onEsc)
 })

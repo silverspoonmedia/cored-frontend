@@ -1,0 +1,14 @@
+---
+description: Archivd SPA screens and Drive-lite UX
+globs: src/views/archivd/**,src/composables/archivd/**,src/components/archivd/**,src/assets/archivd.css
+alwaysApply: false
+---
+
+# Archivd (SPA)
+
+Backend behavior: sibling `monolith/docs/domains/archivd/README.md` (Agent entry first).
+
+- Views: `src/views/archivd/`. Logic: `src/composables/archivd/`. Do not `Read` `ArchivdView.vue` whole unless the task touches that SFC — prefer offset reads / Grep.
+- API calls go through `src/api/client.ts` only. No JWT in JS.
+- Locale keys: Grep + patch all seven JSON files; never dump `src/i18n/locales/*.json`.
+- UI patterns: [docs/ui-patterns.md](../../docs/ui-patterns.md).

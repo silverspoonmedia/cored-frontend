@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -7,11 +7,28 @@ import FormInput from '@/components/FormInput.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { put } from '@/api/client'
 import { useAlert } from '@/composables/useAlert'
+import { useAuthSelfRealtime } from '@/composables/identity/useAuthSelfRealtime'
+import { useAuth } from '@/stores/auth'
 import { ApiError, type ApiResponse } from '@/api/types'
 
 const router = useRouter()
 const { t } = useI18n()
 const { success: showSuccess, error: showError } = useAlert()
+const { subscribe: subscribeAuthSelf, unsubscribe: unsubscribeAuthSelf } = useAuthSelfRealtime()
+
+// Live update: another tab changing the password fires .auth.security.changed;
+// on security change in any tab, refresh me/session state.
+const authSelfHandlers = {
+  onSecurityStateChanged: () => { void useAuth().fetchMe() },
+}
+
+onMounted(() => {
+  subscribeAuthSelf(authSelfHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeAuthSelf(authSelfHandlers)
+})
 
 const form = reactive({
   current_password: '',

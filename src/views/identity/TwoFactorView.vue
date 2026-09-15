@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -8,6 +8,7 @@ import SubmitButton from '@/components/SubmitButton.vue'
 import { post } from '@/api/client'
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
+import { useAuthSelfRealtime } from '@/composables/identity/useAuthSelfRealtime'
 import { ApiError, type ApiResponse, type TwoFactorSetupPayload } from '@/api/types'
 import { safeOtpAuthUrl, safeSvgUrl } from '@/utils/safeUrl'
 
@@ -15,6 +16,12 @@ const router = useRouter()
 const { t } = useI18n()
 const { user, fetchMe } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
+const { subscribe: subscribeAuthSelf, unsubscribe: unsubscribeAuthSelf } = useAuthSelfRealtime()
+
+const authSelfHandlers = {
+  onSecurityStateChanged: () => { void fetchMe() },
+  onAuthStateChanged: () => { void fetchMe() },
+}
 
 type Status = 'idle' | 'setup' | 'enabled'
 
@@ -38,6 +45,11 @@ onMounted(() => {
   } else {
     status.value = 'idle'
   }
+  subscribeAuthSelf(authSelfHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeAuthSelf(authSelfHandlers)
 })
 
 async function startSetup(): Promise<void> {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -6,7 +7,9 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useSubscriptions } from '@/composables/service/useSubscriptions'
+import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
 import { useDetailLoader } from '@/composables/useDetailLoader'
+import { useEchoResync } from '@/composables/useEcho'
 import { SUBSCRIPTION_STATUS_BADGE } from '@/utils/statusBadge'
 
 const route = useRoute()
@@ -18,6 +21,20 @@ const { data: subscription, loading, error: loadError, load } = useDetailLoader(
   () => fetchOne(route.params.id as string),
   { fallbackMessage: t('web.payments.subscriptions.failed_load') },
 )
+
+// Live update: this subscription row edited/deleted elsewhere reloads it.
+const { subscribeSubscriptionList, unsubscribeSubscriptionList } = usePaymentRealtime()
+const realtimeHandlers = () => { void load() }
+
+onMounted(() => {
+  subscribeSubscriptionList(realtimeHandlers)
+})
+
+onUnmounted(() => {
+  unsubscribeSubscriptionList(realtimeHandlers)
+})
+
+useEchoResync(() => { void load() })
 </script>
 
 <template>
