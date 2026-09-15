@@ -18,6 +18,16 @@ Contract reminders:
 - `wrangler.jsonc` `vars` are runtime isolate env and never reach the browser bundle — never put `VITE_*` there.
 - Vite mode and Wrangler env must stay aligned (`production`, `sandbox`, or `staging` on both sides). The npm scripts and the workflow below enforce the pairing; never mix them by hand.
 
+## Pending environment values
+
+The deploy map above describes **topology only** — which branch bakes which env file into which Worker. Two tracked mode files still carry provisional values (each marked with an inline `TODO` in the file):
+
+- `.env.production` — `VITE_API_BASE_URL` still points at the **sandbox** API host, so the production Worker currently talks to the sandbox Laravel instance. Pre-existing; must be swapped to the production API origin before launch.
+- `.env.staging` — `VITE_API_BASE_URL` uses the mirrored staging host pattern, but the staging Laravel instance is not provisioned yet.
+- `.env.staging` — `VITE_HCAPTCHA_SITE_KEY` and `VITE_PUSHER_APP_KEY` are copies of the sandbox values until a dedicated staging hCaptcha pair / Pusher app exists.
+
+Swap these per environment; do not move the values into the docs.
+
 ## One-time prerequisites
 
 ### Cloudflare API token
@@ -43,6 +53,22 @@ Repo **Settings → Secrets and variables → Actions**:
 - `main-sandbox` and `main-staging` are cut from `main` once (`git checkout -b main-sandbox main && git push -u origin main-sandbox`, same for `main-staging`); keep them merge-synchronized with `main` afterwards. Gotcha: if the first push only creates the branch from a commit that was already pushed elsewhere, the Actions tab may stay empty for the new branch — push a fresh commit to trigger the deploy (`git commit --allow-empty -m "trigger main-sandbox deploy" && git push`).
 - The former `sandbox` branch is retired (`git push origin --delete sandbox`); it is superseded by `main-sandbox`. Deleting the branch does **not** delete the `monolith-spa-sandbox` Worker — the Worker is fed by `main-sandbox` now.
 - The Workers themselves do not need to exist in advance — the first CI deploy creates `monolith-spa-prod` / `monolith-spa-sandbox` / `monolith-spa-staging` (a local `npm run deploy:<env>` works too).
+
+### Adding another environment
+
+Adding an environment (new branch + new Worker) touches six files plus the docs. Miss the resolver arm in `deploy.yml` and the deploy hard-fails with `Unmapped deploy branch <name>`; miss the Vite mode or the Wrangler env and the bundle bakes the wrong API origin.
+
+| File | Change |
+|------|--------|
+| `wrangler.jsonc` | Add `env.<env>` with the Worker `name` |
+| `.env.<env>` | New tracked mode file (mirror an existing one) |
+| `.gitignore` | Add `!.env.<env>` to the allowlist — `.env*` is ignored by default |
+| `package.json` | Add `deploy:<env>` = `cross-env CLOUDFLARE_ENV=<env>` + `vite build --mode <env>` + `wrangler deploy --env <env>` |
+| `.github/workflows/deploy.yml` | Add the branch to `on.push.branches` **and** a `case` arm in the resolver step |
+| `.github/workflows/ci.yml` | Add the branch to `on.push.branches` so direct pushes still run CI |
+| Docs | `README.md` deployment table, the deploy map here, Monolith `docs/integration/project-overview.md` Deploy row |
+
+Then create the branch from `main`, push, and confirm the first run logs `Uploaded <worker-name>` for that environment.
 
 ## Workflow
 
