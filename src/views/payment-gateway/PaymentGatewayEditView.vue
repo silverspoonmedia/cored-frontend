@@ -9,6 +9,7 @@ import SubmitButton from '@/components/SubmitButton.vue'
 import { usePaymentGateways } from '@/composables/payment-gateway/usePaymentGateways'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { ApiError } from '@/api/types'
 
 const route = useRoute()
@@ -28,6 +29,11 @@ const form = reactive({
   priority: 0,
   is_active: true,
 })
+
+// Trailing breadcrumb crumb: the edited gateway's display name, so the crumb
+// reads `Gateways / Edit / <name>` instead of exposing the uuid route param.
+// Gated on `isEdit` — create holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.display_name || form.name : null))
 
 function fieldError(field: string): string | null {
   const list = errors.value[field]

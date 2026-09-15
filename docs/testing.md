@@ -20,6 +20,7 @@ Vitest (`vitest run`), tests in `tests/*.test.ts`. CI runs `type-check` → `che
 | i18n | `i18n.test.ts`, `settingsI18n.test.ts`, `translatableLocaleMap.test.ts` | locale mapping, settings label lookup (`tm()`/`rt()`), translatable map key normalization (backend-keyed prefill read, `zh-CN` alias merge, one-to-one locales) |
 | URL safety | `safeUrl.test.ts`, `safeRedirect.test.ts` | scheme/credential rejection, internal-redirect rules |
 | Misc contracts | `notificationTarget.test.ts`, `providerByKey.test.ts`, `vkStr1Theme.test.ts`, `vtualCredentialTestUnwrap.test.ts` | deep-link resolver, provider map, Valkivid3 theme, credential unwrap |
+| Breadcrumbs | `breadcrumb.test.ts` | chain order root-first, `labelKey` over `titleKey` fallback, routes without breadcrumb meta still get one crumb, param forwarding to a param-bound parent, unresolvable parent stops the chain, cycle/depth guard, entity-label normalization (trim, blank/non-string to nothing), entity crumb appended only for the current route and never as a raw/empty label |
 
 ## Conventions
 

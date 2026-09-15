@@ -11,6 +11,7 @@ import { useServicesHydrate } from '@/composables/service/useServicesHydrate'
 import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { isTerminalBatchError } from '@/api/batch'
 import { ApiError, type ServicePrice } from '@/api/types'
 
@@ -38,6 +39,11 @@ const form = reactive({
   status: 'active',
   prices: [] as ServicePrice[],
 })
+
+// Trailing breadcrumb crumb: the edited service's name, so the crumb reads
+// `Services / Edit / <name>` instead of exposing the uuid route param. Gated on
+// `isEdit` — the create screen holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.name : null))
 
 const billingIntervals = ref<Record<string, string>>({})
 const planKinds = ref<Record<string, string>>({ '': t('web.services.form.none_option') })

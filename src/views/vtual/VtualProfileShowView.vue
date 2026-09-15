@@ -10,6 +10,7 @@ import VtualProfileMetaForm from '@/components/vtual/VtualProfileMetaForm.vue'
 import VtualProfileChannelsCard from '@/components/vtual/VtualProfileChannelsCard.vue'
 import VtualProfileLinksCard from '@/components/vtual/VtualProfileLinksCard.vue'
 import { useVtualProfileShow } from '@/composables/vtual/useVtualProfileShow'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { safeHttpUrl } from '@/utils/safeUrl'
@@ -70,6 +71,10 @@ const {
 // Socket-outage recovery: channel snapshots missed while disconnected are
 // re-pulled by the same handler the realtime snapshot subscription uses.
 useEchoResync(() => { void handleRefreshChannels() })
+
+// Trailing breadcrumb crumb: the loaded creator's display name, so the crumb
+// reads `Profiles / <display name>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => creator.value?.display_name ?? null)
 
 const canMutate = computed(() => hasPermission('edit vtual creator') || creator.value?.my_role === 'owner' || creator.value?.my_role === 'editor')
 const canAcceptAnyway = computed(() => hasPermission('manage any vtual resource'))

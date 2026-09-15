@@ -12,6 +12,7 @@ import { useActivityLogs } from '@/composables/activity-log/useActivityLogs'
 import { useUsersHydrate } from '@/composables/identity/useUsersHydrate'
 import { useAlert } from '@/composables/useAlert'
 import { useAdminRealtime } from '@/composables/useAdminRealtime'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { useEchoResync } from '@/composables/useEcho'
 import { ApiError, type ApiResponse, type UserManagement, type ActivityLog } from '@/api/types'
 
@@ -31,6 +32,10 @@ const activityLogs = ref<ActivityLog[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const errors = ref<Record<string, string[]>>({})
+
+// Trailing breadcrumb crumb: the loaded record's name, so the crumb reads
+// `Users / Edit / <name>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => user.value?.name ?? null)
 
 const form = reactive({
   name: '',

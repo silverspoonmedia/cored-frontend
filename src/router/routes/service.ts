@@ -19,7 +19,11 @@ export const subscriptionRoutes: RouteRecordRaw[] = [
     path: '/apps/subscriptions/create',
     name: 'subscriptions.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.payments.subscriptions.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.payments.subscriptions.create_title',
+      breadcrumb: { parent: 'subscriptions.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -32,7 +36,11 @@ export const subscriptionRoutes: RouteRecordRaw[] = [
     path: '/apps/subscriptions/:id/edit',
     name: 'subscriptions.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.payments.subscriptions.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.payments.subscriptions.edit_title',
+      breadcrumb: { parent: 'subscriptions.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -45,7 +53,11 @@ export const subscriptionRoutes: RouteRecordRaw[] = [
     path: '/apps/subscriptions/:id',
     name: 'subscriptions.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.payments.subscriptions.show_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.payments.subscriptions.show_title',
+      breadcrumb: { parent: 'subscriptions.index.view' },
+    },
     children: [
       {
         path: '',
@@ -61,7 +73,11 @@ export const serviceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/services',
     name: 'services.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.services.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.services.title',
+      breadcrumb: { labelKey: 'web.services.breadcrumb' },
+    },
     children: [
       {
         path: '',
@@ -74,7 +90,11 @@ export const serviceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/services/create',
     name: 'services.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.services.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.services.create_title',
+      breadcrumb: { parent: 'services.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -87,7 +107,11 @@ export const serviceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/services/:id/edit',
     name: 'services.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.services.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.services.edit_title',
+      breadcrumb: { parent: 'services.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -100,7 +124,11 @@ export const serviceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/services/:id',
     name: 'services.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.services.show_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.services.show_title',
+      breadcrumb: { parent: 'services.index.view' },
+    },
     children: [
       {
         path: '',
@@ -116,7 +144,11 @@ export const servicePurchaseRoutes: RouteRecordRaw[] = [
     path: '/apps/service-purchases/:id',
     name: 'service-purchases.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.services.purchase_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.services.purchase_title',
+      breadcrumb: { parent: 'services.index.view' },
+    },
     children: [
       {
         path: '',

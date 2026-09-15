@@ -73,11 +73,11 @@ watch(themeEffective, () => syncOverlayScrollbarTheme())
               <h3 class="mb-0">{{ pageTitle }}</h3>
             </div>
             <div class="col-sm-6">
-              <nav aria-label="breadcrumb">
+              <nav v-if="breadcrumbs.length" aria-label="breadcrumb">
                 <ol class="breadcrumb float-sm-end">
                   <li v-for="(crumb, idx) in breadcrumbs" :key="idx" class="breadcrumb-item" :class="{ active: idx === breadcrumbs.length - 1 }" :aria-current="idx === breadcrumbs.length - 1 ? 'page' : undefined">
-                    <router-link v-if="crumb.routeName && idx < breadcrumbs.length - 1" :to="{ name: crumb.routeName }" class="text-decoration-none">{{ crumb.label }}</router-link>
-                    <span v-else>{{ crumb.label }}</span>
+                    <router-link v-if="crumb.routeName && idx < breadcrumbs.length - 1" :to="{ name: crumb.routeName, params: crumb.params }" class="text-decoration-none">{{ crumb.label }}</router-link>
+                    <span v-else :title="crumb.label">{{ crumb.label }}</span>
                   </li>
                 </ol>
               </nav>

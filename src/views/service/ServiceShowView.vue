@@ -11,6 +11,7 @@ import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import type { Service } from '@/api/types'
 
 const route = useRoute()
@@ -22,6 +23,11 @@ const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 
 const service = ref<Service | null>(null)
+
+// Trailing breadcrumb crumb: the loaded service's name, so the crumb reads
+// `Services / <name>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => service.value?.name ?? null)
+
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 const submitting = ref(false)

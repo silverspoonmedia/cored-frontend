@@ -35,7 +35,11 @@ export const paymentGatewayRoutes: RouteRecordRaw[] = [
     path: '/apps/payment-gateways/create',
     name: 'payment-gateways.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.payments.gateways.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.payments.gateways.create_title',
+      breadcrumb: { parent: 'payment-gateways.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -48,7 +52,11 @@ export const paymentGatewayRoutes: RouteRecordRaw[] = [
     path: '/apps/payment-gateways/:id/edit',
     name: 'payment-gateways.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.payments.gateways.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.payments.gateways.edit_title',
+      breadcrumb: { parent: 'payment-gateways.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -77,7 +85,11 @@ export const invoiceRoutes: RouteRecordRaw[] = [
     path: '/apps/invoices/:id',
     name: 'invoices.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.payments.invoices.show_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.payments.invoices.show_title',
+      breadcrumb: { parent: 'invoices.index.view' },
+    },
     children: [
       {
         path: '',

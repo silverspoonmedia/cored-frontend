@@ -13,6 +13,7 @@ import { useInferenceRealtime } from '@/composables/inference/useInferenceRealti
 import { useEchoResync } from '@/composables/useEcho'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import type { AiModelCardDetail, InferenceUsageEvent } from '@/api/types'
 
 const route = useRoute()
@@ -30,6 +31,11 @@ const { hasPermission } = useAuth()
 const { error: showError } = useAlert()
 
 const card = ref<AiModelCardDetail | null>(null)
+
+// Trailing breadcrumb crumb: the loaded model card's name, so the crumb reads
+// `Model Cards / <display name>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => card.value?.display_name ?? null)
+
 const events = ref<InferenceUsageEvent[]>([])
 const loading = ref(true)
 const loadError = ref<string | null>(null)

@@ -6,7 +6,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/profiles',
     name: 'vtual.profiles.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-profiles.page_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-profiles.page_title',
+      breadcrumb: { labelKey: 'web.vtual.profiles.title' },
+    },
     children: [
       {
         path: '',
@@ -19,7 +23,10 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/vtuber',
     name: 'vtual.vtuber.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-vtuber.hub_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-vtuber.hub_title',
+    },
     children: [
       {
         path: '',
@@ -32,7 +39,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/orphans',
     name: 'vtual.orphans.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-orphans.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-orphans.title',
+      breadcrumb: { labelKey: 'web.vtual-orphans.breadcrumb' },
+    },
     children: [
       {
         path: '',
@@ -45,7 +56,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/orphans/create',
     name: 'vtual.orphans.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-orphans.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-orphans.create_title',
+      breadcrumb: { parent: 'vtual.orphans.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -58,7 +73,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/orphans/:id/edit',
     name: 'vtual.orphans.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-orphans.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-orphans.edit_title',
+      breadcrumb: { parent: 'vtual.orphans.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -71,7 +90,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/events',
     name: 'vtual.events.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-events.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-events.title',
+      breadcrumb: { labelKey: 'web.vtual-events.breadcrumb' },
+    },
     children: [
       {
         path: '',
@@ -84,7 +107,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/events/create',
     name: 'vtual.events.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-events.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-events.create_title',
+      breadcrumb: { parent: 'vtual.events.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -97,7 +124,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/events/:id/edit',
     name: 'vtual.events.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-events.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-events.edit_title',
+      breadcrumb: { parent: 'vtual.events.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -110,7 +141,12 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/managements',
     name: 'vtual.managements.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-managements.title' },    children: [
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-managements.title',
+      breadcrumb: { labelKey: 'web.vtual-managements.breadcrumb' },
+    },
+    children: [
       {
         path: '',
         name: 'vtual.managements.index.view',
@@ -122,7 +158,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/managements/create',
     name: 'vtual.managements.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-managements.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-managements.create_title',
+      breadcrumb: { parent: 'vtual.managements.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -135,7 +175,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/managements/:id/edit',
     name: 'vtual.managements.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-managements.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-managements.edit_title',
+      breadcrumb: { parent: 'vtual.managements.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -148,7 +192,10 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/invites/respond',
     name: 'vtual.invites.respond',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-invites.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-invites.title',
+    },
     children: [
       {
         path: '',
@@ -161,7 +208,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/platform-credentials',
     name: 'vtual.platform-credentials.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-platform-credentials.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-platform-credentials.title',
+      breadcrumb: { labelKey: 'web.vtual-platform-credentials.breadcrumb' },
+    },
     children: [
       {
         path: '',
@@ -174,7 +225,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/platform-credentials/probe',
     name: 'vtual.platform-credentials.probe',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual.probe.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual.probe.title',
+      breadcrumb: { parent: 'vtual.platform-credentials.index.view' },
+    },
     children: [
       {
         path: '',
@@ -187,7 +242,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/platform-credentials/:platformId',
     name: 'vtual.platform-credentials.platform',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual.credentials.list' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual.credentials.list',
+      breadcrumb: { parent: 'vtual.platform-credentials.index.view' },
+    },
     children: [
       {
         path: '',
@@ -200,7 +259,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/platform-credentials/:platformId/create',
     name: 'vtual.platform-credentials.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual.admin.credentials.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual.admin.credentials.create_title',
+      breadcrumb: { parent: 'vtual.platform-credentials.index.view' },
+    },
     children: [
       {
         path: '',
@@ -213,7 +276,11 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/credentials/:id/edit',
     name: 'vtual.platform-credentials.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual.admin.credentials.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual.admin.credentials.edit_title',
+      breadcrumb: { parent: 'vtual.platform-credentials.index.view' },
+    },
     children: [
       {
         path: '',
@@ -229,7 +296,11 @@ export const vtualAdminLateRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/profiles/:id',
     name: 'vtual.profiles.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual.profiles.manage_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual.profiles.manage_title',
+      breadcrumb: { parent: 'vtual.profiles.index.view' },
+    },
     children: [
       {
         path: '',
@@ -260,7 +331,11 @@ export const vtualAdminLateRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/vtubers/:slug',
     name: 'vtual.vtuber.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-vtuber.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-vtuber.title',
+      breadcrumb: { parent: 'vtual.vtuber.index.view' },
+    },
     children: [
       {
         path: '',
@@ -273,7 +348,11 @@ export const vtualAdminLateRoutes: RouteRecordRaw[] = [
     path: '/apps/vtual/vtubers/:slug/claim',
     name: 'vtual.vtuber.claim',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.vtual-vtuber.claim_page_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual-vtuber.claim_page_title',
+      breadcrumb: { parent: 'vtual.vtuber.show.view' },
+    },
     children: [
       {
         path: '',

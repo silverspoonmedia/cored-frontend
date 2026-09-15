@@ -1,146 +1,143 @@
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
+import {
+  appendEntityCrumb,
+  buildBreadcrumbChain,
+  normalizeEntityLabel,
+  paramKeysOf,
+  pickParams,
+  type BreadcrumbLocation,
+  type BreadcrumbParams,
+} from '@/utils/breadcrumb'
 
-interface BreadcrumbItem {
+export interface BreadcrumbItem {
   label: string
   routeName?: string
+  params?: BreadcrumbParams
 }
 
-interface BreadcrumbConfig {
-  parent?: string
-  labelKey: string
-  labelParams?: Record<string, unknown>
-  routeName?: string
+/**
+ * Entity title published by the active screen — the loaded record's name, never
+ * the raw route param. `entityTitleOwner` marks which screen published it, so a
+ * view being torn down cannot clear a title the incoming view already set.
+ */
+const entityTitle = ref<string | null>(null)
+const entityTitlePath = ref<string | null>(null)
+let entityTitleOwner: symbol | null = null
+
+/**
+ * Publish the current screen's record title as the trailing breadcrumb crumb.
+ *
+ * `source` returns the hydrated record's title (`null`/empty while loading or
+ * when the record is missing), so the crumb appears only once a real name is
+ * available. The label is re-read whenever the path or the title changes, and a
+ * blank result clears the crumb. Call it from the view — see `docs/routes.md`.
+ */
+export function useBreadcrumbTitle(source: () => string | null | undefined): void {
+  const route = useRoute()
+  const owner = Symbol('breadcrumb-entity')
+  const path = computed(() => route.path)
+
+  function claim(label: string | null): void {
+    entityTitleOwner = owner
+    entityTitlePath.value = path.value
+    entityTitle.value = label
+  }
+
+  // One watcher for both triggers: a new path (previous record's name must never
+  // survive into the next screen) and a new title (record hydrated, or cleared on
+  // load error). Re-reading the source on a path change matters for a view that
+  // navigates to itself — `VtualVtuberShowView` canonicalizes its slug with
+  // `router.replace`, and the record is already loaded, so a path-only reset
+  // would blank the crumb for good.
+  watch([path, source], () => claim(normalizeEntityLabel(source())), { immediate: true })
+
+  onUnmounted(() => {
+    if (entityTitleOwner !== owner) return
+
+    entityTitleOwner = null
+    entityTitlePath.value = null
+    entityTitle.value = null
+  })
 }
 
-const BREADCRUMB_MAP: Record<string, BreadcrumbConfig> = {
-  'dashboard.view': { labelKey: 'menu.dashboard', routeName: 'dashboard.view' },
-
-  'users.index.view': { labelKey: 'web.users.breadcrumb', routeName: 'users.index.view' },
-  'users.create.view': { parent: 'users.index.view', labelKey: 'ui.breadcrumb.add' },
-  'users.edit.view': { parent: 'users.index.view', labelKey: 'ui.breadcrumb.edit' },
-
-  'menus.index.view': { labelKey: 'web.menus.breadcrumb', routeName: 'menus.index.view' },
-  'menus.create.view': { parent: 'menus.index.view', labelKey: 'ui.breadcrumb.add' },
-  'menus.edit.view': { parent: 'menus.index.view', labelKey: 'ui.breadcrumb.edit' },
-  'menus.trashed.view': { parent: 'menus.index.view', labelKey: 'web.menus.trashed_breadcrumb' },
-
-  'activity-logs.index.view': { labelKey: 'web.activity-log.breadcrumb', routeName: 'activity-logs.index.view' },
-  'activity-logs.show.view': { parent: 'activity-logs.index.view', labelKey: 'web.activity-log.show_breadcrumb' },
-
-  'error-logs.index.view': { labelKey: 'web.error-log.breadcrumb', routeName: 'error-logs.index.view' },
-  'error-logs.show.view': { parent: 'error-logs.index.view', labelKey: 'web.error-log.show_breadcrumb' },
-
-  'notifications.index.view': { labelKey: 'web.notifications.breadcrumb', routeName: 'notifications.index.view' },
-
-  'notification-audiences.index.view': { labelKey: 'web.notification-audiences.title', routeName: 'notification-audiences.index.view' },
-  'notification-audiences.edit.view': { parent: 'notification-audiences.index.view', labelKey: 'ui.breadcrumb.edit' },
-
-  'profile.password.edit.view': { labelKey: 'web.profile.password_title', routeName: 'profile.password.edit.view' },
-  'profile.two-factor.edit.view': { labelKey: 'menu.two_factor', routeName: 'profile.two-factor.edit.view' },
-  'profile.connections.view': { labelKey: 'menu.connected_accounts', routeName: 'profile.connections.view' },
-
-  'currencies.index.view': { labelKey: 'web.currencies.title', routeName: 'currencies.index.view' },
-
-  'settings.index.view': { labelKey: 'web.settings.title', routeName: 'settings.index.view' },
-  'settings.group.view': { parent: 'settings.index.view', labelKey: 'web.settings.title' },
-
-  'domain-access.index.view': { labelKey: 'web.domain-access.card_title', routeName: 'domain-access.index.view' },
-
-  'services.index.view': { labelKey: 'web.services.breadcrumb', routeName: 'services.index.view' },
-  'services.create.view': { parent: 'services.index.view', labelKey: 'ui.breadcrumb.add' },
-  'services.edit.view': { parent: 'services.index.view', labelKey: 'ui.breadcrumb.edit' },
-  'services.show.view': { parent: 'services.index.view', labelKey: 'web.services.show_title' },
-  'service-purchases.show.view': { parent: 'services.index.view', labelKey: 'web.services.purchase_title' },
-
-  'invoices.index.view': { labelKey: 'web.payments.invoices.title', routeName: 'invoices.index.view' },
-  'invoices.show.view': { parent: 'invoices.index.view', labelKey: 'web.payments.invoices.show_title' },
-
-  'payments.income.index.view': { labelKey: 'web.payments.income.title', routeName: 'payments.income.index.view' },
-
-  'payment-channels.index.view': { labelKey: 'web.payments.channels.title', routeName: 'payment-channels.index.view' },
-
-  'payment-gateways.index.view': { labelKey: 'web.payments.gateways.title', routeName: 'payment-gateways.index.view' },
-  'payment-gateways.create.view': { parent: 'payment-gateways.index.view', labelKey: 'ui.breadcrumb.add' },
-  'payment-gateways.edit.view': { parent: 'payment-gateways.index.view', labelKey: 'ui.breadcrumb.edit' },
-
-  'subscriptions.index.view': { labelKey: 'web.payments.subscriptions.title', routeName: 'subscriptions.index.view' },
-  'subscriptions.create.view': { parent: 'subscriptions.index.view', labelKey: 'ui.breadcrumb.add' },
-  'subscriptions.edit.view': { parent: 'subscriptions.index.view', labelKey: 'ui.breadcrumb.edit' },
-  'subscriptions.show.view': { parent: 'subscriptions.index.view', labelKey: 'web.payments.subscriptions.show_title' },
-
-  'inference.model-cards.index.view': { labelKey: 'web.inference.model_cards.title', routeName: 'inference.model-cards.index.view' },
-  'inference.model-cards.create.view': { parent: 'inference.model-cards.index.view', labelKey: 'ui.breadcrumb.add' },
-  'inference.model-cards.edit.view': { parent: 'inference.model-cards.index.view', labelKey: 'ui.breadcrumb.edit' },
-  'inference.model-cards.show.view': { parent: 'inference.model-cards.index.view', labelKey: 'web.inference.model_cards.show_title' },
-
-  'inference.providers.index.view': { labelKey: 'web.inference.providers.title', routeName: 'inference.providers.index.view' },
-  'inference.providers.create.view': { parent: 'inference.providers.index.view', labelKey: 'ui.breadcrumb.add' },
-  'inference.providers.edit.view': { parent: 'inference.providers.index.view', labelKey: 'ui.breadcrumb.edit' },
-  'inference.providers.show.view': { parent: 'inference.providers.index.view', labelKey: 'web.inference.providers.show_title' },
-
-  'inference.usage-events.index.view': { labelKey: 'web.inference.usage.title', routeName: 'inference.usage-events.index.view' },
-
-  'vtual.profiles.index.view': { labelKey: 'web.vtual.profiles.title', routeName: 'vtual.profiles.index.view' },
-  'vtual.profiles.show.view': { parent: 'vtual.profiles.index.view', labelKey: 'web.vtual.profiles.manage_title' },
-
-  'vtual.vtuber.index.view': { labelKey: 'web.vtual-vtuber.hub_title', routeName: 'vtual.vtuber.index.view' },
-  'vtual.vtuber.show.view': { parent: 'vtual.vtuber.index.view', labelKey: 'web.vtual-vtuber.title' },
-  'vtual.vtuber.claim.view': { parent: 'vtual.vtuber.show.view', labelKey: 'web.vtual-vtuber.claim_page_title' },
-
-  'vtual.orphans.index.view': { labelKey: 'web.vtual-orphans.breadcrumb', routeName: 'vtual.orphans.index.view' },
-  'vtual.orphans.create.view': { parent: 'vtual.orphans.index.view', labelKey: 'web.vtual-orphans.create_title' },
-  'vtual.orphans.edit.view': { parent: 'vtual.orphans.index.view', labelKey: 'web.vtual-orphans.edit_title' },
-
-  'vtual.platform-credentials.index.view': { labelKey: 'web.vtual-platform-credentials.breadcrumb', routeName: 'vtual.platform-credentials.index.view' },
-  'vtual.platform-credentials.platform.view': { parent: 'vtual.platform-credentials.index.view', labelKey: 'web.vtual.credentials.list' },
-  'vtual.platform-credentials.create.view': { parent: 'vtual.platform-credentials.index.view', labelKey: 'web.vtual.admin.credentials.create_title' },
-  'vtual.platform-credentials.edit.view': { parent: 'vtual.platform-credentials.index.view', labelKey: 'web.vtual.admin.credentials.edit_title' },
-  'vtual.platform-credentials.probe.view': { parent: 'vtual.platform-credentials.index.view', labelKey: 'web.vtual.probe.title' },
-
-  'product-activations.index.view': { labelKey: 'web.product-activations.title', routeName: 'product-activations.index.view' },
-  'product-activations.show.view': { parent: 'product-activations.index.view', labelKey: 'ui.breadcrumb.edit' },
-
-  'archivd.microstock-usage.view': { labelKey: 'web.archivd.microstock_title', routeName: 'archivd.microstock-usage.view' },
-  'archivd.blocklist.index.view': { labelKey: 'web.archivd.blocklist_title', routeName: 'archivd.blocklist.index.view' },
-}
-
+/**
+ * Breadcrumb items for the current route, root first.
+ *
+ * Static labels and parents come from `meta.titleKey` / `meta.breadcrumb` on the
+ * route records (see `docs/routes.md`); the optional trailing crumb comes from
+ * `useBreadcrumbTitle()` in the view.
+ */
 export function useBreadcrumbs() {
   const route = useRoute()
-  const { t } = useI18n()
+  const router = useRouter()
+  const { t, locale } = useI18n()
+
+  // Params each named route declares, so a parent link receives only what its own
+  // path needs — forwarding the child's whole param bag makes vue-router warn
+  // (`Discarded invalid param(s)`) on every navigation.
+  const routeParamKeys = new Map<string, string[]>()
+  for (const record of router.getRoutes()) {
+    if (typeof record.name === 'string') routeParamKeys.set(record.name, paramKeysOf(record.path))
+  }
+
+  /**
+   * Resolve a parent crumb by route name. The resolved location carries the
+   * `meta` merged down its own `matched` chain (that is how a `.view` child
+   * inherits its family record's `titleKey` / `breadcrumb`), plus that route's
+   * params so the crumb stays a working link — `/apps/vtual/vtubers/:slug` needs
+   * the `slug` of the page we came from.
+   */
+  function resolveParent(name: string, params: BreadcrumbParams): BreadcrumbLocation | null {
+    try {
+      const resolved = router.resolve({
+        name,
+        params: pickParams(routeParamKeys.get(name) ?? [], params),
+      })
+
+      return {
+        name: String(resolved.name ?? name),
+        meta: resolved.meta,
+        params: resolved.params,
+      }
+    } catch {
+      // Unknown name (route drifted) or a param the current route cannot supply:
+      // end the chain instead of throwing while rendering.
+      return null
+    }
+  }
 
   const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-    const items: BreadcrumbItem[] = []
-    const routeName = route.name as string | null
-    if (!routeName) return items
+    void locale.value
+    const routeName = String(route.name ?? '')
+    if (!routeName) return []
 
     const settingsGroup = settingsGroupFromRoute(route)
     if (settingsGroup && routeName.startsWith('settings.') && routeName !== 'settings.index.view') {
-      items.push({ label: t('web.settings.title'), routeName: 'settings.index.view' })
-      items.push({ label: t(settingsGroupLabelKey(settingsGroup)) })
-      return items
+      return [
+        { label: t('web.settings.title'), routeName: 'settings.index.view' },
+        { label: t(settingsGroupLabelKey(settingsGroup)) },
+      ]
     }
 
-    const config = BREADCRUMB_MAP[routeName]
-    if (!config) return items
+    const chain = buildBreadcrumbChain({
+      start: { name: routeName, meta: route.meta, params: route.params },
+      resolve: resolveParent,
+    })
 
-    const chain: BreadcrumbConfig[] = []
-    let current: BreadcrumbConfig | undefined = config
-    while (current) {
-      chain.unshift(current)
-      current = current.parent ? BREADCRUMB_MAP[current.parent] : undefined
-    }
+    const entity =
+      entityTitle.value !== null && entityTitlePath.value === route.path
+        ? { routeName, label: entityTitle.value }
+        : null
 
-    for (const item of chain) {
-      items.push({
-        label: t(item.labelKey, item.labelParams ?? {}),
-        routeName: item.routeName,
-      })
-    }
-
-    return items
+    return appendEntityCrumb(chain, routeName, entity).map((crumb) => ({
+      label: crumb.labelText ?? t(crumb.labelKey ?? ''),
+      // The trailing crumb is never a link (AppLayout renders it as text anyway).
+      routeName: crumb.routeName.length > 0 ? crumb.routeName : undefined,
+      params: crumb.params,
+    }))
   })
 
   return { breadcrumbs }

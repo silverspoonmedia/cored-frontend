@@ -6,7 +6,11 @@ export const activityLogRoutes: RouteRecordRaw[] = [
     path: '/apps/activity-logs',
     name: 'activity-logs.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.activity-log.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.activity-log.title',
+      breadcrumb: { labelKey: 'web.activity-log.breadcrumb' },
+    },
     children: [
       {
         path: '',
@@ -19,7 +23,11 @@ export const activityLogRoutes: RouteRecordRaw[] = [
     path: '/apps/activity-logs/:id',
     name: 'activity-logs.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.activity-log.show_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.activity-log.show_title',
+      breadcrumb: { parent: 'activity-logs.index.view', labelKey: 'web.activity-log.show_breadcrumb' },
+    },
     children: [
       {
         path: '',

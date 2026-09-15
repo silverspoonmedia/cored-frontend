@@ -19,7 +19,11 @@ export const notificationAudienceRoutes: RouteRecordRaw[] = [
     path: '/apps/notification-audiences/:type/edit',
     name: 'notification-audiences.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.notification-audiences.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.notification-audiences.edit_title',
+      breadcrumb: { parent: 'notification-audiences.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -35,7 +39,11 @@ export const notificationInboxRoutes: RouteRecordRaw[] = [
     path: '/apps/notifications',
     name: 'notifications.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.notifications.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.notifications.title',
+      breadcrumb: { labelKey: 'web.notifications.breadcrumb' },
+    },
     children: [
       {
         path: '',

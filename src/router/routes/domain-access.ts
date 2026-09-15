@@ -6,7 +6,11 @@ export const domainAccessRoutes: RouteRecordRaw[] = [
     path: '/apps/domain-access',
     name: 'domain-access.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'domain-access.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'domain-access.title',
+      breadcrumb: { labelKey: 'web.domain-access.card_title' },
+    },
     children: [
       {
         path: '',

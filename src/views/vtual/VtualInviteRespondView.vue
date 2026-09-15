@@ -8,6 +8,7 @@ import { useVtualInvites } from '@/composables/vtual/useVtualInvites'
 import { useVtualCreatorInvites } from '@/composables/vtual/useVtualCreatorInvites'
 import { useNavigation } from '@/composables/navigation/useNavigation'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { ApiError } from '@/api/types'
 import type { VtualManagementInvite, VtualCreatorInvite } from '@/api/types'
 
@@ -34,6 +35,10 @@ const isCreator = computed(() => kind === 'creator')
 const managementName = computed(() => isCreator.value
   ? creatorInvite.value?.management?.name ?? ''
   : invite.value?.management?.name ?? '')
+
+// Trailing breadcrumb crumb: the invited management's name, so the crumb reads
+// `Invitations / <management>` instead of the opaque `?token=` in the URL.
+useBreadcrumbTitle(() => managementName.value || null)
 
 onMounted(async () => {
   if (!token) {

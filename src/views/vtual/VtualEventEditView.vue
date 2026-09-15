@@ -7,6 +7,7 @@ import FormSelect from '@/components/FormSelect.vue'
 import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useVtualEventEdit } from '@/composables/vtual/useVtualEventEdit'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 
 const { t } = useI18n()
 
@@ -21,6 +22,11 @@ const {
   handleSubmit,
   goIndex,
 } = useVtualEventEdit()
+
+// Trailing breadcrumb crumb: the edited event's title, so the crumb reads
+// `Events / Edit / <title>` instead of exposing the uuid route param. Gated on
+// `isEdit` — create holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.title : null))
 </script>
 
 <template>

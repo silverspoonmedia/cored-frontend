@@ -6,7 +6,11 @@ export const archivdMicrostockUsageRoutes: RouteRecordRaw[] = [
     path: '/apps/archivd/microstock-usage',
     name: 'archivd.microstock-usage',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.microstock.usage.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.microstock.usage.title',
+      breadcrumb: { labelKey: 'web.archivd.microstock_title' },
+    },
     children: [
       {
         path: '',
@@ -22,7 +26,10 @@ export const archivdRoutes: RouteRecordRaw[] = [
     path: '/apps/archivd',
     name: 'archivd.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.archivd.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.archivd.title',
+    },
     children: [
       {
         path: '',
@@ -40,7 +47,11 @@ export const archivdRoutes: RouteRecordRaw[] = [
     path: '/apps/archivd/files/:id',
     name: 'archivd.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.archivd.show_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.archivd.show_title',
+      breadcrumb: { parent: 'archivd.index.view' },
+    },
     children: [
       {
         path: '',
@@ -53,7 +64,11 @@ export const archivdRoutes: RouteRecordRaw[] = [
     path: '/apps/archivd/trash',
     name: 'archivd.trash',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.archivd.trash_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.archivd.trash_title',
+      breadcrumb: { parent: 'archivd.index.view' },
+    },
     children: [
       {
         path: '',
@@ -66,7 +81,10 @@ export const archivdRoutes: RouteRecordRaw[] = [
     path: '/apps/archivd/blocklist',
     name: 'archivd.blocklist.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.archivd.blocklist_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.archivd.blocklist_title',
+    },
     children: [
       {
         path: '',
@@ -79,7 +97,11 @@ export const archivdRoutes: RouteRecordRaw[] = [
     path: '/apps/archivd/workspaces',
     name: 'archivd.workspaces',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.archivd.workspaces_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.archivd.workspaces_title',
+      breadcrumb: { parent: 'archivd.index.view' },
+    },
     children: [
       {
         path: '',

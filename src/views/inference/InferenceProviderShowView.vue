@@ -15,6 +15,7 @@ import { useEchoResync } from '@/composables/useEcho'
 import { useRatePlanAdmin } from '@/composables/microstock/useRatePlanAdmin'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import type { InferenceProvider } from '@/api/types'
 
 const route = useRoute()
@@ -39,6 +40,11 @@ const {
 } = useRatePlanAdmin(providerId)
 
 const provider = ref<InferenceProvider | null>(null)
+
+// Trailing breadcrumb crumb: the loaded provider's name, so the crumb reads
+// `Providers / <name>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => provider.value?.name ?? null)
+
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 const canManage = computed(() => hasPermission('manage inference catalog'))

@@ -6,6 +6,7 @@ import Card from '@/components/Card.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { useEchoResync } from '@/composables/useEcho'
 import { subscribeVtualCreatorSnapshots, unsubscribeVtualCreatorSnapshots } from '@/composables/vtual/useVtualRealtime'
 import type { VtualVtuberProfile } from '@/api/types'
@@ -17,6 +18,11 @@ const { t } = useI18n()
 const vtual = useVtual()
 
 const profile = ref<VtualVtuberProfile | null>(null)
+
+// Trailing breadcrumb crumb: the loaded profile's display name, so the crumb
+// reads `VTubers / <display name>` instead of exposing the slug route param.
+useBreadcrumbTitle(() => profile.value?.display_name ?? null)
+
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 
