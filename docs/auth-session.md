@@ -22,6 +22,8 @@ After successful login / register / 2FA verify:
 2. `refreshCsrf()` mints a fresh nonce now that `__Host-spa_jwt` is in the jar.
 3. `confirmSession()` (`GET auth/me`, retry once) must succeed **before** navigating. A failed confirm does not navigate.
 
+The settle window is **not** the only trigger for the `TypeError` retry. A peer tab rotating the shared `__Host-spa_csrf` cookie aborts an in-flight request at any time and Chromium reports that as `TypeError: Failed to fetch` (which the user sees as a CORS error). Read-only requests therefore retry unconditionally; mutations keep the settle-window gate because a replayed write could be applied twice. Full policy: [api-client.md — Cross-tab cookie-race retry](api-client.md#cross-tab-cookie-race-retry).
+
 Auth-session POSTs (`login` / `register` / `refresh` / `logout` / forgot-reset / 2FA login) skip `ensureCsrf()` — the server skips CSRF there, and pre-fetching a nonce before the JWT exists creates a duplicate `__Host-spa_csrf` that races the first authenticated `POST /batch` and `POST /broadcasting/auth`.
 
 Canonical chrome order after navigate: one `POST /batch` (Navbar starts / Layout joins) → seed stores → fallback GET only if unseeded **and** not terminal → **then** Echo. `AppLayout` must not `GET navigation/menus` or start nav realtime in parallel with that batch.
@@ -33,6 +35,7 @@ A guest 401 is not session death: `unauthorizedHandler` only `clearAuth()` when 
 - `BroadcastChannel('monolith-auth')` coordinates refresh: only one tab performs `POST auth/refresh`; others wait for `refresh-done` (prevents the blacklist race where two refreshes invalidate each other). Messages: `refresh-request`, `refresh-response`, `refresh-done`, `logout` — **none carry the JWT**.
 - CSRF nonce has the same shared-cookie/per-tab-memory split and its own channel: `BroadcastChannel('monolith-csrf')` broadcasts each fresh nonce; all consumers read through `src/api/csrf.ts` so every tab stays on the same nonce.
 - The 419-retry path uses `refreshCsrfOnce()` — single-flighted across concurrent callers (one nonce mint per 419 burst), so a burst of parallel mutations (Echo channel auth after connect) cannot rotate the shared cookie against each other's retries. Detail: [api-client.md](api-client.md#419-csrf-mismatch).
+- A peer tab's rotation can still abort an in-flight request (the browser hides it as a CORS error); every credentialed request recovers through the shared retry policy in [netRetry.ts](../src/api/netRetry.ts). Detail: [api-client.md](api-client.md#cross-tab-cookie-race-retry).
 
 ## Logout (barrier + epoch)
 
@@ -49,6 +52,6 @@ Backend `remember` preservation across refresh (`rm` claim via `jwt.persistent_c
 
 ## Related
 
-- [api-client.md](api-client.md) — `client.ts` CSRF/419/settle mechanics
+- [api-client.md](api-client.md) — `client.ts` CSRF/419/cookie-race mechanics
 - [worker.md](worker.md) — why no auth logic lives in the Worker
-- Tests: [testing.md](testing.md) (`client.test.ts`, `csrf.test.ts`, `shellHydrate.test.ts`, `authCrossTabLogout.test.ts`)
+- Tests: [testing.md](testing.md) (`client.test.ts`, `csrf.test.ts`, `netRetry.test.ts`, `shellHydrate.test.ts`, `authCrossTabLogout.test.ts`)

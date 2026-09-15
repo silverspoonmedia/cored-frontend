@@ -1,6 +1,6 @@
 # API client (`src/api/`)
 
-The only HTTP layer. Views/composables never call `fetch` directly against the API — they use `client.ts` helpers (`get`/`post`/`put`/`patch`/`del`/`getBlob`/`batch`) or domain composables built on them.
+The only HTTP layer. Views/composables never call `fetch` directly against the API — they use `client.ts` helpers (`get`/`post`/`put`/`patch`/`del`/`getBlob`/`batch`) or domain composables built on them. `src/api/netRetry.ts` is the shared retry policy beneath them.
 
 ## Request conventions
 
@@ -23,16 +23,31 @@ Fallback messages go through `translateFallback(i18n.global.t, key)` from `src/i
 
 ## 419 (CSRF mismatch)
 
-Cross-origin mutation gets 419 → `refreshCsrfOnce()` → retry the original request. Only one retry; auth-session paths are excluded (a 419 there is not a stale nonce).
+Cross-origin mutation gets 419 → `refreshCsrfOnce()` → retry the original request. Up to **two** refresh+retry rounds (not one): `refreshCsrfOnce()` is single-flighted per tab only, so a peer tab can rotate the shared `spa_csrf` cookie again between our mint and our retry. Auth-session paths are excluded (a 419 there is not a stale nonce).
 
 `refreshCsrfOnce()` ([csrf.ts](../src/api/csrf.ts)) is single-flighted across callers: N concurrent 419s (e.g. the channel-auth burst when Echo connects) share ONE nonce mint. Plain per-caller `refreshCsrf()` would rotate the shared `spa_csrf` cookie again and strand the other callers' in-flight retries on a nonce that no longer matches the cookie — repeat 419, hard failure.
+
+## Cross-tab cookie-race retry
+
+Chromium reports a cross-tab `Set-Cookie` collision on the shared `__Host-spa_csrf` cookie as `TypeError: Failed to fetch` — indistinguishable from a CORS error, so a peer tab rotating the nonce surfaces as a random "CORS error" on an arbitrary endpoint. `whenCsrfCookieQuiet()` only covers nonce fetches *this* tab started, so recovery is a retry after the write settles.
+
+One policy, one implementation: `src/api/netRetry.ts` (`withCookieRaceRetry`, `isTransientFetchError`, `COOKIE_RACE_BACKOFF_MS = [50, 150, 400, 800]`). Consumers:
+
+| Consumer | Retry gate |
+|----------|-----------|
+| `client.ts` GET/HEAD, `getBlob`, `POST batch`, `POST broadcasting/auth` | ungated (server-side read-only — a retry cannot double-submit) |
+| `client.ts` other mutations (`PUT`/`PATCH`/`DELETE`, other `POST`) | session-settle window only (Chromium may already have transmitted the aborted request; replaying a real write would apply it twice) |
+| `csrf.ts` `fetchNonce` | ungated |
+| `useShellHydrate.ts` | ungated for a transient `TypeError`, settle window for anything else |
+
+`fetchNonce()` must **not** pass `beforeAttempt: whenCsrfCookieQuiet`: `ensureCsrf()` assigns `pendingFetch` before `fetchNonce` runs, so the quiet gate would await itself and deadlock.
 
 ## 401 handling
 
 - `skipAuthRefresh` paths (`auth/refresh`, `auth/logout`, `auth/me`, `navigation/menus`) never trigger refresh — an `auth/me` 401 means "no session", not "expired JWT".
 - Settle window (5 s after `markSessionIssued()`): 401 retries the original URI with backoff (`SESSION_SETTLE_BACKOFF_MS` = 50/150/400 ms) — never `POST /auth/refresh`, never `clearAuth()`.
 - Outside the window: single-flight `refreshHandler()` (`ensureRefresh` dedupes concurrent callers); on success retry once, on failure `unauthorizedHandler()` + localized `sessionExpired` error.
-- Transient network errors (`TypeError: Failed to fetch` etc.) during the settle window also retry with backoff — a cookie-settle race looks like CORS to the browser.
+- Transient network errors (`TypeError: Failed to fetch` etc.) retry with backoff regardless of the window for read-only requests, and inside the window for mutations — see [Cross-tab cookie-race retry](#cross-tab-cookie-race-retry). A cookie-settle race looks like CORS to the browser.
 
 ## Batch hydration
 
@@ -42,12 +57,16 @@ Cross-origin mutation gets 419 → `refreshCsrfOnce()` → retry the original re
 
 `getBlob(uri)` for CSV/file downloads: same cookie session + settle/401 semantics as `get()`, parses `Content-Disposition` (`filename*=` UTF-8 first). Views combine with `src/utils/download.ts`.
 
+Cross-origin, the header only reaches JS because the API exposes it — `config/cors.php` `exposed_headers` includes `Content-Disposition`. Without that the browser hides it, `filenameFromDisposition()` returns `null`, and callers fall back to a generic name (`useInvoices.ts` → `invoices.csv`). Backend side: `monolith/docs/platform/security.md#cors`.
+
 ## Echo broadcast auth
 
 The Echo authorizer goes through `client.post('broadcasting/auth')` (not a private `fetch`) so it inherits CSRF/419 retry. `AppNavbar` awaits `hydrateShell()` before `initEcho()`. Details: [auth-session.md](auth-session.md) + `monolith/docs/integration/vue-workers-spa.md#auth`.
+
+`broadcasting/auth` is on the read-only POST allowlist, so its transient (cross-tab cookie-race) `TypeError` retries unconditionally — Echo authorizes channels at unpredictable times, usually outside the 5 s settle window. No local retry wrapper exists in `useEcho.ts`; the policy lives in `client.ts` + [netRetry.ts](../src/api/netRetry.ts).
 
 Authorizers are **serialized** in `useEcho.ts` (a promise queue — at most one `broadcasting/auth` in flight per socket). pusher-js fires one authorize per channel in parallel; on connect after init that is a ~15-request burst. Parallel 419s would rotate the CSRF cookie against in-flight retries (surfacing in Chrome as a CORS TypeError on the overlapping cookie write) and pressure the API rate limiter; the queue turns the burst into an ordered sequence (~10-50 ms each). Backend side: a dedicated `throttle:broadcast` limiter (120/min per user) on `api/v1/broadcasting/auth`.
 
 ## Tests
 
-`tests/client.test.ts`, `tests/csrf.test.ts`, `tests/requestHeaders.test.ts`, `tests/baseUrl.test.ts` lock this behavior — extend them when changing the client (see [testing.md](testing.md)).
+`tests/client.test.ts`, `tests/csrf.test.ts`, `tests/netRetry.test.ts`, `tests/requestHeaders.test.ts`, `tests/baseUrl.test.ts` lock this behavior — extend them when changing the client (see [testing.md](testing.md)).

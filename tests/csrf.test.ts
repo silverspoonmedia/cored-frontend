@@ -229,4 +229,35 @@ describe('csrf nonce multi-tab sync', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(csrf.csrfToken()).toBe('nonce-shared')
   })
+
+  it('retries a transient fetch TypeError in the nonce fetch', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(nonceResponse('nonce-after-race'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+    await csrf.ensureCsrf()
+
+    // A peer tab rotating __Host-spa_csrf must not leave the nonce null and
+    // defer the failure to a 419 on the real mutation.
+    expect(csrf.csrfToken()).toBe('nonce-after-race')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not deadlock on its own pendingFetch when retrying the nonce', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(nonceResponse('nonce-no-deadlock'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+
+    // fetchNonce must not await whenCsrfCookieQuiet(): ensureCsrf assigns
+    // pendingFetch before it runs, so the quiet gate would await itself.
+    await expect(csrf.ensureCsrf()).resolves.toBeUndefined()
+    expect(csrf.csrfToken()).toBe('nonce-no-deadlock')
+  })
 })

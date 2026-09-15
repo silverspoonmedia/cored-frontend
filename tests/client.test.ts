@@ -274,3 +274,97 @@ describe('client CSRF cookie-write gate', () => {
     expect(notifIdx).toBeGreaterThan(csrfIdx)
   })
 })
+
+describe('client cookie-race retry policy', () => {
+  it('retries a transient TypeError on POST /batch outside the settle window', async () => {
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/csrf')) {
+        return Promise.resolve(jsonResponse(200, { status: 'success', data: { token: 'nonce-batch' } }))
+      }
+      if (url.includes('/batch')) {
+        if (fetchMock.mock.calls.filter((c) => String(c[0]).includes('/batch')).length === 1) {
+          return Promise.reject(new TypeError('Failed to fetch'))
+        }
+        return Promise.resolve(jsonResponse(200, { status: 'success', message: 'ok', data: [] }))
+      }
+      return Promise.resolve(jsonResponse(500, { status: 'error', message: 'unexpected' }))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = await importClient()
+    // No markSessionIssued(): the settle window is CLOSED. A cross-tab cookie
+    // race must still recover — this is the regression that surfaced as a
+    // random CORS error on an arbitrary endpoint.
+    const out = await client.batch([{ path: 'auth/me' }])
+
+    expect(out).toEqual([])
+    const urls = fetchMock.mock.calls.map((c) => String(c[0]))
+    expect(urls.filter((u) => u.includes('/batch')).length).toBe(2)
+  })
+
+  it('retries a transient TypeError on a read-only GET outside the settle window', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(jsonResponse(200, { status: 'success', message: 'ok', data: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = await importClient()
+    const out = await client.get<{ status: string; data: unknown[] }>('notifications')
+
+    expect(out.data).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not retry a transient TypeError on a non-idempotent mutation outside the settle window', async () => {
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/csrf')) {
+        return Promise.resolve(jsonResponse(200, { status: 'success', data: { token: 'nonce-put' } }))
+      }
+      if (url.includes('/auth/password')) {
+        return Promise.reject(new TypeError('Failed to fetch'))
+      }
+      return Promise.resolve(jsonResponse(500, { status: 'error', message: 'unexpected' }))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = await importClient()
+
+    // A retried PUT could be applied twice (Chromium may already have sent the
+    // aborted request), so the settle window stays the only gate for it.
+    await expect(client.put('auth/password', { current_password: 'a', password: 'b' }))
+      .rejects.toThrow('Failed to fetch')
+
+    const urls = fetchMock.mock.calls.map((c) => String(c[0]))
+    expect(urls.filter((u) => u.includes('/auth/password')).length).toBe(1)
+  })
+
+  it('refreshes CSRF a second time when a peer tab rotates the nonce again', async () => {
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/csrf')) {
+        return Promise.resolve(jsonResponse(200, { status: 'success', data: { token: `nonce-${Date.now()}` } }))
+      }
+      if (url.includes('/batch')) {
+        const batchCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes('/batch')).length
+        if (batchCalls <= 2) {
+          return Promise.resolve(jsonResponse(419, { status: 'error', message: 'CSRF token mismatch.' }))
+        }
+        return Promise.resolve(jsonResponse(200, { status: 'success', message: 'ok', data: [] }))
+      }
+      return Promise.resolve(jsonResponse(500, { status: 'error', message: 'unexpected' }))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const client = await importClient()
+    const out = await client.batch([{ path: 'auth/me' }])
+
+    expect(out).toEqual([])
+    const urls = fetchMock.mock.calls.map((c) => String(c[0]))
+    // ensureCsrf() once + one refresh per 419 round (two rounds).
+    expect(urls.filter((u) => u.includes('/csrf')).length).toBe(3)
+    expect(urls.filter((u) => u.includes('/batch')).length).toBe(3)
+  })
+})

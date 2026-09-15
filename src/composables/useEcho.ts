@@ -10,50 +10,6 @@ import i18n from '@/i18n'
 type PusherEcho = Echo<'pusher'>
 type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
 
-/**
- * Backoff between retries for transient (network-layer) auth failures,
- * mirroring SESSION_SETTLE_BACKOFF_MS in api/client.ts.
- */
-const BROADCAST_AUTH_BACKOFF_MS = [150, 400] as const
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function isTransientFetchError(error: unknown): boolean {
-  return error instanceof TypeError
-    && /failed to fetch|load failed|networkerror|network request failed/i.test(error.message)
-}
-
-/**
- * post() wrapper that retries the "CORS" TypeError caused by cross-tab
- * Set-Cookie collisions. Echo authorizes channels at unpredictable times
- * (connect, reconnect, late subscribe) — usually outside the client's 5s
- * session-settle window, so `whenCsrfCookieQuiet()` guarding inside request()
- * cannot see another tab's in-flight nonce fetch (GET /api/v1/csrf rotates
- * the shared __Host-spa_csrf cookie; the abort mid-request surfaces here as
- * a bare TypeError from fetch(), indistinguishable from a CORS error).
- * Retrying after a short backoff re-runs with the settled cookie pair.
- */
-async function postWithTransientRetry<T>(
-  uri: string,
-  body: Record<string, unknown>,
-): Promise<T> {
-  let attempt = 0
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    try {
-      return await post<T>(uri, body)
-    } catch (error) {
-      if (!isTransientFetchError(error) || attempt >= BROADCAST_AUTH_BACKOFF_MS.length) {
-        throw error
-      }
-      await sleep(BROADCAST_AUTH_BACKOFF_MS[attempt] ?? 1000)
-      attempt++
-    }
-  }
-}
-
 export interface BroadcastAuthPayload {
   auth: string
   channel_data?: string
@@ -64,12 +20,18 @@ export interface BroadcastAuthPayload {
  * Private-channel auth via the same fetch wrapper as /batch: CSRF mint,
  * 419 refresh+retry, and 401 session refresh. A raw fetch here used to
  * surface CSRF mismatches as a browser CORS error because it never retried.
+ *
+ * Echo authorizes channels at unpredictable times (connect, reconnect, late
+ * subscribe) — usually outside the client's 5s session-settle window. That is
+ * covered because `broadcasting/auth` is server-side read-only, so
+ * `client.ts` retries its transient (cross-tab cookie-race) failures
+ * unconditionally; no local retry wrapper is needed here.
  */
 export async function authorizeBroadcastChannel(
   channelName: string,
   socketId: string,
 ): Promise<BroadcastAuthPayload> {
-  const data = await postWithTransientRetry<unknown>('broadcasting/auth', {
+  const data = await post<unknown>('broadcasting/auth', {
     socket_id: socketId,
     channel_name: channelName,
   })

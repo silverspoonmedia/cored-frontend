@@ -1,4 +1,5 @@
 import { apiUrl } from './baseUrl'
+import { withCookieRaceRetry } from './netRetry'
 import { applySpaRequestHeader } from './requestHeaders'
 
 /**
@@ -101,11 +102,18 @@ async function fetchNonce(): Promise<void> {
   try {
     const headers = new Headers({ Accept: 'application/json' })
     applySpaRequestHeader(headers)
-    const res = await fetch(apiUrl('csrf').toString(), {
+    // Retry the cross-tab cookie-race TypeError: a peer tab rotating
+    // __Host-spa_csrf aborts this GET, and without a retry `token` would stay
+    // null, deferring the failure to a 419 on the real mutation.
+    //
+    // No `beforeAttempt: whenCsrfCookieQuiet` here — ensureCsrf() assigns
+    // `pendingFetch` before this runs, so awaiting the quiet gate inside the
+    // nonce fetch would await itself and deadlock.
+    const res = await withCookieRaceRetry(() => fetch(apiUrl('csrf').toString(), {
       method: 'GET',
       credentials: 'include',
       headers,
-    })
+    }))
     const json = (await res.json().catch(() => null)) as { data?: { token?: unknown } } | null
     const t = json?.data?.token
     if (typeof t === 'string' && t !== '') {

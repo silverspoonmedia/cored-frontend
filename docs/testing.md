@@ -6,9 +6,10 @@ Vitest (`vitest run`), tests in `tests/*.test.ts`. CI runs `type-check` → `che
 
 | Area | Test file(s) | Locks |
 |------|--------------|-------|
-| API client | `client.test.ts` | Auth-session POSTs skip the nonce fetch; `POST /batch` and `POST /broadcasting/auth` 419 refresh + retry; `GET auth/me` / `GET navigation/menus` 401 do not `POST /auth/refresh`; settle-window 401 and `TypeError` retry the original URI; CSRF cookie-write gate |
-| CSRF | `csrf.test.ts` | fetch+broadcast, cross-tab adoption, malformed-message guard, single-flight, header application, `whenCsrfCookieQuiet` |
-| Shell hydrate | `shellHydrate.test.ts` | settle batch retry, terminal sub-entry blocks GET fallback, revoked-session stale-response discard |
+| API client | `client.test.ts` | Auth-session POSTs skip the nonce fetch; `POST /batch` and `POST /broadcasting/auth` 419 refresh + retry (two rounds); `GET auth/me` / `GET navigation/menus` 401 do not `POST /auth/refresh`; settle-window 401 retry; transient `TypeError` retries read-only requests outside the settle window and does **not** retry a non-idempotent mutation there; CSRF cookie-write gate |
+| Network retry | `netRetry.test.ts` | `isTransientFetchError` message set, bounded backoff budget (`COOKIE_RACE_BACKOFF_MS`), non-transient passthrough, `retryable` gate, `beforeAttempt` awaited before every attempt including the first |
+| CSRF | `csrf.test.ts` | fetch+broadcast, cross-tab adoption, malformed-message guard, single-flight, header application, `whenCsrfCookieQuiet`, transient `TypeError` retry in `fetchNonce` (and no self-deadlock on `pendingFetch`) |
+| Shell hydrate | `shellHydrate.test.ts` | settle batch retry, transient `TypeError` retry outside the settle window + bounded budget, non-transient failure not retried, terminal sub-entry blocks GET fallback, revoked-session stale-response discard |
 | Menu-edit hydrate | `navigationHydrate.test.ts` | sub-entry 401/403/429 → `TerminalBatchError`, other non-200 → `failedLookups` key, all-200 clean, menu non-200 → `null`, and the `pruneUnresolvedReferences` rules |
 | Cross-tab logout | `authCrossTabLogout.test.ts` | `BroadcastChannel` + `localStorage` fallback receiver teardown |
 | Echo | `echo.test.ts` | authorizer calls `client.post('broadcasting/auth')` |

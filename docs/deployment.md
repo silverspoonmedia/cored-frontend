@@ -120,5 +120,7 @@ The backend is deployed manually on the VPS and is out of scope here. Each backe
 | Bundle points at the wrong API origin | Build/deploy pairing broken (`--mode` ≠ `--env`), or the wrong branch deployed |
 | Actions fails with auth error code 10000 | `CLOUDFLARE_API_TOKEN` missing/expired or lacks `Workers Scripts:Edit` |
 | Login works locally but cookie never set on the deployed origin | Monolith `SPA_URL` does not match the SPA origin (CORS/cookie origin mismatch) |
+| Random "CORS error" / `TypeError: Failed to fetch` on an arbitrary endpoint, clears on retry | Not a CORS misconfiguration. Another tab rotated the shared `__Host-spa_csrf` cookie mid-request; the client retries via [api-client.md](api-client.md#cross-tab-cookie-race-retry). If it persists, check `SPA_URL`/`CORS_EXTRA_ORIGINS` and that preflights allow `X-SPA-Origin` |
+| CSV/file download saves with a generic name | API `config/cors.php` `exposed_headers` missing `Content-Disposition` — the browser hides the header cross-origin |
 | Realtime silent | `VITE_PUSHER_APP_KEY` empty in that environment's tracked env file |
 | Two deploys racing on one branch | Should not happen — `concurrency` queues per branch; check the group key if edited |

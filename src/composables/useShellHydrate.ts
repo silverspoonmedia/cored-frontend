@@ -1,4 +1,5 @@
 import { batch, isSessionSettling, settleBackoff } from '@/api/client'
+import { COOKIE_RACE_BACKOFF_MS, isTransientFetchError } from '@/api/netRetry'
 import { bodyOf, isTerminalEntry } from '@/api/batch'
 import { useAuth } from '@/stores/auth'
 import { useNavigation } from '@/composables/navigation/useNavigation'
@@ -22,8 +23,10 @@ const blockedFallbacks = new Set<ShellWidget>()
  * it is a 200 success envelope. Terminal sub-statuses (401/403/429) block the
  * standalone GET fallback (re-firing would repeat the rejection). Transient
  * failures leave the owning composable untouched so chrome can retry after
- * the batch settles. During the post-login settle window a failed batch is
- * retried with backoff instead of immediately falling through to GET menus.
+ * the batch settles. A failed batch is retried with backoff while the failure
+ * is a transient fetch TypeError (cross-tab cookie race) or the post-login
+ * settle window is still open, instead of immediately falling through to
+ * GET menus.
  */
 export async function hydrateShell(): Promise<void> {
   if (hydrated) return
@@ -73,12 +76,18 @@ export async function hydrateShell(): Promise<void> {
 
         hydrated = true
         return
-      } catch {
-        if (!isSessionSettling()) {
+      } catch (error) {
+        // A transient fetch TypeError (cross-tab cookie race) retries at any
+        // time; any other failure only inside the post-login settle window.
+        const transient = isTransientFetchError(error)
+        if (!transient && !isSessionSettling()) {
+          return
+        }
+        if (attempt >= COOKIE_RACE_BACKOFF_MS.length) {
           return
         }
         await settleBackoff(attempt++)
-        if (!isSessionSettling()) {
+        if (!transient && !isSessionSettling()) {
           return
         }
       }

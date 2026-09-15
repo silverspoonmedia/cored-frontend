@@ -26,7 +26,7 @@ Living docs for the SPA. **Language:** English only. Backend-side contract docs 
 |----------|-------|
 | [architecture.md](architecture.md) | Direct-to-API model, `VITE_API_BASE_URL`, tunnel perimeter, `src/` layer map (what goes in `lib/` vs `utils/` vs `composables/`), type-then-domain rule |
 | [auth-session.md](auth-session.md) | `__Host-spa_jwt` cookie, CSRF double-submit, `hydrateShell`, logout barrier/epoch, `BroadcastChannel` sync, post-login cookie settle |
-| [api-client.md](api-client.md) | `client.ts` behavior (419 retry, settle window), request headers, URL/query serialization, error normalization, batch hydration |
+| [api-client.md](api-client.md) | `client.ts` behavior (419 retry, cross-tab cookie-race retry policy), request headers, URL/query serialization, error normalization, batch hydration |
 | [head-meta.md](head-meta.md) | Client-side OG/SEO meta injection for public surfaces (`useHeadMeta`) — never a Worker function |
 | [i18n.md](i18n.md) | Seven locales, lazy non-`en` locale chunks, `zh-CN`↔`zh_CN` mapping, RTL reload contract, `check:i18n` + allowlist policy, translation waves |
 | [ui-patterns.md](ui-patterns.md) | AdminLTE4 vs Valkivid3 scoping, skeleton→error→empty states, DataTable chain (stable row keys), RowActions contract, component-extraction + async-vendor conventions, Swal-only policy, Select2 control sizing, Select2 hydrate value guards, FROZEN HomeView |

@@ -1,6 +1,7 @@
 import i18n from '@/i18n'
 import { apiUrl, isCrossOrigin } from './baseUrl'
 import { applyCsrfHeader, ensureCsrf, refreshCsrfOnce, whenCsrfCookieQuiet } from './csrf'
+import { sleep, withCookieRaceRetry } from './netRetry'
 import { applySpaRequestHeader } from './requestHeaders'
 import { translateFallback } from '@/i18n/fallbacks'
 import { ApiError, type ApiResponse, type ValidationErrors } from './types'
@@ -21,6 +22,9 @@ let sessionIssuedAt = 0
 
 /** Backoff between settle retries (401 or browser TypeError / "CORS" Failed to fetch). */
 export const SESSION_SETTLE_BACKOFF_MS = [50, 150, 400] as const
+
+/** Extra 419 refresh+retry rounds after the first attempt (see `request`). */
+const CSRF_RETRY_LIMIT = 2
 
 export function setRefreshHandler(handler: RefreshHandler): void {
   refreshHandler = handler
@@ -147,6 +151,21 @@ function requestPath(uri: string): string {
   return uri.split('?')[0] ?? uri
 }
 
+/**
+ * POST endpoints that are server-side read-only, so a retry cannot double-submit.
+ *
+ * `batch` fans out GET/HEAD sub-requests only (BatchController rejects anything
+ * else); `broadcasting/auth` just signs a channel name. Every other mutating
+ * verb keeps the settle-window-only retry: Chromium may have already
+ * transmitted an aborted request, and replaying a real write would apply it
+ * twice.
+ */
+const READ_ONLY_POST_PATHS = ['batch', 'broadcasting/auth']
+
+function isReadOnlyPost(uri: string): boolean {
+  return READ_ONLY_POST_PATHS.includes(requestPath(uri))
+}
+
 function skipAuthRefresh(uri: string): boolean {
   // auth/me 401 means no session cookie, not an expired JWT. Guest cold-boot
   // and post-login settle must not POST /auth/refresh (that 401s without a
@@ -156,48 +175,36 @@ function skipAuthRefresh(uri: string): boolean {
   return path === 'auth/refresh' || path === 'auth/logout' || path === 'auth/me' || path === 'navigation/menus'
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+/**
+ * Retry gate for the browser's transient fetch `TypeError` (a cross-tab
+ * `Set-Cookie` collision surfaces as a CORS error). Read-only requests retry
+ * unconditionally; a mutating request only inside the session-settle window,
+ * where the abort is known to be the cookie from our own login landing.
+ */
+function cookieRaceRetryable(readOnly: boolean): (error: unknown) => boolean {
+  return () => readOnly || isSessionSettling()
 }
 
-function isTransientNetworkError(error: unknown): boolean {
-  if (!(error instanceof TypeError)) return false
-  const msg = error.message.toLowerCase()
-  return (
-    msg.includes('failed to fetch') ||
-    msg.includes('load failed') ||
-    msg.includes('networkerror') ||
-    msg.includes('network request failed')
-  )
-}
-
-async function fetchUntilSettled(doFetch: () => Promise<Response>): Promise<Response> {
-  let attempt = 0
-  while (true) {
-    await whenCsrfCookieQuiet()
-    try {
-      return await doFetch()
-    } catch (error) {
-      if (!isTransientNetworkError(error) || !isSessionSettling()) {
-        throw error
-      }
-      await settleBackoff(attempt++)
-      if (!isSessionSettling()) {
-        throw error
-      }
-    }
-  }
+async function fetchUntilSettled(
+  doFetch: () => Promise<Response>,
+  retryable: (error: unknown) => boolean,
+): Promise<Response> {
+  return withCookieRaceRetry(doFetch, {
+    beforeAttempt: whenCsrfCookieQuiet,
+    retryable,
+  })
 }
 
 async function retry401WhileSettling(
   doFetch: () => Promise<Response>,
   first: Response,
+  retryable: (error: unknown) => boolean,
 ): Promise<Response> {
   let response = first
   let attempt = 0
   while (response.status === 401) {
     await settleBackoff(attempt++)
-    response = await fetchUntilSettled(doFetch)
+    response = await fetchUntilSettled(doFetch, retryable)
     if (response.ok || response.status !== 401 || !isSessionSettling()) {
       return response
     }
@@ -206,8 +213,8 @@ async function retry401WhileSettling(
 }
 
 // Auth-session endpoints are CSRF-skipped server-side (a guest has no nonce
-// yet). A 419 there means something else is wrong, so do not burn the single
-// retry re-fetching a nonce that would not help.
+// yet). A 419 there means something else is wrong, so do not burn the
+// nonce-refresh retries re-fetching a nonce that would not help.
 function isAuthSessionPath(uri: string): boolean {
   const path = requestPath(uri)
   return (
@@ -230,6 +237,7 @@ async function request<T>(
   const url = apiUrl(uri, query)
   const crossOrigin = isCrossOrigin(url)
   const mutating = isMutating(method)
+  const retryable = cookieRaceRetryable(!mutating || isReadOnlyPost(uri))
 
   // Cross-origin mutations need the double-submit CSRF nonce before they run.
   // Auth-session paths skip it server-side (no session to ride yet); fetching
@@ -250,14 +258,20 @@ async function request<T>(
       credentials: credentialsFor(crossOrigin),
     })
 
-  let response = await fetchUntilSettled(doFetch)
+  let response = await fetchUntilSettled(doFetch, retryable)
 
-  // Stale/rotated CSRF nonce: refresh once and retry before treating as an error.
+  // Stale/rotated CSRF nonce: refresh and retry before treating as an error.
   // Single-flighted: N concurrent 419s share one nonce mint (see csrf.ts) so the
-  // retries do not invalidate each other's header-vs-cookie pair.
-  if (response.status === 419 && crossOrigin && mutating && !isAuthSessionPath(uri)) {
+  // retries do not invalidate each other's header-vs-cookie pair. Two attempts,
+  // not one: refreshCsrfOnce() is single-flight per tab only, so a peer tab can
+  // rotate the shared cookie again between our mint and our retry.
+  for (
+    let csrfAttempt = 0;
+    response.status === 419 && csrfAttempt < CSRF_RETRY_LIMIT && crossOrigin && mutating && !isAuthSessionPath(uri);
+    csrfAttempt++
+  ) {
     await refreshCsrfOnce()
-    response = await fetchUntilSettled(doFetch)
+    response = await fetchUntilSettled(doFetch, retryable)
   }
 
   if (response.ok) {
@@ -270,7 +284,7 @@ async function request<T>(
     // do not POST /auth/refresh (no cookie → 401, and a successful refresh
     // would blacklist the login token).
     if (isSessionSettling()) {
-      response = await retry401WhileSettling(doFetch, response)
+      response = await retry401WhileSettling(doFetch, response, retryable)
       if (response.ok) {
         return (await readJson(response)) as T
       }
@@ -279,7 +293,7 @@ async function request<T>(
     if (response.status === 401 && refreshHandler) {
       const refreshed = await ensureRefresh()
       if (refreshed) {
-        const retryRes = await fetchUntilSettled(doFetch)
+        const retryRes = await fetchUntilSettled(doFetch, retryable)
         if (retryRes.ok) {
           return (await readJson(retryRes)) as T
         }
@@ -387,16 +401,19 @@ export async function getBlob(
   const doFetch = (): Promise<Response> =>
     fetch(url.toString(), { method: 'GET', headers: headers(), credentials: credentialsFor(crossOrigin) })
 
-  let response = await fetchUntilSettled(doFetch)
+  // GET only: read-only, so the transient (cookie-race) retry is ungated.
+  const retryable = cookieRaceRetryable(true)
+
+  let response = await fetchUntilSettled(doFetch, retryable)
 
   if (response.status === 401 && !skipAuthRefresh(uri)) {
     if (isSessionSettling()) {
-      response = await retry401WhileSettling(doFetch, response)
+      response = await retry401WhileSettling(doFetch, response, retryable)
     }
     if (response.status === 401 && refreshHandler) {
       const refreshed = await ensureRefresh()
       if (refreshed) {
-        response = await fetchUntilSettled(doFetch)
+        response = await fetchUntilSettled(doFetch, retryable)
       } else {
         unauthorizedHandler?.()
         throw new ApiError(translateFallback(i18n.global.t, 'sessionExpired'), 401)
