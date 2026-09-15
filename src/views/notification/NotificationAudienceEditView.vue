@@ -8,6 +8,7 @@ import SubmitButton from '@/components/SubmitButton.vue'
 import { useNotificationAudiences } from '@/composables/notification/useNotificationAudiences'
 import { useNotificationsHydrate } from '@/composables/notification/useNotificationsHydrate'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { put } from '@/api/client'
 import type { ApiResponse, NotificationAudience } from '@/api/types'
 
@@ -21,6 +22,11 @@ const { t } = useI18n()
 const audienceType = computed(() => route.params.type as string)
 
 const audience = ref<NotificationAudience | null>(null)
+
+// Trailing breadcrumb crumb: the loaded audience's label, so the crumb reads
+// `Audiences / Edit / <label>` instead of exposing the `:type` route param.
+useBreadcrumbTitle(() => audience.value?.label ?? null)
+
 const fetching = ref(true)
 const submitting = ref(false)
 const errors = ref<Record<string, string[]>>({})

@@ -17,6 +17,7 @@ import { useMenuLayouts } from '@/composables/navigation/useMenuLayouts'
 import { useMenusRealtime } from '@/composables/navigation/useMenusRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { isTerminalBatchError } from '@/api/batch'
 import { pruneUnresolvedReferences } from '@/utils/navigation/pruneUnresolvedReferences'
 import { ApiError } from '@/api/types'
@@ -40,6 +41,11 @@ const loading = ref(true)
 const saving = ref(false)
 const errors = ref<Record<string, string[]>>({})
 const menuName = ref('')
+
+// Trailing breadcrumb crumb: the loaded menu's name, so the crumb reads
+// `Menus / Edit / <name>` instead of exposing the uuid route param. Empty on
+// create, which leaves the trail at `Menus / Add`.
+useBreadcrumbTitle(() => menuName.value || null)
 
 const cardTitle = computed(() =>
   isEdit.value ? t('web.menus.edit_card_title', { name: menuName.value }) : t('web.menus.new_card_title'),

@@ -9,6 +9,7 @@ import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useSubscriptions } from '@/composables/service/useSubscriptions'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { ApiError } from '@/api/types'
 
 const route = useRoute()
@@ -37,6 +38,11 @@ const form = reactive({
   expires_at: '',
   auto_renew: false,
 })
+
+// Trailing breadcrumb crumb: the edited subscription's subscriber, so the crumb
+// reads `Subscriptions / Edit / <name>` instead of exposing the uuid route
+// param. Gated on `isEdit` — create holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.subscriber_name : null))
 
 const billingCycles = computed<Record<string, string>>(() => ({
   monthly: t('web.payments.subscriptions.billing_cycles.monthly'),

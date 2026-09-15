@@ -10,6 +10,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useInvoices } from '@/composables/payment-gateway/useInvoices'
 import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
 import { useDetailLoader } from '@/composables/useDetailLoader'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { useEchoResync } from '@/composables/useEcho'
 import type { InvoiceStatusPayload } from '@/api/types'
 import { INVOICE_STATUS_BADGE } from '@/utils/statusBadge'
@@ -23,6 +24,10 @@ const { data: invoice, loading, error: loadError, load } = useDetailLoader(
   () => fetchOne(route.params.id as string),
   { fallbackMessage: t('web.payments.invoices.load_failed') },
 )
+
+// Trailing breadcrumb crumb: the loaded invoice's number, so the crumb reads
+// `Invoices / <number>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => invoice.value?.invoice_number ?? null)
 
 function onStatusUpdated(status: string): void {
   if (invoice.value) {

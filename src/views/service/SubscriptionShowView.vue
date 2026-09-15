@@ -9,6 +9,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import { useSubscriptions } from '@/composables/service/useSubscriptions'
 import { usePaymentRealtime } from '@/composables/payment-gateway/usePaymentRealtime'
 import { useDetailLoader } from '@/composables/useDetailLoader'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { useEchoResync } from '@/composables/useEcho'
 import { SUBSCRIPTION_STATUS_BADGE } from '@/utils/statusBadge'
 
@@ -21,6 +22,10 @@ const { data: subscription, loading, error: loadError, load } = useDetailLoader(
   () => fetchOne(route.params.id as string),
   { fallbackMessage: t('web.payments.subscriptions.failed_load') },
 )
+
+// Trailing breadcrumb crumb: the loaded subscription's number, so the crumb
+// reads `Subscriptions / <number>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => subscription.value?.subscription_number ?? null)
 
 // Live update: this subscription row edited/deleted elsewhere reloads it.
 const { subscribeSubscriptionList, unsubscribeSubscriptionList } = usePaymentRealtime()

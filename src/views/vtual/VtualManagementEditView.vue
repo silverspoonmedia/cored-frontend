@@ -9,6 +9,7 @@ import SubmitButton from '@/components/SubmitButton.vue'
 import VtualManagementMembersSection from '@/components/vtual/VtualManagementMembersSection.vue'
 import VtualManagementCreatorInvitesSection from '@/components/vtual/VtualManagementCreatorInvitesSection.vue'
 import { useVtualManagementEdit } from '@/composables/vtual/useVtualManagementEdit'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 
 const { t } = useI18n()
 
@@ -43,6 +44,11 @@ const {
   handleCreatorInviteChanged,
   managementId,
 } = useVtualManagementEdit()
+
+// Trailing breadcrumb crumb: the edited management's name, so the crumb reads
+// `Managements / Edit / <name>` instead of exposing the uuid route param. Gated
+// on `isEdit` — create holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.name : null))
 </script>
 
 <template>

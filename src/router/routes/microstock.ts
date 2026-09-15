@@ -6,7 +6,10 @@ export const microstockRoutes: RouteRecordRaw[] = [
     path: '/apps/archivd/microstock-credentials',
     name: 'archivd.microstock-credentials',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.microstock-credentials.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.microstock-credentials.title',
+    },
     children: [
       {
         path: '',

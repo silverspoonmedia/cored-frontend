@@ -19,7 +19,11 @@ export const inferenceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/inference/model-cards/create',
     name: 'inference.model-cards.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.inference.model_cards.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.inference.model_cards.create_title',
+      breadcrumb: { parent: 'inference.model-cards.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -32,7 +36,11 @@ export const inferenceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/inference/model-cards/:id/edit',
     name: 'inference.model-cards.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.inference.model_cards.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.inference.model_cards.edit_title',
+      breadcrumb: { parent: 'inference.model-cards.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',
@@ -45,7 +53,11 @@ export const inferenceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/inference/model-cards/:id',
     name: 'inference.model-cards.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.inference.model_cards.show_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.inference.model_cards.show_title',
+      breadcrumb: { parent: 'inference.model-cards.index.view' },
+    },
     children: [
       {
         path: '',
@@ -71,7 +83,11 @@ export const inferenceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/inference/providers/:id',
     name: 'inference.providers.show',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.inference.providers.show_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.inference.providers.show_title',
+      breadcrumb: { parent: 'inference.providers.index.view' },
+    },
     children: [
       {
         path: '',
@@ -84,7 +100,11 @@ export const inferenceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/inference/providers/create',
     name: 'inference.providers.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.inference.providers.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.inference.providers.create_title',
+      breadcrumb: { parent: 'inference.providers.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -97,7 +117,11 @@ export const inferenceCatalogRoutes: RouteRecordRaw[] = [
     path: '/apps/inference/providers/:id/edit',
     name: 'inference.providers.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.inference.providers.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.inference.providers.edit_title',
+      breadcrumb: { parent: 'inference.providers.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',

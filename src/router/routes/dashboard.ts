@@ -6,7 +6,11 @@ export const dashboardRoutes: RouteRecordRaw[] = [
     path: '/apps/dashboard',
     name: 'dashboard',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.dashboard.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.dashboard.title',
+      breadcrumb: { labelKey: 'menu.dashboard' },
+    },
     children: [
       {
         path: '',

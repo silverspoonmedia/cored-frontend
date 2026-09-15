@@ -12,6 +12,7 @@ import TableEmptyRow from '@/components/TableEmptyRow.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
 import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { ApiError } from '@/api/types'
 import type { VtualChannel, VtualPlatform } from '@/api/types'
 import { VTUAL_STATUS_BADGE, type BadgeColor } from '@/utils/statusBadge'
@@ -42,6 +43,11 @@ const form = reactive({
   bio: '',
   avatar_url: '',
 })
+
+// Trailing breadcrumb crumb: the edited orphan creator's display name, so the
+// crumb reads `Orphans / Edit / <name>` instead of exposing the uuid route
+// param. Gated on `isEdit` — create holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.display_name : null))
 
 const channels = ref<VtualChannel[]>([])
 const platforms = ref<VtualPlatform[]>([])

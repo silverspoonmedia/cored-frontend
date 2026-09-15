@@ -21,7 +21,11 @@ export const settingsRoutes: RouteRecordRaw[] = [
     path: '/apps/settings',
     name: 'settings.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.settings.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.settings.title',
+      breadcrumb: { labelKey: 'web.settings.title' },
+    },
     children: [
       {
         path: '',
@@ -35,7 +39,13 @@ export const settingsRoutes: RouteRecordRaw[] = [
     path: '/apps/settings/:group',
     name: 'settings.group',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.settings.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.settings.title',
+      // Only used when the `:group` param is empty; a known group is rendered by
+      // the settings branch in `useBreadcrumbs()` as `Settings / <group>`.
+      breadcrumb: { parent: 'settings.index.view', labelKey: 'web.settings.title' },
+    },
     children: [
       {
         path: '',

@@ -19,7 +19,11 @@ export const identityProfileRoutes: RouteRecordRaw[] = [
     path: '/apps/profile/two-factor',
     name: 'profile.two-factor.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.auth.two_factor_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.auth.two_factor_title',
+      breadcrumb: { labelKey: 'menu.two_factor' },
+    },
     children: [
       {
         path: '',
@@ -32,7 +36,11 @@ export const identityProfileRoutes: RouteRecordRaw[] = [
     path: '/apps/profile/connections',
     name: 'profile.connections',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.identity-connections.page_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.identity-connections.page_title',
+      breadcrumb: { labelKey: 'menu.connected_accounts' },
+    },
     children: [
       {
         path: '',
@@ -48,7 +56,11 @@ export const identityUserRoutes: RouteRecordRaw[] = [
     path: '/apps/users',
     name: 'users.index',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.users.title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.users.title',
+      breadcrumb: { labelKey: 'web.users.breadcrumb' },
+    },
     children: [
       {
         path: '',
@@ -61,7 +73,11 @@ export const identityUserRoutes: RouteRecordRaw[] = [
     path: '/apps/users/create',
     name: 'users.create',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.users.create_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.users.create_title',
+      breadcrumb: { parent: 'users.index.view', labelKey: 'ui.breadcrumb.add' },
+    },
     children: [
       {
         path: '',
@@ -74,7 +90,11 @@ export const identityUserRoutes: RouteRecordRaw[] = [
     path: '/apps/users/:id/edit',
     name: 'users.edit',
     component: AppLayout,
-    meta: { requiresAuth: true, titleKey: 'web.users.edit_title' },
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.users.edit_title',
+      breadcrumb: { parent: 'users.index.view', labelKey: 'ui.breadcrumb.edit' },
+    },
     children: [
       {
         path: '',

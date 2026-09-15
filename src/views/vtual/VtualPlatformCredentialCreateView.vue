@@ -8,6 +8,7 @@ import FormSelect from '@/components/FormSelect.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import { useVtual } from '@/composables/vtual/useVtual'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { ApiError } from '@/api/types'
 
 const route = useRoute()
@@ -34,6 +35,11 @@ const form = reactive({
   refresh_token: '',
   expires_at: '',
 })
+
+// Trailing breadcrumb crumb: the edited credential's label, so the crumb reads
+// `Credentials / Edit / <label>` instead of exposing the uuid route param. Gated
+// on `isEdit` — the create screen holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.label : null))
 
 const typeOptions = computed(() => [
   { value: 'api_key', label: t('web.vtual-platform-credentials.type_api_key') },

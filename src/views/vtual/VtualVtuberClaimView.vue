@@ -10,6 +10,7 @@ import { useVtualHydrate } from '@/composables/vtual/useVtualHydrate'
 import { useAuth } from '@/stores/auth'
 import { useNavigation } from '@/composables/navigation/useNavigation'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { confirmDialog } from '@/lib/swal'
 import { subscribeVtulClaim, unsubscribeVtulClaim } from '@/composables/vtual/useVtulClaimRealtime'
 import { ApiError, type VtualVtuberProfile, type VtualCreatorClaim, type ProfileConnections } from '@/api/types'
@@ -27,6 +28,11 @@ const { refetchAll: refetchNavigation } = useNavigation()
 const { success: showSuccess, error: showError } = useAlert()
 
 const profile = ref<VtualVtuberProfile | null>(null)
+
+// Trailing breadcrumb crumb: the loaded profile's display name, so the crumb
+// reads `Claim / <display name>` instead of exposing the slug route param.
+useBreadcrumbTitle(() => profile.value?.display_name ?? null)
+
 const activeClaim = ref<VtualCreatorClaim | null>(null)
 const discordSnapshot = ref<ProfileConnections | null>(null)
 const discordConnected = computed(() => providerByKey(discordSnapshot.value, 'discord')?.connected === true)

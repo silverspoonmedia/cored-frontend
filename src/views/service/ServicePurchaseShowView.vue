@@ -14,6 +14,7 @@ import { useServicesHydrate } from '@/composables/service/useServicesHydrate'
 import { useServicesRealtime } from '@/composables/service/useServicesRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import type { ServicePurchase, InvoiceStatusPayload } from '@/api/types'
 
 const route = useRoute()
@@ -25,6 +26,12 @@ const { hydratePurchaseShow } = useServicesHydrate()
 const { success: showSuccess, error: showError } = useAlert()
 
 const purchase = ref<ServicePurchase | null>(null)
+
+// Trailing breadcrumb crumb: the purchased service's name (falling back to the
+// invoice number), so the crumb reads `Purchases / <name>` instead of exposing
+// the uuid route param.
+useBreadcrumbTitle(() => purchase.value?.service?.name ?? purchase.value?.invoice?.invoice_number ?? null)
+
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 const updatingQty = ref(false)

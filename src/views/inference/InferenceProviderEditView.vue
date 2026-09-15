@@ -10,6 +10,7 @@ import { useInferenceProviders } from '@/composables/inference/useInferenceProvi
 import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { ApiError } from '@/api/types'
 
 const route = useRoute()
@@ -28,6 +29,11 @@ const form = reactive({
   name: '',
   is_active: true,
 })
+
+// Trailing breadcrumb crumb: the edited provider's name, so the crumb reads
+// `Providers / Edit / <name>` instead of exposing the uuid route param. Gated on
+// `isEdit` — create holds no record and keeps the static trail.
+useBreadcrumbTitle(() => (isEdit.value ? form.name : null))
 
 function fieldError(field: string): string | null {
   const list = errors.value[field]

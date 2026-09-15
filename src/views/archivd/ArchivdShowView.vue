@@ -13,6 +13,7 @@ import { useArchivd } from '@/composables/archivd/useArchivd'
 import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { useAuth } from '@/stores/auth'
 import type { HostedFile } from '@/api/types'
 import { safeHttpUrl } from '@/utils/safeUrl'
@@ -28,6 +29,11 @@ const { success: showSuccess, error: showError } = useAlert()
 const { subscribe, unsubscribe } = useArchivdRealtime()
 
 const file = ref<HostedFile | null>(null)
+
+// Trailing breadcrumb crumb: the loaded file's name, so the crumb reads
+// `Archivd / <name>` instead of exposing the uuid route param.
+useBreadcrumbTitle(() => file.value?.name ?? null)
+
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 const isBusy = ref(false)
