@@ -11,7 +11,7 @@ import { useAlert } from '@/composables/useAlert'
 import { useNotifications } from '@/composables/notification/useNotifications'
 import { useEcho, onEchoResync } from '@/composables/useEcho'
 import { useShellHydrate } from '@/composables/useShellHydrate'
-import { csrfToken, ensureCsrf } from '@/api/csrf'
+import { csrfToken, ensureCsrf, whenCsrfCookieQuiet } from '@/api/csrf'
 import { triggerAllListingsReload } from '@/composables/useListingReload'
 import { LOCALE_LABELS, reloadForDirection, setLocale, SUPPORTED_LOCALES, type AppLocale } from '@/i18n'
 import { isNavNodeActive } from '@/utils/navActive'
@@ -144,6 +144,10 @@ onMounted(() => {
     if (csrfToken() === null) {
       await ensureCsrf()
     }
+    // Wait out the nonce's `Set-Cookie` commit before Echo opens the socket.
+    // pusher-js authorizes every subscribed channel right after connect, and a
+    // POST /broadcasting/auth overlapping that write surfaces as a CORS error.
+    await whenCsrfCookieQuiet()
     const echoStarted = initEcho()
     if (echoStarted) {
       startRealtime()

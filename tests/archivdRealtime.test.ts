@@ -180,7 +180,10 @@ describe('useArchivdRealtime', () => {
     rt.setArchivdWorkspaceChannel('ws-9')
 
     setEcho(makeEcho())
-    onReadyCbs[0]!()
+    // Each channel registers its own deferred attach on the ready bus; Echo
+    // init fires them all, so both the user and the remembered workspace
+    // channel come up.
+    onReadyCbs.forEach((attach) => attach())
 
     expect(workspaceChannel('ws-9')).toBeDefined()
     expect(workspaceChannel('ws-9')?.__listeners['.listing.changed']).toBeTypeOf('function')

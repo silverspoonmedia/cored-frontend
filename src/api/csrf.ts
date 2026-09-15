@@ -32,11 +32,24 @@ import { applySpaRequestHeader } from './requestHeaders'
 
 const CSRF_HEADER = 'X-CSRF-Token'
 
+/**
+ * How long a freshly minted nonce is treated as "still being committed".
+ *
+ * `GET /csrf` sets `__Host-spa_csrf` on the API origin. Chromium aborts a
+ * concurrent credentialed fetch while that `Set-Cookie` is in flight and
+ * reports it as `TypeError: Failed to fetch` — which the user sees as a CORS
+ * error. Awaiting this window before the next credentialed call keeps the
+ * cookie write and the follow-up request from overlapping, so the failure is
+ * prevented instead of retried.
+ */
+export const CSRF_COOKIE_SETTLE_MS = 100
+
 type CsrfChannelMessage = { type: 'csrf'; token: string } | { type: 'csrf-clear' }
 
 let token: string | null = null
 let pendingFetch: Promise<void> | null = null
 let pendingRefresh: Promise<void> | null = null
+let lastMintAt = 0
 
 const csrfChannel: BroadcastChannel | null =
   typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('monolith-csrf') : null
@@ -73,6 +86,7 @@ if (csrfChannel) {
  */
 export function clearCsrf(): void {
   token = null
+  lastMintAt = 0
   try {
     csrfChannel?.postMessage({ type: 'csrf-clear' } satisfies CsrfChannelMessage)
   } catch {
@@ -86,15 +100,26 @@ export function csrfToken(): string | null {
 }
 
 /**
- * Wait until any in-flight CSRF nonce fetch (and its Set-Cookie) has settled.
+ * Wait until any in-flight CSRF nonce fetch (and its `Set-Cookie`) has settled,
+ * plus the settle window after the last mint.
  *
  * Credentialed API calls that do not mint a nonce themselves (GET menus,
  * POST /batch after a 419 refresh, Echo broadcasting/auth) must not overlap
  * that cookie write — Chrome reports the collision as a CORS TypeError.
+ *
+ * Waiting out the window (not just `pendingFetch`) matters for the Echo
+ * authorizer: pusher-js fires `POST /broadcasting/auth` at times nothing else
+ * controls (connect, reconnect, late subscribe), so it can land inside the
+ * browser's commit of a nonce minted moments earlier by the shell batch.
  */
 export async function whenCsrfCookieQuiet(): Promise<void> {
   while (pendingFetch) {
     await pendingFetch.catch(() => undefined)
+  }
+
+  const remaining = CSRF_COOKIE_SETTLE_MS - (Date.now() - lastMintAt)
+  if (remaining > 0) {
+    await new Promise((resolve) => setTimeout(resolve, remaining))
   }
 }
 
@@ -118,6 +143,9 @@ async function fetchNonce(): Promise<void> {
     const t = json?.data?.token
     if (typeof t === 'string' && t !== '') {
       token = t
+      // Stamp the mint so `whenCsrfCookieQuiet()` can wait out the browser's
+      // commit of the Set-Cookie this response carried.
+      lastMintAt = Date.now()
       broadcastNonce(t)
     }
   } catch {

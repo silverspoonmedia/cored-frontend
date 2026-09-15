@@ -26,7 +26,9 @@ The settle window is **not** the only trigger for the `TypeError` retry. A peer 
 
 Auth-session POSTs (`login` / `register` / `refresh` / `logout` / forgot-reset / 2FA login) skip `ensureCsrf()` — the server skips CSRF there, and pre-fetching a nonce before the JWT exists creates a duplicate `__Host-spa_csrf` that races the first authenticated `POST /batch` and `POST /broadcasting/auth`.
 
-Canonical chrome order after navigate: one `POST /batch` (Navbar starts / Layout joins) → seed stores → fallback GET only if unseeded **and** not terminal → **then** Echo. `AppLayout` must not `GET navigation/menus` or start nav realtime in parallel with that batch.
+Canonical chrome order after navigate: one `POST /batch` (Navbar starts / Layout joins) → seed stores → fallback GET only if unseeded **and** not terminal → **then** Echo. `AppLayout` must not `GET navigation/menus` or start nav realtime in parallel with that batch. `AppNavbar` also awaits `whenCsrfCookieQuiet()` right before `initEcho()`, because pusher-js authorizes every subscribed channel on connect — overlapping the nonce write would fail the first authorize before any retry policy applies.
+
+Private channels are owned by `src/composables/echo/channelRegistry.ts`: acquire through `acquireChannel()` (or the declarative `createRealtimeChannel` / `createKeyedRealtimeChannel`), never `echo.private()` directly. Ref-counting is per channel name, so the bell and auth-self can share `App.Models.User.{id}` without either leaving it for the other. Detail: [api-client.md — Channel lifecycle goes through the registry](api-client.md#channel-lifecycle-goes-through-the-registry).
 
 A guest 401 is not session death: `unauthorizedHandler` only `clearAuth()` when in-memory `user` was set **and** the session is not settling. `GET auth/me` and `GET navigation/menus` 401s never trigger refresh.
 

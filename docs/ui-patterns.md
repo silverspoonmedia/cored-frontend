@@ -123,6 +123,21 @@ All notifications and confirmations use Sweetalert2 through `src/lib/swal.ts` �
 - `useAlert().error(...)` returns a Promise: `await showError(...)` before any `window.location.href = ...` redirect (OAuth connect, downloads) so the dialog survives instead of being unloaded with the page.
 - Uncaught Vue errors and router failures go through `app.config.errorHandler` / `router.onError()` to the same error dialog (`ui.ajax.unexpected_error`).
 
+## Realtime private channels
+
+Every private channel goes through `src/composables/echo/channelRegistry.ts` — never call `echo.private()`, `echo.leave()`, or `subscribeWhenEchoReady()` from a composable or view. Two shapes cover the cases:
+
+- `createRealtimeChannel<H>({ channel, events })` — one handler set, one channel name (static, or `retarget()`ed for dynamic names like `settings.{group}`).
+- `createKeyedRealtimeChannel<K, H>({ channel: (key) => name, events })` — one ref-counted channel per entity (`payments.invoice.{id}`, `vtual.claim.{id}`, `vtual.creator.{id}`), created lazily and dropped when its last handler detaches.
+
+Why it is not optional:
+
+- Ref-counting is **per channel name**, so two consumers of a shared channel (`navigation.menus`, `App.Models.User.{id}`) cannot leave it out from under each other — the bug class previously patched by hand in `useMenusChannel.ts` and `listenPersonalChannel`.
+- Attach is always deferred until Echo exists, so a view that mounts before `AppNavbar` finishes `initEcho()` is never left permanently deaf.
+- Dynamic names release the previous channel on `retarget()`; forgetting that branch was the other recurring leak.
+
+`tests/echoConventions.test.ts` fails the build if the raw APIs reappear outside the registry; `tests/channelRegistry.test.ts` locks the ref-count/defer/retarget behavior. Client-side detail: [api-client.md — Echo broadcast auth](api-client.md#echo-broadcast-auth).
+
 ## Safe URLs & redirects
 
 Login/register honor `?redirect=` via `src/lib/safeRedirect.ts` (`safeInternalRedirect`): internal paths only (`/` prefix; reject `//`, `\`, `://`, `/http:`). External API-provided URLs pass through `src/utils/safeUrl.ts`: production navigation/download/payment HTTP URLs require HTTPS, local dev may use HTTP, credentials and unsafe schemes rejected, images allow only HTTP(S) or base64 raster data, payment links allow known wallet schemes, OTP links only `otpauth://hotp|totp`, Discord OAuth navigation pinned to `discord.com/api/oauth2/authorize`. Presigned upload PUT URLs also reject unsafe schemes and embedded credentials before `XMLHttpRequest` opens.

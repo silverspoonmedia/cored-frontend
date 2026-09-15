@@ -1,62 +1,33 @@
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { createRealtimeChannel } from '@/composables/echo/realtimeChannel'
 
 export type SettingsRealtimeHandlers = {
   onGroupChanged?: (payload: { group: string; action: string }) => void
 }
 
-const handlerSet = new Set<SettingsRealtimeHandlers>()
-let activeGroup: string | null = null
-
-function ensureChannel(group: string): boolean {
-  const echo = getEcho()
-  if (!echo) return false
-
-  if (activeGroup === group) return true
-
-  if (activeGroup !== null) {
-    try {
-      echo.leave(`settings.${activeGroup}`)
-    } catch {
-      // ignore
-    }
-    activeGroup = null
-  }
-
-  try {
-    const ch = echo.private(`settings.${group}`)
-    ch.listen('.settings.group.changed', (e: { group: string; action: string }) => {
-      for (const h of handlerSet) h.onGroupChanged?.(e)
-    })
-    activeGroup = group
-    return true
-  } catch {
-    return false
-  }
-}
-
-function maybeLeave(): void {
-  if (handlerSet.size > 0) return
-  if (activeGroup === null) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave(`settings.${activeGroup}`)
-    } catch {
-      // ignore
-    }
-  }
-  activeGroup = null
-}
+// Channel name follows the settings group currently on screen; `retarget`
+// moves the subscription and releases the previous group's channel.
+const channel = createRealtimeChannel<SettingsRealtimeHandlers>({
+  channel: null,
+  events: [
+    {
+      event: '.settings.group.changed',
+      handle: (handlers, payload: { group: string; action: string }) => {
+        for (const h of handlers) h.onGroupChanged?.(payload)
+      },
+    },
+  ],
+})
 
 export function subscribeSettingsRealtime(group: string, handlers: SettingsRealtimeHandlers): boolean {
-  handlerSet.add(handlers)
-  subscribeWhenEchoReady(() => ensureChannel(group))
-  return activeGroup === group
+  channel.retarget(`settings.${group}`)
+  return channel.subscribe(handlers)
 }
 
 export function unsubscribeSettingsRealtime(handlers: SettingsRealtimeHandlers): void {
-  handlerSet.delete(handlers)
-  maybeLeave()
+  channel.unsubscribe(handlers)
+  if (channel.size === 0) {
+    channel.retarget(null)
+  }
 }
 
 export function useSettingsRealtime() {

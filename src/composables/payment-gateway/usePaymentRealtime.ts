@@ -1,199 +1,165 @@
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { createKeyedRealtimeChannel, createRealtimeChannel } from '@/composables/echo/realtimeChannel'
 import type { InvoiceStatusPayload } from '@/api/types'
 
-let routingBound = false
+type InvoiceStatusListener = (payload: InvoiceStatusPayload) => void
 
-// payments.admin is shared by 4 handler streams (invoice list, gateway,
-// channel, subscription). One channel bind + one ref-count over the union of
-// attached handlers; dummy-handler tricks are gone — every stream registers
-// its real handler and the channel leaves when all streams are empty.
-const adminHandlers = {
-  invoiceList: new Set<() => void>(),
-  gateway: new Set<() => void>(),
-  channel: new Set<() => void>(),
-  subscription: new Set<() => void>(),
+// payments.invoice.{id}: one ref-counted channel per invoice, so InvoiceShowView
+// and CheckoutPanel can hold subscriptions to different invoices at once.
+const invoiceChannels = createKeyedRealtimeChannel<string, InvoiceStatusListener>({
+  channel: (invoiceId: string) => `payments.invoice.${invoiceId}`,
+  events: () => [
+    {
+      event: '.invoice.status.changed',
+      handle: (handlers, payload: InvoiceStatusPayload) => {
+        for (const h of handlers) h(payload)
+      },
+    },
+  ],
+})
+
+const routingChannel = createRealtimeChannel<() => void>({
+  channel: 'payments.routing',
+  events: [
+    {
+      event: '.routing.catalog.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h()
+      },
+    },
+  ],
+})
+
+/**
+ * payments.admin is shared by four handler streams (invoice list, gateway,
+ * channel, subscription). One channel + one ref-count over the union of the
+ * attached streams; a stream binds its own callback and the channel leaves when
+ * the last one detaches.
+ */
+type AdminStreamHandlers = {
+  onInvoiceListChanged?: () => void
+  onGatewayChanged?: () => void
+  onChannelChanged?: () => void
+  onSubscriptionChanged?: () => void
 }
-let adminBound = false
 
-function adminWanted(): boolean {
-  return adminHandlers.invoiceList.size > 0
-    || adminHandlers.gateway.size > 0
-    || adminHandlers.channel.size > 0
-    || adminHandlers.subscription.size > 0
-}
+const adminChannel = createRealtimeChannel<AdminStreamHandlers>({
+  channel: 'payments.admin',
+  events: [
+    {
+      event: '.invoice.list.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onInvoiceListChanged?.()
+      },
+    },
+    {
+      event: '.payments.gateway.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onGatewayChanged?.()
+      },
+    },
+    {
+      event: '.payments.channel.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onChannelChanged?.()
+      },
+    },
+    {
+      event: '.payments.subscription.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onSubscriptionChanged?.()
+      },
+    },
+  ],
+})
 
-function ensureAdminChannel(): boolean {
-  if (adminBound) return true
-  const echo = getEcho()
-  if (!echo) return false
+// Registry release needs the exact handler identity that was subscribed, and
+// several of the view-facing unsubscribe helpers take no argument — the stable
+// binding object per callback bridges the two.
+const adminBindings = new Map<() => void, AdminStreamHandlers>()
 
-  try {
-    const ch = echo.private('payments.admin')
-    ch.listen('.invoice.list.changed', () => {
-      for (const h of adminHandlers.invoiceList) h()
-    })
-    ch.listen('.payments.gateway.changed', () => {
-      for (const h of adminHandlers.gateway) h()
-    })
-    ch.listen('.payments.channel.changed', () => {
-      for (const h of adminHandlers.channel) h()
-    })
-    ch.listen('.payments.subscription.changed', () => {
-      for (const h of adminHandlers.subscription) h()
-    })
-    adminBound = true
-    return true
-  } catch {
-    return false
+function bindAdminStream(stream: keyof AdminStreamHandlers, onChanged: () => void): boolean {
+  let binding = adminBindings.get(onChanged)
+  if (binding === undefined) {
+    binding = {}
+    adminBindings.set(onChanged, binding)
   }
+  binding[stream] = onChanged
+  return adminChannel.subscribe(binding)
 }
 
-function maybeLeaveAdmin(): void {
-  if (adminWanted() || !adminBound) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave('payments.admin')
-    } catch {
-      // ignore
-    }
-  }
-  adminBound = false
+function unbindAdminStream(stream: keyof AdminStreamHandlers, onChanged: () => void): void {
+  const binding = adminBindings.get(onChanged)
+  if (binding === undefined) return
+  adminChannel.unsubscribe(binding)
+  adminBindings.delete(onChanged)
 }
 
 export function usePaymentRealtime() {
-  // Invoice status channel: ref-counted per caller so InvoiceShowView and
-  // CheckoutPanel can hold subscriptions at the same time.
-  const invoiceBindings = new Map<symbol, { channel: string; handler: (payload: InvoiceStatusPayload) => void }>()
+  const invoiceBindings: Array<{ id: string; handler: InvoiceStatusListener }> = []
+  const routingHandlers: Array<() => void> = []
 
-  function subscribeInvoice(
-    invoiceId: string,
-    onStatusChanged: (payload: InvoiceStatusPayload) => void,
-  ): boolean {
-    const echo = getEcho()
-    if (!echo) return false
-
-    const channel = `payments.invoice.${invoiceId}`
-    try {
-      const key = Symbol('invoice-binding')
-      echo.private(channel).listen('.invoice.status.changed', (e: InvoiceStatusPayload) => {
-        onStatusChanged(e)
-      })
-      invoiceBindings.set(key, { channel, handler: onStatusChanged })
-      return true
-    } catch {
-      return false
-    }
+  function subscribeInvoice(invoiceId: string, onStatusChanged: InvoiceStatusListener): boolean {
+    invoiceBindings.push({ id: invoiceId, handler: onStatusChanged })
+    return invoiceChannels.subscribe(invoiceId, onStatusChanged)
   }
 
   function unsubscribeInvoice(): void {
-    if (invoiceBindings.size === 0) return
-    const echo = getEcho()
-    for (const { channel } of invoiceBindings.values()) {
-      if (echo) {
-        try {
-          echo.leave(channel)
-        } catch {
-          // ignore
-        }
-      }
+    for (const { id, handler } of invoiceBindings) {
+      invoiceChannels.unsubscribe(id, handler)
     }
-    invoiceBindings.clear()
+    invoiceBindings.length = 0
   }
 
   function subscribeRoutingCatalog(onCatalogChanged: () => void): boolean {
-    if (routingBound) return true
-
-    subscribeWhenEchoReady(() => {
-      const echo = getEcho()
-      if (!echo) return false
-      try {
-        echo.private('payments.routing').listen('.routing.catalog.changed', () => {
-          onCatalogChanged()
-        })
-        routingBound = true
-        return true
-      } catch {
-        return false
-      }
-    })
-
-    return routingBound
+    routingHandlers.push(onCatalogChanged)
+    return routingChannel.subscribe(onCatalogChanged)
   }
 
   function unsubscribeRoutingCatalog(): void {
-    if (!routingBound) return
-    const echo = getEcho()
-    if (echo) {
-      try {
-        echo.leave('payments.routing')
-      } catch {
-        // ignore
-      }
+    for (const handler of routingHandlers) {
+      routingChannel.unsubscribe(handler)
     }
-    routingBound = false
+    routingHandlers.length = 0
   }
 
   /**
    * Admin invoice list live updates. Multiple views may listen at once —
-   * the shared channel binds when the first handler of any stream attaches,
-   * leaves when every stream is empty.
+   * the shared channel binds when the first stream attaches, leaves when every
+   * stream is empty.
    */
   function subscribeAdminList(onListChanged: () => void): boolean {
-    adminHandlers.invoiceList.add(onListChanged)
-    const ok = ensureAdminChannel()
-    if (!ok) subscribeWhenEchoReady(ensureAdminChannel)
-    return adminBound
+    return bindAdminStream('onInvoiceListChanged', onListChanged)
   }
 
   function unsubscribeAdminList(onListChanged: () => void): void {
-    adminHandlers.invoiceList.delete(onListChanged)
-    maybeLeaveAdmin()
+    unbindAdminStream('onInvoiceListChanged', onListChanged)
   }
 
-  /**
-   * Payment gateway list live updates (shares the payments.admin channel).
-   */
+  /** Payment gateway list live updates (shares the payments.admin channel). */
   function subscribeGatewayList(onGatewayChanged: () => void): boolean {
-    adminHandlers.gateway.add(onGatewayChanged)
-    const ok = ensureAdminChannel()
-    if (!ok) subscribeWhenEchoReady(ensureAdminChannel)
-    return adminBound
+    return bindAdminStream('onGatewayChanged', onGatewayChanged)
   }
 
   function unsubscribeGatewayList(onGatewayChanged: () => void): void {
-    adminHandlers.gateway.delete(onGatewayChanged)
-    maybeLeaveAdmin()
+    unbindAdminStream('onGatewayChanged', onGatewayChanged)
   }
 
-  /**
-   * Payment channel list live updates (shares the payments.admin channel).
-   */
+  /** Payment channel list live updates (shares the payments.admin channel). */
   function subscribeChannelList(onChannelChanged: () => void): boolean {
-    adminHandlers.channel.add(onChannelChanged)
-    const ok = ensureAdminChannel()
-    if (!ok) subscribeWhenEchoReady(ensureAdminChannel)
-    return adminBound
+    return bindAdminStream('onChannelChanged', onChannelChanged)
   }
 
   function unsubscribeChannelList(onChannelChanged: () => void): void {
-    adminHandlers.channel.delete(onChannelChanged)
-    maybeLeaveAdmin()
+    unbindAdminStream('onChannelChanged', onChannelChanged)
   }
 
-  /**
-   * Subscription list live updates (shares the payments.admin channel).
-   */
+  /** Subscription list live updates (shares the payments.admin channel). */
   function subscribeSubscriptionList(onSubscriptionChanged: () => void): boolean {
-    adminHandlers.subscription.add(onSubscriptionChanged)
-    const ok = ensureAdminChannel()
-    if (!ok) subscribeWhenEchoReady(ensureAdminChannel)
-    return adminBound
+    return bindAdminStream('onSubscriptionChanged', onSubscriptionChanged)
   }
 
   function unsubscribeSubscriptionList(onSubscriptionChanged: () => void): void {
-    adminHandlers.subscription.delete(onSubscriptionChanged)
-    maybeLeaveAdmin()
+    unbindAdminStream('onSubscriptionChanged', onSubscriptionChanged)
   }
 
   return {

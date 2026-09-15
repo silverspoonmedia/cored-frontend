@@ -53,6 +53,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
@@ -157,6 +158,30 @@ describe('csrf nonce multi-tab sync', () => {
     await quietP
     expect(quiet).toBe(true)
     expect(csrf.csrfToken()).toBe('nonce-wait')
+  })
+
+  it('whenCsrfCookieQuiet waits out the settle window after a mint', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi.fn().mockResolvedValue(nonceResponse('nonce-settled'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const csrf = await importFresh()
+    await csrf.ensureCsrf()
+
+    let quiet = false
+    const quietP = csrf.whenCsrfCookieQuiet().then(() => {
+      quiet = true
+    })
+
+    // The nonce fetch has settled, but the browser is still committing its
+    // Set-Cookie — an overlapping credentialed call would abort (surfacing as a
+    // CORS error), so the gate must hold for the settle window.
+    await vi.advanceTimersByTimeAsync(csrf.CSRF_COOKIE_SETTLE_MS - 1)
+    expect(quiet).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(2)
+    await quietP
+    expect(quiet).toBe(true)
   })
 
   it('applyCsrfHeader writes the X-CSRF-Token header when a token exists', async () => {

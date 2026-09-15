@@ -1,51 +1,27 @@
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { createRealtimeChannel } from '@/composables/echo/realtimeChannel'
 
 export type LogsRealtimeHandlers = {
   onErrorRecorded?: (payload: { level: string; type: string }) => void
 }
 
-const handlerSet = new Set<LogsRealtimeHandlers>()
-let channelActive = false
-
-function ensureChannel(): boolean {
-  if (channelActive) return true
-  const echo = getEcho()
-  if (!echo) return false
-  try {
-    const ch = echo.private('logs.errors')
-    ch.listen('.log.error.recorded', (e: { level: string; type: string }) => {
-      for (const h of handlerSet) h.onErrorRecorded?.(e)
-    })
-    channelActive = true
-    return true
-  } catch {
-    return false
-  }
-}
-
-function maybeLeave(): void {
-  if (handlerSet.size > 0) return
-  if (!channelActive) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave('logs.errors')
-    } catch {
-      // ignore
-    }
-  }
-  channelActive = false
-}
+const channel = createRealtimeChannel<LogsRealtimeHandlers>({
+  channel: 'logs.errors',
+  events: [
+    {
+      event: '.log.error.recorded',
+      handle: (handlers, payload: { level: string; type: string }) => {
+        for (const h of handlers) h.onErrorRecorded?.(payload)
+      },
+    },
+  ],
+})
 
 export function subscribeErrorLogsRealtime(handlers: LogsRealtimeHandlers): boolean {
-  handlerSet.add(handlers)
-  subscribeWhenEchoReady(ensureChannel)
-  return channelActive
+  return channel.subscribe(handlers)
 }
 
 export function unsubscribeErrorLogsRealtime(handlers: LogsRealtimeHandlers): void {
-  handlerSet.delete(handlers)
-  maybeLeave()
+  channel.unsubscribe(handlers)
 }
 
 export function useLogsRealtime() {

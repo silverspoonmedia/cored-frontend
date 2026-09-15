@@ -43,6 +43,29 @@ describe('resolveApiUrl', () => {
     expect(resolveApiUrl('auth/me')).toBe('/api/v1/auth/me')
   })
 
+  // A base without the version prefix used to send API-relative paths such as
+  // `broadcasting/auth` to the *web* surface, where the framework's CSRF-guarded
+  // twin answers 403 with no CORS headers — an opaque browser CORS error.
+  it('appends the /api/v1 prefix when the configured base omits it', () => {
+    ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = 'https://api.example.com'
+    expect(resolveApiUrl('broadcasting/auth')).toBe(
+      'https://api.example.com/api/v1/broadcasting/auth',
+    )
+    expect(resolveApiUrl('auth/me')).toBe('https://api.example.com/api/v1/auth/me')
+  })
+
+  it('normalizes a bare /api base to /api/v1', () => {
+    ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = 'https://api.example.com/api'
+    expect(resolveApiUrl('broadcasting/auth')).toBe(
+      'https://api.example.com/api/v1/broadcasting/auth',
+    )
+  })
+
+  it('appends the prefix to a deeper custom base without dropping it', () => {
+    ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = 'https://api.example.com/backend'
+    expect(resolveApiUrl('auth/me')).toBe('https://api.example.com/backend/api/v1/auth/me')
+  })
+
   it('falls back to same-origin when configured API URL is unsafe', () => {
     for (const value of [
       'javascript:alert(1)',

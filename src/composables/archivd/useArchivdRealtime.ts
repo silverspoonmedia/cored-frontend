@@ -1,4 +1,4 @@
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { createRealtimeChannel } from '@/composables/echo/realtimeChannel'
 import { useAuth } from '@/stores/auth'
 
 export type ArchivdRealtimeHandlers = {
@@ -13,117 +13,117 @@ export type ArchivdRealtimeHandlers = {
   onMicrostockCredentialsChanged?: (payload: { action: string; credential_id: string | null }) => void
 }
 
-const handlerSet = new Set<ArchivdRealtimeHandlers>()
-
-// Two simultaneous channels (mirrors backend fan-out in
-// App\Domain\Archivd\Events\ListingChanged):
-// - user channel  -> personal listing, quota, microstock billing/credentials
-// - workspace channel -> team listing/members/activity + collection progress
-let activeUserChannel: string | null = null
-let activeWorkspaceId: string | null = null
-
 function resolveUserChannel(): string | null {
   const { user } = useAuth()
   const userId = user.value?.id
-  if (!userId) return null
-  return `archivd.user.${userId}`
+  return userId ? `archivd.user.${userId}` : null
 }
 
-function attachUserChannelListeners(channel: string): void {
-  const echo = getEcho()
-  if (!echo) return
+// Two channels mirror the backend fan-out in
+// App\Domain\Archivd\Events\ListingChanged:
+// - user channel  -> personal listing, quota, microstock billing/credentials
+// - workspace channel -> team listing/members/activity + collection progress
+const userChannel = createRealtimeChannel<ArchivdRealtimeHandlers>({
+  channel: () => resolveUserChannel(),
+  events: [
+    {
+      event: '.listing.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onListingChanged?.()
+      },
+    },
+    {
+      event: '.quota.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onQuotaChanged?.()
+      },
+    },
+    {
+      event: '.members.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onMembersChanged?.()
+      },
+    },
+    {
+      event: '.activity.appended',
+      handle: (handlers) => {
+        for (const h of handlers) h.onActivityAppended?.()
+      },
+    },
+    {
+      event: '.collection.analysis.progress',
+      handle: (handlers, payload: unknown) => {
+        for (const h of handlers) h.onCollectionAnalysisProgress?.(payload)
+      },
+    },
+    {
+      event: '.asset.metadata.progress',
+      handle: (handlers, payload: unknown) => {
+        for (const h of handlers) h.onAssetMetadataProgress?.(payload)
+      },
+    },
+    {
+      event: '.file.stats.changed',
+      handle: (handlers, payload: { file_id: string; view_count: number; download_count: number }) => {
+        for (const h of handlers) h.onFileStatsChanged?.(payload)
+      },
+    },
+    {
+      event: '.microstock.billing.changed',
+      handle: (handlers, payload: { owner_user_id: string; action: string }) => {
+        for (const h of handlers) h.onMicrostockBillingChanged?.(payload)
+      },
+    },
+    {
+      event: '.microstock.credentials.changed',
+      handle: (handlers, payload: { action: string; credential_id: string | null }) => {
+        for (const h of handlers) h.onMicrostockCredentialsChanged?.(payload)
+      },
+    },
+  ],
+})
 
-  const ch = echo.private(channel)
-  ch.listen('.listing.changed', () => {
-    for (const h of handlerSet) h.onListingChanged?.()
-  })
-  ch.listen('.quota.changed', () => {
-    for (const h of handlerSet) h.onQuotaChanged?.()
-  })
-  ch.listen('.members.changed', () => {
-    for (const h of handlerSet) h.onMembersChanged?.()
-  })
-  ch.listen('.activity.appended', () => {
-    for (const h of handlerSet) h.onActivityAppended?.()
-  })
-  ch.listen('.collection.analysis.progress', (e: unknown) => {
-    for (const h of handlerSet) h.onCollectionAnalysisProgress?.(e)
-  })
-  ch.listen('.asset.metadata.progress', (e: unknown) => {
-    for (const h of handlerSet) h.onAssetMetadataProgress?.(e)
-  })
-  ch.listen('.file.stats.changed', (e: { file_id: string; view_count: number; download_count: number }) => {
-    for (const h of handlerSet) h.onFileStatsChanged?.(e)
-  })
-  ch.listen('.microstock.billing.changed', (e: { owner_user_id: string; action: string }) => {
-    for (const h of handlerSet) h.onMicrostockBillingChanged?.(e)
-  })
-  ch.listen('.microstock.credentials.changed', (e: { action: string; credential_id: string | null }) => {
-    for (const h of handlerSet) h.onMicrostockCredentialsChanged?.(e)
-  })
-}
-
-function attachWorkspaceChannelListeners(workspaceId: string): void {
-  const echo = getEcho()
-  if (!echo) return
-
-  const ch = echo.private(`archivd.workspace.${workspaceId}`)
-  ch.listen('.listing.changed', () => {
-    for (const h of handlerSet) h.onListingChanged?.()
-  })
-  ch.listen('.members.changed', () => {
-    for (const h of handlerSet) h.onMembersChanged?.()
-  })
-  ch.listen('.activity.appended', () => {
-    for (const h of handlerSet) h.onActivityAppended?.()
-  })
-  ch.listen('.collection.analysis.progress', (e: unknown) => {
-    for (const h of handlerSet) h.onCollectionAnalysisProgress?.(e)
-  })
-  ch.listen('.asset.metadata.progress', (e: unknown) => {
-    for (const h of handlerSet) h.onAssetMetadataProgress?.(e)
-  })
-  ch.listen('.file.stats.changed', (e: { file_id: string; view_count: number; download_count: number }) => {
-    for (const h of handlerSet) h.onFileStatsChanged?.(e)
-  })
-}
-
-function ensureUserChannel(): boolean {
-  const channel = resolveUserChannel()
-  if (!channel) return false
-
-  if (activeUserChannel === channel) return true
-
-  const echo = getEcho()
-  if (!echo) return false
-
-  try {
-    attachUserChannelListeners(channel)
-    activeUserChannel = channel
-    return true
-  } catch {
-    return false
-  }
-}
-
-function leaveWorkspaceChannel(): void {
-  const echo = getEcho()
-  if (echo && activeWorkspaceId !== null) {
-    try {
-      echo.leave(`archivd.workspace.${activeWorkspaceId}`)
-    } catch {
-      // ignore
-    }
-  }
-  activeWorkspaceId = null
-}
-
-function ensureChannels(): void {
-  ensureUserChannel()
-  if (activeWorkspaceId !== null) {
-    attachWorkspaceChannelListeners(activeWorkspaceId)
-  }
-}
+const workspaceChannel = createRealtimeChannel<ArchivdRealtimeHandlers>({
+  channel: null,
+  events: [
+    {
+      event: '.listing.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onListingChanged?.()
+      },
+    },
+    {
+      event: '.members.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onMembersChanged?.()
+      },
+    },
+    {
+      event: '.activity.appended',
+      handle: (handlers) => {
+        for (const h of handlers) h.onActivityAppended?.()
+      },
+    },
+    {
+      event: '.collection.analysis.progress',
+      handle: (handlers, payload: unknown) => {
+        for (const h of handlers) h.onCollectionAnalysisProgress?.(payload)
+      },
+    },
+    {
+      event: '.asset.metadata.progress',
+      handle: (handlers, payload: unknown) => {
+        for (const h of handlers) h.onAssetMetadataProgress?.(payload)
+      },
+    },
+    {
+      event: '.file.stats.changed',
+      handle: (handlers, payload: { file_id: string; view_count: number; download_count: number }) => {
+        for (const h of handlers) h.onFileStatsChanged?.(payload)
+      },
+    },
+  ],
+})
 
 /**
  * Join (or switch / leave with `null`) the workspace-scoped private channel.
@@ -132,59 +132,20 @@ function ensureChannels(): void {
  * this join other tabs never hear about uploads in a workspace.
  */
 export function setArchivdWorkspaceChannel(workspaceId: string | null): void {
-  if (activeWorkspaceId === workspaceId) return
-
-  leaveWorkspaceChannel()
-  if (workspaceId === null) return
-
-  if (getEcho() === null) {
-    // Echo not initialized yet — remember the target; onEchoReady re-attaches.
-    activeWorkspaceId = workspaceId
-    return
-  }
-
-  try {
-    attachWorkspaceChannelListeners(workspaceId)
-    activeWorkspaceId = workspaceId
-  } catch {
-    activeWorkspaceId = null
-  }
-}
-
-function maybeLeave(): void {
-  if (handlerSet.size > 0) return
-  const echo = getEcho()
-  if (echo) {
-    if (activeUserChannel) {
-      try {
-        echo.leave(activeUserChannel)
-      } catch {
-        // ignore
-      }
-    }
-    leaveWorkspaceChannel()
-  }
-  activeUserChannel = null
+  workspaceChannel.retarget(workspaceId === null ? null : `archivd.workspace.${workspaceId}`)
 }
 
 export function subscribeArchivdRealtime(handlers: ArchivdRealtimeHandlers): boolean {
-  handlerSet.add(handlers)
-
-  const attached = ensureUserChannel()
-  if (!attached) {
-    // Echo not ready yet (views mount before the async AppNavbar init) —
-    // shared helper defers the attach instead of staying deaf for the session.
-    subscribeWhenEchoReady(() => {
-      ensureChannels()
-      return true
-    })
-  }
-  return attached
+  // The workspace channel records the handler but only binds once a workspace
+  // is targeted via `setArchivdWorkspaceChannel`; it shares the same handler set
+  // so both channels fan out to the same consumers.
+  workspaceChannel.subscribe(handlers)
+  return userChannel.subscribe(handlers)
 }
 
 export function unsubscribeArchivdRealtime(handlers: ArchivdRealtimeHandlers): void {
-  handlerSet.delete(handlers)
-  maybeLeave()
+  userChannel.unsubscribe(handlers)
+  workspaceChannel.unsubscribe(handlers)
 }
 
 export function useArchivdRealtime() {

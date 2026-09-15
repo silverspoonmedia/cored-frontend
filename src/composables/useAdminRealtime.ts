@@ -1,4 +1,4 @@
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { createRealtimeChannel, type RealtimeEvent } from '@/composables/echo/realtimeChannel'
 
 export type AdminRealtimeHandlers = {
   onProductActivationChanged?: (payload: { product_key: string; action: string; user_id: string | null }) => void
@@ -8,70 +8,52 @@ export type AdminRealtimeHandlers = {
   onRoleListChanged?: (payload: { action: string; role_id: string | null }) => void
 }
 
-const handlerSet = new Set<AdminRealtimeHandlers>()
-const activeChannels = new Set<string>()
-
-const WANTED_CHANNELS = ['product-activations', 'domain-access', 'rbac', 'rbac.users', 'rbac.roles']
-
-function ensureChannels(): boolean {
-  const echo = getEcho()
-  if (!echo) return false
-
-  for (const channel of WANTED_CHANNELS) {
-    if (activeChannels.has(channel)) continue
-    try {
-      const ch = echo.private(channel)
-      if (channel === 'product-activations') {
-        ch.listen('.product.activation.changed', (e: { product_key: string; action: string; user_id: string | null }) => {
-          for (const h of handlerSet) h.onProductActivationChanged?.(e)
-        })
-      } else if (channel === 'domain-access') {
-        ch.listen('.domain.visibility.changed', (e: { product_key: string; visibility: string }) => {
-          for (const h of handlerSet) h.onDomainVisibilityChanged?.(e)
-        })
-      } else if (channel === 'rbac') {
-        ch.listen('.rbac.role.permission.changed', (e: { action: string; role_id: string | null; user_id: string | null }) => {
-          for (const h of handlerSet) h.onRbacChanged?.(e)
-        })
-      } else if (channel === 'rbac.users') {
-        ch.listen('.rbac.user.list.changed', (e: { action: string; user_id: string | null }) => {
-          for (const h of handlerSet) h.onUserListChanged?.(e)
-        })
-      } else if (channel === 'rbac.roles') {
-        ch.listen('.rbac.role.list.changed', (e: { action: string; role_id: string | null }) => {
-          for (const h of handlerSet) h.onRoleListChanged?.(e)
-        })
-      }
-      activeChannels.add(channel)
-    } catch {
-      // ignore
-    }
-  }
-  return true
+// One event per admin channel, one ref-counted channel per entry. The previous
+// hand-rolled version tracked its joins in a module-level Set that had to be
+// cleared on the last unsubscribe; the registry derives that from ref-counts.
+const EVENTS_BY_CHANNEL: Record<string, RealtimeEvent<AdminRealtimeHandlers>> = {
+  'product-activations': {
+    event: '.product.activation.changed',
+    handle: (handlers, payload: { product_key: string; action: string; user_id: string | null }) => {
+      for (const h of handlers) h.onProductActivationChanged?.(payload)
+    },
+  },
+  'domain-access': {
+    event: '.domain.visibility.changed',
+    handle: (handlers, payload: { product_key: string; visibility: string }) => {
+      for (const h of handlers) h.onDomainVisibilityChanged?.(payload)
+    },
+  },
+  rbac: {
+    event: '.rbac.role.permission.changed',
+    handle: (handlers, payload: { action: string; role_id: string | null; user_id: string | null }) => {
+      for (const h of handlers) h.onRbacChanged?.(payload)
+    },
+  },
+  'rbac.users': {
+    event: '.rbac.user.list.changed',
+    handle: (handlers, payload: { action: string; user_id: string | null }) => {
+      for (const h of handlers) h.onUserListChanged?.(payload)
+    },
+  },
+  'rbac.roles': {
+    event: '.rbac.role.list.changed',
+    handle: (handlers, payload: { action: string; role_id: string | null }) => {
+      for (const h of handlers) h.onRoleListChanged?.(payload)
+    },
+  },
 }
 
-function maybeLeave(): void {
-  if (handlerSet.size > 0) return
-  const echo = getEcho()
-  if (!echo) return
-  for (const channel of activeChannels) {
-    try {
-      echo.leave(channel)
-    } catch {
-      // ignore
-    }
-  }
-  activeChannels.clear()
-}
+const channels = Object.entries(EVENTS_BY_CHANNEL).map(([name, event]) =>
+  createRealtimeChannel<AdminRealtimeHandlers>({ channel: name, events: [event] }),
+)
 
 export function subscribeAdminRealtime(handlers: AdminRealtimeHandlers): void {
-  handlerSet.add(handlers)
-  subscribeWhenEchoReady(ensureChannels)
+  for (const channel of channels) channel.subscribe(handlers)
 }
 
 export function unsubscribeAdminRealtime(handlers: AdminRealtimeHandlers): void {
-  handlerSet.delete(handlers)
-  maybeLeave()
+  for (const channel of channels) channel.unsubscribe(handlers)
 }
 
 export function useAdminRealtime() {

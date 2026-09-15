@@ -52,7 +52,7 @@ Vite stacks env files by mode: `.env` (baseline) → `.env.local` (dev) → `.en
 
 | Var | Where | Bundled? | Notes |
 |-----|--------|----------|--------|
-| `VITE_API_BASE_URL` | `.env` (baseline), `.env.local` (dev override), `.env.production` / `.env.sandbox` (tracked, per-environment deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. Do not place secrets here. |
+| `VITE_API_BASE_URL` | `.env` (baseline), `.env.local` (dev override), `.env.production` / `.env.sandbox` (tracked, per-environment deploy) | Yes | Absolute Laravel API origin (incl. `/api/v1`). Production builds require credential-free HTTPS; dev builds also allow HTTP. Drives all direct API calls; empty = same-origin only. `apiOrigin()` appends `/api/v1` when the value omits it and warns in DEV, so a hand-written base cannot silently land on the backend's web twin (`POST /broadcasting/auth`). Do not place secrets here. |
 | `VITE_HCAPTCHA_SITE_KEY` | Same file matrix as above | Yes | Public sitekey; empty = no widget. Pair with Monolith `platform.hcaptcha.enabled` |
 | `VITE_PUSHER_*` | Same file matrix as above | Yes | Echo; empty key = realtime disabled (no polling fallback). Mirror Monolith `PUSHER_*` literals |
 

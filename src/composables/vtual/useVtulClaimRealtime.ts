@@ -1,6 +1,6 @@
 // --- Claim progress updates (VtulVtuberClaimView) ---
 
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { createKeyedRealtimeChannel } from '@/composables/echo/realtimeChannel'
 import type { VtualCreatorClaim } from '@/api/types'
 
 export type ClaimProgressPayload = {
@@ -8,55 +8,24 @@ export type ClaimProgressPayload = {
   claim?: VtualCreatorClaim
 }
 
-const claimHandlers = new Map<string, Set<(payload: ClaimProgressPayload) => void>>()
-const claimChannels = new Set<string>()
+type ClaimHandler = (payload: ClaimProgressPayload) => void
 
-function ensureClaimChannel(claimId: string): boolean {
-  if (claimChannels.has(claimId)) return true
-  const echo = getEcho()
-  if (!echo) return false
-  try {
-    const ch = echo.private(`vtual.claim.${claimId}`)
-    ch.listen('.claim.progress', (e: ClaimProgressPayload) => {
-      const set = claimHandlers.get(claimId)
-      if (!set) return
-      for (const handler of set) handler(e)
-    })
-    claimChannels.add(claimId)
-    return true
-  } catch {
-    return false
-  }
+const claimChannels = createKeyedRealtimeChannel<string, ClaimHandler>({
+  channel: (claimId: string) => `vtual.claim.${claimId}`,
+  events: () => [
+    {
+      event: '.claim.progress',
+      handle: (handlers, payload: ClaimProgressPayload) => {
+        for (const h of handlers) h(payload)
+      },
+    },
+  ],
+})
+
+export function subscribeVtulClaim(claimId: string, handler: ClaimHandler): boolean {
+  return claimChannels.subscribe(claimId, handler)
 }
 
-export function subscribeVtulClaim(
-  claimId: string,
-  handler: (payload: ClaimProgressPayload) => void,
-): boolean {
-  let set = claimHandlers.get(claimId)
-  if (!set) {
-    set = new Set()
-    claimHandlers.set(claimId, set)
-  }
-  set.add(handler)
-  subscribeWhenEchoReady(() => ensureClaimChannel(claimId))
-  return claimChannels.has(claimId)
-}
-
-export function unsubscribeVtulClaim(claimId: string, handler: (payload: ClaimProgressPayload) => void): void {
-  const set = claimHandlers.get(claimId)
-  if (!set) return
-  set.delete(handler)
-  if (set.size > 0) return
-  claimHandlers.delete(claimId)
-  if (!claimChannels.has(claimId)) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave(`vtual.claim.${claimId}`)
-    } catch {
-      // ignore
-    }
-  }
-  claimChannels.delete(claimId)
+export function unsubscribeVtulClaim(claimId: string, handler: ClaimHandler): void {
+  claimChannels.unsubscribe(claimId, handler)
 }

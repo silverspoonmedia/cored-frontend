@@ -3,7 +3,9 @@ import Pusher from 'pusher-js'
 import type { ChannelAuthorizerGenerator } from 'pusher-js'
 import { onUnmounted, ref, type Ref } from 'vue'
 import { post } from '@/api/client'
+import { whenCsrfCookieQuiet } from '@/api/csrf'
 import { resolveApiUrl } from '@/api/baseUrl'
+import { acquireChannel } from '@/composables/echo/channelRegistry'
 import { useAuth } from '@/stores/auth'
 import i18n from '@/i18n'
 
@@ -25,12 +27,16 @@ export interface BroadcastAuthPayload {
  * subscribe) — usually outside the client's 5s session-settle window. That is
  * covered because `broadcasting/auth` is server-side read-only, so
  * `client.ts` retries its transient (cross-tab cookie-race) failures
- * unconditionally; no local retry wrapper is needed here.
+ * unconditionally. This authorizer additionally waits out
+ * `whenCsrfCookieQuiet()` first, so the *first* attempt does not overlap a
+ * `__Host-spa_csrf` write and never has to be retried at all.
  */
 export async function authorizeBroadcastChannel(
   channelName: string,
   socketId: string,
 ): Promise<BroadcastAuthPayload> {
+  await whenCsrfCookieQuiet()
+
   const data = await post<unknown>('broadcasting/auth', {
     socket_id: socketId,
     channel_name: channelName,
@@ -294,12 +300,10 @@ export function useEchoResync(fn: ResyncFn): void {
 
 // ---- Personal channel (App.Models.User.{id}) --------------------------------
 // Shared by the notification bell (useNotifications) and auth-self events
-// (useAuthSelfRealtime). Ref-counted here so one consumer unsubscribing never
-// tears the channel out from under the other.
+// (useAuthSelfRealtime). Ref-counting lives in the channel registry, so one
+// consumer unsubscribing never tears the channel out from under the other.
 
 type PersonalListener = (e: unknown) => void
-const personalBindings = new Set<symbol>()
-let personalUserId: string | null = null
 
 function resolvePersonalChannel(): string | null {
   const { user } = useAuth()
@@ -309,36 +313,20 @@ function resolvePersonalChannel(): string | null {
 
 /**
  * Listen on the user's personal channel with shared ownership. Returns an
- * unsubscribe; the channel is left only when the last listener detaches (or
- * the user id changes, e.g. logout/login).
+ * unsubscribe; the channel is left only when the last listener detaches.
+ *
+ * The id is resolved per call: after logout/login the consumer re-listens and
+ * acquires the new `App.Models.User.{id}` while releasing the previous one.
  */
 export function listenPersonalChannel(events: Record<string, PersonalListener>): () => void {
   const channel = resolvePersonalChannel()
-  const key = Symbol('personal-listener')
-  personalBindings.add(key)
-  personalUserId = channel ? channel.replace('App.Models.User.', '') : null
-
-  const echo = getEcho()
-  if (echo !== null && channel !== null) {
-    const ch = echo.private(channel)
-    for (const [event, fn] of Object.entries(events)) {
-      ch.listen(event, fn)
-    }
+  if (channel === null) {
+    return () => {}
   }
 
-  return () => {
-    personalBindings.delete(key)
-    if (personalBindings.size > 0) return
-    const current = resolvePersonalChannel()
-    if (getEcho() !== null && current !== null) {
-      try {
-        getEcho()!.leave(current)
-      } catch {
-        // ignore
-      }
-    }
-    personalUserId = null
-  }
+  const subscription = acquireChannel(channel, events)
+
+  return () => subscription.release()
 }
 
 

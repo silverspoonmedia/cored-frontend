@@ -29,7 +29,9 @@ Cross-origin mutation gets 419 → `refreshCsrfOnce()` → retry the original re
 
 ## Cross-tab cookie-race retry
 
-Chromium reports a cross-tab `Set-Cookie` collision on the shared `__Host-spa_csrf` cookie as `TypeError: Failed to fetch` — indistinguishable from a CORS error, so a peer tab rotating the nonce surfaces as a random "CORS error" on an arbitrary endpoint. `whenCsrfCookieQuiet()` only covers nonce fetches *this* tab started, so recovery is a retry after the write settles.
+Chromium reports a cross-tab `Set-Cookie` collision on the shared `__Host-spa_csrf` cookie as `TypeError: Failed to fetch` — indistinguishable from a CORS error, so a peer tab rotating the nonce surfaces as a random "CORS error" on an arbitrary endpoint. `whenCsrfCookieQuiet()` covers nonce fetches *this* tab started plus a `CSRF_COOKIE_SETTLE_MS` (100 ms) window after the last successful mint, so recovery is a retry after the write settles.
+
+`whenCsrfCookieQuiet()` is also the **prevention** path: `authorizeBroadcastChannel()` awaits it before `POST broadcasting/auth`, and `AppNavbar` awaits it before `initEcho()`. Echo authorizes channels at times nothing else controls (connect, reconnect, late subscribe), so without the gate the very first authorize can overlap the nonce write from `POST /batch` and fail before any retry policy applies.
 
 One policy, one implementation: `src/api/netRetry.ts` (`withCookieRaceRetry`, `isTransientFetchError`, `COOKIE_RACE_BACKOFF_MS = [50, 150, 400, 800]`). Consumers:
 
@@ -61,11 +63,19 @@ Cross-origin, the header only reaches JS because the API exposes it — `config/
 
 ## Echo broadcast auth
 
-The Echo authorizer goes through `client.post('broadcasting/auth')` (not a private `fetch`) so it inherits CSRF/419 retry. `AppNavbar` awaits `hydrateShell()` before `initEcho()`. Details: [auth-session.md](auth-session.md) + `monolith/docs/integration/vue-workers-spa.md#auth`.
+The Echo authorizer goes through `client.post('broadcasting/auth')` (not a private `fetch`) so it inherits CSRF/419 retry. `AppNavbar` awaits `hydrateShell()` **and** `whenCsrfCookieQuiet()` before `initEcho()`, and `authorizeBroadcastChannel()` awaits the same gate before each POST. Details: [auth-session.md](auth-session.md) + `monolith/docs/integration/vue-workers-spa.md#auth`.
 
 `broadcasting/auth` is on the read-only POST allowlist, so its transient (cross-tab cookie-race) `TypeError` retries unconditionally — Echo authorizes channels at unpredictable times, usually outside the 5 s settle window. No local retry wrapper exists in `useEcho.ts`; the policy lives in `client.ts` + [netRetry.ts](../src/api/netRetry.ts).
 
 Authorizers are **serialized** in `useEcho.ts` (a promise queue — at most one `broadcasting/auth` in flight per socket). pusher-js fires one authorize per channel in parallel; on connect after init that is a ~15-request burst. Parallel 419s would rotate the CSRF cookie against in-flight retries (surfacing in Chrome as a CORS TypeError on the overlapping cookie write) and pressure the API rate limiter; the queue turns the burst into an ordered sequence (~10-50 ms each). Backend side: a dedicated `throttle:broadcast` limiter (120/min per user) on `api/v1/broadcasting/auth`.
+
+### Endpoint must resolve to `/api/v1`
+
+`resolveApiUrl('broadcasting/auth')` appends to `apiOrigin()`, so `apiOrigin()` guarantees a `/api/v1` suffix (appending it, and `console.warn`-ing in DEV when `VITE_API_BASE_URL` omitted it). Without that guarantee the request lands on the backend's **web twin** `POST /broadcasting/auth` — CSRF-guarded, and until `config/cors.php` listed it, answered 403 with no `Access-Control-*` header, i.e. an opaque browser "CORS error" that looked like a broken allowlist. Guard: `tests/baseUrl.test.ts`; backend invariant: `tests/Feature/Http/CorsBroadcastAuthTest.php`.
+
+### Channel lifecycle goes through the registry
+
+Never call `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` in a composable. Use `src/composables/echo/channelRegistry.ts` (or the declarative `createRealtimeChannel` / `createKeyedRealtimeChannel` in `src/composables/echo/realtimeChannel.ts`), which ref-counts **per channel name**, always defers the attach until Echo exists, and leaves only when the last holder releases. Shared channels (`navigation.menus`, `App.Models.User.{id}`) and dynamic names (`settings.{group}`, `archivd.workspace.{id}`, `payments.invoice.{id}`) are the two bug classes this removes — a second consumer leaving the channel out from under the first, and a dynamic name whose previous value was never left. `tests/echoConventions.test.ts` fails the build if the raw APIs reappear outside the registry.
 
 ## Tests
 

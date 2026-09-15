@@ -1,4 +1,4 @@
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { createKeyedRealtimeChannel, createRealtimeChannel } from '@/composables/echo/realtimeChannel'
 
 export type ServicesRealtimeHandlers = {
   onCatalogChanged?: () => void
@@ -8,103 +8,51 @@ export type PurchaseRealtimeHandlers = {
   onPurchaseChanged?: (payload: { purchase_id: string; action: string }) => void
 }
 
-const catalogHandlers = new Set<ServicesRealtimeHandlers>()
-let catalogChannelActive = false
+const catalogChannel = createRealtimeChannel<ServicesRealtimeHandlers>({
+  channel: 'services.catalog',
+  events: [
+    {
+      event: '.service.catalog.changed',
+      handle: (handlers) => {
+        for (const h of handlers) h.onCatalogChanged?.()
+      },
+    },
+  ],
+})
 
-function ensureCatalogChannel(): boolean {
-  if (catalogChannelActive) return true
-  const echo = getEcho()
-  if (!echo) return false
-  try {
-    const ch = echo.private('services.catalog')
-    ch.listen('.service.catalog.changed', () => {
-      for (const h of catalogHandlers) h.onCatalogChanged?.()
-    })
-    catalogChannelActive = true
-    return true
-  } catch {
-    return false
-  }
-}
+const purchaseChannels = createKeyedRealtimeChannel<string, PurchaseRealtimeHandlers>({
+  channel: (purchaseId: string) => `services.purchase.${purchaseId}`,
+  events: () => [
+    {
+      event: '.service.purchase.changed',
+      handle: (handlers, payload: { purchase_id: string; action: string }) => {
+        for (const h of handlers) h.onPurchaseChanged?.(payload)
+      },
+    },
+  ],
+})
 
-function maybeLeaveCatalog(): void {
-  if (catalogHandlers.size > 0) return
-  if (!catalogChannelActive) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave('services.catalog')
-    } catch {
-      // ignore
-    }
-  }
-  catalogChannelActive = false
-}
+// The view-facing `unsubscribePurchase(handlers)` carries no id, so the last
+// subscribed purchase is remembered here.
+let activePurchaseId: string | null = null
 
 export function subscribeServiceCatalogRealtime(handlers: ServicesRealtimeHandlers): boolean {
-  catalogHandlers.add(handlers)
-  subscribeWhenEchoReady(ensureCatalogChannel)
-  return catalogChannelActive
+  return catalogChannel.subscribe(handlers)
 }
 
 export function unsubscribeServiceCatalogRealtime(handlers: ServicesRealtimeHandlers): void {
-  catalogHandlers.delete(handlers)
-  maybeLeaveCatalog()
-}
-
-const purchaseHandlers = new Set<PurchaseRealtimeHandlers>()
-let purchaseChannelId: string | null = null
-
-function ensurePurchaseChannel(purchaseId: string): boolean {
-  const echo = getEcho()
-  if (!echo) return false
-
-  if (purchaseChannelId === purchaseId) return true
-
-  if (purchaseChannelId !== null) {
-    try {
-      echo.leave(`services.purchase.${purchaseChannelId}`)
-    } catch {
-      // ignore
-    }
-    purchaseChannelId = null
-  }
-
-  try {
-    const ch = echo.private(`services.purchase.${purchaseId}`)
-    ch.listen('.service.purchase.changed', (e: { purchase_id: string; action: string }) => {
-      for (const h of purchaseHandlers) h.onPurchaseChanged?.(e)
-    })
-    purchaseChannelId = purchaseId
-    return true
-  } catch {
-    return false
-  }
-}
-
-function maybeLeavePurchase(): void {
-  if (purchaseHandlers.size > 0) return
-  if (purchaseChannelId === null) return
-  const echo = getEcho()
-  if (echo) {
-    try {
-      echo.leave(`services.purchase.${purchaseChannelId}`)
-    } catch {
-      // ignore
-    }
-  }
-  purchaseChannelId = null
+  catalogChannel.unsubscribe(handlers)
 }
 
 export function subscribePurchaseRealtime(purchaseId: string, handlers: PurchaseRealtimeHandlers): boolean {
-  purchaseHandlers.add(handlers)
-  subscribeWhenEchoReady(() => ensurePurchaseChannel(purchaseId))
-  return purchaseChannelId === purchaseId
+  activePurchaseId = purchaseId
+  return purchaseChannels.subscribe(purchaseId, handlers)
 }
 
 export function unsubscribePurchaseRealtime(handlers: PurchaseRealtimeHandlers): void {
-  purchaseHandlers.delete(handlers)
-  maybeLeavePurchase()
+  if (activePurchaseId === null) return
+  purchaseChannels.unsubscribe(activePurchaseId, handlers)
+  activePurchaseId = null
 }
 
 export function useServicesRealtime() {

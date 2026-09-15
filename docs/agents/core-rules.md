@@ -16,6 +16,7 @@ Mandatory rules for this repo. Each rule has a summary + a link to the owning do
 | 8 | **Swal only.** Notifications/confirmations go through `src/lib/swal.ts` (`useAlert`, `confirmDialog`, `inputDialog`) — never native `alert/confirm/prompt` or ad-hoc alert blocks. | [../ui-patterns.md](../ui-patterns.md) |
 | 9 | **Route names are a cross-repo contract.** Symbolic route names sync with `monolith/config/spa-routes.php` (backend menus consume them). Rename = update both repos + both integration docs. | [../routes.md](../routes.md) |
 | 10 | **Tests with behavior changes.** Auth client, CSRF, shell hydration, realtime authorizers, and route-name contracts have Vitest coverage — extend it when changing them. | [../testing.md](../testing.md) |
+| 11 | **Private channels only via the registry.** Acquire Echo channels through `src/composables/echo/channelRegistry.ts` (`acquireChannel`) or the declarative wrappers in `src/composables/echo/realtimeChannel.ts` (`createRealtimeChannel` / `createKeyedRealtimeChannel`) — never `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` outside the registry. | [../api-client.md](../api-client.md#channel-lifecycle-goes-through-the-registry) |
 
 ## Workflow checklist
 
@@ -30,6 +31,7 @@ Mandatory rules for this repo. Each rule has a summary + a link to the owning do
 - No API proxy paths in `server/` (rule 1).
 - No JWT in `localStorage`/JS memory (rule 4).
 - No hardcoded user-facing strings; no new locale keys in one locale only (rule 3).
+- No `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` in a view or composable — the channel registry owns attach/leave (rule 11, [../api-client.md](../api-client.md#channel-lifecycle-goes-through-the-registry)).
 - No Tailwind classes in the AdminLTE namespace, no Bootstrap reliance inside Valkivid3 (rule 6).
 - No edits to the FROZEN vTual landing files without explicit user permission (rule 6).
 - No new Wrangler environments unless another API origin exists; never mix Vite `--mode` with a different `--env` ([../deployment.md](../deployment.md)).
