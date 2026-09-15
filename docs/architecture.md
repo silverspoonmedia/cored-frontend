@@ -45,7 +45,7 @@ Placement rule of thumb: Vue-lifecycle logic → `composables/`; vendor wrapper 
 
 ## Env files
 
-Vite stacks env files by mode: `.env` (baseline) → `.env.local` (dev) → `.env.<mode>` (build target). During `vite build --mode <env>` the tracked mode file (`.env.production` / `.env.sandbox`) **wins over `.env.local`** (verified on Vite 8). Variable matrix and deploy pairing: [deployment.md](deployment.md) + README Environment section.
+Vite stacks env files by mode: `.env` (baseline) → `.env.local` (dev) → `.env.<mode>` (build target). During `vite build --mode <env>` the tracked mode file (`.env.production` / `.env.sandbox` / `.env.staging`) **wins over `.env.local`** (verified on Vite 8). Variable matrix and deploy pairing: [deployment.md](deployment.md) + README Environment section.
 
 Discord OAuth return is **not** a Vite var — it is Monolith `SPA_URL` on the API host.
 
