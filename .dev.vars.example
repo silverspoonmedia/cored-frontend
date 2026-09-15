@@ -3,4 +3,4 @@
 # secrets — it only returns hardened 404s for stray /api/* hits. This file
 # exists to keep the setup step (`cp .dev.vars.example .dev.vars`) working.
 # VITE_* values do NOT belong here; they are baked at build time via the
-# Vite env files (.env, .env.production, .env.sandbox).
+# Vite env files (.env, .env.production, .env.sandbox, .env.staging).

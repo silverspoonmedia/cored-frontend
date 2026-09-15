@@ -2,8 +2,9 @@
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  *
- * One codebase, two Workers. The top-level config is the shared base AND the
- * production default; `env.production` / `env.sandbox` only override `name`.
+ * One codebase, three Workers. The top-level config is the shared base AND the
+ * production default; `env.production` / `env.sandbox` / `env.staging` only
+ * override `name`.
  * Deploy scripts pair each Wrangler env with the same-named Vite mode
  * (`vite build --mode <env>`) so the bundle bakes the matching API origin —
  * `vars` here are runtime isolate env and never reach the browser bundle.
@@ -37,6 +38,10 @@
 		},
 		"sandbox": {
 			"name": "monolith-spa-sandbox",
+			"vars": {}
+		},
+		"staging": {
+			"name": "monolith-spa-staging",
 			"vars": {}
 		}
 	}

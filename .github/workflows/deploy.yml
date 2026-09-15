@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main, sandbox]
+    branches: [main, main-sandbox, main-staging]
 
 concurrency:
   group: deploy-${{ github.ref_name }}
@@ -11,9 +11,23 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      DEPLOY_ENV: ${{ github.ref_name == 'sandbox' && 'sandbox' || 'production' }}
     steps:
+      # Branch → Vite mode + Wrangler env. The two names must stay identical
+      # (the same-named `.env.<env>` file is baked and `--env` selects the
+      # Worker); an unmapped branch fails loudly instead of defaulting to
+      # production.
+      - name: Resolve deploy environment
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            main)         ENV_NAME=production ;;
+            main-sandbox) ENV_NAME=sandbox ;;
+            main-staging) ENV_NAME=staging ;;
+            *) echo "::error::Unmapped deploy branch ${GITHUB_REF_NAME}"; exit 1 ;;
+          esac
+          {
+            echo "DEPLOY_ENV=${ENV_NAME}"
+            echo "CLOUDFLARE_ENV=${ENV_NAME}"
+          } >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -23,9 +37,9 @@ jobs:
       - run: npm run type-check
       - run: npm run check:i18n
       - run: npm test
+      # CLOUDFLARE_ENV is already exported: @cloudflare/vite-plugin bakes the
+      # environment's worker name into the redirected deploy config.
       - run: npx vite build --mode ${{ env.DEPLOY_ENV }}
-        env:
-          CLOUDFLARE_ENV: ${{ env.DEPLOY_ENV }}
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
