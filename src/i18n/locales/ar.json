@@ -3996,6 +3996,123 @@
       "public_label": "عام",
       "visibility_updated_to": "تم تحديث رؤية {label} إلى {visibility}.",
       "failed_update_visibility": "فشل تحديث رؤية {label}."
+    },
+    "blog": {
+      "posts": {
+        "title": "المقالات",
+        "breadcrumb": "مقالات المدونة",
+        "create_title": "مقال جديد",
+        "edit_title": "تعديل المقال",
+        "trashed_title": "المقالات المحذوفة",
+        "trashed_breadcrumb": "المحذوفة",
+        "create": "مقال جديد",
+        "created": "تم إنشاء المقال.",
+        "updated": "تم تحديث المقال.",
+        "deleted": "تم حذف المقال.",
+        "restored": "تمت استعادة المقال.",
+        "operation_failed": "فشلت العملية.",
+        "load_failed": "تعذر تحميل المقال.",
+        "save_failed": "تعذر حفظ المقال.",
+        "restore_failed": "تعذر استعادة المقال.",
+        "search_placeholder": "البحث في المقالات…",
+        "filter_status": "تصفية حسب الحالة",
+        "empty_title": "لا توجد مقالات بعد",
+        "empty_trashed": "لا توجد مقالات محذوفة",
+        "columns": {
+          "title": "العنوان",
+          "status": "الحالة",
+          "categories": "التصنيفات",
+          "published_at": "تاريخ النشر",
+          "updated_at": "آخر تحديث",
+          "deleted_at": "تاريخ الحذف"
+        },
+        "status": {
+          "all": "جميع الحالات",
+          "draft": "مسودة",
+          "published": "منشور"
+        },
+        "form": {
+          "title": "العنوان",
+          "slug": "المعرف",
+          "excerpt": "المقتطف",
+          "content": "المحتوى",
+          "publish_section": "النشر",
+          "status": "الحالة",
+          "publish_now": "نشر الآن",
+          "featured_section": "الصورة البارزة",
+          "taxonomies_section": "التصنيفات",
+          "categories": "التصنيفات",
+          "categories_placeholder": "اختر التصنيفات",
+          "tags": "الوسوم",
+          "tags_placeholder": "اختر الوسوم"
+        }
+      },
+      "categories": {
+        "title": "التصنيفات",
+        "breadcrumb": "تصنيفات المدونة",
+        "create": "تصنيف جديد",
+        "created": "تم إنشاء التصنيف.",
+        "updated": "تم تحديث التصنيف.",
+        "deleted": "تم حذف التصنيف.",
+        "save_failed": "تعذر حفظ التصنيف.",
+        "delete_failed": "تعذر حذف التصنيف.",
+        "empty_title": "لا توجد تصنيفات بعد",
+        "columns": {
+          "name": "الاسم",
+          "slug": "المعرف",
+          "posts_count": "المقالات"
+        },
+        "form": {
+          "name": "الاسم",
+          "slug": "المعرف",
+          "slug_hint": "اتركه فارغًا ليتم إنشاؤه من الاسم."
+        }
+      },
+      "tags": {
+        "title": "الوسوم",
+        "breadcrumb": "وسوم المدونة",
+        "create": "وسم جديد",
+        "created": "تم إنشاء الوسم.",
+        "updated": "تم تحديث الوسم.",
+        "deleted": "تم حذف الوسم.",
+        "save_failed": "تعذر حفظ الوسم.",
+        "delete_failed": "تعذر حذف الوسم.",
+        "empty_title": "لا توجد وسوم بعد",
+        "columns": {
+          "name": "الاسم",
+          "slug": "المعرف",
+          "posts_count": "المقالات"
+        },
+        "form": {
+          "name": "الاسم",
+          "slug": "المعرف",
+          "slug_hint": "اتركه فارغًا ليتم إنشاؤه من الاسم."
+        }
+      },
+      "editor": {
+        "placeholder": "اكتب شيئًا…",
+        "undo": "تراجع",
+        "redo": "إعادة",
+        "bold": "عريض",
+        "italic": "مائل",
+        "strike": "مشطوب",
+        "bullet_list": "قائمة نقطية",
+        "ordered_list": "قائمة مرقمة",
+        "blockquote": "اقتباس",
+        "code_block": "كتلة تعليمات برمجية",
+        "link": "إدراج رابط",
+        "unlink": "إزالة الرابط",
+        "image": "إدراج صورة",
+        "remove_image": "إزالة الصورة",
+        "link_prompt": "أدخل الرابط (اتركه فارغًا لإزالة الرابط)"
+      },
+      "featured": {
+        "pick": "اختيار صورة",
+        "replace": "استبدال",
+        "remove": "إزالة",
+        "uploading": "جارٍ الرفع…",
+        "alt": "معاينة الصورة البارزة"
+      }
     }
   },
   "ui": {

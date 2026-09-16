@@ -3865,6 +3865,123 @@
       "public_label": "공개",
       "visibility_updated_to": "{label} 가시성이 {visibility}로 업데이트되었습니다.",
       "failed_update_visibility": "{label} 가시성을 업데이트하지 못했습니다."
+    },
+    "blog": {
+      "posts": {
+        "title": "게시물",
+        "breadcrumb": "블로그 게시물",
+        "create_title": "새 게시물",
+        "edit_title": "게시물 편집",
+        "trashed_title": "휴지통 게시물",
+        "trashed_breadcrumb": "휴지통",
+        "create": "새 게시물",
+        "created": "게시물이 생성되었습니다.",
+        "updated": "게시물이 수정되었습니다.",
+        "deleted": "게시물이 삭제되었습니다.",
+        "restored": "게시물이 복원되었습니다.",
+        "operation_failed": "작업에 실패했습니다.",
+        "load_failed": "게시물을 불러올 수 없습니다.",
+        "save_failed": "게시물을 저장할 수 없습니다.",
+        "restore_failed": "게시물을 복원할 수 없습니다.",
+        "search_placeholder": "게시물 검색…",
+        "filter_status": "상태별 필터",
+        "empty_title": "게시물이 없습니다",
+        "empty_trashed": "휴지통이 비어 있습니다",
+        "columns": {
+          "title": "제목",
+          "status": "상태",
+          "categories": "카테고리",
+          "published_at": "게시일",
+          "updated_at": "수정일",
+          "deleted_at": "삭제일"
+        },
+        "status": {
+          "all": "전체 상태",
+          "draft": "임시 저장",
+          "published": "게시됨"
+        },
+        "form": {
+          "title": "제목",
+          "slug": "슬러그",
+          "excerpt": "요약",
+          "content": "본문",
+          "publish_section": "게시",
+          "status": "상태",
+          "publish_now": "즉시 게시",
+          "featured_section": "대표 이미지",
+          "taxonomies_section": "분류",
+          "categories": "카테고리",
+          "categories_placeholder": "카테고리 선택",
+          "tags": "태그",
+          "tags_placeholder": "태그 선택"
+        }
+      },
+      "categories": {
+        "title": "카테고리",
+        "breadcrumb": "블로그 카테고리",
+        "create": "새 카테고리",
+        "created": "카테고리가 생성되었습니다.",
+        "updated": "카테고리가 수정되었습니다.",
+        "deleted": "카테고리가 삭제되었습니다.",
+        "save_failed": "카테고리를 저장할 수 없습니다.",
+        "delete_failed": "카테고리를 삭제할 수 없습니다.",
+        "empty_title": "카테고리가 없습니다",
+        "columns": {
+          "name": "이름",
+          "slug": "슬러그",
+          "posts_count": "게시물 수"
+        },
+        "form": {
+          "name": "이름",
+          "slug": "슬러그",
+          "slug_hint": "비워 두면 이름에서 생성됩니다."
+        }
+      },
+      "tags": {
+        "title": "태그",
+        "breadcrumb": "블로그 태그",
+        "create": "새 태그",
+        "created": "태그가 생성되었습니다.",
+        "updated": "태그가 수정되었습니다.",
+        "deleted": "태그가 삭제되었습니다.",
+        "save_failed": "태그를 저장할 수 없습니다.",
+        "delete_failed": "태그를 삭제할 수 없습니다.",
+        "empty_title": "태그가 없습니다",
+        "columns": {
+          "name": "이름",
+          "slug": "슬러그",
+          "posts_count": "게시물 수"
+        },
+        "form": {
+          "name": "이름",
+          "slug": "슬러그",
+          "slug_hint": "비워 두면 이름에서 생성됩니다."
+        }
+      },
+      "editor": {
+        "placeholder": "내용을 입력하세요…",
+        "undo": "실행 취소",
+        "redo": "다시 실행",
+        "bold": "굵게",
+        "italic": "기울임꼴",
+        "strike": "취소선",
+        "bullet_list": "글머리 기호",
+        "ordered_list": "번호 매기기 목록",
+        "blockquote": "인용",
+        "code_block": "코드 블록",
+        "link": "링크 삽입",
+        "unlink": "링크 제거",
+        "image": "이미지 삽입",
+        "remove_image": "이미지 제거",
+        "link_prompt": "URL 을 입력하세요 (비우면 링크 제거)"
+      },
+      "featured": {
+        "pick": "이미지 선택",
+        "replace": "바꾸기",
+        "remove": "제거",
+        "uploading": "업로드 중…",
+        "alt": "대표 이미지 미리보기"
+      }
     }
   },
   "ui": {

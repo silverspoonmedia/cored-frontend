@@ -4771,6 +4771,123 @@
       "public_label": "公共",
       "visibility_updated_to": "{label}可见性更新为{visibility}。",
       "failed_update_visibility": "无法更新 {label} 可见性。"
+    },
+    "blog": {
+      "posts": {
+        "title": "文章",
+        "breadcrumb": "博客文章",
+        "create_title": "新建文章",
+        "edit_title": "编辑文章",
+        "trashed_title": "回收站文章",
+        "trashed_breadcrumb": "回收站",
+        "create": "新建文章",
+        "created": "文章已创建。",
+        "updated": "文章已更新。",
+        "deleted": "文章已删除。",
+        "restored": "文章已恢复。",
+        "operation_failed": "操作失败。",
+        "load_failed": "无法加载文章。",
+        "save_failed": "无法保存文章。",
+        "restore_failed": "无法恢复文章。",
+        "search_placeholder": "搜索文章…",
+        "filter_status": "按状态筛选",
+        "empty_title": "暂无文章",
+        "empty_trashed": "回收站为空",
+        "columns": {
+          "title": "标题",
+          "status": "状态",
+          "categories": "分类",
+          "published_at": "发布时间",
+          "updated_at": "更新时间",
+          "deleted_at": "删除时间"
+        },
+        "status": {
+          "all": "全部状态",
+          "draft": "草稿",
+          "published": "已发布"
+        },
+        "form": {
+          "title": "标题",
+          "slug": "别名",
+          "excerpt": "摘要",
+          "content": "内容",
+          "publish_section": "发布",
+          "status": "状态",
+          "publish_now": "立即发布",
+          "featured_section": "特色图片",
+          "taxonomies_section": "分类与标签",
+          "categories": "分类",
+          "categories_placeholder": "选择分类",
+          "tags": "标签",
+          "tags_placeholder": "选择标签"
+        }
+      },
+      "categories": {
+        "title": "分类",
+        "breadcrumb": "博客分类",
+        "create": "新建分类",
+        "created": "分类已创建。",
+        "updated": "分类已更新。",
+        "deleted": "分类已删除。",
+        "save_failed": "无法保存分类。",
+        "delete_failed": "无法删除分类。",
+        "empty_title": "暂无分类",
+        "columns": {
+          "name": "名称",
+          "slug": "别名",
+          "posts_count": "文章数"
+        },
+        "form": {
+          "name": "名称",
+          "slug": "别名",
+          "slug_hint": "留空则根据名称生成。"
+        }
+      },
+      "tags": {
+        "title": "标签",
+        "breadcrumb": "博客标签",
+        "create": "新建标签",
+        "created": "标签已创建。",
+        "updated": "标签已更新。",
+        "deleted": "标签已删除。",
+        "save_failed": "无法保存标签。",
+        "delete_failed": "无法删除标签。",
+        "empty_title": "暂无标签",
+        "columns": {
+          "name": "名称",
+          "slug": "别名",
+          "posts_count": "文章数"
+        },
+        "form": {
+          "name": "名称",
+          "slug": "别名",
+          "slug_hint": "留空则根据名称生成。"
+        }
+      },
+      "editor": {
+        "placeholder": "写点什么…",
+        "undo": "撤销",
+        "redo": "重做",
+        "bold": "加粗",
+        "italic": "斜体",
+        "strike": "删除线",
+        "bullet_list": "无序列表",
+        "ordered_list": "有序列表",
+        "blockquote": "引用",
+        "code_block": "代码块",
+        "link": "插入链接",
+        "unlink": "移除链接",
+        "image": "插入图片",
+        "remove_image": "移除图片",
+        "link_prompt": "输入 URL（留空则移除链接）"
+      },
+      "featured": {
+        "pick": "选择图片",
+        "replace": "更换",
+        "remove": "移除",
+        "uploading": "上传中…",
+        "alt": "特色图片预览"
+      }
     }
   }
 }

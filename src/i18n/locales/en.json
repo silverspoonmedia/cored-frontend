@@ -4486,6 +4486,123 @@
       "public_label": "Public",
       "visibility_updated_to": "{label} visibility updated to {visibility}.",
       "failed_update_visibility": "Failed to update {label} visibility."
+    },
+    "blog": {
+      "posts": {
+        "title": "Posts",
+        "breadcrumb": "Blog posts",
+        "create_title": "New post",
+        "edit_title": "Edit post",
+        "trashed_title": "Trashed posts",
+        "trashed_breadcrumb": "Trashed",
+        "create": "New post",
+        "created": "Post created.",
+        "updated": "Post updated.",
+        "deleted": "Post deleted.",
+        "restored": "Post restored.",
+        "operation_failed": "Operation failed.",
+        "load_failed": "Could not load the post.",
+        "save_failed": "Could not save the post.",
+        "restore_failed": "Could not restore the post.",
+        "search_placeholder": "Search posts…",
+        "filter_status": "Filter by status",
+        "empty_title": "No posts yet",
+        "empty_trashed": "No trashed posts",
+        "columns": {
+          "title": "Title",
+          "status": "Status",
+          "categories": "Categories",
+          "published_at": "Published",
+          "updated_at": "Updated",
+          "deleted_at": "Deleted"
+        },
+        "status": {
+          "all": "All statuses",
+          "draft": "Draft",
+          "published": "Published"
+        },
+        "form": {
+          "title": "Title",
+          "slug": "Slug",
+          "excerpt": "Excerpt",
+          "content": "Content",
+          "publish_section": "Publish",
+          "status": "Status",
+          "publish_now": "Publish immediately",
+          "featured_section": "Featured image",
+          "taxonomies_section": "Taxonomies",
+          "categories": "Categories",
+          "categories_placeholder": "Select categories",
+          "tags": "Tags",
+          "tags_placeholder": "Select tags"
+        }
+      },
+      "categories": {
+        "title": "Categories",
+        "breadcrumb": "Blog categories",
+        "create": "New category",
+        "created": "Category created.",
+        "updated": "Category updated.",
+        "deleted": "Category deleted.",
+        "save_failed": "Could not save the category.",
+        "delete_failed": "Could not delete the category.",
+        "empty_title": "No categories yet",
+        "columns": {
+          "name": "Name",
+          "slug": "Slug",
+          "posts_count": "Posts"
+        },
+        "form": {
+          "name": "Name",
+          "slug": "Slug",
+          "slug_hint": "Leave blank to generate from the name."
+        }
+      },
+      "tags": {
+        "title": "Tags",
+        "breadcrumb": "Blog tags",
+        "create": "New tag",
+        "created": "Tag created.",
+        "updated": "Tag updated.",
+        "deleted": "Tag deleted.",
+        "save_failed": "Could not save the tag.",
+        "delete_failed": "Could not delete the tag.",
+        "empty_title": "No tags yet",
+        "columns": {
+          "name": "Name",
+          "slug": "Slug",
+          "posts_count": "Posts"
+        },
+        "form": {
+          "name": "Name",
+          "slug": "Slug",
+          "slug_hint": "Leave blank to generate from the name."
+        }
+      },
+      "editor": {
+        "placeholder": "Write something…",
+        "undo": "Undo",
+        "redo": "Redo",
+        "bold": "Bold",
+        "italic": "Italic",
+        "strike": "Strikethrough",
+        "bullet_list": "Bullet list",
+        "ordered_list": "Numbered list",
+        "blockquote": "Quote",
+        "code_block": "Code block",
+        "link": "Insert link",
+        "unlink": "Remove link",
+        "image": "Insert image",
+        "remove_image": "Remove image",
+        "link_prompt": "Enter URL (leave empty to remove link)"
+      },
+      "featured": {
+        "pick": "Choose image",
+        "replace": "Replace",
+        "remove": "Remove",
+        "uploading": "Uploading…",
+        "alt": "Featured image preview"
+      }
     }
   }
 }

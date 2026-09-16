@@ -2,7 +2,7 @@
 
 ## Layout
 
-- Route records live in `src/router/routes/*.ts` — one module per domain (18 modules: activity-log, auth, dashboard, domain-access, error-log, archivd, identity, inference, legacy, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual).
+- Route records live in `src/router/routes/*.ts` — one module per domain (19 modules: activity-log, archivd, auth, blog, dashboard, domain-access, error-log, identity, inference, legacy, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual).
 - `src/router/index.ts` assembles them (order matters — vTual admin early/late and the 404 catch-all are position-sensitive), keeps the `beforeEach` guard, and owns `scrollBehavior` (`top: 96` hash offset for `/vtual` anchors).
 - URL layout: authenticated app under **`/apps/*`**, guest/public at the site root (`/vtual`, `/s/*`, payment bounce), auth pages at root. URLs and route names do not change without a cross-repo contract update.
 
@@ -18,7 +18,7 @@ Rules:
 
 ## Registry
 
-~178 named routes across the 18 modules (the live count is the code — this figure drifts; the registry itself is `src/router/routes/*.ts` plus `src/router/index.ts` on this side, `monolith/config/spa-routes.php` on the backend side). When in doubt, diff the two lists; they must agree on every menu-consumed name. Recent additions: the `vtual.events.index/create/edit` trio under `/apps/vtual/events` (standalone management-events page).
+~190 named routes across the 19 modules (the live count is the code — this figure drifts; the registry itself is `src/router/routes/*.ts` plus `src/router/index.ts` on this side, `monolith/config/spa-routes.php` on the backend side). When in doubt, diff the two lists; they must agree on every menu-consumed name. Recent additions: the `vtual.events.index/create/edit` trio under `/apps/vtual/events`; the blog module (`blog.posts.index/create/edit/trashed`, `blog.categories.index`, `blog.tags.index`, each with a `.view` child) under `/apps/blog/*`.
 
 ## Meta flags
 

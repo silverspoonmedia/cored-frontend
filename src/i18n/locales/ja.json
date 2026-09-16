@@ -4490,6 +4490,123 @@
       "public_label": "公開",
       "visibility_updated_to": "{label}の公開範囲を{visibility}に更新しました。",
       "failed_update_visibility": "{label}の公開範囲を更新できませんでした。"
+    },
+    "blog": {
+      "posts": {
+        "title": "投稿",
+        "breadcrumb": "ブログ投稿",
+        "create_title": "新規投稿",
+        "edit_title": "投稿を編集",
+        "trashed_title": "ゴミ箱の投稿",
+        "trashed_breadcrumb": "ゴミ箱",
+        "create": "新規投稿",
+        "created": "投稿を作成しました。",
+        "updated": "投稿を更新しました。",
+        "deleted": "投稿を削除しました。",
+        "restored": "投稿を復元しました。",
+        "operation_failed": "操作に失敗しました。",
+        "load_failed": "投稿を読み込めません。",
+        "save_failed": "投稿を保存できません。",
+        "restore_failed": "投稿を復元できません。",
+        "search_placeholder": "投稿を検索…",
+        "filter_status": "ステータスで絞り込み",
+        "empty_title": "投稿はまだありません",
+        "empty_trashed": "ゴミ箱は空です",
+        "columns": {
+          "title": "タイトル",
+          "status": "ステータス",
+          "categories": "カテゴリー",
+          "published_at": "公開日",
+          "updated_at": "更新日",
+          "deleted_at": "削除日"
+        },
+        "status": {
+          "all": "すべてのステータス",
+          "draft": "下書き",
+          "published": "公開済み"
+        },
+        "form": {
+          "title": "タイトル",
+          "slug": "スラッグ",
+          "excerpt": "抜粋",
+          "content": "本文",
+          "publish_section": "公開",
+          "status": "ステータス",
+          "publish_now": "今すぐ公開",
+          "featured_section": "アイキャッチ画像",
+          "taxonomies_section": "タクソノミー",
+          "categories": "カテゴリー",
+          "categories_placeholder": "カテゴリーを選択",
+          "tags": "タグ",
+          "tags_placeholder": "タグを選択"
+        }
+      },
+      "categories": {
+        "title": "カテゴリー",
+        "breadcrumb": "ブログカテゴリー",
+        "create": "新規カテゴリー",
+        "created": "カテゴリーを作成しました。",
+        "updated": "カテゴリーを更新しました。",
+        "deleted": "カテゴリーを削除しました。",
+        "save_failed": "カテゴリーを保存できません。",
+        "delete_failed": "カテゴリーを削除できません。",
+        "empty_title": "カテゴリーはまだありません",
+        "columns": {
+          "name": "名前",
+          "slug": "スラッグ",
+          "posts_count": "投稿数"
+        },
+        "form": {
+          "name": "名前",
+          "slug": "スラッグ",
+          "slug_hint": "空欄の場合は名前から生成されます。"
+        }
+      },
+      "tags": {
+        "title": "タグ",
+        "breadcrumb": "ブログタグ",
+        "create": "新規タグ",
+        "created": "タグを作成しました。",
+        "updated": "タグを更新しました。",
+        "deleted": "タグを削除しました。",
+        "save_failed": "タグを保存できません。",
+        "delete_failed": "タグを削除できません。",
+        "empty_title": "タグはまだありません",
+        "columns": {
+          "name": "名前",
+          "slug": "スラッグ",
+          "posts_count": "投稿数"
+        },
+        "form": {
+          "name": "名前",
+          "slug": "スラッグ",
+          "slug_hint": "空欄の場合は名前から生成されます。"
+        }
+      },
+      "editor": {
+        "placeholder": "本文を入力してください…",
+        "undo": "元に戻す",
+        "redo": "やり直す",
+        "bold": "太字",
+        "italic": "斜体",
+        "strike": "取り消し線",
+        "bullet_list": "箇条書き",
+        "ordered_list": "番号付きリスト",
+        "blockquote": "引用",
+        "code_block": "コードブロック",
+        "link": "リンクを挿入",
+        "unlink": "リンクを解除",
+        "image": "画像を挿入",
+        "remove_image": "画像を削除",
+        "link_prompt": "URL を入力（空でリンク解除）"
+      },
+      "featured": {
+        "pick": "画像を選択",
+        "replace": "変更",
+        "remove": "削除",
+        "uploading": "アップロード中…",
+        "alt": "アイキャッチ画像のプレビュー"
+      }
     }
   }
 }
