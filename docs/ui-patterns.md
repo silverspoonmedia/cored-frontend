@@ -36,10 +36,10 @@ Content cards (`VkStr1VideoCard`) lead with the channel avatar as a dedicated le
 
 ## Component extraction & heavy-vendor async loading
 
-Large admin views stay maintainable by splitting along two axes (pattern used by `ArchivdView`, `VtualProfileShowView`, `ArchivdMicrostockUsageView`, `ArchivdWorkspacesView`, `VtualManagementEditView`):
+Large admin views stay maintainable by splitting along two axes (pattern used by `ArchivdView`, `VtualProfileShowView`, `ArchivdMicrostockUsageView`, `ArchivdWorkspacesView`, `VtualManagementEditView`, `PostEditView`):
 
 - **Composable per concern** (`src/composables/{domain}/use<Thing>.ts`): owns fetch/load-all, filters, selection, pagination, realtime subscriptions, and action handlers. The view keeps only wiring (route params, guards) and layout. Realtime handlers must live in the composable or be forwarded to it — extracted sections never subscribe directly.
-- **Section components** (`src/components/{domain}/<Thing><Section|Card|Tab>.vue`): own one template region (a card, tab, table group) with typed props + emits; two-way form fields use `defineModel`. Keep domain i18n keys, `TableEmptyRow`/`ErrorState` usage, and Swal-only notifications inside the section. The parent view passes state from the composable; no prop drilling through intermediate shells.
+- **Section components** (`src/components/{domain}/<Thing><Section|Card|Tab>.vue`): own one template region (a card, tab, table group) with typed props + emits; two-way form fields use `defineModel`. Keep domain i18n keys, `TableEmptyRow`/`ErrorState` usage, and Swal-only notifications inside the section. The parent view passes state from the composable; no prop drilling through intermediate shells. Blog example: `src/components/blog/RichTextEditor.vue` (Tiptap headless; every toolbar button carries `:title` + `:aria-label`) and `src/components/blog/FeaturedImagePicker.vue` (takes the full `BlogMedia` object, not just the id, so existing posts preview the stored URL).
 
 Views with heavy vendor widgets (`FormSelect2` → jQuery + select2) must import them via `defineAsyncComponent(() => import(...))` (see `UserEditView`, `MenuEditView`) so the vendor chunk loads only when the widget's view is visited — never eager-import a jQuery-dependent component from a shared entry path.
 
