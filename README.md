@@ -48,6 +48,8 @@ Both the npm scripts and the CI workflow set `CLOUDFLARE_ENV=<env>` during the b
 
 Pushes to `main` / `main-sandbox` / `main-staging` also auto-deploy through GitHub Actions. Full operational guide (required secrets, workflow reference, day-to-day flow, troubleshooting): [docs/deployment.md](docs/deployment.md).
 
+The tables above are topology only. `.env.production` and `.env.staging` still carry provisional API origins/credentials (inline `TODO`s in each file) — [docs/deployment.md — Pending environment values](docs/deployment.md#pending-environment-values).
+
 ## Environment
 
 Vite stacks env files by mode: `.env` (baseline) → `.env.local` (dev) → `.env.<mode>` (build target). During `vite build --mode <env>` the tracked mode file (`.env.production` / `.env.sandbox` / `.env.staging`) **wins over `.env.local`** (verified on Vite 8 — a stray absolute `VITE_API_BASE_URL` in `.env.local` does not leak into deploy builds).
