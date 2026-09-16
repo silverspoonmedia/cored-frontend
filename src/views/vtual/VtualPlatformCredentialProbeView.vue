@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
@@ -24,8 +24,8 @@ const saving = ref(false)
 const errors = ref<Record<string, string[]>>({})
 
 const form = reactive({
-  platform_id: '',
-  method: 'GET',
+  platform: '',
+  method: 'fetch_videos',
   ids: '',
   handle: '',
   parts: '',
@@ -34,12 +34,35 @@ const form = reactive({
 
 const result = ref<string>('')
 
-const methodOptions = [
-  { value: 'GET', label: 'GET' },
-  { value: 'POST', label: 'POST' },
-  { value: 'PATCH', label: 'PATCH' },
-  { value: 'DELETE', label: 'DELETE' },
-]
+const selectedPlatform = computed(() =>
+  platforms.value.find((p) => p.key === form.platform) ?? null,
+)
+
+const methodOptions = computed(() => {
+  const options = [
+    { value: 'fetch_videos', label: t('web.vtual.probe.method_fetch_videos') },
+    { value: 'fetch_videos_chunked', label: t('web.vtual.probe.method_fetch_videos_chunked') },
+    { value: 'fetch_channels', label: t('web.vtual.probe.method_fetch_channels') },
+    { value: 'resolve_channel', label: t('web.vtual.probe.method_resolve_channel') },
+  ]
+  if (form.platform === 'twitch') {
+    options.push({ value: 'fetch_streams', label: t('web.vtual.probe.method_fetch_streams') })
+  }
+  return options
+})
+
+// fetch_streams only exists on Twitch; keep the selection valid when switching.
+watch(() => form.platform, (platform) => {
+  if (platform !== 'twitch' && form.method === 'fetch_streams') {
+    form.method = 'fetch_videos'
+  }
+})
+
+const probePlatformOptions = computed(() =>
+  platforms.value
+    .filter((p) => p.key === 'youtube' || p.key === 'twitch')
+    .map((p) => ({ value: p.key, label: p.name })),
+)
 
 function fieldError(field: string): string | null {
   const list = errors.value[field]
@@ -52,7 +75,7 @@ onMounted(async () => {
   try {
     platforms.value = await fetchPlatforms()
     if (platforms.value.length > 0) {
-      form.platform_id = platforms.value[0]!.id
+      form.platform = platforms.value[0]!.key
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual.failed_load_platforms'))
@@ -67,13 +90,14 @@ async function handleSubmit(): Promise<void> {
   errors.value = {}
   result.value = ''
 
+  const isVideoMethod = form.method === 'fetch_videos' || form.method === 'fetch_videos_chunked'
   const payload: Record<string, unknown> = {
-    platform_id: form.platform_id,
+    platform: form.platform,
     method: form.method,
     ids: form.ids || null,
-    handle: form.handle || null,
-    parts: form.parts || null,
-    chunked: form.chunked,
+    handle: form.method === 'resolve_channel' ? (form.handle || null) : null,
+    parts: isVideoMethod && form.platform === 'youtube' ? (form.parts || null) : null,
+    chunked: isVideoMethod && form.platform === 'youtube' ? form.chunked : false,
   }
 
   try {
@@ -106,25 +130,27 @@ async function handleSubmit(): Promise<void> {
       </button>
     </template>
 
+    <p class="text-muted small mb-3">{{ t('web.vtual.probe.subtitle') }}</p>
+
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">{{ t('ui.loading') }}</span>
       </div>
     </div>
 
-    <form v-else @submit.prevent="handleSubmit" style="max-width: 700px;">
+    <form v-else @submit.prevent="handleSubmit">
       <FormSelect
-        name="platform_id"
+        name="platform"
         :label="t('web.vtual.platform_label')"
-        v-model="form.platform_id"
-        :options="platforms.map((p) => ({ value: p.id, label: p.name }))"
-        :error="fieldError('platform_id')"
+        v-model="form.platform"
+        :options="probePlatformOptions"
+        :error="fieldError('platform')"
         :disabled="saving"
         required
       />
       <FormSelect
         name="method"
-        :label="t('web.vtual.http_method_label')"
+        :label="t('web.vtual.probe.method')"
         v-model="form.method"
         :options="methodOptions"
         :error="fieldError('method')"
@@ -132,42 +158,45 @@ async function handleSubmit(): Promise<void> {
       />
       <FormInput
         name="ids"
-        :label="t('web.vtual.ids_label')"
+        :label="t('web.vtual.probe.ids')"
         v-model="form.ids"
         :error="fieldError('ids')"
         :disabled="saving"
-        :placeholder="t('web.vtual.ids_placeholder')"
+        :hint="t('web.vtual.probe.ids_help')"
       />
       <FormInput
         name="handle"
-        :label="t('web.vtual.handle_label')"
+        :label="t('web.vtual.probe.handle')"
         v-model="form.handle"
         :error="fieldError('handle')"
-        :disabled="saving"
+        :disabled="saving || form.method !== 'resolve_channel'"
+        :hint="t('web.vtual.probe.handle_help')"
       />
       <FormInput
+        v-if="form.platform === 'youtube' && (form.method === 'fetch_videos' || form.method === 'fetch_videos_chunked')"
         name="parts"
-        :label="t('web.vtual.parts_label')"
+        :label="t('web.vtual.probe.parts')"
         v-model="form.parts"
         :error="fieldError('parts')"
         :disabled="saving"
-        :hint="t('web.vtual.parts_hint')"
+        :hint="t('web.vtual.probe.parts_help')"
       />
       <FormCheckbox
+        v-if="form.platform === 'youtube' && (form.method === 'fetch_videos' || form.method === 'fetch_videos_chunked')"
         name="chunked"
-        :label="t('web.vtual.chunked_label')"
+        :label="t('web.vtual.probe.chunked')"
         v-model="form.chunked"
         :error="fieldError('chunked')"
         :disabled="saving"
       />
 
       <div class="d-flex gap-2 mb-3">
-        <SubmitButton :label="t('web.vtual.run_probe')" :loading="saving" variant="primary" icon="bi-bug" />
+        <SubmitButton :label="t('web.vtual.probe.run')" :loading="saving" variant="primary" icon="bi-bug" />
       </div>
 
       <div v-if="result" class="mt-3">
-        <h6>{{ t('web.vtual.result_label') }}</h6>
-        <pre class="bg-light p-3 rounded small" style="max-height: 400px; overflow-y: auto;">{{ result }}</pre>
+        <h6>{{ t('web.vtual.probe.result') }}</h6>
+        <pre class="bg-body-tertiary border rounded p-3 small mb-0" style="max-height: 400px; overflow-y: auto;"><code>{{ result }}</code></pre>
       </div>
     </form>
   </Card>
