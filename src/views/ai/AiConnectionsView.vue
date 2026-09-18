@@ -107,6 +107,7 @@ function connectionActions(row: AiConnection) {
 }
 
 onMounted(() => {
+  void fetchList()
   subscribe(realtimeHandlers)
 })
 

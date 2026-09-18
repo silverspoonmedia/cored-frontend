@@ -1396,6 +1396,8 @@
       "subtitle": "每个 AI 传输集中管理一个端点与 API 密钥。各使用方（Microstock、vTual）在设置中绑定连接 Slug。",
       "form_help": "连接必须通过 Test 才会启用；修改端点或密钥会使其回到待测试状态。",
       "add_button": "新建连接",
+      "create_submit": "创建",
+      "save_changes": "保存更改",
       "empty_title": "暂无 AI 连接。",
       "default_badge": "默认连接",
       "make_default": "设为默认",

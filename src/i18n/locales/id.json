@@ -1396,6 +1396,8 @@
       "subtitle": "Satu endpoint dan API key terpusat per transport AI. Setiap konsumen (Microstock, vTual) mengikat slug koneksi dari Pengaturan.",
       "form_help": "Koneksi harus lulus Test sebelum aktif; mengubah endpoint atau key akan mengembalikannya ke status menunggu.",
       "add_button": "Koneksi baru",
+      "create_submit": "Buat",
+      "save_changes": "Simpan perubahan",
       "empty_title": "Belum ada koneksi AI.",
       "default_badge": "Koneksi bawaan",
       "make_default": "Jadikan bawaan",

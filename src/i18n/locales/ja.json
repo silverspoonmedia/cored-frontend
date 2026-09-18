@@ -1396,6 +1396,8 @@
       "subtitle": "AI トランスポートごとにエンドポイントと API キーを 1 か所で管理します。各コンシューマー（Microstock、vTual）は設定で接続スラッグを紐付けます。",
       "form_help": "接続が有効になるには Test の成功が必要です。エンドポイントまたはキーを変更すると保留中に戻ります。",
       "add_button": "新しい接続",
+      "create_submit": "作成",
+      "save_changes": "変更を保存",
       "empty_title": "AI 接続はまだありません。",
       "default_badge": "デフォルト接続",
       "make_default": "デフォルトにする",

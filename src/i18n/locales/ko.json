@@ -775,6 +775,8 @@
       "subtitle": "AI 전송마다 엔드포인트와 API 키를 한곳에서 관리합니다. 각 소비자(Microstock, vTual)는 설정에서 연결 슬러그를 바인딩합니다.",
       "form_help": "연결이 활성화되려면 Test를 통과해야 하며, 엔드포인트나 키를 변경하면 대기 상태로 돌아갑니다.",
       "add_button": "새 연결",
+      "create_submit": "만들기",
+      "save_changes": "변경 사항 저장",
       "empty_title": "아직 AI 연결이 없습니다.",
       "default_badge": "기본 연결",
       "make_default": "기본으로 설정",

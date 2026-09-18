@@ -1396,6 +1396,8 @@
       "subtitle": "One central endpoint and API key per AI transport. Each consumer (Microstock, vTual) binds a connection slug from Settings.",
       "form_help": "A connection must pass Test before it becomes active; changing the endpoint or the key sends it back to pending.",
       "add_button": "New connection",
+      "create_submit": "Create",
+      "save_changes": "Save changes",
       "empty_title": "No AI connections yet.",
       "default_badge": "Default connection",
       "make_default": "Make default",
