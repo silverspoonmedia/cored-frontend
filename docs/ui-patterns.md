@@ -76,6 +76,19 @@ Measured: one chip **38px**, identical to `.form-control` and `.select2-selectio
 
 With the model authoritative, `MenuEditView` prunes unresolvable ids itself by calling `pruneUnresolvedReferences()` ([`src/utils/navigation/pruneUnresolvedReferences.ts`](../src/utils/navigation/pruneUnresolvedReferences.ts)), and only for lookups that actually succeeded. A lookup that failed is recorded in `failedLookups` by `useNavigationHydrate` (`bodyOfOrThrow` instead of degrading to `[]`): the field is left untouched, the admin is warned with `web.menus.hydrate_partial_warning`, and pruning is skipped — so a failed request can never delete stored `parent`/`roles`/`user_includes`/`user_excludes`. Never "fix" an empty select by submitting it as empty.
 
+## Dependent field visibility
+
+When one field decides whether another is meaningful, the dependent field is **gated on the same predicate in three places**: the visible control, the allowed option list, and the request payload. Hiding the control while still posting its stale value is the bug this pattern exists to prevent.
+
+Example — the vTual platform API probe (`src/views/vtual/VtualPlatformCredentialProbeView.vue`):
+
+- **Driver-derived options.** `methodOptions` is a `computed` over `form.platform` — `fetch_streams` is appended only for Twitch. Never hard-code a union of every platform's methods and rely on the user to pick a valid one.
+- **Watcher resets the invalid selection.** `watch(() => form.platform, …)` rewrites `form.method` back to `fetch_videos` when the current method is no longer offered. Without it the previous platform's method stays selected and the submit fails server-side validation (`Rule::in`) with an error the form cannot explain.
+- **Visibility predicate.** `parts` and the `chunked` checkbox render only for `platform === 'youtube'` **and** a video method (`v-if`), so the form never shows a field that the backend would ignore.
+- **Payload predicate.** The same condition nulls the values out of the request (`parts: isVideoMethod && youtube ? form.parts || null : null`, `chunked: … ? form.chunked : false`). Render-gating alone is not enough once a field was filled under a previous selection.
+- **Disabled ≠ hidden.** A field the backend accepts unconditionally but that only applies to one method stays visible and is `disabled` while inert (the probe's `handle`, disabled unless `method === 'resolve_channel'`), so the user can see the input exists and why it is off.
+- **Result rendering.** Debug/probe payloads render as pretty-printed JSON in a `<pre><code>` (`JSON.stringify(res.data, null, 2)`), not a bespoke per-method renderer — the shape varies per method and the raw payload is the artifact under inspection.
+
 ## Loading & error states
 
 Every data-loading view renders three explicit states, in priority order: **skeleton** while loading → **error with retry** on failure → **empty/data** otherwise. No view goes blank on fetch failure.
