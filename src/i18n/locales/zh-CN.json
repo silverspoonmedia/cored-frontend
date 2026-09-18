@@ -119,6 +119,12 @@
     "yes": "是"
   },
   "api": {
+    "ai": {
+      "created": "AI 连接已创建。请运行 Test 以启用。",
+      "updated": "AI 连接已更新。请运行 Test 重新启用。",
+      "deleted": "AI 连接已删除。",
+      "default_updated": "默认 AI 连接已更新。"
+    },
     "activity-log": {
       "list_success": "活动日志已加载。",
       "show_success": "活动日志条目已加载。",
@@ -1382,6 +1388,54 @@
     }
   },
   "web": {
+    "ai-connections": {
+      "title": "AI 连接",
+      "list_title": "AI 连接",
+      "create_title": "新建 AI 连接",
+      "edit_title": "编辑 AI 连接",
+      "subtitle": "每个 AI 传输集中管理一个端点与 API 密钥。各使用方（Microstock、vTual）在设置中绑定连接 Slug。",
+      "form_help": "连接必须通过 Test 才会启用；修改端点或密钥会使其回到待测试状态。",
+      "add_button": "新建连接",
+      "empty_title": "暂无 AI 连接。",
+      "default_badge": "默认连接",
+      "make_default": "设为默认",
+      "load_failed": "加载 AI 连接失败",
+      "save_failed": "保存 AI 连接失败",
+      "delete_failed": "删除 AI 连接失败",
+      "test_failed": "连接测试失败",
+      "default_failed": "切换默认连接失败",
+      "default_updated": "默认 AI 连接已更新。",
+      "status_active": "已启用",
+      "status_pending": "待测试",
+      "status_disabled": "已停用",
+      "pending_notice": "该连接尚未通过 Test，仍处于待测试状态且无法处理请求。请在列表中运行 Test 以启用。",
+      "columns": {
+        "label": "名称",
+        "slug": "Slug",
+        "endpoint": "端点",
+        "status": "状态",
+        "is_default": "默认",
+        "secret_hint": "API 密钥",
+        "last_used_at": "最近使用"
+      },
+      "fields": {
+        "slug": "Slug",
+        "slug_hint": "使用方绑定的固定标识，例如 microstock-vision。",
+        "label": "名称",
+        "endpoint": "端点",
+        "endpoint_hint": "完整的 [OI] 兼容 chat completions 地址。",
+        "test_model": "测试模型",
+        "test_model_hint": "Test 使用的模型，也是未覆盖该值的请求所用模型。",
+        "api_key": "API 密钥",
+        "api_key_hint": "以信封加密存储，API 永不返回该密钥。",
+        "api_key_hint_edit": "留空可保留已保存的密钥。填入新密钥会使连接回到待测试状态。",
+        "timeout_seconds": "超时（秒）",
+        "connect_timeout_seconds": "连接超时（秒）",
+        "max_retries": "最大重试次数",
+        "enabled": "启用",
+        "enabled_hint": "关闭后保留已验证的密钥但停止请求；重新开启无需再次 Test。"
+      }
+    },
     "activity-log": {
       "title": "活动日志",
       "breadcrumb": "活动日志",
@@ -3557,6 +3611,17 @@
             "lease_seconds": "WebSub 租约（秒）",
             "renew_before_hours": "WebSub 到期前续订（小时）",
             "max_body_bytes": "WebSub 最大通知正文（字节）"
+          },
+          "content_classification": {
+            "ai": {
+              "enabled": "启用 AI 审查（内容分类）",
+              "model": "AI 审查模型",
+              "max_tokens": "AI 审查最大响应 token 数",
+              "timeout": "AI 审查超时（秒）",
+              "min_confidence": "AI 审查最低置信度",
+              "cache_ttl_hours": "AI 审查结果缓存（小时）",
+              "connection": "AI 审查连接（留空 = 默认）"
+            }
           }
         }
       },

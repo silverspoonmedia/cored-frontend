@@ -119,6 +119,12 @@
     "yes": "Yes"
   },
   "api": {
+    "ai": {
+      "created": "AI connection created. Run Test to activate it.",
+      "updated": "AI connection updated. Run Test to activate it again.",
+      "deleted": "AI connection deleted successfully.",
+      "default_updated": "Default AI connection updated."
+    },
     "activity-log": {
       "list_success": "Activity log entries retrieved successfully.",
       "show_success": "Activity log entry retrieved successfully.",
@@ -1382,6 +1388,54 @@
     }
   },
   "web": {
+    "ai-connections": {
+      "title": "AI connections",
+      "list_title": "AI connections",
+      "create_title": "Create AI connection",
+      "edit_title": "Edit AI connection",
+      "subtitle": "One central endpoint and API key per AI transport. Each consumer (Microstock, vTual) binds a connection slug from Settings.",
+      "form_help": "A connection must pass Test before it becomes active; changing the endpoint or the key sends it back to pending.",
+      "add_button": "New connection",
+      "empty_title": "No AI connections yet.",
+      "default_badge": "Default connection",
+      "make_default": "Make default",
+      "load_failed": "Failed to load the AI connection",
+      "save_failed": "Failed to save the AI connection",
+      "delete_failed": "Failed to delete the AI connection",
+      "test_failed": "The connection test failed",
+      "default_failed": "Failed to change the default connection",
+      "default_updated": "Default AI connection updated.",
+      "status_active": "Active",
+      "status_pending": "Pending",
+      "status_disabled": "Disabled",
+      "pending_notice": "This connection has not passed Test yet, so it stays pending and cannot serve requests. Run Test from the list to activate it.",
+      "columns": {
+        "label": "Label",
+        "slug": "Slug",
+        "endpoint": "Endpoint",
+        "status": "Status",
+        "is_default": "Default",
+        "secret_hint": "API key",
+        "last_used_at": "Last used"
+      },
+      "fields": {
+        "slug": "Slug",
+        "slug_hint": "Stable identifier consumers bind to, for example microstock-vision.",
+        "label": "Label",
+        "endpoint": "Endpoint",
+        "endpoint_hint": "Full [OI]-compatible chat completions URL.",
+        "test_model": "Test model",
+        "test_model_hint": "Model used by Test, and by any request that does not override it.",
+        "api_key": "API key",
+        "api_key_hint": "Stored envelope-encrypted; the API never returns it.",
+        "api_key_hint_edit": "Leave blank to keep the stored key. Entering a new key sends the connection back to pending.",
+        "timeout_seconds": "Timeout (s)",
+        "connect_timeout_seconds": "Connect timeout (s)",
+        "max_retries": "Max retries",
+        "enabled": "Active",
+        "enabled_hint": "Switching this off keeps the verified key but stops requests; switching it back on does not require a new Test."
+      }
+    },
     "activity-log": {
       "title": "Activity log",
       "breadcrumb": "Activity log",
@@ -3340,6 +3394,13 @@
         "vtual.live_poll.interval_minutes": "Live CCV poll interval (minutes)",
         "vtual.websub.lease_seconds": "WebSub lease (seconds)",
         "vtual.websub.renew_before_hours": "WebSub renew before expiry (hours)",
+        "vtual.content_classification.ai.enabled": "AI audit enabled (content classification)",
+        "vtual.content_classification.ai.model": "AI audit model",
+        "vtual.content_classification.ai.max_tokens": "AI audit max response tokens",
+        "vtual.content_classification.ai.timeout": "AI audit timeout (seconds)",
+        "vtual.content_classification.ai.min_confidence": "AI audit min confidence",
+        "vtual.content_classification.ai.cache_ttl_hours": "AI audit result cache (hours)",
+        "vtual.content_classification.ai.connection": "AI audit connection (empty = default)",
         "vtual.websub.max_body_bytes": "WebSub max notification body (bytes)"
       },
       "hints": {

@@ -130,6 +130,8 @@ Every private channel goes through `src/composables/echo/channelRegistry.ts` —
 - `createRealtimeChannel<H>({ channel, events })` — one handler set, one channel name (static, or `retarget()`ed for dynamic names like `settings.{group}`).
 - `createKeyedRealtimeChannel<K, H>({ channel: (key) => name, events })` — one ref-counted channel per entity (`payments.invoice.{id}`, `vtual.claim.{id}`, `vtual.creator.{id}`), created lazily and dropped when its last handler detaches.
 
+AI connections use the first shape (`ai.connections` → `.ai.connection.changed`, `useAiConnectionsRealtime.ts`); the payload carries ids + status only, never the API key.
+
 Why it is not optional:
 
 - Ref-counting is **per channel name**, so two consumers of a shared channel (`navigation.menus`, `App.Models.User.{id}`) cannot leave it out from under each other — the bug class previously patched by hand in `useMenusChannel.ts` and `listenPersonalChannel`.

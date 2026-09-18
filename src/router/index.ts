@@ -12,6 +12,7 @@ import { domainAccessRoutes } from '@/router/routes/domain-access'
 import { navigationRoutes } from '@/router/routes/navigation'
 import { blogRoutes } from '@/router/routes/blog'
 import { inferenceCatalogRoutes, inferenceUsageRoutes } from '@/router/routes/inference'
+import { aiConnectionRoutes } from '@/router/routes/ai'
 import { subscriptionRoutes, serviceCatalogRoutes, servicePurchaseRoutes } from '@/router/routes/service'
 import { vtualAdminEarlyRoutes, vtualAdminLateRoutes, vtualPublicRoutes } from '@/router/routes/vtual'
 import { productActivationRoutes } from '@/router/routes/product-activations'
@@ -50,6 +51,7 @@ const router = createRouter({
     ...navigationRoutes,
     ...blogRoutes,
     ...inferenceCatalogRoutes,
+    ...aiConnectionRoutes,
     ...paymentGatewayRoutes,
     ...subscriptionRoutes,
     ...serviceCatalogRoutes,

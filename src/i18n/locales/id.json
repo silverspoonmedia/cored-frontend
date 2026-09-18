@@ -119,6 +119,12 @@
     "yes": "Ya"
   },
   "api": {
+    "ai": {
+      "created": "Koneksi AI dibuat. Jalankan Test untuk mengaktifkannya.",
+      "updated": "Koneksi AI diperbarui. Jalankan Test untuk mengaktifkannya kembali.",
+      "deleted": "Koneksi AI dihapus.",
+      "default_updated": "Koneksi AI bawaan diperbarui."
+    },
     "activity-log": {
       "list_success": "Entri log aktivitas berhasil diambil.",
       "show_success": "Entri log aktivitas berhasil diambil.",
@@ -1382,6 +1388,54 @@
     }
   },
   "web": {
+    "ai-connections": {
+      "title": "Koneksi AI",
+      "list_title": "Koneksi AI",
+      "create_title": "Buat koneksi AI",
+      "edit_title": "Ubah koneksi AI",
+      "subtitle": "Satu endpoint dan API key terpusat per transport AI. Setiap konsumen (Microstock, vTual) mengikat slug koneksi dari Pengaturan.",
+      "form_help": "Koneksi harus lulus Test sebelum aktif; mengubah endpoint atau key akan mengembalikannya ke status menunggu.",
+      "add_button": "Koneksi baru",
+      "empty_title": "Belum ada koneksi AI.",
+      "default_badge": "Koneksi bawaan",
+      "make_default": "Jadikan bawaan",
+      "load_failed": "Gagal memuat koneksi AI",
+      "save_failed": "Gagal menyimpan koneksi AI",
+      "delete_failed": "Gagal menghapus koneksi AI",
+      "test_failed": "Tes koneksi gagal",
+      "default_failed": "Gagal mengubah koneksi bawaan",
+      "default_updated": "Koneksi AI bawaan diperbarui.",
+      "status_active": "Aktif",
+      "status_pending": "Menunggu",
+      "status_disabled": "Nonaktif",
+      "pending_notice": "Koneksi ini belum lulus Test, jadi statusnya tetap menunggu dan tidak dapat melayani permintaan. Jalankan Test dari daftar untuk mengaktifkannya.",
+      "columns": {
+        "label": "Nama",
+        "slug": "Slug",
+        "endpoint": "Alamat endpoint",
+        "status": "Status",
+        "is_default": "Bawaan",
+        "secret_hint": "Kunci API",
+        "last_used_at": "Terakhir dipakai"
+      },
+      "fields": {
+        "slug": "Slug",
+        "slug_hint": "Pengenal tetap yang diikat konsumen, mis. microstock-vision.",
+        "label": "Nama",
+        "endpoint": "Alamat endpoint",
+        "endpoint_hint": "URL chat completions lengkap yang kompatibel dengan [OI].",
+        "test_model": "Model uji",
+        "test_model_hint": "Model yang dipakai Test dan permintaan yang tidak menimpanya.",
+        "api_key": "Kunci API",
+        "api_key_hint": "Disimpan terenkripsi envelope; API tidak pernah mengembalikannya.",
+        "api_key_hint_edit": "Biarkan kosong untuk mempertahankan key tersimpan. Memasukkan key baru mengembalikan koneksi ke status menunggu.",
+        "timeout_seconds": "Timeout (dtk)",
+        "connect_timeout_seconds": "Timeout koneksi (dtk)",
+        "max_retries": "Maks. percobaan ulang",
+        "enabled": "Aktif",
+        "enabled_hint": "Mematikannya menyimpan key yang sudah terverifikasi tetapi menghentikan permintaan; menyalakannya kembali tidak perlu Test baru."
+      }
+    },
     "activity-log": {
       "title": "Log aktivitas",
       "breadcrumb": "Log aktivitas",
@@ -3340,6 +3394,13 @@
         "vtual.live_poll.interval_minutes": "Interval poll live CCV (menit)",
         "vtual.websub.lease_seconds": "Lease WebSub (detik)",
         "vtual.websub.renew_before_hours": "Perpanjang WebSub sebelum kedaluwarsa (jam)",
+        "vtual.content_classification.ai.enabled": "Aktifkan audit AI (klasifikasi konten)",
+        "vtual.content_classification.ai.model": "Model audit AI",
+        "vtual.content_classification.ai.max_tokens": "Token respons maksimum audit AI",
+        "vtual.content_classification.ai.timeout": "Timeout audit AI (detik)",
+        "vtual.content_classification.ai.min_confidence": "Confidence minimum audit AI",
+        "vtual.content_classification.ai.cache_ttl_hours": "Cache hasil audit AI (jam)",
+        "vtual.content_classification.ai.connection": "Koneksi audit AI (kosong = default)",
         "vtual.websub.max_body_bytes": "Ukuran maks body notifikasi WebSub (byte)"
       },
       "hints": {

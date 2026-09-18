@@ -69,6 +69,16 @@ export const PRODUCT_ACTIVATION_STATE_BADGE: Record<string, BadgeColor> = {
 }
 
 /**
+ * AI connection lifecycle. `disabled` is secondary (an operator switched it
+ * off on purpose), not the default danger — only `pending` is a warning.
+ */
+export const AI_CONNECTION_STATUS_BADGE: Record<string, BadgeColor> = {
+  active: 'success',
+  pending: 'warning',
+  disabled: 'secondary',
+}
+
+/**
  * vTual channel / credential / claim statuses.
  * Matches Blade `x-adminlte4::vtual.status-badge` + credentials-platform.js.
  * Unknown keys should use StatusBadge `fallback="light"`.

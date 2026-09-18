@@ -119,6 +119,12 @@
     "yes": "예"
   },
   "api": {
+    "ai": {
+      "created": "AI 연결을 만들었습니다. Test를 실행해 활성화하세요.",
+      "updated": "AI 연결을 수정했습니다. 다시 활성화하려면 Test를 실행하세요.",
+      "deleted": "AI 연결을 삭제했습니다.",
+      "default_updated": "기본 AI 연결을 변경했습니다."
+    },
     "activity-log": {
       "list_success": "활동 로그를 불러왔습니다.",
       "show_success": "활동 로그 항목을 불러왔습니다.",
@@ -761,6 +767,54 @@
     "throttle": "로그인 시도가 너무 많습니다. {seconds}초 후에 다시 시도해 주세요."
   },
   "web": {
+    "ai-connections": {
+      "title": "AI 연결",
+      "list_title": "AI 연결",
+      "create_title": "AI 연결 만들기",
+      "edit_title": "AI 연결 편집",
+      "subtitle": "AI 전송마다 엔드포인트와 API 키를 한곳에서 관리합니다. 각 소비자(Microstock, vTual)는 설정에서 연결 슬러그를 바인딩합니다.",
+      "form_help": "연결이 활성화되려면 Test를 통과해야 하며, 엔드포인트나 키를 변경하면 대기 상태로 돌아갑니다.",
+      "add_button": "새 연결",
+      "empty_title": "아직 AI 연결이 없습니다.",
+      "default_badge": "기본 연결",
+      "make_default": "기본으로 설정",
+      "load_failed": "AI 연결을 불러오지 못했습니다",
+      "save_failed": "AI 연결을 저장하지 못했습니다",
+      "delete_failed": "AI 연결을 삭제하지 못했습니다",
+      "test_failed": "연결 테스트에 실패했습니다",
+      "default_failed": "기본 연결을 변경하지 못했습니다",
+      "default_updated": "기본 AI 연결을 변경했습니다.",
+      "status_active": "활성",
+      "status_pending": "대기 중",
+      "status_disabled": "비활성",
+      "pending_notice": "이 연결은 아직 Test를 통과하지 않아 대기 상태로 남아 있으며 요청을 처리할 수 없습니다. 목록에서 Test를 실행해 활성화하세요.",
+      "columns": {
+        "label": "레이블",
+        "slug": "슬러그",
+        "endpoint": "엔드포인트",
+        "status": "상태",
+        "is_default": "기본",
+        "secret_hint": "API 키",
+        "last_used_at": "마지막 사용"
+      },
+      "fields": {
+        "slug": "슬러그",
+        "slug_hint": "소비자가 바인딩하는 고정 식별자입니다(예: microstock-vision).",
+        "label": "레이블",
+        "endpoint": "엔드포인트",
+        "endpoint_hint": "[OI] 호환 chat completions URL(전체 주소).",
+        "test_model": "테스트 모델",
+        "test_model_hint": "Test가 사용하는 모델이며, 이를 재정의하지 않는 요청에도 사용됩니다.",
+        "api_key": "API 키",
+        "api_key_hint": "봉투 암호화로 저장되며 API로는 반환되지 않습니다.",
+        "api_key_hint_edit": "비워 두면 저장된 키를 유지합니다. 새 키를 입력하면 연결이 대기 상태로 돌아갑니다.",
+        "timeout_seconds": "타임아웃(초)",
+        "connect_timeout_seconds": "연결 타임아웃(초)",
+        "max_retries": "최대 재시도",
+        "enabled": "활성",
+        "enabled_hint": "끄면 검증된 키는 유지되지만 요청이 중단됩니다. 다시 켜도 새 Test는 필요하지 않습니다."
+      }
+    },
     "auth": {
       "login_failed": "로그인에 실패했습니다.",
       "register_failed": "가입에 실패했습니다.",
@@ -1160,6 +1214,13 @@
         "vtual.live_poll.interval_minutes": "라이브 CCV 폴링 간격(분)",
         "vtual.websub.lease_seconds": "WebSub 임대 기간(초)",
         "vtual.websub.renew_before_hours": "WebSub 만료 전 갱신 시점(시간)",
+        "vtual.content_classification.ai.enabled": "AI 감사 활성화 (콘텐츠 분류)",
+        "vtual.content_classification.ai.model": "AI 감사 모델",
+        "vtual.content_classification.ai.max_tokens": "AI 감사 최대 응답 토큰",
+        "vtual.content_classification.ai.timeout": "AI 감사 시간 제한 (초)",
+        "vtual.content_classification.ai.min_confidence": "AI 감사 최소 신뢰도",
+        "vtual.content_classification.ai.cache_ttl_hours": "AI 감사 결과 캐시 (시간)",
+        "vtual.content_classification.ai.connection": "AI 감사 연결(비워두면 기본값)",
         "vtual.websub.max_body_bytes": "WebSub 최대 알림 본문(바이트)"
       },
       "hints": {
