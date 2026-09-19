@@ -2,6 +2,7 @@ import { get } from '@/api/client'
 import type {
   ApiResponse,
   VtualPublicContentFeed,
+  VtualPublicContentFilters,
   VtualPublicDirectory,
   VtualPublicLanding,
   VtualPublicManagementProfile,
@@ -57,9 +58,29 @@ async function swr<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
 }
 
 // Warms the profile cache without awaiting (used on directory-card hover). Key
-// must match the show-view's first-page entry (profile:{slug}:1:12).
+// must match the show-view's first-page entry — see `profileCacheKey` with the
+// default (unfiltered) filter set.
 export function prefetchVtualProfile(slug: string): void {
-  void swr('profile:' + slug + ':1:12', () => fetchVtualProfile(slug, 1)).catch(() => undefined)
+  const filters = defaultProfileFilters()
+  void swr(profileCacheKey(slug, 1, 12, filters), () =>
+    fetchVtualProfile(slug, 1, 12, filters),
+  ).catch(() => undefined)
+}
+
+export function defaultProfileFilters(): VtualPublicContentFilters {
+  return { platform: null, type: null, sort: 'newest' }
+}
+
+// Single source of truth for the profile SWR key. Filters MUST be part of the
+// key: otherwise a filtered request would serve (or overwrite) the unfiltered
+// first-page payload.
+function profileCacheKey(
+  slug: string,
+  page: number,
+  perPage: number,
+  filters: VtualPublicContentFilters,
+): string {
+  return `profile:${slug}:${page}:${perPage}:${filters.platform ?? '-'}:${filters.type ?? '-'}:${filters.sort}`
 }
 
 async function fetchVtualDirectory(
@@ -90,10 +111,17 @@ async function fetchVtualProfile(
   slug: string,
   page: number = 1,
   perPage: number = 12,
+  filters: VtualPublicContentFilters = defaultProfileFilters(),
 ): Promise<VtualPublicProfile> {
   const res = await get<ApiResponse<VtualPublicProfile>>(
     `vtual/public/vtubers/${encodeURIComponent(slug)}`,
-    { page, per_page: perPage },
+    {
+      page,
+      per_page: perPage,
+      ...(filters.platform !== null ? { platform: filters.platform } : {}),
+      ...(filters.type !== null ? { type: filters.type } : {}),
+      ...(filters.sort !== 'newest' ? { sort: filters.sort } : {}),
+    },
   )
   return res.data as VtualPublicProfile
 }
@@ -128,8 +156,11 @@ export function useVtualPublic() {
     slug: string,
     page: number = 1,
     perPage: number = 12,
+    filters: VtualPublicContentFilters = defaultProfileFilters(),
   ): Promise<VtualPublicProfile> {
-    return swr(`profile:${slug}:${page}:${perPage}`, () => fetchVtualProfile(slug, page, perPage))
+    return swr(profileCacheKey(slug, page, perPage, filters), () =>
+      fetchVtualProfile(slug, page, perPage, filters),
+    )
   }
 
   function fetchLanding(): Promise<VtualPublicLanding> {

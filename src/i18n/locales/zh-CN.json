@@ -4785,6 +4785,16 @@
           "contents_heading": "最新内容",
           "contents_empty": "尚无公开视频或直播。",
           "contents_browse": "浏览所有内容",
+          "filters_label": "筛选",
+          "filters_all": "全部",
+          "filters_platform_all": "全部平台",
+          "filter_type_live": "直播",
+          "filter_type_archive": "回放",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "最新",
+          "filter_sort_oldest": "最早",
+          "contents_empty_filtered": "没有符合筛选条件的内容。",
+          "filters_clear": "清除筛选",
           "channels_heading": "频道",
           "details": {
             "channels": "频道",
@@ -4802,7 +4812,11 @@
           "error": "无法加载此管理机构主页，请稍后重试。",
           "retry": "重试",
           "creators_heading": "旗下创作者",
-          "creators_empty": "该管理机构暂无公开创作者。"
+          "creators_empty": "该管理机构暂无公开创作者。",
+          "stats_creators": "创作者",
+          "stats_live": "直播中",
+          "stats_channels": "频道",
+          "stats_subscribers": "关注者"
         },
         "landing": {
           "error": "无法加载最新精彩内容。",

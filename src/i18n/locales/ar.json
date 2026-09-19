@@ -1518,6 +1518,16 @@
           "contents_heading": "أحدث المحتوى",
           "contents_empty": "لا توجد مقاطع فيديو أو تدفقات عامة حتى الآن.",
           "contents_browse": "تصفح كل المحتوى",
+          "filters_label": "تصفية",
+          "filters_all": "الكل",
+          "filters_platform_all": "كل المنصات",
+          "filter_type_live": "مباشر",
+          "filter_type_archive": "أرشيف",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "الأحدث",
+          "filter_sort_oldest": "الأقدم",
+          "contents_empty_filtered": "لا يوجد محتوى مطابق لهذه التصفية.",
+          "filters_clear": "مسح التصفية",
           "channels_heading": "القنوات",
           "details": {
             "channels": "القنوات",
@@ -1535,7 +1545,11 @@
           "error": "تعذر تحميل ملف جهة الإدارة هذا. حاول مرة أخرى لاحقًا.",
           "retry": "حاول مرة أخرى",
           "creators_heading": "المبدعون",
-          "creators_empty": "لا يوجد مبدعون عامون في جهة الإدارة هذه بعد."
+          "creators_empty": "لا يوجد مبدعون عامون في جهة الإدارة هذه بعد.",
+          "stats_creators": "المبدعون",
+          "stats_live": "يبث الآن",
+          "stats_channels": "القنوات",
+          "stats_subscribers": "المتابعون"
         },
         "landing": {
           "error": "تعذر تحميل أحدث الأحداث المميزة.",

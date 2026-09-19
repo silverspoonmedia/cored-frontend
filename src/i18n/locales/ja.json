@@ -4500,6 +4500,16 @@
           "contents_heading": "最新コンテンツ",
           "contents_empty": "公開中の動画・配信はまだありません。",
           "contents_browse": "すべてのコンテンツを見る",
+          "filters_label": "絞り込み",
+          "filters_all": "すべて",
+          "filters_platform_all": "すべてのプラットフォーム",
+          "filter_type_live": "LIVE",
+          "filter_type_archive": "アーカイブ",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "新しい順",
+          "filter_sort_oldest": "古い順",
+          "contents_empty_filtered": "この絞り込みに一致するコンテンツはありません。",
+          "filters_clear": "絞り込みを解除",
           "channels_heading": "チャンネル",
           "details": {
             "channels": "チャンネル",
@@ -4517,7 +4527,11 @@
           "error": "このマネジメントプロフィールを読み込めませんでした。後でもう一度お試しください。",
           "retry": "再試行",
           "creators_heading": "所属クリエイター",
-          "creators_empty": "このマネジメントにはまだ公開クリエイターがいません。"
+          "creators_empty": "このマネジメントにはまだ公開クリエイターがいません。",
+          "stats_creators": "クリエイター",
+          "stats_live": "配信中",
+          "stats_channels": "チャンネル",
+          "stats_subscribers": "フォロワー"
         },
         "landing": {
           "error": "最新のハイライトを読み込めませんでした。",

@@ -96,6 +96,8 @@ const duplicateEnglishAllowlist = new Set([
   'web.vtual.public.live_now.badge',
   'web.vtual.public.profile.live',
   'web.vtual.public.profile.vod',
+  'web.vtual.public.profile.filter_type_live',
+  'web.vtual.public.profile.filter_type_vod',
   'web.services.show.stack_quantity_equation',
   'web.vtual-orphans.form.avatar_url_placeholder',
   'web.vtual-orphans.channels.profile_placeholder_youtube',
@@ -105,6 +107,7 @@ const duplicateEnglishAllowlist = new Set([
   // itself (bahasa gaul IT / Chinese tech convention). Keep key-specific.
   'validation.attributes.filter',
   'validation.attributes.slug',
+  'web.vtual.public.profile.filters_label',
   'validation.attributes.status',
   'validation.attributes.tag',
   'web.currencies.columns.settlement',

@@ -1631,6 +1631,14 @@ export interface VtualPublicContent {
 export interface VtualPublicContentFeed {
   items: VtualPublicContent[]
   pagination: VtualPublicDirectoryPagination
+  /** Echoed only by the guest profile endpoint; absent on the landing feed. */
+  filters?: VtualPublicContentFilters
+}
+
+export interface VtualPublicContentFilters {
+  platform: string | null
+  type: string | null
+  sort: 'newest' | 'oldest'
 }
 
 export interface VtualPublicLink {
@@ -1653,6 +1661,14 @@ export interface VtualPublicProfile {
   contents: VtualPublicContentFeed
 }
 
+export interface VtualPublicManagementStats {
+  creators: number
+  live: number
+  channels: number
+  subscribers_total: number
+  subscribers_total_formatted: string
+}
+
 export interface VtualPublicManagementProfile {
   slug: string
   name: string
@@ -1660,6 +1676,7 @@ export interface VtualPublicManagementProfile {
   logo_url: string | null
   links: VtualPublicLink[]
   creators: VtualPublicVtuber[]
+  stats: VtualPublicManagementStats
 }
 
 export interface VtualPublicLandingEvent {

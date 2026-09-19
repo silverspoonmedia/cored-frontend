@@ -4500,6 +4500,16 @@
           "contents_heading": "Konten terbaru",
           "contents_empty": "Belum ada video atau stream publik.",
           "contents_browse": "Jelajahi semua konten",
+          "filters_label": "Filter",
+          "filters_all": "Semua",
+          "filters_platform_all": "Semua platform",
+          "filter_type_live": "LIVE",
+          "filter_type_archive": "Arsip",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "Terbaru",
+          "filter_sort_oldest": "Terlama",
+          "contents_empty_filtered": "Tidak ada konten yang cocok dengan filter ini.",
+          "filters_clear": "Hapus filter",
           "channels_heading": "Channel",
           "details": {
             "channels": "Channel",
@@ -4517,7 +4527,11 @@
           "error": "Profil management ini tidak dapat dimuat. Coba lagi nanti.",
           "retry": "Coba lagi",
           "creators_heading": "Daftar kreator",
-          "creators_empty": "Belum ada kreator publik di management ini."
+          "creators_empty": "Belum ada kreator publik di management ini.",
+          "stats_creators": "Kreator",
+          "stats_live": "Sedang Live",
+          "stats_channels": "Channel",
+          "stats_subscribers": "Pengikut"
         },
         "landing": {
           "error": "Sorotan terbaru tidak dapat dimuat.",

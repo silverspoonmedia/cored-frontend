@@ -12,8 +12,9 @@ import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
 import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { fetchManagementProfile, prefetchProfile } = useVtualPublic()
+const numberFormatter = computed(() => new Intl.NumberFormat(locale.value))
 
 const profile = ref<VtualPublicManagementProfile | null>(null)
 const loading = ref(true)
@@ -190,6 +191,43 @@ onUnmounted(() => {
           </div>
         </div>
       </header>
+
+      <dl
+        class="mb-10 grid grid-cols-2 gap-px bg-gray-200 ring-1 ring-gray-500/20 dark:bg-gray-700 lg:mb-14 lg:grid-cols-4"
+      >
+        <div class="flex flex-col items-center gap-y-1 bg-gray-100 px-4 py-6 dark:bg-gray-800">
+          <dd class="text-2xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-3xl">
+            {{ numberFormatter.format(profile.stats.creators) }}
+          </dd>
+          <dt class="text-2xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-xs">
+            {{ t('web.vtual.public.management.stats_creators') }}
+          </dt>
+        </div>
+        <div class="flex flex-col items-center gap-y-1 bg-gray-100 px-4 py-6 dark:bg-gray-800">
+          <dd class="text-2xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-3xl">
+            {{ numberFormatter.format(profile.stats.live) }}
+          </dd>
+          <dt class="text-2xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-xs">
+            {{ t('web.vtual.public.management.stats_live') }}
+          </dt>
+        </div>
+        <div class="flex flex-col items-center gap-y-1 bg-gray-100 px-4 py-6 dark:bg-gray-800">
+          <dd class="text-2xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-3xl">
+            {{ numberFormatter.format(profile.stats.channels) }}
+          </dd>
+          <dt class="text-2xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-xs">
+            {{ t('web.vtual.public.management.stats_channels') }}
+          </dt>
+        </div>
+        <div class="flex flex-col items-center gap-y-1 bg-gray-100 px-4 py-6 dark:bg-gray-800">
+          <dd class="text-2xl font-bold tracking-tighter text-gray-900 dark:text-white lg:text-3xl">
+            {{ numberFormatter.format(profile.stats.subscribers_total) }}
+          </dd>
+          <dt class="text-2xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-300 lg:text-xs">
+            {{ t('web.vtual.public.management.stats_subscribers') }}
+          </dt>
+        </div>
+      </dl>
 
       <section>
         <h2

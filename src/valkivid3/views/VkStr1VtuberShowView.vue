@@ -3,10 +3,10 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ApiError } from '@/api/types'
-import type { VtualPublicProfile } from '@/api/types'
+import type { VtualPublicContentFilters, VtualPublicProfile } from '@/api/types'
 import { setDocumentTitleOverride } from '@/composables/usePageTitle'
 import { clearHeadMeta, setHeadMeta } from '@/composables/useHeadMeta'
-import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
+import { defaultProfileFilters, useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
 import VkStr1VideoCard from '@/valkivid3/components/str1/VkStr1VideoCard.vue'
 import VkStr1ProfileSidebar from '@/valkivid3/components/str1/VkStr1ProfileSidebar.vue'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
@@ -22,6 +22,9 @@ const contentsLoading = ref(false)
 const notFound = ref(false)
 const error = ref<string | null>(null)
 const contentsPage = ref(1)
+// Content-grid filters. Unknown URL values are never sent — the backend clamps
+// anyway, but keeping the UI on known options avoids a phantom "selected" chip.
+const filters = ref<VtualPublicContentFilters>(defaultProfileFilters())
 
 const slug = computed(() => (typeof route.params.slug === 'string' ? route.params.slug : ''))
 
@@ -54,7 +57,47 @@ const gridContents = computed(() => {
   return items.filter((item) => item !== featured.value)
 })
 
+// Platform chips come from the already-loaded public channels — no extra request.
+const platformOptions = computed(() => {
+  const seen = new Map<string, string>()
+  for (const channel of profile.value?.channels ?? []) {
+    const key = channel.platform_key
+    if (!key || seen.has(key)) {
+      continue
+    }
+    seen.set(key, channel.platform_name ?? key)
+  }
+  return Array.from(seen, ([key, label]) => ({ key, label }))
+})
+
+const typeOptions = computed(() => [
+  { value: null as string | null, label: t('web.vtual.public.profile.filters_all') },
+  { value: 'live', label: t('web.vtual.public.profile.filter_type_live') },
+  { value: 'archive', label: t('web.vtual.public.profile.filter_type_archive') },
+  { value: 'vod', label: t('web.vtual.public.profile.filter_type_vod') },
+])
+
+const hasActiveFilters = computed(
+  () =>
+    filters.value.platform !== null ||
+    filters.value.type !== null ||
+    filters.value.sort !== 'newest',
+)
+
+// The bar stays visible while a filter is active so an empty filtered grid can
+// still be cleared.
+const showFilterBar = computed(
+  () => (profile.value?.contents.pagination.total ?? 0) > 0 || hasActiveFilters.value,
+)
+
+function clearFilters(): void {
+  filters.value = defaultProfileFilters()
+}
+
+let loadToken = 0
+
 async function load(page: number = 1): Promise<void> {
+  const token = ++loadToken
   const isInitial = profile.value === null
   if (isInitial) {
     loading.value = true
@@ -65,9 +108,16 @@ async function load(page: number = 1): Promise<void> {
   error.value = null
 
   try {
-    profile.value = await fetchProfile(slug.value, page)
+    const result = await fetchProfile(slug.value, page, 12, filters.value)
+    if (token !== loadToken) {
+      return
+    }
+    profile.value = result
     contentsPage.value = page
   } catch (e) {
+    if (token !== loadToken) {
+      return
+    }
     if (e instanceof ApiError && e.status === 404) {
       notFound.value = true
       profile.value = null
@@ -75,8 +125,10 @@ async function load(page: number = 1): Promise<void> {
       error.value = e instanceof Error ? e.message : String(e)
     }
   } finally {
-    loading.value = false
-    contentsLoading.value = false
+    if (token === loadToken) {
+      loading.value = false
+      contentsLoading.value = false
+    }
   }
 }
 
@@ -97,6 +149,15 @@ watch(slug, () => {
   contentsPage.value = 1
   void load(1)
 })
+
+// Any filter change resets to page 1; the paginator then follows the filtered total.
+watch(
+  filters,
+  () => {
+    void load(1)
+  },
+  { deep: true },
+)
 
 watch(profile, (next) => {
   setDocumentTitleOverride(next ? `${next.display_name} | vTual | Monolith` : null)
@@ -268,7 +329,95 @@ onUnmounted(() => {
           </h2>
 
           <div
-            v-if="profile.contents.items.length === 0"
+            v-if="showFilterBar"
+            class="mb-8 space-y-3 md:mb-10"
+            role="group"
+            :aria-label="t('web.vtual.public.profile.filters_label')"
+          >
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
+              <span class="me-1 text-xs font-bold uppercase tracking-wide text-gray-500">
+                {{ t('web.vtual.public.profile.filters_label') }}
+              </span>
+              <button
+                v-for="option in typeOptions"
+                :key="`type:${option.value ?? 'all'}`"
+                type="button"
+                :aria-pressed="filters.type === option.value"
+                class="px-3 py-1.5 text-xs font-bold uppercase transition-colors"
+                :class="
+                  filters.type === option.value
+                    ? 'bg-accent text-white dark:text-gray-900'
+                    : 'bg-gray-150 text-gray-600 hover:text-accent dark:bg-gray-800 dark:text-gray-300'
+                "
+                @click="filters.type = option.value"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+
+            <div v-if="platformOptions.length > 1" class="flex flex-wrap items-center gap-x-2 gap-y-2">
+              <button
+                type="button"
+                :aria-pressed="filters.platform === null"
+                class="px-3 py-1.5 text-xs font-bold uppercase transition-colors"
+                :class="
+                  filters.platform === null
+                    ? 'bg-accent text-white dark:text-gray-900'
+                    : 'bg-gray-150 text-gray-600 hover:text-accent dark:bg-gray-800 dark:text-gray-300'
+                "
+                @click="filters.platform = null"
+              >
+                {{ t('web.vtual.public.profile.filters_platform_all') }}
+              </button>
+              <button
+                v-for="option in platformOptions"
+                :key="`platform:${option.key}`"
+                type="button"
+                :aria-pressed="filters.platform === option.key"
+                class="px-3 py-1.5 text-xs font-bold uppercase transition-colors"
+                :class="
+                  filters.platform === option.key
+                    ? 'bg-accent text-white dark:text-gray-900'
+                    : 'bg-gray-150 text-gray-600 hover:text-accent dark:bg-gray-800 dark:text-gray-300'
+                "
+                @click="filters.platform = option.key"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
+              <button
+                type="button"
+                :aria-pressed="filters.sort === 'newest'"
+                class="px-3 py-1.5 text-xs font-bold uppercase transition-colors"
+                :class="
+                  filters.sort === 'newest'
+                    ? 'bg-accent text-white dark:text-gray-900'
+                    : 'bg-gray-150 text-gray-600 hover:text-accent dark:bg-gray-800 dark:text-gray-300'
+                "
+                @click="filters.sort = 'newest'"
+              >
+                {{ t('web.vtual.public.profile.filter_sort_newest') }}
+              </button>
+              <button
+                type="button"
+                :aria-pressed="filters.sort === 'oldest'"
+                class="px-3 py-1.5 text-xs font-bold uppercase transition-colors"
+                :class="
+                  filters.sort === 'oldest'
+                    ? 'bg-accent text-white dark:text-gray-900'
+                    : 'bg-gray-150 text-gray-600 hover:text-accent dark:bg-gray-800 dark:text-gray-300'
+                "
+                @click="filters.sort = 'oldest'"
+              >
+                {{ t('web.vtual.public.profile.filter_sort_oldest') }}
+              </button>
+            </div>
+          </div>
+
+          <div
+            v-if="profile.contents.items.length === 0 && !hasActiveFilters"
             class="flex flex-col items-center gap-y-4 bg-gray-150 px-6 py-16 text-center dark:bg-gray-800"
           >
             <svg role="img" class="h-10 w-10 fill-gray-300 dark:fill-gray-500">
@@ -283,6 +432,25 @@ onUnmounted(() => {
             >
               {{ t('web.vtual.public.profile.contents_browse') }}
             </router-link>
+          </div>
+
+          <div
+            v-else-if="profile.contents.items.length === 0"
+            class="flex flex-col items-center gap-y-4 bg-gray-150 px-6 py-16 text-center dark:bg-gray-800"
+          >
+            <svg role="img" class="h-10 w-10 fill-gray-300 dark:fill-gray-500">
+              <use :href="`${spriteUrl}#play`"></use>
+            </svg>
+            <p class="font-bold text-gray-900 dark:text-white">
+              {{ t('web.vtual.public.profile.contents_empty_filtered') }}
+            </p>
+            <button
+              type="button"
+              class="inline-flex bg-primary px-6 py-3 text-sm font-bold uppercase text-white transition-colors hover:bg-primary-500 dark:text-gray-900"
+              @click="clearFilters"
+            >
+              {{ t('web.vtual.public.profile.filters_clear') }}
+            </button>
           </div>
 
           <template v-else>

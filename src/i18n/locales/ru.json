@@ -1982,6 +1982,16 @@
           "contents_heading": "Последний контент",
           "contents_empty": "Пока нет публичных видео или стримов.",
           "contents_browse": "Смотреть весь контент",
+          "filters_label": "Фильтр",
+          "filters_all": "Все",
+          "filters_platform_all": "Все платформы",
+          "filter_type_live": "LIVE",
+          "filter_type_archive": "Архив",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "Сначала новые",
+          "filter_sort_oldest": "Сначала старые",
+          "contents_empty_filtered": "Нет контента, подходящего под этот фильтр.",
+          "filters_clear": "Сбросить фильтры",
           "channels_heading": "Каналы",
           "details": {
             "channels": "Каналы",
@@ -1999,7 +2009,11 @@
           "error": "Не удалось загрузить профиль менеджмента. Попробуйте позже.",
           "retry": "Попробовать снова",
           "creators_heading": "Состав",
-          "creators_empty": "В этом менеджменте пока нет публичных авторов."
+          "creators_empty": "В этом менеджменте пока нет публичных авторов.",
+          "stats_creators": "Создатели",
+          "stats_live": "В эфире",
+          "stats_channels": "Каналы",
+          "stats_subscribers": "Подписчики"
         },
         "landing": {
           "error": "Не удалось загрузить последние события.",

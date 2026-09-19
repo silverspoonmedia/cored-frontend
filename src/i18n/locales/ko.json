@@ -1383,6 +1383,16 @@
           "contents_heading": "최신 콘텐츠",
           "contents_empty": "공개된 동영상이나 스트리밍이 아직 없습니다.",
           "contents_browse": "모든 콘텐츠 둘러보기",
+          "filters_label": "필터",
+          "filters_all": "전체",
+          "filters_platform_all": "모든 플랫폼",
+          "filter_type_live": "LIVE",
+          "filter_type_archive": "다시보기",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "최신순",
+          "filter_sort_oldest": "오래된순",
+          "contents_empty_filtered": "이 필터에 맞는 콘텐츠가 없습니다.",
+          "filters_clear": "필터 지우기",
           "channels_heading": "채널",
           "details": {
             "channels": "채널",
@@ -1400,7 +1410,11 @@
           "error": "이 매니지먼트 프로필을 불러오지 못했습니다. 나중에 다시 시도해 주세요.",
           "retry": "다시 시도",
           "creators_heading": "소속 크리에이터",
-          "creators_empty": "이 매니지먼트에는 아직 공개 크리에이터가 없습니다."
+          "creators_empty": "이 매니지먼트에는 아직 공개 크리에이터가 없습니다.",
+          "stats_creators": "크리에이터",
+          "stats_live": "라이브 중",
+          "stats_channels": "채널",
+          "stats_subscribers": "팔로워"
         },
         "landing": {
           "error": "최신 하이라이트를 불러오지 못했습니다.",

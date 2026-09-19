@@ -4496,6 +4496,16 @@
           "contents_heading": "Latest content",
           "contents_empty": "No public videos or streams yet.",
           "contents_browse": "Browse all content",
+          "filters_label": "Filter",
+          "filters_all": "All",
+          "filters_platform_all": "All platforms",
+          "filter_type_live": "LIVE",
+          "filter_type_archive": "Archive",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "Newest",
+          "filter_sort_oldest": "Oldest",
+          "contents_empty_filtered": "No content matches these filters.",
+          "filters_clear": "Clear filters",
           "channels_heading": "Channels",
           "details": {
             "channels": "Channels",
@@ -4513,7 +4523,11 @@
           "error": "Could not load this management profile. Try again later.",
           "retry": "Try again",
           "creators_heading": "Roster",
-          "creators_empty": "No public creators in this management yet."
+          "creators_empty": "No public creators in this management yet.",
+          "stats_creators": "Creators",
+          "stats_live": "Live now",
+          "stats_channels": "Channels",
+          "stats_subscribers": "Followers"
         },
         "landing": {
           "error": "Could not load the latest highlights.",
