@@ -119,6 +119,12 @@
     "yes": "はい"
   },
   "api": {
+    "ai": {
+      "created": "AI 接続を作成しました。Test を実行して有効化してください。",
+      "updated": "AI 接続を更新しました。再度有効化するには Test を実行してください。",
+      "deleted": "AI 接続を削除しました。",
+      "default_updated": "デフォルトの AI 接続を更新しました。"
+    },
     "activity-log": {
       "list_success": "アクティビティログを取得しました。",
       "show_success": "アクティビティログエントリを取得しました。",
@@ -1382,6 +1388,56 @@
     }
   },
   "web": {
+    "ai-connections": {
+      "title": "AI 接続",
+      "list_title": "AI 接続",
+      "create_title": "AI 接続を作成",
+      "edit_title": "AI 接続を編集",
+      "subtitle": "AI トランスポートごとにエンドポイントと API キーを 1 か所で管理します。各コンシューマー（Microstock、vTual）は設定で接続スラッグを紐付けます。",
+      "form_help": "接続が有効になるには Test の成功が必要です。エンドポイントまたはキーを変更すると保留中に戻ります。",
+      "add_button": "新しい接続",
+      "create_submit": "作成",
+      "save_changes": "変更を保存",
+      "empty_title": "AI 接続はまだありません。",
+      "default_badge": "デフォルト接続",
+      "make_default": "デフォルトにする",
+      "load_failed": "AI 接続の読み込みに失敗しました",
+      "save_failed": "AI 接続の保存に失敗しました",
+      "delete_failed": "AI 接続の削除に失敗しました",
+      "test_failed": "接続テストに失敗しました",
+      "default_failed": "デフォルト接続の変更に失敗しました",
+      "default_updated": "デフォルトの AI 接続を更新しました。",
+      "status_active": "有効",
+      "status_pending": "保留中",
+      "status_disabled": "無効",
+      "pending_notice": "この接続はまだ Test に合格していないため保留中のままで、リクエストを処理できません。一覧から Test を実行して有効化してください。",
+      "columns": {
+        "label": "ラベル",
+        "slug": "スラッグ",
+        "endpoint": "エンドポイント",
+        "status": "ステータス",
+        "is_default": "デフォルト",
+        "secret_hint": "API キー",
+        "last_used_at": "最終使用"
+      },
+      "fields": {
+        "slug": "スラッグ",
+        "slug_hint": "コンシューマーが紐付ける固定識別子（例: microstock-vision）。",
+        "label": "ラベル",
+        "endpoint": "エンドポイント",
+        "endpoint_hint": "[OI] 互換の chat completions URL（完全な形式）。",
+        "test_model": "テストモデル",
+        "test_model_hint": "Test が使うモデル。上書きしないリクエストにも使われます。",
+        "api_key": "API キー",
+        "api_key_hint": "エンベロープ暗号化で保存され、API から返されることはありません。",
+        "api_key_hint_edit": "空欄のままにすると保存済みのキーを維持します。新しいキーを入力すると接続は保留中に戻ります。",
+        "timeout_seconds": "タイムアウト（秒）",
+        "connect_timeout_seconds": "接続タイムアウト（秒）",
+        "max_retries": "最大再試行回数",
+        "enabled": "有効",
+        "enabled_hint": "オフにしても検証済みキーは保持されますがリクエストは停止します。再度オンにしても新しい Test は不要です。"
+      }
+    },
     "activity-log": {
       "title": "アクティビティログ",
       "breadcrumb": "アクティビティログ",
@@ -3340,6 +3396,13 @@
         "vtual.live_poll.interval_minutes": "ライブ CCV ポール間隔（分）",
         "vtual.websub.lease_seconds": "WebSub リース（秒）",
         "vtual.websub.renew_before_hours": "WebSub 期限前更新（時間）",
+        "vtual.content_classification.ai.enabled": "AI監査の有効化（コンテンツ分類）",
+        "vtual.content_classification.ai.model": "AI監査モデル",
+        "vtual.content_classification.ai.max_tokens": "AI監査の最大応答トークン数",
+        "vtual.content_classification.ai.timeout": "AI監査タイムアウト（秒）",
+        "vtual.content_classification.ai.min_confidence": "AI監査の最低信頼度",
+        "vtual.content_classification.ai.cache_ttl_hours": "AI監査結果キャッシュ（時間）",
+        "vtual.content_classification.ai.connection": "AI 監査接続（空＝デフォルト）",
         "vtual.websub.max_body_bytes": "WebSub 通知本文の最大サイズ（バイト）"
       },
       "hints": {
@@ -4437,6 +4500,16 @@
           "contents_heading": "最新コンテンツ",
           "contents_empty": "公開中の動画・配信はまだありません。",
           "contents_browse": "すべてのコンテンツを見る",
+          "filters_label": "絞り込み",
+          "filters_all": "すべて",
+          "filters_platform_all": "すべてのプラットフォーム",
+          "filter_type_live": "LIVE",
+          "filter_type_archive": "アーカイブ",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "新しい順",
+          "filter_sort_oldest": "古い順",
+          "contents_empty_filtered": "この絞り込みに一致するコンテンツはありません。",
+          "filters_clear": "絞り込みを解除",
           "channels_heading": "チャンネル",
           "details": {
             "channels": "チャンネル",
@@ -4454,7 +4527,11 @@
           "error": "このマネジメントプロフィールを読み込めませんでした。後でもう一度お試しください。",
           "retry": "再試行",
           "creators_heading": "所属クリエイター",
-          "creators_empty": "このマネジメントにはまだ公開クリエイターがいません。"
+          "creators_empty": "このマネジメントにはまだ公開クリエイターがいません。",
+          "stats_creators": "クリエイター",
+          "stats_live": "配信中",
+          "stats_channels": "チャンネル",
+          "stats_subscribers": "フォロワー"
         },
         "landing": {
           "error": "最新のハイライトを読み込めませんでした。",

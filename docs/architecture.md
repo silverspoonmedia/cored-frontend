@@ -29,13 +29,13 @@ Type-then-domain: screens live under `src/views/{domain}/`, with matching `src/c
 | Layer | Contents | Notes |
 |-------|----------|-------|
 | `src/api/` | `client.ts`, `csrf.ts`, `netRetry.ts`, `batch.ts`, `baseUrl.ts`, `requestHeaders.ts`, `types.ts` | The only HTTP layer — see [api-client.md](api-client.md). `netRetry.ts` is the shared cross-tab cookie-race retry policy. `types.ts` mirrors Laravel API Resources exactly (snake_case, no transform layer) |
-| `src/views/{domain}/` | Vue Router page components | 18 domains (activity-log, archivd, auth, blog, dashboard, domain-access, error-log, identity, inference, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual) |
-| `src/composables/` | Shared composables at root (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`, `useForm`, …) + `composables/{domain}/` + `composables/echo/` (`channelRegistry.ts`, `realtimeChannel.ts`) | Stateful logic bound to component lifecycle. `composables/echo/` is the **only** place allowed to call `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` — every private channel goes through it (rule 11, [api-client.md](api-client.md#channel-lifecycle-goes-through-the-registry)) |
+| `src/views/{domain}/` | Vue Router page components | 19 domains (activity-log, ai, archivd, auth, blog, dashboard, domain-access, error-log, identity, inference, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual) |
+| `src/composables/` | Shared composables at root (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`, `useForm`, …) + `composables/{domain}/` + `composables/echo/` (`channelRegistry.ts`, `realtimeChannel.ts`) | Stateful logic bound to component lifecycle. AI admin is `views/ai` + `composables/ai` (`useAiConnections` / `useAiConnectionsRealtime`). `composables/echo/` is the **only** place allowed to call `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` — every private channel goes through it (rule 11, [api-client.md](api-client.md#channel-lifecycle-goes-through-the-registry)) |
 | `src/components/` | Shared UI chrome (`AppNavbar`, `DataTable`, `RowActions`, `ErrorState`, `EmptyState`, `SkeletonBlock`, …) | Cross-domain only; domain-specific components live under the view domain |
 | `src/lib/` | Side-effect wrappers around vendor libs (`swal.ts`, `safeRedirect.ts`) | Small, app-wide, not domain-scoped |
 | `src/utils/` | Pure helpers (`safeUrl.ts`, `mapQueryRowActions.ts`, `statusBadge.ts`, …) + `utils/{domain}/` | No Vue lifecycle, no fetch — pure functions |
 | `src/stores/` | Pinia stores | Shared client state (auth, shell, notifications) |
-| `src/router/` | `index.ts` (guards + assembly) + `routes/*.ts` (18 modules) | See [routes.md](routes.md) |
+| `src/router/` | `index.ts` (guards + assembly) + `routes/*.ts` (20 modules) | See [routes.md](routes.md) |
 | `src/i18n/` | `locales/*.json`, `fallbacks.ts`, shared `i18n` instance | See [i18n.md](i18n.md) |
 | `src/layouts/` | `AppLayout` (AdminLTE shell), `PublicLayout` | — |
 | `src/valkivid3/` | Self-contained Valkivid3 template tree (`layouts/components/composables/views/assets`) | Scoped CSS namespace — see [ui-patterns.md](ui-patterns.md) |

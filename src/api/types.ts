@@ -764,6 +764,53 @@ export interface ProviderModelRate {
   } | null
 }
 
+// --- AI Connections (central AI transport + credentials) ---
+/** Envelope-encrypted connection row. The API never returns the key itself. */
+export interface AiConnection {
+  actions?: QueryRowAction[]
+  id: string
+  slug: string
+  label: string
+  driver: string
+  endpoint: string
+  test_model: string
+  timeout_seconds: number | null
+  connect_timeout_seconds: number | null
+  max_retries: number | null
+  has_extra_headers: boolean
+  is_default: boolean
+  status: string
+  secret_hint: string | null
+  has_secret: boolean
+  verified_at: string | null
+  verified_at_formatted: string | null
+  verified_at_human: string | null
+  last_used_at: string | null
+  last_used_at_formatted: string | null
+  last_used_at_human: string | null
+  last_error_at: string | null
+  last_error_at_formatted: string | null
+  last_error_at_human: string | null
+  last_error_message: string | null
+  created_by: string | null
+  created_at: string | null
+  created_at_formatted: string | null
+  created_at_human: string | null
+  updated_at: string | null
+  updated_at_formatted: string | null
+  updated_at_human: string | null
+}
+
+/** `POST ai/connections/{id}/test` payload. */
+export interface AiConnectionTestPayload {
+  connection: AiConnection
+  test: {
+    ok: boolean
+    message: string
+    latency_ms: number | null
+  }
+}
+
 // --- Payment Gateways ---
 export interface PaymentGateway {
   actions?: QueryRowAction[]
@@ -1349,11 +1396,18 @@ export interface VtualChannel {
   updated_at_human?: string | null
 }
 
+export type VtualContentCategory = 'cover' | 'original' | 'singing_stream'
+
+export type VtualContentKind = 'music' | 'non_music'
+
 export interface VtualContent {
   id: string
   external_id: string | null
   type: string
   status: string
+  content_category?: VtualContentCategory | null
+  content_category_detail?: string | null
+  content_type?: VtualContentKind | null
   title: string | null
   thumbnail_url: string | null
   url: string | null
@@ -1577,6 +1631,14 @@ export interface VtualPublicContent {
 export interface VtualPublicContentFeed {
   items: VtualPublicContent[]
   pagination: VtualPublicDirectoryPagination
+  /** Echoed only by the guest profile endpoint; absent on the landing feed. */
+  filters?: VtualPublicContentFilters
+}
+
+export interface VtualPublicContentFilters {
+  platform: string | null
+  type: string | null
+  sort: 'newest' | 'oldest'
 }
 
 export interface VtualPublicLink {
@@ -1599,6 +1661,14 @@ export interface VtualPublicProfile {
   contents: VtualPublicContentFeed
 }
 
+export interface VtualPublicManagementStats {
+  creators: number
+  live: number
+  channels: number
+  subscribers_total: number
+  subscribers_total_formatted: string
+}
+
 export interface VtualPublicManagementProfile {
   slug: string
   name: string
@@ -1606,6 +1676,7 @@ export interface VtualPublicManagementProfile {
   logo_url: string | null
   links: VtualPublicLink[]
   creators: VtualPublicVtuber[]
+  stats: VtualPublicManagementStats
 }
 
 export interface VtualPublicLandingEvent {

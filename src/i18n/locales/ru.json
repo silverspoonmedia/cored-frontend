@@ -119,6 +119,12 @@
     "yes": "Да"
   },
   "api": {
+    "ai": {
+      "created": "Подключение ИИ создано. Запустите Test, чтобы активировать его.",
+      "updated": "Подключение ИИ обновлено. Запустите Test, чтобы активировать его снова.",
+      "deleted": "Подключение ИИ удалено.",
+      "default_updated": "Подключение ИИ по умолчанию обновлено."
+    },
     "activity-log": {
       "list_success": "Журнал активности загружен.",
       "show_success": "Запись журнала активности загружена.",
@@ -1382,6 +1388,56 @@
     "uppercase": "Поле {attribute} должно быть в верхнем регистре."
   },
   "web": {
+    "ai-connections": {
+      "title": "Подключения ИИ",
+      "list_title": "Подключения ИИ",
+      "create_title": "Создать подключение ИИ",
+      "edit_title": "Изменить подключение ИИ",
+      "subtitle": "Один эндпоинт и ключ API на каждый транспорт ИИ. Каждый потребитель (Microstock, vTual) привязывается к слагу подключения в настройках.",
+      "form_help": "Подключение становится активным только после успешного Test; изменение эндпоинта или ключа возвращает его в состояние ожидания.",
+      "add_button": "Новое подключение",
+      "create_submit": "Создать",
+      "save_changes": "Сохранить изменения",
+      "empty_title": "Подключений ИИ пока нет.",
+      "default_badge": "Подключение по умолчанию",
+      "make_default": "Сделать основным",
+      "load_failed": "Не удалось загрузить подключение ИИ",
+      "save_failed": "Не удалось сохранить подключение ИИ",
+      "delete_failed": "Не удалось удалить подключение ИИ",
+      "test_failed": "Тест подключения не пройден",
+      "default_failed": "Не удалось сменить подключение по умолчанию",
+      "default_updated": "Подключение ИИ по умолчанию обновлено.",
+      "status_active": "Активно",
+      "status_pending": "Ожидает",
+      "status_disabled": "Отключено",
+      "pending_notice": "Это подключение ещё не прошло Test, поэтому остаётся в ожидании и не может обслуживать запросы. Запустите Test из списка, чтобы активировать его.",
+      "columns": {
+        "label": "Название",
+        "slug": "Слаг",
+        "endpoint": "Эндпоинт",
+        "status": "Статус",
+        "is_default": "По умолчанию",
+        "secret_hint": "Ключ API",
+        "last_used_at": "Последнее использование"
+      },
+      "fields": {
+        "slug": "Слаг",
+        "slug_hint": "Постоянный идентификатор для привязки, например microstock-vision.",
+        "label": "Название",
+        "endpoint": "Эндпоинт",
+        "endpoint_hint": "Полный URL chat completions, совместимый с [OI].",
+        "test_model": "Тестовая модель",
+        "test_model_hint": "Модель для Test и для запросов, которые её не переопределяют.",
+        "api_key": "Ключ API",
+        "api_key_hint": "Хранится в конвертном шифровании, API его не возвращает.",
+        "api_key_hint_edit": "Оставьте пустым, чтобы сохранить текущий ключ. Новый ключ вернёт подключение в состояние ожидания.",
+        "timeout_seconds": "Таймаут (с)",
+        "connect_timeout_seconds": "Таймаут соединения (с)",
+        "max_retries": "Максимум повторов",
+        "enabled": "Включено",
+        "enabled_hint": "Отключение сохраняет проверенный ключ, но останавливает запросы; повторное включение не требует нового Test."
+      }
+    },
     "auth": {
       "login_failed": "Не удалось войти.",
       "register_failed": "Не удалось зарегистрироваться.",
@@ -1644,6 +1700,13 @@
         "vtual.live_poll.interval_minutes": "Интервал опроса live CCV (минут)",
         "vtual.websub.lease_seconds": "Аренда WebSub (секунд)",
         "vtual.websub.renew_before_hours": "Продление WebSub до истечения (часов)",
+        "vtual.content_classification.ai.enabled": "Включить ИИ-аудит (классификация контента)",
+        "vtual.content_classification.ai.model": "Модель ИИ-аудита",
+        "vtual.content_classification.ai.max_tokens": "Максимум токенов ответа ИИ-аудита",
+        "vtual.content_classification.ai.timeout": "Тайм-аут ИИ-аудита (секунды)",
+        "vtual.content_classification.ai.min_confidence": "Минимальная достоверность ИИ-аудита",
+        "vtual.content_classification.ai.cache_ttl_hours": "Кэш результатов ИИ-аудита (часы)",
+        "vtual.content_classification.ai.connection": "AI-подключение аудита (пусто = по умолчанию)",
         "vtual.websub.max_body_bytes": "Макс. тело уведомления WebSub (байт)"
       },
       "hints": {
@@ -1919,6 +1982,16 @@
           "contents_heading": "Последний контент",
           "contents_empty": "Пока нет публичных видео или стримов.",
           "contents_browse": "Смотреть весь контент",
+          "filters_label": "Фильтр",
+          "filters_all": "Все",
+          "filters_platform_all": "Все платформы",
+          "filter_type_live": "LIVE",
+          "filter_type_archive": "Архив",
+          "filter_type_vod": "VOD",
+          "filter_sort_newest": "Сначала новые",
+          "filter_sort_oldest": "Сначала старые",
+          "contents_empty_filtered": "Нет контента, подходящего под этот фильтр.",
+          "filters_clear": "Сбросить фильтры",
           "channels_heading": "Каналы",
           "details": {
             "channels": "Каналы",
@@ -1936,7 +2009,11 @@
           "error": "Не удалось загрузить профиль менеджмента. Попробуйте позже.",
           "retry": "Попробовать снова",
           "creators_heading": "Состав",
-          "creators_empty": "В этом менеджменте пока нет публичных авторов."
+          "creators_empty": "В этом менеджменте пока нет публичных авторов.",
+          "stats_creators": "Создатели",
+          "stats_live": "В эфире",
+          "stats_channels": "Каналы",
+          "stats_subscribers": "Подписчики"
         },
         "landing": {
           "error": "Не удалось загрузить последние события.",

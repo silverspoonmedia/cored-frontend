@@ -2,7 +2,7 @@
 
 ## Layout
 
-- Route records live in `src/router/routes/*.ts` — one module per domain (19 modules: activity-log, archivd, auth, blog, dashboard, domain-access, error-log, identity, inference, legacy, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual).
+- Route records live in `src/router/routes/*.ts` — one module per domain (20 modules: activity-log, ai, archivd, auth, blog, dashboard, domain-access, error-log, identity, inference, legacy, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual).
 - `src/router/index.ts` assembles them (order matters — vTual admin early/late and the 404 catch-all are position-sensitive), keeps the `beforeEach` guard, and owns `scrollBehavior` (`top: 96` hash offset for `/vtual` anchors).
 - URL layout: authenticated app under **`/apps/*`**, guest/public at the site root (`/vtual`, `/s/*`, payment bounce), auth pages at root. URLs and route names do not change without a cross-repo contract update.
 
@@ -18,7 +18,7 @@ Rules:
 
 ## Registry
 
-~190 named routes across the 19 modules (the live count is the code — this figure drifts; the registry itself is `src/router/routes/*.ts` plus `src/router/index.ts` on this side, `monolith/config/spa-routes.php` on the backend side). When in doubt, diff the two lists; they must agree on every menu-consumed name. Recent additions: the `vtual.events.index/create/edit` trio under `/apps/vtual/events`; the blog module (`blog.posts.index/create/edit/trashed`, `blog.categories.index`, `blog.tags.index`, each with a `.view` child) under `/apps/blog/*`.
+~190 named routes across the 20 modules (the live count is the code — this figure drifts; the registry itself is `src/router/routes/*.ts` plus `src/router/index.ts` on this side, `monolith/config/spa-routes.php` on the backend side). When in doubt, diff the two lists; they must agree on every menu-consumed name. Recent additions: the `ai.connections.index/create/edit` trio under `/apps/ai/connections` (central AI transport + credentials, Administration sidebar sibling of Inference); the `vtual.events.index/create/edit` trio under `/apps/vtual/events`; the blog module (`blog.posts.index/create/edit/trashed`, `blog.categories.index`, `blog.tags.index`, each with a `.view` child) under `/apps/blog/*`.
 
 ## Meta flags
 
@@ -56,7 +56,7 @@ Rules:
 One `useBreadcrumbTitle()` call per detail screen, right after the ref it reads.
 
 - **Source.** The hydrated record's own name field — `() => service.value?.name ?? null`. Never `route.params.id`, and never a translated string: entity names are record data, not locale keys.
-- **Form-only edit views.** When a screen hydrates straight into a `reactive` form and keeps no record ref (`ServiceEditView`, `SubscriptionEditView`, `PaymentGatewayEditView`, `InferenceModelCardEditView`, `InferenceProviderEditView`, `VtualEventEditView`, `VtualManagementEditView`, `VtualOrphanEditView`, `VtualPlatformCredentialCreateView`), read the bound field and gate it on `isEdit` so the create screen keeps its static trail: `() => (isEdit.value ? form.name : null)`. Trade-off: the crumb tracks that field while the user types.
+- **Form-only edit views.** When a screen hydrates straight into a `reactive` form and keeps no record ref (`ServiceEditView`, `SubscriptionEditView`, `PaymentGatewayEditView`, `InferenceModelCardEditView`, `InferenceProviderEditView`, `VtualEventEditView`, `VtualManagementEditView`, `VtualOrphanEditView`, `VtualPlatformCredentialCreateView`, `AiConnectionEditView`), read the bound field and gate it on `isEdit` so the create screen keeps its static trail: `() => (isEdit.value ? form.name : null)` (`AiConnectionEditView` reads `form.label`). Trade-off: the crumb tracks that field while the user types.
 - **Self-navigation.** `useBreadcrumbTitle()` watches `[path, source]` and re-reads the source on either change. A view that replaces its own route (e.g. `VtualVtuberShowView` canonicalizing `:slug`) therefore keeps its title instead of blanking it.
 - **Normalization.** `normalizeEntityLabel()` trims the title and maps blank/non-string to `null`, so a loading record or a whitespace-only name can never render as a crumb.
 - **Intentional blanks.** Screens with no human title publish nothing and keep their static trail: `activity-log.show`, `error-log.show` (nullable diagnostics, not names), `product-activations.show` (only `summary.product_key`, which is already the route param), `vtual.platform-credentials.platform` (list wrapper, no single record). Index/list screens, `settings.*`, `domain-access` and `vtual.platform-credentials.probe` likewise publish nothing.
