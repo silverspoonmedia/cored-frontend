@@ -12,7 +12,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 |---------|---------|
 | `npm run dev` | Vite development server (`http://localhost:5173`) |
 | `npm run type-check` | `vue-tsc --build` |
-| `npm run check:i18n` | Locale key/placeholder parity + hardcoded-copy heuristics |
+| `npm run check:i18n` | Locale parity + placeholders + duplicate-English + hardcoded-copy heuristics, code-vs-locale key usage, curation-log integrity |
 | `npm test` | Vitest (client/session/CSRF/echo/headers/i18n contracts) |
 | `npm run build` | Type-check + production build |
 | `npm run build-only` | Vite production build |
@@ -22,7 +22,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 | `npm run deploy:sandbox` | `cross-env CLOUDFLARE_ENV=sandbox` + `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
 | `npm run deploy:staging` | `cross-env CLOUDFLARE_ENV=staging` + `vite build --mode staging` + `wrangler deploy --env staging` (worker `monolith-spa-staging`) |
 
-CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`.
+CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`, plus a `locale-cross-repo` job that checks out Monolith and runs its prose, pack-parity, glossary, and raw-key guards against these locale files — `check:i18n` is per-repo and cannot see the backend. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md#guards).
 
 ## Setup
 

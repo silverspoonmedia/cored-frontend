@@ -93,10 +93,10 @@ export function useResource<T>(baseUri: string) {
 
       items.value = []
       pagination.value = emptyListPagination()
-      error.value = t('web.shared.load_failed')
+      error.value = t('ui.shared.load_failed')
       return []
     } catch (e) {
-      error.value = e instanceof Error ? e.message : t('web.shared.load_failed')
+      error.value = e instanceof Error ? e.message : t('ui.shared.load_failed')
       items.value = []
       pagination.value = emptyListPagination()
       return []
@@ -114,9 +114,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? t('web.shared.load_failed'))
+      throw new Error(res.message ?? t('ui.shared.load_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : t('web.shared.load_failed')
+      error.value = e instanceof Error ? e.message : t('ui.shared.load_failed')
       throw e
     } finally {
       loading.value = false
@@ -130,9 +130,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? t('web.shared.create_failed'))
+      throw new Error(res.message ?? t('ui.shared.create_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : t('web.shared.create_failed')
+      error.value = e instanceof Error ? e.message : t('ui.shared.create_failed')
       throw e
     }
   }
@@ -144,9 +144,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? t('web.shared.update_failed'))
+      throw new Error(res.message ?? t('ui.shared.update_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : t('web.shared.update_failed')
+      error.value = e instanceof Error ? e.message : t('ui.shared.update_failed')
       throw e
     }
   }
@@ -158,9 +158,9 @@ export function useResource<T>(baseUri: string) {
       if (res.status === 'success' && res.data) {
         return res.data
       }
-      throw new Error(res.message ?? t('web.shared.update_failed'))
+      throw new Error(res.message ?? t('ui.shared.update_failed'))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : t('web.shared.update_failed')
+      error.value = e instanceof Error ? e.message : t('ui.shared.update_failed')
       throw e
     }
   }
@@ -170,7 +170,7 @@ export function useResource<T>(baseUri: string) {
     try {
       await del<ApiResponse<null>>(`${baseUri}/${id}`)
     } catch (e) {
-      error.value = e instanceof Error ? e.message : t('web.shared.delete_failed')
+      error.value = e instanceof Error ? e.message : t('ui.shared.delete_failed')
       throw e
     }
   }

@@ -116,10 +116,10 @@ async function handleSubmit(): Promise<void> {
   try {
     if (isEdit.value) {
       await patchOne(connectionId.value!, payload)
-      showSuccess(t('api.ai.connection.updated'))
+      showSuccess(t('api.ai.updated'))
     } else {
       await create(payload)
-      showSuccess(t('api.ai.connection.created'))
+      showSuccess(t('api.ai.created'))
     }
     await router.push({ name: 'ai.connections.index.view' })
   } catch (e) {

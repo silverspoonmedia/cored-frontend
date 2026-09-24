@@ -90,7 +90,7 @@ async function handleDelete(row: AiConnection, action: Parameters<typeof confirm
   try {
     await destroy(row.id)
     items.value = items.value.filter((c) => c.id !== row.id)
-    showSuccess(t('api.ai.connection.deleted'))
+    showSuccess(t('api.ai.deleted'))
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.ai-connections.delete_failed'))
   } finally {

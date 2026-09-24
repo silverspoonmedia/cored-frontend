@@ -1,6 +1,6 @@
 ---
 description: Patch SPA locale keys; never dump whole JSON files
-globs: src/i18n/**,docs/i18n.md
+globs: src/i18n/**,src/views/**,src/components/**,src/composables/**,src/**/*.vue,src/**/*.ts,docs/i18n.md
 alwaysApply: false
 ---
 
@@ -10,4 +10,8 @@ Seven locales: `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json`. English is the
 
 - **Never `Read` an entire locale JSON file.** Grep the key, `StrReplace` it in all seven files, run `npm run check:i18n`.
 - Translate contextually, not literally. Preserve `{placeholders}` and machine-contract English.
+- **Log every curated key** in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`); JSON has no comments, so this sidecar is the flag. `check-curation-log.mjs` validates it as part of `check:i18n`.
+- A `t()` key that exists in no locale is a build failure (`check-i18n-usage.mjs`) — `fallbackLocale: en` cannot rescue it.
+- Duplicate-English values are gated per locale by `scripts/lib/duplicate-english-allowlist.mjs`. Add a key to `globalDuplicateEnglishKeys` only for brands/machine text, and to `localeDuplicateEnglishKeys` only for the one locale whose accepted term is the English word (`id` today). Any English carryover in `ja`/`ko`/`zh-CN`/`ar`/`ru` is a failure — translate it.
+- Use `scripts/i18n-pair-dump.mjs` for review batches and `scripts/apply-translations.mjs` to apply them (dotted `web.settings.fields.*` labels need `leaf`).
 - `useI18n()` only inside `setup()`; elsewhere `i18n.global.t`. Details: [docs/i18n.md](../../docs/i18n.md).

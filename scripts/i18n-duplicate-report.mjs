@@ -1,48 +1,11 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { allDuplicateEnglishKeys, isDuplicateEnglishAllowed } from './lib/duplicate-english-allowlist.mjs'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const locales = ['en', 'id', 'ja', 'ko', 'zh-CN', 'ar', 'ru']
 const nonEnglishLocales = locales.slice(1)
-const allowlist = new Set([
-  'api.common.pong',
-  'ui.swal.ok',
-  'validation.attributes.h-captcha-response',
-  'web.archivd.blocklist_sha256',
-  'web.archivd.blocklist_sha256_col',
-  'web.archivd.microstock_title',
-  'web.identity-connections.discord_heading',
-  'web.identity-connections.provider_heading',
-  'web.microstock-credentials.marketplaces.123rf',
-  'web.microstock-credentials.marketplaces.adobe_stock',
-  'web.microstock-credentials.marketplaces.depositphotos',
-  'web.microstock-credentials.marketplaces.dreamstime',
-  'web.microstock-credentials.marketplaces.freepik',
-  'web.microstock-credentials.marketplaces.getty_images',
-  'web.microstock-credentials.marketplaces.istock',
-  'web.microstock-credentials.marketplaces.shutterstock',
-  'web.microstock-credentials.marketplaces.vecteezy',
-  'web.payments.channels.kinds.qris',
-  'web.payments.subscriptions.fields.date_hint',
-  'web.vtual.url',
-  'web.vtual.profiles.uuid_placeholder',
-  'web.vtual.profiles.fields.link_url',
-  'web.vtual.probe.method_fetch_videos',
-  'web.vtual.probe.method_fetch_videos_chunked',
-  'web.vtual.probe.method_fetch_channels',
-  'web.vtual.probe.method_resolve_channel',
-  'web.vtual-vtuber.content_type.vod',
-  'product-activations.tier_n/a',
-  'web.vtual.public.directory.live',
-  'web.vtual.public.live_now.badge',
-  'web.vtual.public.profile.live',
-  'web.vtual.public.profile.vod',
-  'web.services.show.stack_quantity_equation',
-  'web.vtual-orphans.form.avatar_url_placeholder',
-  'web.vtual-orphans.channels.profile_placeholder_youtube',
-  'web.vtual.profile_placeholder_youtube',
-])
 
 function flatten(value, prefix = '', output = {}) {
   if (value && typeof value === 'object') {
@@ -63,8 +26,8 @@ function tokens(value) {
     .sort()
 }
 
-function classify(key, value) {
-  if (allowlist.has(key)) {
+function classify(key, value, locale) {
+  if (isDuplicateEnglishAllowed(key, locale)) {
     if (/marketplaces|discord_heading|microstock_title/.test(key)) return 'brand'
     if (/placeholder|equation|provider_heading/.test(key)) return 'format'
     return 'identifier'
@@ -88,7 +51,7 @@ const messages = Object.fromEntries(await Promise.all(
 ))
 
 const englishKeys = Object.keys(messages.en).sort()
-const staleAllowlist = [...allowlist].filter((key) => !Object.hasOwn(messages.en, key)).sort()
+const staleAllowlist = allDuplicateEnglishKeys().filter((key) => !Object.hasOwn(messages.en, key)).sort()
 const emptyTranslations = {}
 const byLocale = {}
 let duplicatePairs = 0
@@ -105,14 +68,14 @@ for (const locale of nonEnglishLocales) {
     }
     if (value !== english || !/[A-Za-z]/.test(String(english))) continue
 
-    const allowed = allowlist.has(key)
+    const allowed = isDuplicateEnglishAllowed(key, locale)
     const namespace = namespaceFor(key)
     byNamespace[namespace] ??= { count: 0, keys: [] }
     byNamespace[namespace].count += 1
     byNamespace[namespace].keys.push({
       key,
       english,
-      classification: classify(key, english),
+      classification: classify(key, english, locale),
       allowed,
       placeholders: tokens(english),
     })
@@ -145,7 +108,7 @@ const report = {
   reference_locale: 'en',
   locales: nonEnglishLocales,
   allowlist: {
-    entries: allowlist.size,
+    entries: allDuplicateEnglishKeys().length,
     stale: staleAllowlist,
   },
   summary: {
@@ -166,6 +129,9 @@ await writeFile(
 )
 
 console.log(JSON.stringify(report.summary))
+if (report.summary.actionable_pairs > 0) {
+  console.error(`actionable duplicate-English pairs: ${report.summary.actionable_pairs}. Run npm run check:i18n for the failing keys.`)
+}
 for (const locale of nonEnglishLocales) {
   console.log(`${locale}: ${byLocale[locale].total} (${byLocale[locale].actionable_count} actionable)`)
 }

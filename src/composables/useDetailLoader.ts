@@ -32,7 +32,7 @@ export function useDetailLoader<T>(
       data.value = null
       error.value = e instanceof Error && e.message
         ? e.message
-        : (options?.fallbackMessage ?? t('web.shared.load_failed'))
+        : (options?.fallbackMessage ?? t('ui.shared.load_failed'))
       return null
     } finally {
       loading.value = false
