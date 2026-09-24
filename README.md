@@ -22,7 +22,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 | `npm run deploy:sandbox` | `cross-env CLOUDFLARE_ENV=sandbox` + `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
 | `npm run deploy:staging` | `cross-env CLOUDFLARE_ENV=staging` + `vite build --mode staging` + `wrangler deploy --env staging` (worker `monolith-spa-staging`) |
 
-CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`, plus a `locale-cross-repo` job that checks out Monolith and runs its prose, pack-parity, glossary, and raw-key guards against these locale files — `check:i18n` is per-repo and cannot see the backend. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md#guards).
+CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`. The backend's cross-repo guards are not part of it — run `php artisan test --filter=Locale` from the Monolith checkout when a batch touches a mirrored pack or a glossary term. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md#guards).
 
 ## Setup
 
