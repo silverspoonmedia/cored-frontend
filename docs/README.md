@@ -28,7 +28,7 @@ Living docs for the SPA. **Language:** English only. Backend-side contract docs 
 | [auth-session.md](auth-session.md) | `__Host-spa_jwt` cookie, CSRF double-submit, `hydrateShell`, logout barrier/epoch, `BroadcastChannel` sync, post-login cookie settle, registry-owned private channels |
 | [api-client.md](api-client.md) | `client.ts` behavior (419 retry, cross-tab cookie-race retry policy), request headers, URL/query serialization (`/api/v1` suffix normalization), error normalization, batch hydration, Echo broadcast auth + channel registry (`acquireChannel`, `createRealtimeChannel` / `createKeyedRealtimeChannel`) |
 | [head-meta.md](head-meta.md) | Client-side OG/SEO meta injection for public surfaces (`useHeadMeta`) — never a Worker function |
-| [i18n.md](i18n.md) | Seven locales, lazy non-`en` locale chunks, `zh-CN`↔`zh_CN` mapping, RTL reload contract, `check:i18n` + allowlist policy, translation waves |
+| [i18n.md](i18n.md) | Seven locales, lazy non-`en` locale chunks, `zh-CN`↔`zh_CN` mapping, RTL reload contract, `check:i18n` chain (parity + usage + curation log) and allowlist policy, curation-log format, translation waves |
 | [ui-patterns.md](ui-patterns.md) | AdminLTE4 vs Valkivid3 scoping, skeleton→error→empty states, DataTable chain (stable row keys), RowActions contract, component-extraction + async-vendor conventions, Swal-only policy, Select2 control sizing, Select2 hydrate value guards, dependent-field visibility (probe form), realtime private-channel policy, FROZEN HomeView, vTual public SWR key rule, guest profile filter bar |
 | [routes.md](routes.md) | Route modules, naming contract, sync with `monolith/config/spa-routes.php` |
 | [testing.md](testing.md) | Vitest setup, what must be tested, adding tests |

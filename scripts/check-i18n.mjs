@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { readdir } from 'node:fs/promises'
 import { extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { allDuplicateEnglishKeys, isDuplicateEnglishAllowed } from './lib/duplicate-english-allowlist.mjs'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const localeDir = join(root, 'src', 'i18n', 'locales')
@@ -17,206 +18,6 @@ const hardcodedPatterns = [
 ]
 const allowlistedSourcePaths = new Set()
 
-// These are identifiers or product names, not translatable prose. Keep this
-// list key-specific so a translated sentence cannot hide behind a broad value
-// or namespace allowlist.
-const duplicateEnglishAllowlist = new Set([
-  'api.common.pong',
-  'ui.swal.ok',
-  'ui.copyright',
-  'ui.labels.status',
-  'http-statuses.200',
-  'validation.attributes.h-captcha-response',
-  'web.auth.email_placeholder',
-  'web.archivd.blocklist_sha256',
-  'web.archivd.blocklist_sha256_col',
-  'web.archivd.char_count',
-  'web.archivd.microstock.name_placeholder',
-  'web.archivd.microstock_title',
-  'web.archivd.title',
-  'web.blog.categories.columns.slug',
-  'web.blog.categories.form.slug',
-  'web.blog.posts.columns.status',
-  'web.blog.posts.form.slug',
-  'web.blog.posts.form.status',
-  'web.blog.tags.columns.slug',
-  'web.blog.tags.form.slug',
-  'web.identity-connections.discord_heading',
-  'web.identity-connections.provider_heading',
-  'web.microstock.menu',
-  'web.microstock-credentials.marketplaces.123rf',
-  'web.microstock-credentials.marketplaces.adobe_stock',
-  'web.microstock-credentials.marketplaces.depositphotos',
-  'web.microstock-credentials.marketplaces.dreamstime',
-  'web.microstock-credentials.marketplaces.freepik',
-  'web.microstock-credentials.marketplaces.getty_images',
-  'web.microstock-credentials.marketplaces.istock',
-  'web.microstock-credentials.marketplaces.shutterstock',
-  'web.microstock-credentials.marketplaces.vecteezy',
-  'web.payments.channels.kinds.qris',
-  'web.payments.income.filters.gateway_ipaymu',
-  'web.payments.income.filters.gateway_midtrans',
-  'web.payments.subscriptions.fields.date_hint',
-  'web.services.microstock.title',
-  'web.settings.groups.archivd',
-  'web.settings.groups.microstock',
-  'web.settings.groups.platform',
-  'web.settings.groups.vtual',
-  'web.settings.options.platform.notifications.delivery.realtime',
-  'web.users.datatable.columns.email',
-  'web.users.form.email_label',
-  'web.vtual-managements.invites.columns.email',
-  'web.vtual-managements.invites.email',
-  'web.vtual-managements.invites.email_placeholder',
-  'web.vtual-events.datatable.columns.management',
-  'web.vtual-events.datatable.columns.status',
-  'web.vtual-events.form.management',
-  'web.vtual-events.status.live',
-  'web.vtual.url',
-  'web.vtual.title',
-  'web.vtual.admin.credentials.platform_card.vod',
-  'web.vtual.credentials.client_id',
-  'web.vtual.profile_placeholder_twitch',
-  'web.vtual.profiles.uuid_placeholder',
-  'web.vtual.profiles.fields.link_url',
-  'web.vtual.probe.method_fetch_videos',
-  'web.vtual.probe.method_fetch_videos_chunked',
-  'web.vtual.probe.method_fetch_channels',
-  'web.vtual.probe.method_resolve_channel',
-  'web.vtual.public.hero.one.title_b',
-  'web.vtual.public.nav.directory',
-  'web.vtual.public.title',
-  'web.vtual-orphans.channels.profile_placeholder_twitch',
-  'web.vtual-platform-credentials.client_id_label',
-  'web.vtual-platform-credentials.client_secret_label',
-  'web.vtual-vtuber.content_type.vod',
-  'web.vtual-vtuber.hub_title',
-  'product-activations.tier_n/a',
-  'web.vtual.public.directory.live',
-  'web.vtual.public.live_now.badge',
-  'web.vtual.public.profile.live',
-  'web.vtual.public.profile.vod',
-  'web.vtual.public.profile.filter_type_live',
-  'web.vtual.public.profile.filter_type_vod',
-  'web.services.show.stack_quantity_equation',
-  'web.vtual-orphans.form.avatar_url_placeholder',
-  'web.vtual-orphans.channels.profile_placeholder_youtube',
-  'web.vtual.profile_placeholder_youtube',
-  // Indonesian / Chinese loanword & tech-identifier carryover. These keys are
-  // user-visible but the accepted term in the locale is the English word
-  // itself (bahasa gaul IT / Chinese tech convention). Keep key-specific.
-  'validation.attributes.filter',
-  'validation.attributes.slug',
-  'web.vtual.public.profile.filters_label',
-  'validation.attributes.status',
-  'validation.attributes.tag',
-  'web.currencies.columns.settlement',
-  'web.currencies.settlement_col',
-  'web.error-log.columns.status',
-  'web.error-log.fields.exception_class',
-  'web.error-log.fields.status',
-  'web.error-log.levels.error',
-  'web.error-log.types.exception',
-  'web.error-log.types.log',
-  'web.archivd.type_audio',
-  'web.archivd.type_video',
-  'web.ai-connections.columns.slug',
-  'web.ai-connections.columns.status',
-  'web.ai-connections.fields.slug',
-  'web.inference.model_cards.datatable.columns.slug',
-  'web.inference.model_cards.fields.slug',
-  'web.inference.model_cards.status_label',
-  'web.inference.providers.datatable.columns.slug',
-  'web.inference.providers.fields.slug',
-  'web.inference.usage.columns.model',
-  'web.inference.usage.columns.provider',
-  'web.inference.usage.columns.provider_cost',
-  'web.inference.usage.filter_button',
-  'web.inference.usage.filters.model',
-  'web.inference.usage.filters.provider',
-  'web.inference.usage.totals.margin',
-  'web.menus.form.layouts.navbar',
-  'web.menus.form.layouts.sidebar',
-  'web.microstock.usage.col_file',
-  'web.microstock.usage.col_margin',
-  'web.microstock.usage.col_model',
-  'web.microstock.usage.tabs.platform',
-  'web.microstock-credentials.columns.label',
-  'web.microstock-credentials.columns.marketplace',
-  'web.microstock-credentials.form.host',
-  'web.microstock-credentials.form.label',
-  'web.microstock-credentials.form.marketplace',
-  'web.notifications.columns.status',
-  'web.payments.bank_label',
-  'web.payments.channels.route_columns.gateway',
-  'web.payments.channels.route_columns.settlement',
-  'web.payments.income.breakdown.label',
-  'web.payments.income.filters.gateway',
-  'web.payments.income.table.status',
-  'web.payments.income.table.subtotal',
-  'web.payments.income.table.total',
-  'web.payments.instructions.bank',
-  'web.payments.invoices.datatable.columns.status',
-  'web.payments.invoices.fields.gateway',
-  'web.payments.invoices.fields.status',
-  'web.payments.subscriptions.datatable.columns.status',
-  'web.payments.subscriptions.fields.status',
-  'web.payments.subscriptions.status',
-  'web.payments.subtotal_label',
-  'web.services.change_type.downgrade',
-  'web.services.change_type.upgrade',
-  'web.services.checkout',
-  'web.services.columns.status',
-  'web.services.form.plan_kind_addon',
-  'web.services.form.status',
-  'web.services.show.settlement_amount',
-  'web.services.show.status',
-  'web.settings.groups.identity',
-  'web.vtual.admin.registry.columns.channel',
-  'web.vtual.credentials.access_token',
-  'web.vtual.credentials.api_key',
-  'web.vtual.credentials.client_secret',
-  'web.vtual.credentials.refresh_token',
-  'web.vtual.credentials.type_api_key',
-  'web.vtual.platform',
-  'web.vtual.platform_col',
-  'web.vtual.platform_label',
-  'web.vtual.probe_button',
-  'web.vtual.profiles.channels.avatar',
-  'web.vtual.profiles.channels.platform',
-  'web.vtual.profiles.channels.status',
-  'web.vtual.profiles.fields.link_label',
-  'web.vtual.profiles.fields.platform',
-  'web.vtual.profiles.fields.slug',
-  'web.vtual.profiles.link_label',
-  'web.vtual.profiles.token_label',
-  'web.vtual.public.profile.details.status',
-  'web.vtual.public.schedule.platform',
-  'web.vtual.slug_col',
-  'web.vtual.status',
-  'web.vtual-managements.datatable.columns.slug',
-  'web.vtual-managements.datatable.columns.status',
-  'web.vtual-managements.form.slug',
-  'web.vtual-managements.form.status',
-  'web.vtual-orphans.channels.avatar',
-  'web.vtual-orphans.channels.platform',
-  'web.vtual-orphans.channels.status',
-  'web.vtual-orphans.datatable.columns.slug',
-  'web.vtual-orphans.form.slug',
-  'web.vtual-platform-credentials.columns.platform',
-  'web.vtual-profiles.columns.avatar',
-  'web.vtual-profiles.columns.slug',
-  'web.vtual-vtuber.columns.avatar',
-  'web.vtual-vtuber.columns.platform',
-  'web.vtual-vtuber.columns.status',
-  'web.vtual-vtuber.columns.thumbnail',
-  'web.vtual-vtuber.slug_label',
-])
-
-function isDuplicateEnglishAllowed(key) {
-  return duplicateEnglishAllowlist.has(key)
-}
-
 function namespaceFor(key) {
   const parts = key.split('.')
   return parts.length > 1 ? parts.slice(0, 2).join('.') : (parts[0] || '(root)')
@@ -231,6 +32,25 @@ function flatten(value, prefix = '', output = new Map()) {
   }
 
   output.set(prefix, value)
+  return output
+}
+
+// Flattening hides structure, so a locale that groups `microstock.ai.vision.connection`
+// as nested objects looks identical to one that stores it as the single literal key
+// `fields['microstock.ai.vision.connection']`. Settings labels are read through
+// lookupDotted(), which accepts both, but a divergent shape breaks any tooling that
+// addresses the literal key (and silently mis-places newly added settings). Track
+// containers so the shapes have to match en.
+function containerPaths(value, prefix = '', output = new Set()) {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    for (const [key, child] of Object.entries(value)) {
+      const path = prefix ? `${prefix}.${key}` : key
+      if (child && typeof child === 'object' && !Array.isArray(child)) {
+        output.add(path)
+        containerPaths(child, path, output)
+      }
+    }
+  }
   return output
 }
 
@@ -254,6 +74,20 @@ function malformedPlaceholders(value) {
   return depth !== 0
 }
 
+/**
+ * A placeholder glued to a preceding letter or digit is never a valid vue-i18n
+ * message: interpolation is `{name}` after whitespace or punctuation. It means a
+ * literal colon in the source was rewritten to the placeholder sigil — the way
+ * `php artisan payments:sync-routing-policy` became `payments{sync}-routing-policy`
+ * in all seven locales. Balanced braces and matching token sets cannot see it,
+ * because the token is not part of the intended message at all.
+ */
+function gluedPlaceholder(value) {
+  if (typeof value !== 'string') return false
+
+  return /[A-Za-z0-9]\{[A-Za-z_][A-Za-z0-9_]*\}/.test(value)
+}
+
 async function loadLocale(locale) {
   const path = join(localeDir, `${locale}.json`)
   return JSON.parse(await readFile(path, 'utf8'))
@@ -274,10 +108,14 @@ async function listSourceFiles(directory) {
   return files
 }
 
-const messages = Object.fromEntries(await Promise.all(
-  locales.map(async (locale) => [locale, flatten(await loadLocale(locale))]),
+const rawMessages = Object.fromEntries(await Promise.all(
+  locales.map(async (locale) => [locale, await loadLocale(locale)]),
 ))
+const messages = Object.fromEntries(
+  locales.map((locale) => [locale, flatten(rawMessages[locale])]),
+)
 const referenceKeys = [...messages.en.keys()].sort()
+const enContainers = containerPaths(rawMessages.en)
 const failures = []
 const duplicates = []
 const duplicateReport = new Map()
@@ -303,6 +141,13 @@ for (const locale of locales.slice(1)) {
     if (missing.length) failures.push(`  missing: ${missing.slice(0, 20).join(', ')}`)
     if (extra.length) failures.push(`  extra: ${extra.slice(0, 20).join(', ')}`)
   }
+
+  const extraContainers = [...containerPaths(rawMessages[locale])]
+    .filter((path) => !enContainers.has(path))
+  if (extraContainers.length) {
+    failures.push(`${locale}: nested container structure differs from en (${extraContainers.length} container(s) en keeps as flat literal keys)`)
+    failures.push(`  extra containers: ${extraContainers.slice(0, 20).join(', ')}`)
+  }
 }
 
 for (const key of referenceKeys) {
@@ -310,6 +155,10 @@ for (const key of referenceKeys) {
     const value = messages[locale].get(key)
     if (malformedPlaceholders(value)) {
       failures.push(`${locale}.${key}: malformed placeholder braces`)
+    }
+
+    if (gluedPlaceholder(value)) {
+      failures.push(`${locale}.${key}: placeholder glued to a preceding character — a literal colon was probably rewritten to the placeholder sigil`)
     }
   }
 
@@ -331,7 +180,7 @@ for (const key of referenceKeys) {
       key,
       namespace: namespaceFor(key),
       value: messages.en.get(key),
-      allowed: isDuplicateEnglishAllowed(key),
+      allowed: isDuplicateEnglishAllowed(key, locale),
     }
     duplicates.push(duplicate)
 
@@ -363,7 +212,7 @@ if (hardcoded.length) {
 }
 
 console.log(`Checked ${referenceKeys.length} translation keys across ${locales.join(', ')}.`)
-console.log(`Duplicate-English allowlist entries: ${duplicateEnglishAllowlist.size}.`)
+console.log(`Duplicate-English allowlist entries: ${allDuplicateEnglishKeys().length}.`)
 console.log(`Duplicate-English values: ${duplicates.length} (${duplicates.filter(({ allowed }) => allowed).length} allowlisted, ${duplicates.filter(({ allowed }) => !allowed).length} failures).`)
 for (const [reportKey, count] of [...duplicateReport.entries()].sort()) {
   console.log(`DUPLICATES ${reportKey}: ${count}`)

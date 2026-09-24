@@ -534,6 +534,9 @@
         "webhook_ping": "iPaymu webhook URL is reachable (use POST for notifications)."
       }
     },
+    "services": {
+      "checkout_success": "Checkout started. Complete payment on the purchase page."
+    },
     "users": {
       "list_success": "Users retrieved successfully.",
       "show_success": "User retrieved successfully.",
@@ -622,7 +625,12 @@
         "slug_taken": "This management slug is already taken.",
         "creator_assigned": "Creator assigned to management.",
         "creator_unassigned": "Creator unassigned from management.",
-        "assignment_not_found": "Active management assignment not found."
+        "assignment_not_found": "Active management assignment not found.",
+        "event_created": "Event created.",
+        "event_cancelled": "Event cancelled.",
+        "invite_sent": "Invitation sent.",
+        "invite_cancelled": "Invitation cancelled.",
+        "member_updated": "Member role updated."
       },
       "channel": {
         "list_success": "Channels loaded.",
@@ -1094,6 +1102,9 @@
         "delete_menu": "Delete this menu item?",
         "restore_menu": "Restore this menu item and its trashed subtree?"
       }
+    },
+    "navigation": {
+      "load_failed": "Could not load the navigation menu."
     },
     "swal": {
       "ok": "OK",
@@ -2503,11 +2514,18 @@
         "headers_no_parent": "Headers cannot have a parent."
       }
     },
+    "navigation": {
+      "load_failed": "Could not load the menu layouts."
+    },
     "microstock": {
       "menu": "Microstock",
       "title": "Microstock Management",
       "export_csv": "Export metadata CSV",
       "analyze": "Analyze",
+      "ai_failed": "AI analysis failed. Please try again.",
+      "metadata_load_failed": "Could not load the asset metadata.",
+      "metadata_save_failed": "Could not save the asset metadata.",
+      "slots_load_failed": "Could not load the workspace slots.",
       "usage": {
         "title": "Microstock Usage",
         "loading": "Loading…",
@@ -2687,6 +2705,10 @@
             "is_active": "Active",
             "priority": "Priority"
           }
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
         },
         "load_failed": "Failed to load gateway",
         "created": "Gateway created.",
@@ -2976,7 +2998,7 @@
         "route_update_failed": "Could not update the payment route.",
         "routes_title": "Gateway routes",
         "routes_lead": "Checkout tries primary or only routes first, then fallback routes. Within the same role, a lower priority number is tried first. Inactive routes or missing gateway credentials are skipped.",
-        "empty": "No payment channels configured. Run php artisan payments{sync}-routing-policy after PaymentGatewaySeeder.",
+        "empty": "No payment channels configured. Run php artisan payments:sync-routing-policy after PaymentGatewaySeeder.",
         "no_routes": "No gateway routes are bound to this channel.",
         "no_results": "No channels match your search.",
         "search_label": "Search channels",
@@ -3045,7 +3067,8 @@
         },
         "sync_policy": "Sync routing policy",
         "sync_policy_hint": "Reload channels and routes from Routing_Price.yaml.",
-        "sync_policy_done": "Routing policy synced ({channels} channels, {routes} routes). Reloading…"
+        "sync_policy_done": "Routing policy synced ({channels} channels, {routes} routes). Reloading…",
+        "sync_failed": "Could not sync the payment channels."
       },
       "checkout_panel_title": "Payment Checkout",
       "qr_code_alt": "Payment QR code",
@@ -3053,6 +3076,7 @@
       "select_payment_channel": "Select Payment Channel",
       "checkout_initiated": "Checkout initiated. Follow the instructions below.",
       "checkout_failed": "Checkout failed",
+      "sync_failed": "Could not sync the payment status.",
       "payment_confirmed": "Payment confirmed!",
       "expires_label": "Expires:",
       "bank_label": "Bank",
@@ -3216,6 +3240,7 @@
       },
       "load_failed": "Failed to load service",
       "save_failed": "Failed to save",
+      "checkout_failed": "Checkout failed. Please try again.",
       "purchases": {
         "title": "Service Purchase",
         "load_failed": "Could not load the service purchase.",
@@ -3340,6 +3365,8 @@
         "microstock.ai.vision_image.variant_kind": "Vision image variant kind",
         "microstock.ai.vision_image.signed_url_ttl_minutes": "Vision signed URL TTL (minutes)",
         "microstock.ai.inference_provider_slug": "Microstock inference provider slug",
+        "microstock.ai.vision.connection": "Vision AI connection (empty = default)",
+        "microstock.ai.thinking.connection": "Thinking AI connection (empty = default)",
         "microstock.ai.vision.model": "Vision model",
         "microstock.ai.vision.free_model": "Vision free-tier model (empty = paid model)",
         "microstock.ai.vision.timeout": "Vision HTTP timeout (seconds)",
@@ -3403,6 +3430,9 @@
         "vtual.content_classification.ai.min_confidence": "AI audit min confidence",
         "vtual.content_classification.ai.cache_ttl_hours": "AI audit result cache (hours)",
         "vtual.content_classification.ai.connection": "AI audit connection (empty = default)",
+        "vtual.landing.event.title": "Landing event title",
+        "vtual.landing.event.starts_at": "Landing event start time",
+        "vtual.landing.event.body": "Landing event body",
         "vtual.websub.max_body_bytes": "WebSub max notification body (bytes)"
       },
       "hints": {
@@ -3424,6 +3454,8 @@
         "microstock.ai.stage.vision_grace_after": "Seconds before vision stage enters grace mode.",
         "microstock.ai.stage.thinking_grace_after": "Seconds before thinking stage enters grace mode.",
         "microstock.ai.stage.thinking_backlog_after": "Seconds before thinking jobs move to backlog queue.",
+        "microstock.ai.vision.connection": "AI connection slug (Settings → AI connections) used by the vision stage; empty uses the default connection.",
+        "microstock.ai.thinking.connection": "AI connection slug (Settings → AI connections) used by the thinking stage; empty uses the default connection.",
         "vtual.credential.failover.enabled": "Rotate to the next credential after repeated auth failures.",
         "vtual.claim.accept_anyway_enabled": "Allow users to accept a claim even when verification is inconclusive.",
         "vtual.claim.discord_verify_enabled": "Allow users to verify orphan claims by matching Discord-linked YouTube/Twitch accounts.",
@@ -3743,7 +3775,9 @@
       "errors": {
         "missing_token": "Invitation link is missing its token.",
         "load_failed": "Failed to load invitation.",
-        "respond_failed": "Failed to respond to invitation."
+        "respond_failed": "Failed to respond to invitation.",
+        "accept_failed": "Failed to accept the invitation.",
+        "decline_failed": "Failed to decline the invitation."
       }
     },
     "vtual-platform-credentials": {
@@ -3856,7 +3890,7 @@
       "claim_step_2": "Start a claim for this profile and proof channel — you receive a token (prefix vtual-claim-…).",
       "claim_step_3": "Paste the exact token into the YouTube channel About or Twitch channel bio.",
       "claim_step_4": "Run verify — the system re-fetches the channel description via the production profile resolver.",
-      "claim_step_5": "On success you become the profile owner (membership owner + Vtual vTuber product role).",
+      "claim_step_5": "On success you become the profile owner (membership owner + vTual vTuber product role).",
       "claim_channels_heading": "Channels on this profile",
       "claim_back_to_profile": "Back to profile",
       "claim_no_channels_note": "No channels are linked yet — staff must register a channel on this profile before you can claim.",
@@ -4562,7 +4596,8 @@
       "private_label": "Private",
       "public_label": "Public",
       "visibility_updated_to": "{label} visibility updated to {visibility}.",
-      "failed_update_visibility": "Failed to update {label} visibility."
+      "failed_update_visibility": "Failed to update {label} visibility.",
+      "load_failed": "Could not load domain access."
     },
     "blog": {
       "posts": {

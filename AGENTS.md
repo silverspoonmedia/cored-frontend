@@ -16,7 +16,7 @@ Rules in [core-rules.md](docs/agents/core-rules.md) apply. Open a rule’s **own
 
 1. **Assess before changing.** Read the topic doc from [docs/README.md](docs/README.md). No blind edits.
 2. **Update docs with every task.** Keyword `wrap up the docs` = session-wide consolidation (including Monolith integration docs when the contract moved).
-3. **Localization.** All supported locales in the same change — patch keys, never `Read` whole locale JSON files. [docs/i18n.md](docs/i18n.md). Run `npm run check:i18n`.
+3. **Localization.** All supported locales in the same change — patch keys, never `Read` whole locale JSON files. [docs/i18n.md](docs/i18n.md) and the always-on [.cursor/rules/i18n-guardrail.mdc](.cursor/rules/i18n-guardrail.mdc) (all locales, contextual, readable). Run `npm run check:i18n`; cross-repo guards and the readability checklist live in the backend twin.
 4. **Auth/session.** Never store JWTs in JavaScript. [docs/auth-session.md](docs/auth-session.md).
 5. **Worker stays thin.** [docs/worker.md](docs/worker.md).
 6. **Dual templates stay separate.** AdminLTE4 vs Valkivid3; vTual landing is FROZEN. [docs/ui-patterns.md](docs/ui-patterns.md).

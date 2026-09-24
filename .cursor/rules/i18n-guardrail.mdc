@@ -1,0 +1,63 @@
+---
+description: Any user-facing copy change — all locales, contextual, readable
+globs: src/i18n/**,src/views/**,src/components/**,src/composables/**,src/**/*.vue,src/**/*.ts,docs/i18n.md
+alwaysApply: true
+---
+
+# Translation guardrail (mandatory)
+
+Translation is the first thing a user sees. A perfectly built screen nobody can read is not shipped. This rule applies to **every** change that adds or edits user-facing copy.
+
+Backend twin: `monolith/.cursor/rules/i18n-guardrail.mdc`. Most SPA copy has a backend counterpart — if the string renders from an API `message`, the backend locale files change in the same task.
+
+## Definition of done (all three, or the task is not done)
+
+1. **Applied to every locale.** `en`, `id`, `ja`, `ko`, `zh-CN`, `ar`, `ru` in the same change — plus the backend `lang/{locale}/**` files when the string has a backend twin. English is the source, never the destination.
+2. **Contextual, not generic.** The wording is chosen for the surface it renders on (button, heading, toast, validation, status badge, table header, empty state) and for the audience. Two surfaces that need different wording get two keys.
+3. **Usable and readable.** A native speaker reads it in that locale, on that surface, without noticing it was translated.
+
+## Order of work
+
+1. Read the **consuming surface** — the `.vue`/`.ts` file that renders the string. Never translate from the English value alone.
+2. Look up the term in the **Domain glossary** ([localization.md](../../monolith/docs/platform/localization.md#domain-glossary)). A settled term is not a suggestion.
+3. Settle **one** wording per key, then mirror it. Do not let two copies drift.
+4. Apply to all seven files, then log each curated key in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`).
+5. Run `npm run check:i18n` and, when a glossary term is involved, the backend gates. Fix, do not suppress.
+
+## Readability test (the part no script can do)
+
+Before finishing, read the string back as a native speaker of the target locale, **on that surface**:
+
+- Would a product in that language actually say this? If it reads like a translation, it is not done.
+- Does the register match? `id` Anda (formal neutral) · `ja` です/ます · `ko` 해요체 `-하세요` for instructions and 합쇼체 `-합니다` for declaratives, never one level for both · `zh-CN` 您 · `ar` MSA formal · `ru` вы, lowercase except at sentence start.
+- Buttons are plain verb forms. Toasts and messages are full sentences. A table header is a stable label, not a participle agreeing with a hidden noun.
+- Particles next to a `{placeholder}` whose final consonant is unknown: use the parenthesised form (`{field}을(를)`) or reword. Never glue (`{product}가`).
+- No filler the target language does not use in product UI (`Пожалуйста` in `ru` is banned).
+
+## Anti-patterns (each one shipped once, with the real fix)
+
+- **Calque.** `id` `403 Forbidden` = `Dilarang` → `Terlarang`; `401` = `Tidak Diizinkan` → `Tidak sah`.
+- **False friend.** `ja` `claim` = `クレーム` reads as "complaint", not an ownership claim → `申請`.
+- **Literal rendering of a metaphor.** `zh-CN` `slug` = `子弹` ("bullet") → `标识`; `ar` `410 Gone` = `ذهب` ("he went") → `محتوى محذوف نهائيًا`; `ja` `302 Found` = `発見` ("discovery") → `一時的な移動`.
+- **English left inside non-English prose.** `id` `management`/`creator` stayed English in 20 SPA keys → `manajemen`/`kreator`. Invisible to every structural guard: the value differs from `en`, so the duplicate check skips it; the locale is Latin-script, so a script scan finds nothing.
+- **One source phrase, two contexts, one key.** Split the key instead of writing a sentence that is wrong on both surfaces.
+- **Term drift inside one locale.** `id` `forms.users.role_not_assignable` shipped `Role yang dipilih…` where the settled term is `Peran`.
+
+## Never
+
+- `Read` a whole locale file (4000+ lines). Grep the key, patch all seven.
+- Ship a key no locale defines. `fallbackLocale: en` cannot rescue it — the user sees the raw key.
+- Add a key to `duplicate-english-allowlist.mjs` to silence a failure. Brands and machine-contract text only, and only for the locale that actually needs the loanword.
+- Treat "the parity guard is green" as "the translation is good". Parity proves consistency, never quality.
+
+## Gates
+
+```sh
+npm run check:i18n
+# backend gates (monolith repo), when the string has a backend twin or a glossary term moved:
+php scripts/locale-prose-scan.php
+php scripts/locale-glossary-scan.php
+php scripts/locale-pack-parity.php
+```
+
+Details: [i18n.md](../../docs/i18n.md) (SPA), [localization.md](../../monolith/docs/platform/localization.md) (backend).

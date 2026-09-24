@@ -12,7 +12,7 @@ export function useErrorLogs() {
     if (res.status === 'success' && res.data) {
       return res.data
     }
-    throw new Error(res.message ?? t('web.error-log.update_failed'))
+    throw new Error(res.message ?? t('web.error-log.status_update_failed'))
   }
 
   return {

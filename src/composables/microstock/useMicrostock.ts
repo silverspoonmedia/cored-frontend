@@ -66,7 +66,7 @@ export function useMicrostock() {
       `microstock/assets/${fileId}/metadata`,
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? t('web.microstock.metadata_loaded'))
+    throw new Error(res.message ?? t('web.microstock.metadata_load_failed'))
   }
 
   async function updateAssetMetadata(
@@ -79,7 +79,7 @@ export function useMicrostock() {
       { title, keywords },
     )
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? t('web.microstock.metadata_saved'))
+    throw new Error(res.message ?? t('web.microstock.metadata_save_failed'))
   }
 
   async function analyzeAsset(fileId: string): Promise<MicrostockAssetMetadata> {
@@ -93,7 +93,7 @@ export function useMicrostock() {
   async function fetchSlots(): Promise<MicrostockSlotStatus> {
     const res = await get<ApiResponse<MicrostockSlotStatus>>('microstock/slots')
     if (res.status === 'success' && res.data) return res.data
-    throw new Error(res.message ?? t('web.microstock.slots_loaded'))
+    throw new Error(res.message ?? t('web.microstock.slots_load_failed'))
   }
 
   async function createWorkspace(name?: string | null): Promise<ArWorkspace> {
