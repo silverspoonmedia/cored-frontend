@@ -12,7 +12,7 @@ import { useNavigation } from '@/composables/navigation/useNavigation'
 import { useAlert } from '@/composables/useAlert'
 import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
 import { confirmDialog } from '@/lib/swal'
-import { subscribeVtulClaim, unsubscribeVtulClaim } from '@/composables/vtual/useVtulClaimRealtime'
+import { subscribeVtualClaim, unsubscribeVtualClaim } from '@/composables/vtual/useVtualClaimRealtime'
 import { ApiError, type VtualVtuberProfile, type VtualCreatorClaim, type ProfileConnections } from '@/api/types'
 import { VTUAL_STATUS_BADGE } from '@/utils/statusBadge'
 import { safeDiscordAuthorizeUrl, safeHttpUrl } from '@/utils/safeUrl'
@@ -155,13 +155,13 @@ function subscribeClaimRealtime(claimId: string): void {
     }
   }
 
-  subscribeVtulClaim(claimId, claimHandler)
+  subscribeVtualClaim(claimId, claimHandler)
 }
 
 function unsubscribeClaimRealtime(): void {
   if (!claimHandler) return
   if (lastClaimId) {
-    unsubscribeVtulClaim(lastClaimId, claimHandler)
+    unsubscribeVtualClaim(lastClaimId, claimHandler)
   }
   claimHandler = null
   lastClaimId = null

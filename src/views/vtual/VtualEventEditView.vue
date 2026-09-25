@@ -77,7 +77,7 @@ useBreadcrumbTitle(() => (isEdit.value ? form.title : null))
           v-model="form.starts_at"
           :error="fieldError(errors, 'starts_at')"
           required
-          :disabled="saving || isEdit"
+          :disabled="saving"
         />
         <FormInput
           name="ends_at"
@@ -85,14 +85,14 @@ useBreadcrumbTitle(() => (isEdit.value ? form.title : null))
           type="datetime-local"
           v-model="form.ends_at"
           :error="fieldError(errors, 'ends_at')"
-          :disabled="saving || isEdit"
+          :disabled="saving"
         />
         <FormInput
           name="timezone"
           :label="t('web.vtual-events.form.timezone')"
           v-model="form.timezone"
           :error="fieldError(errors, 'timezone')"
-          :disabled="saving || isEdit"
+          :disabled="saving"
           :hint="t('web.vtual-events.form.timezone_hint')"
         />
         <FormInput
@@ -119,7 +119,7 @@ useBreadcrumbTitle(() => (isEdit.value ? form.title : null))
         />
         <div class="d-flex gap-2">
           <SubmitButton
-            :label="t('web.vtual-events.form.submit_create')"
+            :label="isEdit ? t('web.vtual-events.form.submit_update') : t('web.vtual-events.form.submit_create')"
             :loading="saving"
             variant="primary"
           />

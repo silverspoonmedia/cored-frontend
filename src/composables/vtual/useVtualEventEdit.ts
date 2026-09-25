@@ -83,12 +83,7 @@ export function useVtualEventEdit() {
     }
     loading.value = true
     try {
-      const list = await events.fetchPagedList({ per_page: 1000 })
-      const event = list.items.find((e) => e.id === eventId.value) ?? null
-      if (event === null) {
-        showError(t('web.vtual-events.errors.load_failed'))
-        return
-      }
+      const event = await events.fetchOne(eventId.value)
       loadedEvent.value = event
       form.management_id = event.management_id
       form.title = event.title
@@ -121,6 +116,17 @@ export function useVtualEventEdit() {
     }
   }
 
+  /**
+   * PATCH body. `creator_id` is omitted on purpose: the form has no creator
+   * picker, so sending `null` would silently detach an existing line-up.
+   */
+  function buildUpdatePayload(): Record<string, unknown> {
+    const payload = buildPayload()
+    delete payload.creator_id
+
+    return payload
+  }
+
   async function handleSubmit(): Promise<void> {
     if (saving.value) return
     saving.value = true
@@ -128,9 +134,12 @@ export function useVtualEventEdit() {
 
     try {
       if (isEdit.value) {
-        showError(t('web.vtual-events.errors.readonly'))
+        await events.updateEvent(form.management_id, eventId.value, buildUpdatePayload())
+        showSuccess(t('api.vtual.management.event_updated'))
+        await router.push({ name: 'vtual.events.index.view' })
         return
       }
+
       if (!form.management_id) {
         errors.value = { management_id: [t('web.vtual-events.form.management_required')] }
         return

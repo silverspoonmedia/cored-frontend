@@ -1,18 +1,25 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ApiError } from '@/api/types'
 import type { VtualPublicContentFilters, VtualPublicProfile } from '@/api/types'
 import { setDocumentTitleOverride } from '@/composables/usePageTitle'
 import { clearHeadMeta, setHeadMeta } from '@/composables/useHeadMeta'
 import { defaultProfileFilters, useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
+import {
+  profileFiltersEqual,
+  profileFiltersFromQuery,
+  profileQueryFromFilters,
+  profileQueryKey,
+} from '@/valkivid3/composables/useVtualProfileQuery'
 import VkStr1VideoCard from '@/valkivid3/components/str1/VkStr1VideoCard.vue'
 import VkStr1ProfileSidebar from '@/valkivid3/components/str1/VkStr1ProfileSidebar.vue'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import { safeImageUrl } from '@/utils/safeUrl'
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const { fetchProfile } = useVtualPublic()
 
@@ -21,10 +28,13 @@ const loading = ref(true)
 const contentsLoading = ref(false)
 const notFound = ref(false)
 const error = ref<string | null>(null)
-const contentsPage = ref(1)
-// Content-grid filters. Unknown URL values are never sent — the backend clamps
-// anyway, but keeping the UI on known options avoids a phantom "selected" chip.
-const filters = ref<VtualPublicContentFilters>(defaultProfileFilters())
+// Filter + page state is seeded from the URL so a filtered grid is shareable.
+const seeded = profileFiltersFromQuery(route.query)
+const contentsPage = ref(seeded.page)
+// Content-grid filters. Unknown URL values are dropped by the codec — the
+// backend clamps anyway, but keeping the UI on known options avoids a phantom
+// "selected" chip on an empty grid.
+const filters = ref<VtualPublicContentFilters>(seeded.filters)
 
 const slug = computed(() => (typeof route.params.slug === 'string' ? route.params.slug : ''))
 
@@ -96,6 +106,28 @@ function clearFilters(): void {
 
 let loadToken = 0
 
+/**
+ * Mirror the current filter/page state into the URL. Compared against the raw
+ * query so a hand-written `?sort=newest&page=1` is normalized away, while the
+ * no-op case (URL already canonical) never triggers a history entry.
+ */
+function syncUrl(): void {
+  const target = profileQueryFromFilters(filters.value, contentsPage.value)
+  if (profileQueryKey(target) === profileQueryKey(route.query)) {
+    return
+  }
+  void router.replace({ query: target })
+}
+
+/** True when the URL already describes the in-memory filter state. */
+function matchesUrl(): boolean {
+  const fromUrl = profileFiltersFromQuery(route.query)
+
+  return (
+    fromUrl.page === contentsPage.value && profileFiltersEqual(fromUrl.filters, filters.value)
+  )
+}
+
 async function load(page: number = 1): Promise<void> {
   const token = ++loadToken
   const isInitial = profile.value === null
@@ -141,22 +173,46 @@ function goTo(delta: number): void {
   if (next < 1 || next > pagination.last_page || contentsLoading.value) {
     return
   }
-  void load(next)
+  void loadPage(next)
+}
+
+/** Load a page and keep the URL in step (page is part of the shareable state). */
+async function loadPage(page: number): Promise<void> {
+  await load(page)
+  syncUrl()
 }
 
 watch(slug, () => {
   profile.value = null
   contentsPage.value = 1
-  void load(1)
+  void loadPage(1)
 })
 
-// Any filter change resets to page 1; the paginator then follows the filtered total.
+// Filter change resets to page 1; the paginator then follows the filtered total.
+// Seeding from the URL (external navigation) already matches, so it is skipped.
 watch(
   filters,
   () => {
-    void load(1)
+    if (matchesUrl()) {
+      return
+    }
+    void loadPage(1)
   },
   { deep: true },
+)
+
+// Back/forward and hand-edited URLs drive the state, not the other way round.
+watch(
+  () => route.query,
+  () => {
+    if (matchesUrl()) {
+      return
+    }
+    const fromUrl = profileFiltersFromQuery(route.query)
+    filters.value = fromUrl.filters
+    contentsPage.value = fromUrl.page
+    void load(fromUrl.page)
+  },
 )
 
 watch(profile, (next) => {
@@ -177,7 +233,7 @@ watch(profile, (next) => {
 })
 
 onMounted(() => {
-  void load(1)
+  void loadPage(contentsPage.value)
 })
 
 onUnmounted(() => {
@@ -237,7 +293,7 @@ onUnmounted(() => {
         <button
           type="button"
           class="inline-flex bg-accent px-6 py-3 text-sm font-bold uppercase text-white transition-colors hover:bg-accent-500 dark:text-gray-900"
-          @click="load(contentsPage)"
+          @click="loadPage(contentsPage)"
         >
           {{ t('web.vtual.public.profile.retry') }}
         </button>

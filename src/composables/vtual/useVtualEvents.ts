@@ -1,5 +1,5 @@
 import { useI18n } from 'vue-i18n'
-import { get, post, del } from '@/api/client'
+import { get, post, patch, del } from '@/api/client'
 import { ApiError, type ApiResponse } from '@/api/types'
 import type { VtualEventPagedList, VtualManagementEvent } from '@/api/types'
 import { useResource } from '@/composables/useResource'
@@ -20,21 +20,44 @@ export function useVtualEvents() {
     throw new Error(res.message ?? t('web.vtual-events.errors.load_failed'))
   }
 
-  async function listForManagement(managementId: string): Promise<VtualManagementEvent[]> {
-    const res = await get<ApiResponse<VtualManagementEvent[] | VtualEventPagedList>>(
-      `vtual/managements/${managementId}/events`,
-    )
-    if (res.status === 'success' && res.data) {
-      const data = res.data as VtualEventPagedList
-      return Array.isArray(data) ? data : data.items
+  /** Single event read for the edit form (staff or owning-org member). */
+  async function fetchOne(eventId: string): Promise<VtualManagementEvent> {
+    try {
+      const res = await get<ApiResponse<VtualManagementEvent>>(`vtual/events/${eventId}`)
+      if (res.status === 'success' && res.data) {
+        return res.data
+      }
+      throw new Error(res.message ?? t('web.vtual-events.errors.load_failed'))
+    } catch (e) {
+      if (e instanceof ApiError) throw e
+      throw new Error(e instanceof Error ? e.message : t('web.vtual-events.errors.load_failed'))
     }
-    return []
   }
 
   async function createEvent(managementId: string, payload: Record<string, unknown>): Promise<VtualManagementEvent> {
     try {
       const res = await post<ApiResponse<VtualManagementEvent>>(
         `vtual/managements/${managementId}/events`,
+        payload,
+      )
+      if (res.status === 'success' && res.data) {
+        return res.data
+      }
+      throw new Error(res.message ?? t('web.vtual-events.errors.save_failed'))
+    } catch (e) {
+      if (e instanceof ApiError) throw e
+      throw new Error(e instanceof Error ? e.message : t('web.vtual-events.errors.save_failed'))
+    }
+  }
+
+  async function updateEvent(
+    managementId: string,
+    eventId: string,
+    payload: Record<string, unknown>,
+  ): Promise<VtualManagementEvent> {
+    try {
+      const res = await patch<ApiResponse<VtualManagementEvent>>(
+        `vtual/managements/${managementId}/events/${eventId}`,
         payload,
       )
       if (res.status === 'success' && res.data) {
@@ -60,8 +83,9 @@ export function useVtualEvents() {
   return {
     ...base,
     fetchPagedList,
-    listForManagement,
+    fetchOne,
     createEvent,
+    updateEvent,
     cancelEvent,
   }
 }
