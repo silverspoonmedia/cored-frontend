@@ -1,0 +1,23 @@
+---
+description: The only HTTP layer - client.ts, CSRF, retry, batch, Echo auth
+globs: src/api/**,src/composables/echo/**,src/utils/mapQueryRowActions.ts,src/utils/notificationTarget.ts
+alwaysApply: false
+---
+
+# API client
+
+`src/api/client.ts` (+ `netRetry.ts`, `csrf.ts`, `baseUrl.ts`, `requestHeaders.ts`) is the **only** HTTP layer. Views and composables never call `fetch` directly.
+
+- **URL/query:** `apiUrl()` joins `VITE_API_BASE_URL`; array query values serialize as repeated params (`{ 'ids[]': ids }`) — a pre-joined comma string is rejected 422 by Laravel. `null`/`undefined` are skipped. `apiOrigin()` guarantees a `/api/v1` suffix.
+- **Headers on every request:** `Accept: application/json`, `X-Requested-With: XMLHttpRequest`, `X-SPA-Origin: 1`, `X-SPA-Locale: <backend code>` (`zh-CN` → `zh_CN`). Cross-origin mutations add `X-CSRF-Token` after `ensureCsrf()`, except the auth-session paths (see `auth-session.mdc`).
+- **Errors:** non-2xx → `ApiError`; the Laravel validation body keeps its `errors` bag (422), the canonical envelope contributes `message`. Fallback copy goes through `translateFallback()` — never hardcoded English.
+- **419:** refresh the nonce through `refreshCsrfOnce()` (single-flighted across concurrent callers, one mint per burst) and retry, up to two rounds. Auth-session paths excluded.
+- **Cross-tab cookie race:** a peer tab's `Set-Cookie` on `__Host-spa_csrf` surfaces as `TypeError: Failed to fetch`. One policy, `src/api/netRetry.ts` (`withCookieRaceRetry`): read-only requests and `POST batch` / `POST broadcasting/auth` retry ungated; other mutations retry only inside the session-settle window. `fetchNonce()` must not pass `beforeAttempt: whenCsrfCookieQuiet` (self-deadlock).
+- **401:** `skipAuthRefresh` paths (`auth/refresh`, `auth/logout`, `auth/me`, `navigation/menus`) never refresh. Settle window → retry with backoff, never refresh, never `clearAuth()`. Outside it → single-flight `ensureRefresh()`, retry once, else `unauthorizedHandler()` + localized `sessionExpired`.
+- **Batch:** `batch()` fans read-only GET/HEAD into `POST batch` (max 10 per call; larger fan-outs chunk sequentially and re-join positionally). The outer response is always 200 — inspect per-entry `status`. `bodyOf()`/`dataOf()` degrade a rejected entry to `null`; `bodyOfOrThrow()` throws `TerminalBatchError` on 401/403/429. A hydrate that must not confuse "rejected" with "no value" pairs `bodyOfOrThrow()` with its own failed-key record.
+- **Blob:** `getBlob()` parses `Content-Disposition` (`filename*=` first); cross-origin this only works because Laravel's `config/cors.php` exposes the header.
+- **Echo:** authorizers go through `client.post('broadcasting/auth')` (inherits CSRF/419 retry) and are **serialized** in `useEcho.ts` — at most one authorize in flight per socket, because pusher-js fires a parallel burst on connect. `AppNavbar` awaits `hydrateShell()` **and** `whenCsrfCookieQuiet()` before `initEcho()`.
+- **Channel lifecycle goes through the registry.** Never `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` in a view or composable — use `src/composables/echo/channelRegistry.ts` (`acquireChannel`) or the declarative `createRealtimeChannel` / `createKeyedRealtimeChannel`. Ref-counting is per channel name; attach always defers until Echo exists; `retarget()` leaves the previous dynamic name. `tests/echoConventions.test.ts` fails the build otherwise.
+- **Never widen a secret-bearing channel — add a sibling.** `vtual.claim.{id}` is owner-only (its payload includes the bio token); the staff ping rides `vtual.claims` with ids + action + status only, and its only correct reaction is a refetch.
+
+Details: [docs/api-client.md](../../docs/api-client.md), [docs/architecture.md](../../docs/architecture.md).

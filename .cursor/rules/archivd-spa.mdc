@@ -6,9 +6,13 @@ alwaysApply: false
 
 # Archivd (SPA)
 
-Backend behavior: sibling `monolith/docs/domains/archivd/README.md` (Agent entry first).
+Backend invariants live in the sibling `monolith/.cursor/rules/archivd.mdc`; deep detail in `monolith/docs/domains/archivd/reference.md`.
 
 - Views: `src/views/archivd/`. Logic: `src/composables/archivd/`. Do not `Read` `ArchivdView.vue` whole unless the task touches that SFC — prefer offset reads / Grep.
-- API calls go through `src/api/client.ts` only. No JWT in JS.
-- Locale keys: Grep + patch all seven JSON files; never dump `src/i18n/locales/*.json`.
-- UI patterns: [docs/ui-patterns.md](../../docs/ui-patterns.md).
+- API calls go through `src/api/client.ts` only (`api-client.mdc`). No JWT in JavaScript.
+- Upload byte path goes to S3 or the Gateway Worker, never through this Worker; progress is per-part bytes with a sliding-window speed (`ui-patterns.mdc` for the state primitives).
+- The `microstock` key on a file payload exists **only** for `file.workspace?.kind === 'microstock'` — gate on the kind, never on key presence.
+- Collection toolbar, Lock & Describe and Review live inside the Archivd browse views; a locked collection blocks uploads client-side **and** server-side (mirror the server gate, do not replace it).
+- Single/bulk action parity: a new mutating action ships both the row/context path and the bulk bar unless inherently single-entity.
+- Locale keys: Grep + patch all seven JSON files; never dump `src/i18n/locales/*.json` (`i18n-locales.mdc`).
+- UI patterns: `ui-patterns.mdc`; guest share screens are the server's `web` routes, not SPA routes.

@@ -1,0 +1,13 @@
+# Task scope tags (mandatory)
+
+Default is `[fullstack]` when no tag is given. The tag affects **layer coverage only** — every other rule file stays mandatory regardless of tag.
+
+| Tag | Touch |
+|-----|-------|
+| `[frontend]` | This repo only: views, components, composables, router, SPA locale JSON, Worker shell |
+| `[backend]` | Sibling `monolith` only — no SPA change |
+| `[fullstack]` | SPA + API + translations + menu route registry parity, both repos in one task |
+
+When the contract moves (endpoint, Resource shape, header, cookie/CSRF, route name) the change is `[fullstack]` by definition: update this repo **and** `monolith` (route registry, translations, owning backend rule file).
+
+Never add API endpoints, business logic, or persistence here. This repo is the sole browser UI; `monolith` is the only backend.

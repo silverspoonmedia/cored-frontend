@@ -16,6 +16,7 @@
     "deploy:sandbox": "cross-env CLOUDFLARE_ENV=sandbox vite build --mode sandbox && wrangler deploy --env sandbox",
     "deploy:staging": "cross-env CLOUDFLARE_ENV=staging vite build --mode staging && wrangler deploy --env staging",
     "cf-typegen": "wrangler types",
+    "check:docs": "node scripts/check-docs.mjs",
     "check:i18n": "node scripts/check-i18n.mjs && node scripts/check-i18n-usage.mjs && node scripts/check-curation-log.mjs",
     "check:i18n:usage": "node scripts/check-i18n-usage.mjs"
   },

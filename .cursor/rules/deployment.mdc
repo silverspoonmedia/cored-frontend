@@ -1,0 +1,23 @@
+---
+description: Vite mode to Wrangler env pairing, secrets, rollback
+globs: .github/workflows/**,wrangler.jsonc,.env.production,.env.sandbox,.env.staging,.env.example,.dev.vars*
+alwaysApply: false
+---
+
+# Deployment
+
+One codebase, **three Workers**, split at the Wrangler environment level. Each deploy script pairs a Vite mode (which `.env.<mode>` gets baked) with the same-named Wrangler env (which Worker receives the deploy) — the two names must stay identical or the bundle bakes the wrong API origin.
+
+| Wrangler env | Vite mode | Env file | Worker | Branch |
+|--------------|-----------|----------|--------|--------|
+| `production` | `production` | `.env.production` | `monolith-spa-prod` | `main` |
+| `sandbox` | `sandbox` | `.env.sandbox` | `monolith-spa-sandbox` | `main-sandbox` |
+| `staging` | `staging` | `.env.staging` | `monolith-spa-staging` | `main-staging` |
+
+- `CLOUDFLARE_ENV=<env>` must be set during the build — `@cloudflare/vite-plugin` bakes the worker name into the redirected deploy config, and wrangler hard-fails a `deploy --env` that mismatches it. **Never** run a bare `vite build` + `wrangler deploy` pair: a sandbox build without it would deploy onto the production Worker.
+- Unmapped deploy branches fail loudly (`.github/workflows/deploy.yml`) instead of defaulting to production.
+- **No `VITE_*` secrets** — everything in the browser bundle is public. Worker `vars` never reach the bundle.
+- Vite stacks env files by mode: `.env` → `.env.local` → `.env.<mode>`; during a mode build the tracked mode file wins over `.env.local`.
+- Discord OAuth return is Monolith `SPA_URL` on the API host, not a Vite var.
+
+Details, required secrets, rollback, troubleshooting: [docs/deployment.md](../../docs/deployment.md).

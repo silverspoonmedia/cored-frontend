@@ -1,14 +1,8 @@
 # Runtime head meta (`useHeadMeta`)
 
-Client-side OG/SEO meta injection for public SPA surfaces. Lives in `src/composables/useHeadMeta.ts`.
+Client-side OG/SEO meta injection for the public SPA surfaces, in `src/composables/useHeadMeta.ts`. Invariants: [.cursor/rules/valkivid3.mdc](../.cursor/rules/valkivid3.mdc) (JSON-LD + presentation), [.cursor/rules/worker-thin.mdc](../.cursor/rules/worker-thin.mdc) (no SSR).
 
-## Why client-side only
-
-The SPA ships as static assets behind a **guard-only Worker** ([worker.md](worker.md) invariant 1). Every Worker/Pages Function invocation bills a request — meta tags for crawlers do not justify that cost. Social crawlers execute JavaScript, so runtime `document.head` injection is the maximum coverage available without turning the Worker into SSR.
-
-**Hard rule:** never add a Cloudflare Worker/Pages Function, middleware SSR, HTML rewriter, or new `server/` route for meta injection. `assets.run_worker_first` stays empty; `server/index.ts` stays guard-only. All tags live in the static bundle (zero function invocation).
-
-## API
+**Never add a Worker/Pages Function, middleware SSR, HTML rewriter, or `server/` route for meta injection.** Every Worker invocation bills a request; social crawlers execute JavaScript, so runtime `document.head` injection is the maximum coverage available while `assets.run_worker_first` stays empty.
 
 ```ts
 import { setHeadMeta, clearHeadMeta } from '@/composables/useHeadMeta'
@@ -16,40 +10,34 @@ import { setHeadMeta, clearHeadMeta } from '@/composables/useHeadMeta'
 setHeadMeta({
   title: 'Page title',
   description: 'Max ~160 chars.',
-  image: 'https://…/banner.jpg',   // optional; omit → twitter:card = summary
-  url: window.location.origin + route.path, // canonical + og:url, no query
-  type: 'website',                  // website | profile | article
-  jsonLd: { '@context': 'https://schema.org', '@type': 'Person', name: '…' }, // optional
+  image: 'https://…/banner.jpg',            // omit → twitter:card = summary
+  url: window.location.origin + route.path,  // canonical + og:url, no query
+  type: 'website',                           // website | profile | article
+  jsonLd: { '@context': 'https://schema.org', '@type': 'Person', name: '…' },
 })
 
-// On unmount / route leave:
-clearHeadMeta()
+clearHeadMeta() // on unmount / route leave
 ```
+
+| Need | Path |
+|------|------|
+| JSON-LD builders | `src/utils/vtualJsonLd.ts` (pure functions) |
+| Public views | [ui-patterns.md](ui-patterns.md) · `valkivid3.mdc` |
+| Meta copy keys | [i18n.md](i18n.md) — `web.vtual.public.meta.*` in all seven locales |
+| Tests | `tests/headMetaJsonLd.test.ts` (jsdom), `tests/vtualJsonLd.test.ts` |
 
 ## Behavior contract
 
-- **Managed tags only.** Every injected tag carries `data-monolith-meta="1"`; `clearHeadMeta()` removes only those, never the static meta from `index.html`.
-- **Tags managed:** `meta[name=description]`, `meta[name=robots]` (`index, follow` — overrides the `noindex` inherited from `PublicLayout.vue`), `meta[property=og:title|og:description|og:type|og:site_name|og:url|og:image]`, `meta[name=twitter:card|twitter:title|twitter:description|twitter:image]`, `link[rel=canonical]`, `script[type=application/ld+json]`.
-- **JSON-LD:** exactly **one** `application/ld+json` block per page, keyed on the same marker. Passing `jsonLd` replaces it; passing `null` (or omitting it on a page that had one) **removes** it — a stale `Person` left on an unrelated route is worse than no schema. `clearHeadMeta()` sweeps it with the rest.
-- **`og:url` / canonical:** `window.location.origin + route.path` — never include `?page` or other query params.
-- **Upsert, not duplicate:** repeated `setHeadMeta()` calls reuse the existing marked elements.
-- **Cleanup:** every view that calls `setHeadMeta()` must call `clearHeadMeta()` in `onUnmounted()` (same pattern as `PublicLayout.vue`'s robots handling).
+- **Managed tags only:** every injected tag carries `data-monolith-meta="1"`; `clearHeadMeta()` removes only those, never the static `index.html` tags.
+- **Tags:** description, robots (`index, follow` — overrides the `noindex` inherited from `PublicLayout`), OG (`title`, `description`, `type`, `site_name`, `url`, `image`), Twitter card/title/description/image, `link[rel=canonical]`, `script[type=application/ld+json]`.
+- **Exactly one JSON-LD block per page**, keyed on the same marker: passing `jsonLd` replaces it, passing `null` removes it (a stale `Person` on an unrelated route is worse than no schema).
+- **`og:url` / canonical** is `origin + route.path` — never with query params.
+- **Upsert, not duplicate**, and every caller must `clearHeadMeta()` in `onUnmounted()`.
 
-## Current consumers
+## Consumers
 
 | View | Meta |
 |------|------|
-| `VkStr1VtualHomeView` (`/vtual`) | `web.vtual.public.title` + `web.vtual.public.meta.landing_description`, type `website`, no image, no JSON-LD |
-| `VkStr1VtuberShowView` (`/vtual/vtubers/{slug}`) | `display_name` + bio (truncated ~160 chars, fallback `web.vtual.public.meta.profile_description_fallback`), avatar ?? banner image, type `profile`, set inside the existing `watch(profile)`; JSON-LD `Person` + `ItemList` of `VideoObject` built by `buildVtuberJsonLd` |
-| `VkStr1ManagementShowView` (`/vtual/managements/{slug}`) | `name` + description (truncated ~160 chars, fallback `web.vtual.public.meta.management_description_fallback`), logo image, type `profile`; JSON-LD `Organization` + `member` roster built by `buildManagementJsonLd` |
-
-Meta copy keys live under `web.vtual.public.meta.*` in all seven locales — see [i18n.md](i18n.md).
-
-## JSON-LD builders
-
-`src/utils/vtualJsonLd.ts` holds the two schema.org graph builders. They are **pure functions** (`(profile, origin) => object`) so the payload is unit-testable in the node environment and the views stay thin — the view only forwards `window.location.origin`.
-
-- **`buildVtuberJsonLd`** — `Person` (name, url, `@id`, description, image, de-duplicated `sameAs` from channels + links) plus an `ItemList` of the **currently rendered page** of contents. Only the visible page is described: a partial list is a valid list, and a list that includes rows the visitor cannot see is a lie.
-- **`buildManagementJsonLd`** — `Organization` (name, url, `@id`, description, logo, `sameAs`) with the public roster as `member` `Person` nodes pointing at their profile pages.
-- **Eligibility rules, not best effort:** a `VideoObject` missing name, thumbnail, url or upload date is **dropped** rather than published half-formed — a required property with an empty value can invalidate the whole node, and an invalid node can cost the whole graph. Blank/`null`/non-http URLs are omitted the same way; `sameAs` collapses blanks and duplicates.
-- Never add a Worker/Pages Function or SSR for this (invariant 1 in [worker.md](worker.md)).
+| `VkStr1VtualHomeView` (`/vtual`) | title + landing description, `website`, no image, no JSON-LD |
+| `VkStr1VtuberShowView` (`/vtual/vtubers/{slug}`) | `display_name` + truncated bio (fallback key), avatar ?? banner, `profile`, JSON-LD `Person` + `ItemList` of the rendered page of `VideoObject`s |
+| `VkStr1ManagementShowView` (`/vtual/managements/{slug}`) | name + truncated description (fallback key), logo, `profile`, JSON-LD `Organization` + `member` roster |

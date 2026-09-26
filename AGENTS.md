@@ -1,25 +1,36 @@
 # AI Agents — Monolith-Vue-Workers (SPA frontend)
 
-**Role:** Vue 3 + Vite + TypeScript SPA — the **sole browser UI** for the Monolith backend. Deployed to Cloudflare Workers as static assets; the Worker is **not** an API or auth proxy.
+**Role:** Vue 3 + Vite + TypeScript SPA — the **sole browser UI** for the Monolith backend. Deployed to Cloudflare Workers as static assets; the Worker is **not** an API or auth proxy. Browser requests go direct to the Laravel API origin.
 
 ## Workspace split
 
-Canonical split lives in sibling `monolith/AGENTS.md`. Open **this repo only** via [Monolith-SPA.code-workspace](Monolith-SPA.code-workspace) for UI work. Use sibling [Monolith-Fullstack.code-workspace](../monolith/Monolith-Fullstack.code-workspace) only when the API↔SPA contract moves.
+- This repo is the only frontend; `monolith` is the only backend; `gateway` is shared CF Workers infra (own `AGENTS.md`).
+- Open **this repo only** via [Monolith-SPA.code-workspace](Monolith-SPA.code-workspace) for UI work; sibling [Monolith-Fullstack.code-workspace](../monolith/Monolith-Fullstack.code-workspace) only when the API↔SPA contract moves.
+- Never add API endpoints, business logic, or persistence here. Contract doc: sibling `monolith/docs/integration/vue-workers-spa.md` — open only when headers, cookies/CSRF, envelopes, or route names change.
 
-- **This repo** is the only frontend. **Monolith** is the only backend. **Gateway** is shared CF Workers infra (own `AGENTS.md`).
-- Never add API endpoints, business logic, or persistence here.
-- Contract-touching changes (API resource shapes, headers, cookie/CSRF, route names in `monolith/config/spa-routes.php`) stay in sync on both sides. Open the contract [vue-workers-spa.md](../monolith/docs/integration/vue-workers-spa.md) **only** then — not on every task.
+## Protocol
 
-## Agent protocol
+1. **Assess before changing** — open the owning rule for the area you touch (table below) and the file's nearest test. No blind edits.
+2. **Update docs and rules with every task** — the owning brief in `docs/` and the rule file when an invariant moved. `wrap up the docs` = session-wide consolidation of code ↔ docs ↔ rules across both repos.
+3. **Respect scope and context** — tag the task `[frontend]`/`[backend]`/`[fullstack]`, and follow the context budget. All user-facing copy follows the always-on i18n guardrail: every locale in the same change.
 
-Rules in [core-rules.md](docs/agents/core-rules.md) apply. Open a rule’s **owning doc** only when that rule is in play. Context budget: sibling [monolith/docs/agents/context-budget.md](../monolith/docs/agents/context-budget.md).
+## Rule map (all `.cursor/rules/*.mdc`)
 
-1. **Assess before changing.** Read the topic doc from [docs/README.md](docs/README.md). No blind edits.
-2. **Update docs with every task.** Keyword `wrap up the docs` = session-wide consolidation (including Monolith integration docs when the contract moved).
-3. **Localization.** All supported locales in the same change — patch keys, never `Read` whole locale JSON files. [docs/i18n.md](docs/i18n.md) and the always-on [.cursor/rules/i18n-guardrail.mdc](.cursor/rules/i18n-guardrail.mdc) (all locales, contextual, readable). Run `npm run check:i18n`; cross-repo guards and the readability checklist live in the backend twin.
-4. **Auth/session.** Never store JWTs in JavaScript. [docs/auth-session.md](docs/auth-session.md).
-5. **Worker stays thin.** [docs/worker.md](docs/worker.md).
-6. **Dual templates stay separate.** AdminLTE4 vs Valkivid3; vTual landing is FROZEN. [docs/ui-patterns.md](docs/ui-patterns.md).
-7. **Route names** sync with `monolith/config/spa-routes.php`. [docs/routes.md](docs/routes.md).
+| Rule | Fires when |
+|------|-----------|
+| `docs-pakem.mdc` *(always-on)* | Writing or moving any doc or rule file |
+| `task-scope.mdc` *(always-on)* | Deciding which layers a task must touch |
+| `context-budget.mdc` *(always-on)* | Choosing a workspace / what to open |
+| `i18n-guardrail.mdc` *(always-on)* | Adding or editing user-facing copy |
+| `i18n-locales.mdc` | `src/i18n/**`, any `.vue`/`.ts` with copy, locale guards |
+| `api-client.mdc` | `src/api/**`, `src/composables/echo/**` — the only HTTP/Echo layer |
+| `auth-session.mdc` | Session, CSRF, hydrate, logout, cross-tab sync |
+| `worker-thin.mdc` | `server/**`, `wrangler.jsonc`, `public/_headers` |
+| `ui-patterns.mdc` | Views, components, assets — AdminLTE namespace conventions |
+| `valkivid3.mdc` | `src/valkivid3/**`, vTual presentation/JSON-LD utils (landing is FROZEN) |
+| `routes-contract.mdc` | `src/router/**` — route names sync with `monolith/config/spa-routes.php` |
+| `archivd-spa.mdc` | `src/views|composables|components/archivd/**` |
+| `testing.mdc` | `tests/**` — which contracts must stay covered |
+| `deployment.mdc` | Workflows, Wrangler envs, mode files, Vite config |
 
-**Doc map:** [docs/README.md](docs/README.md). SPA-local docs first; backend contract only when headers, cookies/CSRF, envelopes, or route names change.
+Doc map: [docs/README.md](docs/README.md). SPA-local docs first; the backend contract only when headers, cookies/CSRF, envelopes, or route names change.

@@ -1,0 +1,18 @@
+---
+description: Route names are a cross-repo contract with the backend menu registry
+globs: src/router/**,src/utils/notificationTarget.ts,src/utils/breadcrumb.ts,src/composables/useBreadcrumbs.ts
+alwaysApply: false
+---
+
+# Route names are a cross-repo contract
+
+- Route records live in `src/router/routes/*.ts`, one module per domain; `src/router/index.ts` assembles them (order matters — vTual admin early/late, 404 catch-all last), owns the `beforeEach` guard and `scrollBehavior`.
+- URL layout: authenticated app under **`/apps/*`**, guest/public at the site root (`/vtual`, `/s/*`, payment bounce), auth pages at root.
+- **Symbolic route names are consumed by the backend.** Monolith menu rows store them and validate against `monolith/config/spa-routes.php` (`SpaRouteRegistry`); notification deep links resolve `${route}.view` via `src/utils/notificationTarget.ts`. Renaming or adding a named route = update `config/spa-routes.php` + `MenuSeeder` (when menu-bound) in the same change, plus both integration docs.
+- **Guard invariants** (do not regress): one-shot `hydrateShell()` per cold boot with `resetRouterHydration()` on logout, `fetchMe()` re-probe only when the cookie may have arrived from another tab, `guestOnly` → `dashboard.view`, and `revokeCurrentProtectedRoute()` replacing the current protected route with `login.view?redirect=<fullPath>` on logout.
+- **Meta flags:** `requiresAuth` (guests → `login.view`), `guestOnly`, `public` (PublicLayout, no auth probe), `template: 'valkivid3'`, `breadcrumb`.
+- **Breadcrumbs** are declared on route records, not in a central map: `meta.titleKey` (title + default crumb), `meta.breadcrumb.parent` (route name above), `meta.breadcrumb.labelKey` (override). The chain runs self → parent → … → root, capped at 10 hops with a cycle guard; an unresolvable parent ends the chain. A crumb link carries only the params its own path declares.
+- **Entity titles:** one `useBreadcrumbTitle()` per detail screen, reading the hydrated record's name (`() => record.value?.name ?? null`), never `route.params.id` and never a translated string. Form-only edit views gate it on `isEdit`. Intentional blanks stay blank (index screens, `activity-log.show`, `error-log.show`, `product-activations.show`, `vtual.platform-credentials.*`).
+- Router chunk-load failures are caught by `router.onError` → `chunkLoadFailed` → full-page `ErrorState` with reload.
+
+Details: [docs/routes.md](../../docs/routes.md).
