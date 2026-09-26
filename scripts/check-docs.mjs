@@ -45,6 +45,12 @@ const toPosix = (path) => path.split(sep).join('/')
 const rel = (path) => toPosix(relative(ROOT, path))
 const lineCount = (path) => readFileSync(path, 'utf8').replace(/\r?\n$/, '').split(/\r?\n/).length
 
+// The sibling `monolith` checkout, one level up. Links that point into it can
+// only be verified when it is present: CI checks out this repo alone, so an
+// absent sibling means "unverifiable", not "broken".
+const SIBLING = resolve(ROOT, '..', 'monolith')
+const siblingRepoIsPresent = () => existsSync(join(SIBLING, '.cursor', 'rules'))
+
 /**
  * Which kind of living doc this is, and what it may cost in lines.
  *
@@ -268,10 +274,11 @@ for (const source of [...livingDocs, ...ruleFiles, ...(agents !== null ? [AGENTS
     const resolved = resolve(dirname(source), decodeURIComponent(path))
 
     if (!resolved.startsWith(ROOT)) {
-      // Cross-repo reference (the sibling `monolith` checkout). Only enforced
-      // when that checkout is present — CI runs this repo alone.
-      if (existsSync(resolved)) continue
-      note(`${rel(source)} links to ${link}, which does not exist`)
+      // Cross-repo reference (the sibling `monolith` checkout). Enforced only
+      // when that checkout is present — CI runs this repo alone, so a missing
+      // sibling is an unverifiable link, not a broken one.
+      if (!siblingRepoIsPresent()) continue
+      if (!existsSync(resolved)) note(`${rel(source)} links to ${link}, which does not exist`)
       continue
     }
 
