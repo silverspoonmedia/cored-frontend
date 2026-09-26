@@ -11,7 +11,8 @@
 // The failure modes are silent by nature: a brief nobody indexed, a brief that
 // grew back into an essay, a rule whose `globs:` matches nothing (so it never
 // fires), a rule that AGENTS.md forgot, a relative link to a file that moved,
-// and `docs/agents/` creeping back as a second home for agent rules.
+// a link whose `#anchor` no longer matches any heading, and `docs/agents/`
+// creeping back as a second home for agent rules.
 //
 // Not every living doc is a brief. A deep dive, a progress tracker, a
 // settled-terms glossary and an edge-case inventory each have their own budget
@@ -21,8 +22,9 @@
 // finding, so the list can only shrink.
 //
 // Links that resolve outside this repo are cross-repo references to the sibling
-// `monolith` checkout. CI checks out this repo alone, so they are reported but
-// only enforced when the target actually exists on disk.
+// `monolith` checkout. CI checks out this repo alone, so those are enforced only
+// when that checkout is present — a missing sibling is an unverifiable link, not
+// a broken one.
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -121,6 +123,78 @@ function frontmatter(contents) {
   if (!contents.startsWith('---')) return null
   const end = contents.indexOf('---', 3)
   return end === -1 ? null : contents.slice(3, end)
+}
+
+/** Split `path#anchor` into its two halves; `anchor` is null when there is no `#`. */
+function splitAnchor(link) {
+  const at = link.indexOf('#')
+  if (at === -1) return [link, null]
+  return [link.slice(0, at), decodeURIComponent(link.slice(at + 1))]
+}
+
+/**
+ * GitHub's heading slug, mirroring `docs_anchor_slug()` in the backend
+ * `scripts/lib/docs-anchor-support.php` so the two guards cannot disagree.
+ *
+ * Letters, numbers, marks, connector punctuation (`_`), ASCII hyphens and spaces
+ * survive; everything else — emphasis markers, backticks, em dashes and other
+ * punctuation — is dropped. Each space then becomes one hyphen, and the spaces are
+ * **not** collapsed, so `Archivd — product domain` slugs as `archivd--product-domain`
+ * (the em dash is removed, leaving the two spaces that flanked it).
+ */
+function slugify(heading) {
+  // Images first (`![alt](src)` -> `alt`), then links, so the `!` cannot leak.
+  const text = heading
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .trim()
+
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\p{M}\p{Pc}\s-]+/gu, '')
+    .replace(/\s/gu, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+const slugCache = new Map()
+
+/**
+ * Heading slugs a markdown file offers, with GitHub's `-1`/`-2` suffix for
+ * duplicates. Fenced code is skipped: a shell comment (`# Full reset only when
+ * intentional:`) is not a heading.
+ */
+function slugSet(path) {
+  const cached = slugCache.get(path)
+  if (cached) return cached
+
+  const slugs = new Set()
+  const seen = new Map()
+  let fence = null
+
+  for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
+    const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fenceMatch) {
+      const marker = fenceMatch[1][0]
+      if (fence === null) fence = marker
+      else if (fence === marker) fence = null
+      continue
+    }
+
+    if (fence !== null) continue
+
+    const heading = line.match(/^#{1,6}\s+(.*?)\s*$/)
+    if (!heading) continue
+
+    const slug = slugify(heading[1])
+    if (!slug) continue
+
+    const count = seen.get(slug) ?? 0
+    seen.set(slug, count + 1)
+    slugs.add(count === 0 ? slug : `${slug}-${count}`)
+  }
+
+  slugCache.set(path, slugs)
+  return slugs
 }
 
 function globsOf(contents) {
@@ -260,16 +334,29 @@ if (agents !== null) {
   }
 }
 
-// 4. Relative markdown links in living docs, rules and AGENTS.md must resolve.
+// 4. Relative markdown links in living docs, rules and AGENTS.md must resolve —
+//    path *and* `#anchor`. The path half catches a file that moved; the anchor half
+//    catches a heading that was reworded, which leaves every deep link into it
+//    pointing at nothing. External links keep the path check only: their anchors
+//    belong to someone else's site.
 for (const source of [...livingDocs, ...ruleFiles, ...(agents !== null ? [AGENTS] : [])]) {
   const contents = readFileSync(source, 'utf8')
 
   for (const match of contents.matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)) {
     const link = match[1]
-    if (/^(https?:|mailto:|tel:|#)/.test(link)) continue
+    if (/^(https?:|mailto:|tel:)/.test(link)) continue
 
-    const path = link.split('#')[0]
-    if (!path) continue
+    const [path, anchor] = splitAnchor(link)
+
+    // A same-file anchor resolves against the file the link is written in.
+    if (path === '' && anchor !== null) {
+      if (!slugSet(source).has(anchor)) {
+        note(`${rel(source)} links to ${link}, and no heading in that file has that anchor`)
+      }
+      continue
+    }
+
+    if (path === '') continue
 
     const resolved = resolve(dirname(source), decodeURIComponent(path))
 
@@ -282,7 +369,16 @@ for (const source of [...livingDocs, ...ruleFiles, ...(agents !== null ? [AGENTS
       continue
     }
 
-    if (!existsSync(resolved)) note(`${rel(source)} links to ${link}, which does not exist`)
+    if (!existsSync(resolved)) {
+      note(`${rel(source)} links to ${link}, which does not exist`)
+      continue
+    }
+
+    if (anchor === null || !/\.mdc?$/i.test(resolved)) continue
+
+    if (!slugSet(resolved).has(anchor)) {
+      note(`${rel(source)} links to ${link}, and no heading in ${rel(resolved)} has that anchor`)
+    }
   }
 }
 

@@ -68,7 +68,7 @@ Each backend environment sets `SPA_URL` to the matching SPA origin, so CORS and 
 | Bundle points at the wrong API origin | Build/deploy pairing broken (`--mode` ≠ `--env`), or the wrong branch deployed |
 | Actions auth error code 10000 | `CLOUDFLARE_API_TOKEN` missing/expired or lacking `Workers Scripts:Edit` |
 | Login works locally but no cookie on the deployed origin | Monolith `SPA_URL` does not match the SPA origin |
-| Random "CORS error" / `TypeError: Failed to fetch`, clears on retry | Another tab rotated the shared CSRF cookie mid-request — see [api-client.md](api-client.md#cross-tab-cookie-race-retry) |
+| Random "CORS error" / `TypeError: Failed to fetch`, clears on retry | Another tab rotated the shared CSRF cookie mid-request — `src/api/netRetry.ts`, invariants in `api-client.mdc` |
 | "CORS error" only on `POST …/broadcasting/auth`, never clears | URL is not `/api/v1/…` (hit the backend web twin) or the CSRF settle gate was bypassed |
 | CSV/file download saves with a generic name | Monolith `config/cors.php` `exposed_headers` missing `Content-Disposition` |
 | Realtime silent | `VITE_PUSHER_APP_KEY` empty in that environment's tracked env file |

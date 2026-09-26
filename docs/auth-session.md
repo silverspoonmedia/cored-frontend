@@ -5,7 +5,7 @@ How the SPA keeps a logged-in session without ever exposing the JWT to JavaScrip
 | Need | Path |
 |------|------|
 | Session mechanics (`client.ts`) | [api-client.md](api-client.md) · `api-client.mdc` |
-| Cross-tab cookie race + retry policy | `src/api/netRetry.ts` · [api-client.md](api-client.md#cross-tab-cookie-race-retry) |
+| Cross-tab cookie race + retry policy | `src/api/netRetry.ts` · `api-client.mdc` |
 | Realtime channel lifecycle | `src/composables/echo/channelRegistry.ts` · `api-client.mdc` |
 | Backend side | `monolith/docs/domains/identity/README.md` |
 | Tests | [testing.md](testing.md) — `client.test.ts`, `csrf.test.ts`, `netRetry.test.ts`, `shellHydrate.test.ts`, `authCrossTabLogout.test.ts` |
