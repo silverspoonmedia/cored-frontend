@@ -164,8 +164,3 @@ export function acquireChannel(name: string, listeners: ChannelListeners): Chann
     },
   }
 }
-
-/** Test hook: drop every tracked channel so suites do not leak state. */
-export function __resetChannelRegistryForTests(): void {
-  states.clear()
-}

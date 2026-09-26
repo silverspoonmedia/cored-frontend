@@ -44,38 +44,6 @@ export function processLookupResults(data: unknown): Select2Paginated {
 }
 
 /**
- * Group flat lookup results into Select2 `{ text, children }` nodes.
- *
- * Select2 only renders one level of grouping: top-level items become group
- * headers, deeper items keep their `level` so the component can indent them.
- * Groups are ordered by first appearance; ungrouped items stay top-level.
- */
-export function groupFlatResults(results: Select2Result[]): Array<Select2Result | Select2GroupedResult> {
-  const groups = new Map<string, Select2GroupedResult>()
-  const output: Array<Select2Result | Select2GroupedResult> = []
-
-  for (const result of results) {
-    const level = typeof result.level === 'number' ? result.level : 0
-    const groupLabel = result.group
-
-    if (level === 0 || groupLabel == null) {
-      output.push({ ...result, level })
-      continue
-    }
-
-    let group = groups.get(groupLabel)
-    if (!group) {
-      group = { text: groupLabel, children: [] }
-      groups.set(groupLabel, group)
-      output.push(group)
-    }
-    group.children!.push({ id: result.id, text: result.text, level })
-  }
-
-  return output
-}
-
-/**
  * Flatten backend NESTED tree results into Select2 one-level grouping.
  *
  * Select2 only supports one level of `children` (HTML forbids nested

@@ -9,6 +9,7 @@ import type {
   VtualChannel,
   VtualChannelClaim,
   VtualCreatorClaim,
+  VtualClaimPagedList,
   VtualVtuberProfile,
   VtualExternalLink,
 } from '@/api/types'
@@ -289,10 +290,24 @@ export function useVtual() {
 
   // --- Creator claims ---
 
-  async function fetchMyClaims(): Promise<VtualCreatorClaim[]> {
-    const res = await get<ApiResponse<VtualCreatorClaim[]>>('vtual/claims/mine')
+  /** Owner claim list. Query mode: `{ items, pagination }` with `has_more`. */
+  async function fetchMyClaims(params?: ListParams): Promise<VtualClaimPagedList> {
+    const res = await get<ApiResponse<VtualClaimPagedList>>('vtual/claims/mine', {
+      display_mode: 'query',
+      ...params,
+    })
     if (res.status === 'success' && res.data) return res.data
-    return []
+    return { items: [], pagination: { current_page: 1, per_page: 15, total: 0, has_more: false } }
+  }
+
+  /** Staff queue. Requires `manage any vtual resource`; 403 otherwise. */
+  async function fetchPendingClaims(params?: ListParams): Promise<VtualClaimPagedList> {
+    const res = await get<ApiResponse<VtualClaimPagedList>>('vtual/claims/pending', {
+      display_mode: 'query',
+      ...params,
+    })
+    if (res.status === 'success' && res.data) return res.data
+    return { items: [], pagination: { current_page: 1, per_page: 15, total: 0, has_more: false } }
   }
 
   async function fetchClaim(claimId: string): Promise<VtualCreatorClaim> {
@@ -370,6 +385,7 @@ export function useVtual() {
     deleteLink,
     fetchVtuberProfile,
     fetchMyClaims,
+    fetchPendingClaims,
     fetchClaim,
     startClaim,
     verifyClaim,

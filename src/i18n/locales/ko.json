@@ -1355,7 +1355,9 @@
           "next": "다음 페이지"
         },
         "video": {
-          "play": "재생"
+          "play": "재생",
+          "region_blocked": "다음 지역에서는 시청할 수 없습니다: {regions}",
+          "region_allowed": "다음 지역에서만 시청할 수 있습니다: {regions}"
         },
         "events": {
           "heading": "다음 일정"
@@ -1405,6 +1407,7 @@
           "contents_empty_filtered": "이 필터에 맞는 콘텐츠가 없습니다.",
           "filters_clear": "필터 지우기",
           "channels_heading": "채널",
+          "channel_synced": "최근 동기화: {time}",
           "details": {
             "channels": "채널",
             "platforms": "플랫폼",
@@ -1464,6 +1467,8 @@
           "actions": "작업",
           "table_caption": "프로필 채널",
           "archived_table_caption": "보관된 프로필 채널",
+          "last_synced": "최근 동기화",
+          "never_synced": "미동기화",
           "empty": "등록된 채널이 아직 없습니다.",
           "status_pending": "대기 중",
           "status_active": "활성",
@@ -1521,7 +1526,37 @@
         }
       },
       "claims": {
-        "accept_anyway": "그래도 수락"
+        "accept_anyway": "그래도 수락",
+        "title": "클레임",
+        "breadcrumb": "클레임",
+        "list_title": "크리에이터 클레임",
+        "subtitle": "채널 소유를 증명하여 크리에이터 프로필을 클레임하거나, 대기 중인 클레임 대기열을 검토하세요.",
+        "tabs": {
+          "mine": "내 클레임",
+          "pending": "스태프 대기열"
+        },
+        "columns": {
+          "creator": "크리에이터",
+          "channel": "증명 채널",
+          "claimant": "신청자",
+          "status": "상태",
+          "submitted": "신청일"
+        },
+        "status": {
+          "pending": "대기 중",
+          "verified": "검증됨",
+          "cancelled": "취소됨",
+          "expired": "만료됨"
+        },
+        "datatable": {
+          "empty_mine": "대기 중인 클레임이 없습니다.",
+          "empty_pending": "검토할 대기 중인 클레임이 없습니다."
+        },
+        "action_done": "클레임이 업데이트되었습니다.",
+        "errors": {
+          "load_failed": "클레임을 불러오지 못했습니다.",
+          "action_failed": "클레임 작업에 실패했습니다."
+        }
       },
       "credentials": {
         "list": "자격 증명",
@@ -1587,13 +1622,6 @@
       },
       "admin": {
         "credentials": {
-          "intro": {
-            "steps": [
-              {},
-              {},
-              {}
-            ]
-          },
           "create_title": "자격 증명 추가",
           "edit_title": "자격 증명 편집",
           "platform_title": "플랫폼 자격 증명"

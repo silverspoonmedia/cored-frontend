@@ -3887,6 +3887,8 @@
           "actions": "Aksi",
           "table_caption": "Kanal platform profil",
           "archived_table_caption": "Kanal platform yang diarsipkan",
+          "last_synced": "Sinkronisasi terakhir",
+          "never_synced": "Belum pernah",
           "empty": "Belum ada kanal terdaftar.",
           "status_pending": "Tertunda",
           "status_active": "Aktif",
@@ -3944,7 +3946,37 @@
         }
       },
       "claims": {
-        "accept_anyway": "Terima tanpa verifikasi"
+        "accept_anyway": "Terima tanpa verifikasi",
+        "title": "Klaim",
+        "breadcrumb": "Klaim",
+        "list_title": "Klaim kreator",
+        "subtitle": "Klaim profil kreator dengan membuktikan kepemilikan salah satu kanalnya, atau tinjau antrean klaim yang tertunda.",
+        "tabs": {
+          "mine": "Klaim saya",
+          "pending": "Antrean staf"
+        },
+        "columns": {
+          "creator": "Kreator",
+          "channel": "Kanal bukti",
+          "claimant": "Pengklaim",
+          "status": "Status",
+          "submitted": "Waktu pengajuan"
+        },
+        "status": {
+          "pending": "Tertunda",
+          "verified": "Terverifikasi",
+          "cancelled": "Dibatalkan",
+          "expired": "Kedaluwarsa"
+        },
+        "datatable": {
+          "empty_mine": "Anda tidak memiliki klaim yang tertunda.",
+          "empty_pending": "Tidak ada klaim tertunda untuk ditinjau."
+        },
+        "action_done": "Klaim diperbarui.",
+        "errors": {
+          "load_failed": "Gagal memuat klaim.",
+          "action_failed": "Tindakan klaim gagal."
+        }
       },
       "credentials": {
         "list": "Kredensial",
@@ -4010,13 +4042,6 @@
       },
       "admin": {
         "credentials": {
-          "intro": {
-            "steps": [
-              {},
-              {},
-              {}
-            ]
-          },
           "create_title": "Tambah kredensial",
           "edit_title": "Edit kredensial",
           "platform_title": "Kredensial platform"
@@ -4110,7 +4135,9 @@
           "next": "Halaman berikutnya"
         },
         "video": {
-          "play": "Putar"
+          "play": "Putar",
+          "region_blocked": "Tidak tersedia di: {regions}",
+          "region_allowed": "Hanya tersedia di: {regions}"
         },
         "events": {
           "heading": "Acara Mendatang"
@@ -4166,6 +4193,7 @@
           "contents_empty_filtered": "Tidak ada konten yang cocok dengan filter ini.",
           "filters_clear": "Bersihkan filter",
           "channels_heading": "Kanal",
+          "channel_synced": "Disinkronkan {time}",
           "details": {
             "channels": "Kanal",
             "platforms": "Platform",

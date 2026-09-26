@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T12:35:15.604Z",
+  "generated_at": "2026-09-25T18:13:37.199Z",
   "reference_locale": "en",
   "locales": [
     "id",
@@ -10,13 +10,13 @@
     "ru"
   ],
   "allowlist": {
-    "entries": 155,
+    "entries": 156,
     "stale": []
   },
   "summary": {
-    "duplicate_pairs": 358,
-    "unique_duplicate_keys": 155,
-    "allowlisted_pairs": 358,
+    "duplicate_pairs": 359,
+    "unique_duplicate_keys": 156,
+    "allowlisted_pairs": 359,
     "actionable_pairs": 0,
     "empty_translation_values": 0
   },
@@ -30,8 +30,8 @@
   },
   "by_locale": {
     "id": {
-      "total": 149,
-      "allowlisted_count": 149,
+      "total": 150,
+      "allowlisted_count": 150,
       "actionable_count": 0,
       "by_namespace": {
         "api.common": {
@@ -892,8 +892,15 @@
           ]
         },
         "web.vtual": {
-          "count": 26,
+          "count": 27,
           "keys": [
+            {
+              "key": "web.vtual.claims.columns.status",
+              "english": "Status",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
             {
               "key": "web.vtual.platform_col",
               "english": "Platform",

@@ -10,6 +10,7 @@ import { useVtualPublic } from '@/valkivid3/composables/useVtualPublic'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import socialIconsUrl from '@/valkivid3/assets/img/social-icons.svg'
 import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
+import { buildManagementJsonLd } from '@/utils/vtualJsonLd'
 
 const route = useRoute()
 const { t, locale } = useI18n()
@@ -71,6 +72,7 @@ watch(profile, (next) => {
     image: logoUrl.value,
     url: window.location.origin + route.path,
     type: 'profile',
+    jsonLd: buildManagementJsonLd(next, window.location.origin),
   })
 })
 

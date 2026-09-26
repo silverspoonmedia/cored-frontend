@@ -1578,6 +1578,10 @@ export interface VtualPublicChannel {
   url: string | null
   subscriber_count: number | null
   subscriber_count_formatted?: string | null
+  /** Metrics freshness; the guest profile endpoint sends all three. */
+  last_synced_at?: string | null
+  last_synced_at_formatted?: string | null
+  last_synced_at_human?: string | null
 }
 
 export interface VtualPublicVtuber {
@@ -1623,6 +1627,13 @@ export interface VtualPublicContent {
   url: string | null
   published_at: string | null
   scheduled_at?: string | null
+  /**
+   * Region hint from the platform: `region_blocked` lists the territories the
+   * video is withheld from, `region_allowed` the only ones it plays in. Both
+   * null means unrestricted. The card shows a notice — content is never hidden.
+   */
+  region_allowed?: string[] | null
+  region_blocked?: string[] | null
   platform_key: string | null
   creator?: VtualPublicContentCreator | null
   channel?: VtualPublicContentChannel | null
@@ -1752,12 +1763,27 @@ export interface VtualCreatorClaim {
   channel?: VtualChannel | null
   verified_channel?: VtualChannel | null
   user?: { id: string; name: string; email?: string } | null
+  /** List-action rows attached server-side by QueryRowActionAttacher. */
+  actions?: QueryRowAction[]
   created_at: string | null
   created_at_formatted?: string | null
   created_at_human?: string | null
   updated_at: string | null
   updated_at_formatted?: string | null
   updated_at_human?: string | null
+}
+
+/** Claim queue pagination: the endpoint sends no `last_page`, only `has_more`. */
+export interface VtualClaimListPagination {
+  current_page: number
+  per_page: number
+  total: number
+  has_more: boolean
+}
+
+export interface VtualClaimPagedList {
+  items: VtualCreatorClaim[]
+  pagination: VtualClaimListPagination
 }
 
 export interface VtualChannelClaim {

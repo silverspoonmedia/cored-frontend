@@ -1355,7 +1355,9 @@
           "next": "الصفحة التالية"
         },
         "video": {
-          "play": "تشغيل"
+          "play": "تشغيل",
+          "region_blocked": "غير متاح في: {regions}",
+          "region_allowed": "متاح فقط في: {regions}"
         },
         "events": {
           "heading": "الأحداث القادمة"
@@ -1405,6 +1407,7 @@
           "contents_empty_filtered": "لا يوجد محتوى مطابق لعوامل التصفية هذه.",
           "filters_clear": "مسح التصفية",
           "channels_heading": "القنوات",
+          "channel_synced": "آخر مزامنة: {time}",
           "details": {
             "channels": "القنوات",
             "platforms": "المنصات",
@@ -1464,6 +1467,8 @@
           "actions": "الإجراءات",
           "table_caption": "قنوات منصة الملف الشخصي",
           "archived_table_caption": "قنوات المنصة المؤرشفة",
+          "last_synced": "آخر مزامنة",
+          "never_synced": "لم تتم المزامنة",
           "empty": "لم يتم تسجيل أي قنوات حتى الآن.",
           "status_pending": "في انتظار",
           "status_active": "نشط",
@@ -1521,7 +1526,37 @@
         }
       },
       "claims": {
-        "accept_anyway": "قبول على أي حال"
+        "accept_anyway": "قبول على أي حال",
+        "title": "المطالبات",
+        "breadcrumb": "المطالبات",
+        "list_title": "مطالبات المنشئين",
+        "subtitle": "طالب بملف المنشئ بإثبات ملكية إحدى قنواته، أو راجع قائمة المطالبات المعلّقة.",
+        "tabs": {
+          "mine": "مطالباتي",
+          "pending": "قائمة الموظفين"
+        },
+        "columns": {
+          "creator": "المنشئ",
+          "channel": "قناة الإثبات",
+          "claimant": "مقدّم المطالبة",
+          "status": "الحالة",
+          "submitted": "تاريخ التقديم"
+        },
+        "status": {
+          "pending": "معلّقة",
+          "verified": "موثّقة",
+          "cancelled": "ملغاة",
+          "expired": "منتهية الصلاحية"
+        },
+        "datatable": {
+          "empty_mine": "ليست لديك مطالبات معلّقة.",
+          "empty_pending": "لا توجد مطالبات معلّقة للمراجعة."
+        },
+        "action_done": "تم تحديث المطالبة.",
+        "errors": {
+          "load_failed": "تعذّر تحميل المطالبات.",
+          "action_failed": "فشل إجراء المطالبة."
+        }
       },
       "credentials": {
         "list": "بيانات الاعتماد",
@@ -1587,13 +1622,6 @@
       },
       "admin": {
         "credentials": {
-          "intro": {
-            "steps": [
-              {},
-              {},
-              {}
-            ]
-          },
           "create_title": "إضافة بيانات الاعتماد",
           "edit_title": "تحرير بيانات الاعتماد",
           "platform_title": "بيانات اعتماد المنصة"

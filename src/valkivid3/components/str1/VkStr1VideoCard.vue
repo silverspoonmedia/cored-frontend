@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { VtualPublicContent } from '@/api/types'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import { safeHttpUrl, safeImageUrl } from '@/utils/safeUrl'
+import { regionNotice as publicRegionNotice } from '@/utils/vtualPresentation'
 
 const props = withDefaults(
   defineProps<{
@@ -65,6 +66,13 @@ const channelAvatar = computed(() => {
 
 const contentUrl = computed(() => safeHttpUrl(props.item.url))
 const thumbnailUrl = computed(() => safeImageUrl(props.item.thumbnail_url))
+
+/**
+ * Region hint. The platform withholds the video in `region_blocked`, or plays
+ * it only in `region_allowed`; either way the card stays visible and says so,
+ * because a card that silently disappears reads as a bug to the visitor.
+ */
+const regionNotice = computed(() => publicRegionNotice(props.item))
 
 const thumbFailed = ref(false)
 const showThumb = computed(() => Boolean(thumbnailUrl.value) && !thumbFailed.value)
@@ -177,6 +185,12 @@ watch(
             </router-link>
           </li>
         </ul>
+        <p
+          v-if="regionNotice"
+          class="mt-2 inline-block bg-gray-150 px-2 py-1 text-2xs font-bold uppercase tracking-wide text-gray-500 ring-1 ring-gray-500/20 dark:bg-gray-800 dark:text-gray-300"
+        >
+          {{ t(regionNotice.key, { regions: regionNotice.regions }) }}
+        </p>
       </div>
     </div>
   </article>

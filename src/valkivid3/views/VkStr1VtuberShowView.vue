@@ -17,6 +17,7 @@ import VkStr1VideoCard from '@/valkivid3/components/str1/VkStr1VideoCard.vue'
 import VkStr1ProfileSidebar from '@/valkivid3/components/str1/VkStr1ProfileSidebar.vue'
 import spriteUrl from '@/valkivid3/assets/img/sprite.svg'
 import { safeImageUrl } from '@/utils/safeUrl'
+import { buildVtuberJsonLd } from '@/utils/vtualJsonLd'
 
 const route = useRoute()
 const router = useRouter()
@@ -229,6 +230,7 @@ watch(profile, (next) => {
     image: avatarUrl.value ?? bannerUrl.value,
     url: window.location.origin + route.path,
     type: 'profile',
+    jsonLd: buildVtuberJsonLd(next, window.location.origin),
   })
 })
 
