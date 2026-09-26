@@ -1,4 +1,4 @@
-// --- Claim progress updates (VtulVtuberClaimView) ---
+// --- Claim progress updates (VtualVtuberClaimView) ---
 
 import { createKeyedRealtimeChannel } from '@/composables/echo/realtimeChannel'
 import type { VtualCreatorClaim } from '@/api/types'
@@ -22,10 +22,10 @@ const claimChannels = createKeyedRealtimeChannel<string, ClaimHandler>({
   ],
 })
 
-export function subscribeVtulClaim(claimId: string, handler: ClaimHandler): boolean {
+export function subscribeVtualClaim(claimId: string, handler: ClaimHandler): boolean {
   return claimChannels.subscribe(claimId, handler)
 }
 
-export function unsubscribeVtulClaim(claimId: string, handler: ClaimHandler): void {
+export function unsubscribeVtualClaim(claimId: string, handler: ClaimHandler): void {
   claimChannels.unsubscribe(claimId, handler)
 }

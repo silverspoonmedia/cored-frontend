@@ -274,18 +274,6 @@ export function useVtualManagementEdit() {
     void router.push({ name: 'vtual.managements.index.view' })
   }
 
-  function inviteStatusVariant(status: string): string {
-    switch (status) {
-      case 'pending': return 'warning'
-      case 'accepted': return 'success'
-      case 'declined': return 'secondary'
-      case 'cancelled': return 'secondary'
-      case 'revoked': return 'danger'
-      case 'expired': return 'secondary'
-      default: return 'secondary'
-    }
-  }
-
   watch([isEdit, managementId], () => {
     void load()
   }, { immediate: true })
@@ -320,6 +308,5 @@ export function useVtualManagementEdit() {
     handleUpdateMemberRole,
     handleCreatorInviteChanged,
     goIndex,
-    inviteStatusVariant,
   }
 }

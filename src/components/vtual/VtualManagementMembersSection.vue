@@ -99,7 +99,6 @@ function inviteStatusVariant(status: string): string {
       </div>
     </form>
 
-    <!-- Ini -->
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" :aria-label="t('web.vtual-managements.members.table_caption')">
         <caption class="visually-hidden">{{ t('web.vtual-managements.members.table_caption') }}</caption>
@@ -147,7 +146,6 @@ function inviteStatusVariant(status: string): string {
     <h5 class="mt-4 mb-2">{{ t('web.vtual-managements.invites.section_title') }}</h5>
     <p class="text-muted small mb-3">{{ t('web.vtual-managements.invites.section_help') }}</p>
 
-    <!-- Ini juga -->
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" :aria-label="t('web.vtual-managements.invites.table_caption')">
         <caption class="visually-hidden">{{ t('web.vtual-managements.invites.table_caption') }}</caption>

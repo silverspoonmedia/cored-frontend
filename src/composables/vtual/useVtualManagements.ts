@@ -7,13 +7,6 @@ export function useVtualManagements() {
   const { t } = useI18n()
   const base = useResource<VtualManagement>('vtual/managements')
 
-  async function listMembers(managementId: string): Promise<VtualManagementMember[]> {
-    const res = await get<ApiResponse<VtualManagementMember[]>>(
-      `vtual/managements/${managementId}/members`,
-    )
-    return (res.data ?? []) as VtualManagementMember[]
-  }
-
   async function inviteMember(managementId: string, payload: { email: string; role: string }): Promise<VtualManagementInvite> {
     const res = await post<ApiResponse<VtualManagementInvite>>(
       `vtual/managements/${managementId}/invites`,
@@ -64,7 +57,6 @@ export function useVtualManagements() {
   return {
     ...base,
     createOrphan,
-    listMembers,
     inviteMember,
     listInvites,
     cancelInvite,

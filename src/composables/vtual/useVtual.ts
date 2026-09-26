@@ -289,12 +289,6 @@ export function useVtual() {
 
   // --- Creator claims ---
 
-  async function fetchClaimable(): Promise<VtualCreator[]> {
-    const res = await get<ApiResponse<VtualCreator[]>>('vtual/claims/claimable-creators')
-    if (res.status === 'success' && res.data) return res.data
-    return []
-  }
-
   async function fetchMyClaims(): Promise<VtualCreatorClaim[]> {
     const res = await get<ApiResponse<VtualCreatorClaim[]>>('vtual/claims/mine')
     if (res.status === 'success' && res.data) return res.data
@@ -375,7 +369,6 @@ export function useVtual() {
     updateLink,
     deleteLink,
     fetchVtuberProfile,
-    fetchClaimable,
     fetchMyClaims,
     fetchClaim,
     startClaim,
