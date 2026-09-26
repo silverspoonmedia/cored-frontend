@@ -172,6 +172,9 @@ export const localeDuplicateEnglishKeys = {
     'web.vtual-orphans.datatable.columns.slug',
     'web.vtual-orphans.form.slug',
     'web.vtual-platform-credentials.client_id_label',
+    // Same loanword rule as every other vTual status column above: Indonesian
+    // product UI ships `Status`, and no native alternative is in use.
+    'web.vtual.claims.columns.status',
     'web.vtual.platform_col',
     'web.vtual.platform_label',
     'web.vtual.probe_button',

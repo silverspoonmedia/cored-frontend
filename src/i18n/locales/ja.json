@@ -3883,6 +3883,8 @@
           "actions": "操作",
           "table_caption": "プロフィールのプラットフォームチャンネル",
           "archived_table_caption": "アーカイブ済みプラットフォームチャンネル",
+          "last_synced": "最終同期",
+          "never_synced": "未同期",
           "empty": "登録済みチャンネルはまだありません。",
           "status_pending": "保留中",
           "status_active": "アクティブ",
@@ -3940,7 +3942,37 @@
         }
       },
       "claims": {
-        "accept_anyway": "確認なしで承認"
+        "accept_anyway": "確認なしで承認",
+        "title": "申請",
+        "breadcrumb": "申請",
+        "list_title": "クリエイター申請",
+        "subtitle": "チャンネルの所有を証明してクリエイターのプロフィールを申請するか、保留中の申請キューを確認します。",
+        "tabs": {
+          "mine": "自分の申請",
+          "pending": "スタッフキュー"
+        },
+        "columns": {
+          "creator": "クリエイター",
+          "channel": "証明チャンネル",
+          "claimant": "申請者",
+          "status": "ステータス",
+          "submitted": "申請日時"
+        },
+        "status": {
+          "pending": "保留中",
+          "verified": "検証済み",
+          "cancelled": "中止",
+          "expired": "期限切れ"
+        },
+        "datatable": {
+          "empty_mine": "保留中の申請はありません。",
+          "empty_pending": "確認する保留中の申請はありません。"
+        },
+        "action_done": "申請を更新しました。",
+        "errors": {
+          "load_failed": "申請を読み込めませんでした。",
+          "action_failed": "申請の操作に失敗しました。"
+        }
       },
       "credentials": {
         "list": "認証情報",
@@ -4006,13 +4038,6 @@
       },
       "admin": {
         "credentials": {
-          "intro": {
-            "steps": [
-              {},
-              {},
-              {}
-            ]
-          },
           "create_title": "認証情報を追加",
           "edit_title": "認証情報を編集",
           "platform_title": "プラットフォーム認証情報"
@@ -4110,7 +4135,9 @@
           "next": "次のページ"
         },
         "video": {
-          "play": "再生"
+          "play": "再生",
+          "region_blocked": "次の地域では視聴できません: {regions}",
+          "region_allowed": "次の地域でのみ視聴できます: {regions}"
         },
         "events": {
           "heading": "今後のイベント"
@@ -4166,6 +4193,7 @@
           "contents_empty_filtered": "この絞り込みに一致するコンテンツはありません。",
           "filters_clear": "絞り込みを解除",
           "channels_heading": "チャンネル",
+          "channel_synced": "最終同期: {time}",
           "details": {
             "channels": "チャンネル",
             "platforms": "プラットフォーム",

@@ -91,7 +91,7 @@ onMounted(async () => {
     if (batchResult?.profile) {
       profile.value = batchResult.profile
       discordSnapshot.value = batchResult.connections ?? await connections.fetchConnections().catch(() => null)
-      const myClaims = batchResult.myClaims ?? await vtual.fetchMyClaims()
+      const myClaims = batchResult.myClaims ?? (await vtual.fetchMyClaims()).items
       if (!profile.value.is_claimable) {
         await handleNonClaimableProfile(profile.value, myClaims)
         return
@@ -104,7 +104,7 @@ onMounted(async () => {
     } else {
       profile.value = await vtual.fetchVtuberProfile(slug)
       const [myClaims, discord] = await Promise.all([
-        vtual.fetchMyClaims(),
+        vtual.fetchMyClaims().then((r) => r.items),
         connections.fetchConnections().catch(() => null),
       ])
       if (!profile.value.is_claimable) {

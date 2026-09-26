@@ -106,7 +106,3 @@ export function profileFiltersEqual(
 ): boolean {
   return a.platform === b.platform && a.type === b.type && a.sort === b.sort
 }
-
-export function defaultProfileQueryState(): ProfileQueryState {
-  return { filters: defaultProfileFilters(), page: 1 }
-}

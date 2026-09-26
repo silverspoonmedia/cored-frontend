@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { get, post, put, patch, del } from '@/api/client'
-import { ApiError, type ApiResponse, type ListPagination, type PagedList } from '@/api/types'
+import { type ApiResponse, type ListPagination, type PagedList } from '@/api/types'
 
 export interface ListParams {
   [key: string]: unknown
@@ -187,15 +187,4 @@ export function useResource<T>(baseUri: string) {
     patchOne,
     destroy,
   }
-}
-
-export function isValidationError(e: unknown): e is ApiError {
-  return e instanceof ApiError && e.isValidation
-}
-
-export function getValidationErrors(e: unknown): Record<string, string[]> {
-  if (e instanceof ApiError && e.isValidation) {
-    return e.errors ?? {}
-  }
-  return {}
 }

@@ -60,7 +60,7 @@ const PROFILE_CHANNEL_BADGE: Record<string, BadgeColor> = {
   disconnected: 'secondary',
 }
 
-const colspan = computed(() => (props.canMutate ? 6 : 5))
+const colspan = computed(() => (props.canMutate ? 7 : 6))
 
 function fieldError(bag: Record<string, string[]>, field: string): string | null {
   const list = bag[field]
@@ -194,6 +194,7 @@ function requestConfirm(title: string, message: string, action: () => void | Pro
             <th>{{ t('web.vtual.profiles.channels.profile_or_id') }}</th>
             <th>{{ t('web.vtual.profiles.channels.handle') }}</th>
             <th>{{ t('web.vtual.profiles.channels.status') }}</th>
+            <th>{{ t('web.vtual.profiles.channels.last_synced') }}</th>
             <th v-if="canMutate">{{ t('web.vtual.profiles.channels.actions') }}</th>
           </tr>
         </thead>
@@ -231,6 +232,12 @@ function requestConfirm(title: string, message: string, action: () => void | Pro
                 fallback="secondary"
               />
               <div v-if="ch.resolve_error" class="form-text text-danger">{{ ch.resolve_error }}</div>
+            </td>
+            <td class="text-nowrap">
+              <time v-if="ch.last_synced_at_human" :datetime="ch.last_synced_at ?? undefined">
+                {{ ch.last_synced_at_human }}
+              </time>
+              <span v-else class="text-muted small">{{ t('web.vtual.profiles.channels.never_synced') }}</span>
             </td>
             <td v-if="canMutate" class="text-nowrap">
               <div class="d-flex flex-wrap gap-1">

@@ -13,6 +13,13 @@ export interface HeadMetaInput {
   image?: string | null
   url?: string | null
   type?: 'website' | 'profile' | 'article'
+  /**
+   * Structured data for the current page, written as a
+   * `<script type="application/ld+json">` tagged with the module marker so
+   * `clearHeadMeta()` removes it with the rest. Omit or pass `null` for a
+   * surface that has no schema (the previous page's block is then removed).
+   */
+  jsonLd?: Record<string, unknown> | null
 }
 
 const MARKER = 'data-monolith-meta'
@@ -38,6 +45,28 @@ function upsertCanonical(href: string): void {
     document.head.appendChild(el)
   }
   el.setAttribute('href', href)
+}
+
+/**
+ * One `application/ld+json` block per page. A `null` input removes the block
+ * instead of leaving the previous page's schema attached to a page it does not
+ * describe — a stale `Person` on an unrelated route is worse than no schema.
+ */
+function upsertJsonLd(jsonLd: Record<string, unknown> | null | undefined): void {
+  const existing = document.head.querySelector<HTMLScriptElement>(`script[type="application/ld+json"][${MARKER}]`)
+
+  if (jsonLd === null || jsonLd === undefined) {
+    existing?.remove()
+    return
+  }
+
+  const el = existing ?? document.createElement('script')
+  if (existing === null) {
+    el.setAttribute('type', 'application/ld+json')
+    el.setAttribute(MARKER, '1')
+    document.head.appendChild(el)
+  }
+  el.textContent = JSON.stringify(jsonLd)
 }
 
 export function setHeadMeta(input: HeadMetaInput): void {
@@ -66,6 +95,8 @@ export function setHeadMeta(input: HeadMetaInput): void {
   if (input.image) {
     upsertMeta('name', 'twitter:image', input.image)
   }
+
+  upsertJsonLd(input.jsonLd)
 }
 
 export function clearHeadMeta(): void {

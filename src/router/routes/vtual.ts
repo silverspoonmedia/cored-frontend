@@ -87,6 +87,23 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/apps/vtual/claims',
+    name: 'vtual.claims.index',
+    component: AppLayout,
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual.claims.title',
+      breadcrumb: { labelKey: 'web.vtual.claims.breadcrumb' },
+    },
+    children: [
+      {
+        path: '',
+        name: 'vtual.claims.index.view',
+        component: () => import('@/views/vtual/VtualClaimsView.vue'),
+      },
+    ],
+  },
+  {
     path: '/apps/vtual/events',
     name: 'vtual.events.index',
     component: AppLayout,

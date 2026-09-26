@@ -30,10 +30,10 @@ Type-then-domain: screens live under `src/views/{domain}/`, with matching `src/c
 |-------|----------|-------|
 | `src/api/` | `client.ts`, `csrf.ts`, `netRetry.ts`, `batch.ts`, `baseUrl.ts`, `requestHeaders.ts`, `types.ts` | The only HTTP layer — see [api-client.md](api-client.md). `netRetry.ts` is the shared cross-tab cookie-race retry policy. `types.ts` mirrors Laravel API Resources exactly (snake_case, no transform layer) |
 | `src/views/{domain}/` | Vue Router page components | 19 domains (activity-log, ai, archivd, auth, blog, dashboard, domain-access, error-log, identity, inference, microstock, navigation, notification, payment-gateway, product-activations, public, service, settings, vtual) |
-| `src/composables/` | Shared composables at root (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`, `useForm`, …) + `composables/{domain}/` + `composables/echo/` (`channelRegistry.ts`, `realtimeChannel.ts`) | Stateful logic bound to component lifecycle. AI admin is `views/ai` + `composables/ai` (`useAiConnections` / `useAiConnectionsRealtime`). `composables/echo/` is the **only** place allowed to call `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` — every private channel goes through it (rule 11, [api-client.md](api-client.md#channel-lifecycle-goes-through-the-registry)) |
+| `src/composables/` | Shared composables at root (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`, …) + `composables/{domain}/` + `composables/echo/` (`channelRegistry.ts`, `realtimeChannel.ts`) | Stateful logic bound to component lifecycle. AI admin is `views/ai` + `composables/ai` (`useAiConnections` / `useAiConnectionsRealtime`). `composables/echo/` is the **only** place allowed to call `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` — every private channel goes through it (rule 11, [api-client.md](api-client.md#channel-lifecycle-goes-through-the-registry)) |
 | `src/components/` | Shared UI chrome (`AppNavbar`, `DataTable`, `RowActions`, `ErrorState`, `EmptyState`, `SkeletonBlock`, …) | Cross-domain only; domain-specific components live under the view domain |
 | `src/lib/` | Side-effect wrappers around vendor libs (`swal.ts`, `safeRedirect.ts`) | Small, app-wide, not domain-scoped |
-| `src/utils/` | Pure helpers (`safeUrl.ts`, `mapQueryRowActions.ts`, `statusBadge.ts`, …) + `utils/{domain}/` | No Vue lifecycle, no fetch — pure functions |
+| `src/utils/` | Pure helpers (`safeUrl.ts`, `mapQueryRowActions.ts`, `statusBadge.ts`, `vtualJsonLd.ts`, `vtualPresentation.ts`, …) + `utils/{domain}/` | No Vue lifecycle, no fetch — pure functions. A presentation **decision** (region notice, freshness label, JSON-LD graph) belongs here so it is unit-testable in the node environment; the component only renders the result |
 | `src/stores/` | Pinia stores | Shared client state (auth, shell, notifications) |
 | `src/router/` | `index.ts` (guards + assembly) + `routes/*.ts` (20 modules) | See [routes.md](routes.md) |
 | `src/i18n/` | `locales/*.json`, `fallbacks.ts`, shared `i18n` instance | See [i18n.md](i18n.md) |
@@ -42,6 +42,10 @@ Type-then-domain: screens live under `src/views/{domain}/`, with matching `src/c
 | `src/assets/` | AdminLTE global CSS entries (`main-ltr.css`, `main-rtl.css`, `vendor*.css`), overrides | — |
 
 Placement rule of thumb: Vue-lifecycle logic → `composables/`; vendor wrapper → `lib/`; pure function → `utils/`; domain-scoped anything → the matching `{domain}/` subfolder. Raw Echo channel management is not a per-domain choice — it belongs to `composables/echo/` (rule 11).
+
+## One route, two audiences
+
+The vTual claims hub (`/apps/vtual/claims`, `VtualClaimsView.vue`) is the reference for a screen two permission levels share: one route, one view, tabs whose **visibility is gated on the same permission the endpoint and the realtime channel require** (`manage any vtual resource`). A tab that would only 403 is never rendered. Both tabs read the same envelope and both drive `RowActions` from the server's `actions[]` — the client routes the click, the server decides which keys are legal. Do not clone the view into a staff copy; do not let the client widen the action set.
 
 ## Env files
 

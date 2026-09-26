@@ -18,7 +18,7 @@ Rules:
 
 ## Registry
 
-~190 named routes across the 20 modules (the live count is the code — this figure drifts; the registry itself is `src/router/routes/*.ts` plus `src/router/index.ts` on this side, `monolith/config/spa-routes.php` on the backend side). When in doubt, diff the two lists; they must agree on every menu-consumed name. Recent additions: the `ai.connections.index/create/edit` trio under `/apps/ai/connections` (central AI transport + credentials, Administration sidebar sibling of Inference); the `vtual.events.index/create/edit` trio under `/apps/vtual/events`; the blog module (`blog.posts.index/create/edit/trashed`, `blog.categories.index`, `blog.tags.index`, each with a `.view` child) under `/apps/blog/*`.
+~190 named routes across the 20 modules (the live count is the code — this figure drifts; the registry itself is `src/router/routes/*.ts` plus `src/router/index.ts` on this side, `monolith/config/spa-routes.php` on the backend side). When in doubt, diff the two lists; they must agree on every menu-consumed name. Recent additions: the `ai.connections.index/create/edit` trio under `/apps/ai/connections` (central AI transport + credentials, Administration sidebar sibling of Inference); `vtual.claims.index` under `/apps/vtual/claims` (claims hub — one screen for own claims + the staff queue, registered in `vtualAdminEarlyRoutes` and bound to two menu nodes); the `vtual.events.index/create/edit` trio under `/apps/vtual/events`; the blog module (`blog.posts.index/create/edit/trashed`, `blog.categories.index`, `blog.tags.index`, each with a `.view` child) under `/apps/blog/*`.
 
 ## Meta flags
 

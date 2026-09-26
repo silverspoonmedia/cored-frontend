@@ -3887,6 +3887,8 @@
           "actions": "Actions",
           "table_caption": "Profile platform channels",
           "archived_table_caption": "Archived platform channels",
+          "last_synced": "Last synced",
+          "never_synced": "Never",
           "empty": "No channels registered yet.",
           "status_pending": "Pending",
           "status_active": "Active",
@@ -3944,7 +3946,37 @@
         }
       },
       "claims": {
-        "accept_anyway": "Accept Anyway"
+        "accept_anyway": "Accept Anyway",
+        "title": "Claims",
+        "breadcrumb": "Claims",
+        "list_title": "Creator claims",
+        "subtitle": "Claim a creator profile by proving you own one of its channels, or review the pending queue.",
+        "tabs": {
+          "mine": "My claims",
+          "pending": "Staff queue"
+        },
+        "columns": {
+          "creator": "Creator",
+          "channel": "Proof channel",
+          "claimant": "Claimant",
+          "status": "Status",
+          "submitted": "Submitted"
+        },
+        "status": {
+          "pending": "Pending",
+          "verified": "Verified",
+          "cancelled": "Cancelled",
+          "expired": "Expired"
+        },
+        "datatable": {
+          "empty_mine": "You have no pending claims.",
+          "empty_pending": "No pending claims to review."
+        },
+        "action_done": "Claim updated.",
+        "errors": {
+          "load_failed": "Failed to load claims.",
+          "action_failed": "Claim action failed."
+        }
       },
       "credentials": {
         "list": "Credentials",
@@ -4010,13 +4042,6 @@
       },
       "admin": {
         "credentials": {
-          "intro": {
-            "steps": [
-              {},
-              {},
-              {}
-            ]
-          },
           "create_title": "Add credential",
           "edit_title": "Edit credential",
           "platform_title": "Platform credentials"
@@ -4110,7 +4135,9 @@
           "next": "Next page"
         },
         "video": {
-          "play": "Play"
+          "play": "Play",
+          "region_blocked": "Not available in: {regions}",
+          "region_allowed": "Only available in: {regions}"
         },
         "events": {
           "heading": "Next Events"
@@ -4166,6 +4193,7 @@
           "contents_empty_filtered": "No content matches these filters.",
           "filters_clear": "Clear filters",
           "channels_heading": "Channels",
+          "channel_synced": "Synced {time}",
           "details": {
             "channels": "Channels",
             "platforms": "Platforms",

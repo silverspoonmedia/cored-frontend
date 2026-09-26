@@ -40,6 +40,13 @@ Content cards (`VkStr1VideoCard`) lead with the channel avatar as a dedicated le
 
 **Unified live directory.** `VkStr1VtuberLiveDirectory.vue` merges the directory with live status: self-fetching directory grid (search, pagination, skeleton, hover prefetch) + `liveItems` prop fed from `landing.live_now`. Live streams group per `creator.slug` and match cards via `is_live`/slug map — a live card shows danger-ringed avatar, LIVE badge, up to 3 active stream rows (external `<a target="_blank">` outside the profile `router-link`) with `+N more` footer. A live card with no matching stream rows falls back to one `live_now.active` line. The standalone `VkStr1LiveNow.vue` / `VkStr1VtuberDirectory.vue` were removed (nothing imported them; the unified directory replaced both).
 
+**Metric freshness + region notice (public surfaces).** Two presentation decisions live in `src/utils/vtualPresentation.ts` as pure functions so they are testable without a DOM, and the components only render the result:
+
+- `channelSyncedTime(channel)` returns the API's `last_synced_at_human` ("2 hours ago") or `null`. `VkStr1ChannelCard` renders it as a second line under the channel name and simply omits the line when it is `null`; the manage table (`VtualProfileChannelsCard`) shows a "never synced" cell instead. **Never render a placeholder date** — a fabricated timestamp claims a freshness that does not exist.
+- `regionNotice(item)` returns `{ key, regions }` for a region-restricted content row (blocked beats allowed when both are somehow present) or `null`. `VkStr1VideoCard` renders it as a small uppercase notice inside the card body. **The card is never hidden** — content that silently disappears reads as a bug to the visitor and the cause would be invisible.
+
+**JSON-LD (structured data).** Public profile views pass `jsonLd` to `setHeadMeta()`; the builders live in `src/utils/vtualJsonLd.ts` as pure functions and the view only supplies `window.location.origin`. `VkStr1VtuberShowView` emits `Person` + an `ItemList` of the **currently rendered page** of `VideoObject`s; `VkStr1ManagementShowView` emits `Organization` + its public roster as `member`. A `VideoObject` missing name / thumbnail / url / upload date is dropped rather than published half-formed (an empty required property can invalidate the whole node). Full contract: [head-meta.md](head-meta.md).
+
 ## Component extraction & heavy-vendor async loading
 
 Large admin views stay maintainable by splitting along two axes (pattern used by `ArchivdView`, `VtualProfileShowView`, `ArchivdMicrostockUsageView`, `ArchivdWorkspacesView`, `VtualManagementEditView`, `PostEditView`):
@@ -129,6 +136,15 @@ Any button whose only effect is SPA navigation (`router.push(...)`) is a `<route
 - `RowActions.vue`: each `RowAction` is in-app nav (`to: RouteLocationRaw` → `<router-link>`), external URL (`href` + optional `target` → `<a>`), or action (`onClick` → `<button>`). All three use `@click.stop` so clicks don't bubble to `DataTable` row-click. Keys, destinations, RBAC visibility, and mutate confirm copy come from Monolith query-mode `row.actions[]`. Map with `src/utils/mapQueryRowActions.ts` — do not invent keys in the view. Put every row control in the mapped `actions` array — no sibling buttons next to `RowActions`. Lists that already use labeled chrome stay labeled and still read `row.actions`.
 - Standalone create/back/cancel buttons use `<router-link>` with Bootstrap button classes. A disabled nav (e.g. cancel while saving) uses `<router-link>` + `class="disabled"` + `aria-disabled="true"` + `tabindex="-1"` (native `:disabled` only works on `<button>`).
 
+## One route, two audiences (claims hub)
+
+`/apps/vtual/claims` (`VtualClaimsView`) is the reference for a screen two different audiences reach from two different sidebars without a second route:
+
+- **Two menu nodes, one route.** Products → vTual → *My claims* and Administration → vTual → *Claims queue* both point at `vtual.claims.index`. The distinction is the **audience**, not the URL, so the hub must never assume a single caller — the owner tab is always the default, and the tab bar is rendered only for a caller who can moderate. A non-staff visitor therefore lands on their own claims with no dead tab in sight.
+- **The tab is gated, and the gate is the endpoint's gate.** `VtualClaimsView` renders the tab bar on `manage any vtual resource` — the same permission `claims/pending` and the `private-vtual.claims` channel require — and `switchTab()` re-checks before switching, so a stale click cannot load a tab the caller may not read. Never gate a tab on a weaker check than the request behind it: a visible tab that 403s is a defect, and a hidden tab whose endpoint is reachable is a wasted permission check.
+- **Both tabs share the shell, not the data.** Owner rows come from `claims/mine`, staff rows from `claims/pending`; the view keeps one `items` list and refetches on tab switch (clearing rows first), and the `DataTable` + `RowActions` chain is identical, so a row-action key means the same thing on either side. Row actions themselves are status- and actor-gated server-side (`VtualClaimQueryRowActions`) — the view maps `actions[]` through `mapQueryRowActions`, it does not decide who may act.
+- **Realtime refetches, never merges.** The staff ping (`vtual.claims`) and the per-claim owner channel (`vtual.claim.{id}`) both only trigger a refetch of the visible tab. Do not merge a pushed row: the two payloads deliberately differ (the staff ping carries no row data, the owner payload carries the bio token).
+
 ## Notifications & confirmations
 
 All notifications and confirmations use Sweetalert2 through `src/lib/swal.ts` — never native `alert()`/`confirm()` or ad-hoc Bootstrap alert blocks:
@@ -151,6 +167,8 @@ Every private channel goes through `src/composables/echo/channelRegistry.ts` —
 - `createKeyedRealtimeChannel<K, H>({ channel: (key) => name, events })` — one ref-counted channel per entity (`payments.invoice.{id}`, `vtual.claim.{id}`, `vtual.creator.{id}`), created lazily and dropped when its last handler detaches.
 
 AI connections use the first shape (`ai.connections` → `.ai.connection.changed`, `useAiConnectionsRealtime.ts`); the payload carries ids + status only, never the API key.
+
+**Never widen a channel that carries a secret to a broader audience — add a sibling channel instead.** `vtual.claim.{id}` is owner-only precisely because its payload resolves the claim resource as the owner and therefore includes the bio token. The staff queue needs a ping but must not see the token, so it rides a separate `vtual.claims` channel whose payload is ids + action + status (`useVtualClaims.ts`, `CreatorClaimStaffChanged`). The staff handler's only correct reaction is a **refetch** — never merge a pushed row locally, because a ping carries no row data.
 
 Why it is not optional:
 

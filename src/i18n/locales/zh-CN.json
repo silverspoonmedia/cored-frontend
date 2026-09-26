@@ -3887,6 +3887,8 @@
           "actions": "操作",
           "table_caption": "个人资料的平台频道",
           "archived_table_caption": "已归档的平台频道",
+          "last_synced": "上次同步",
+          "never_synced": "从未同步",
           "empty": "尚未注册频道。",
           "status_pending": "待处理",
           "status_active": "已启用",
@@ -3944,7 +3946,37 @@
         }
       },
       "claims": {
-        "accept_anyway": "仍然接受"
+        "accept_anyway": "仍然接受",
+        "title": "认领",
+        "breadcrumb": "认领",
+        "list_title": "创作者认领",
+        "subtitle": "通过证明您拥有频道来认领创作者资料，或审核待处理的认领队列。",
+        "tabs": {
+          "mine": "我的认领",
+          "pending": "工作人员队列"
+        },
+        "columns": {
+          "creator": "创作者",
+          "channel": "证明频道",
+          "claimant": "申请人",
+          "status": "状态",
+          "submitted": "提交时间"
+        },
+        "status": {
+          "pending": "待处理",
+          "verified": "已验证",
+          "cancelled": "已取消",
+          "expired": "已过期"
+        },
+        "datatable": {
+          "empty_mine": "您没有待处理的认领。",
+          "empty_pending": "没有待审核的认领。"
+        },
+        "action_done": "认领已更新。",
+        "errors": {
+          "load_failed": "无法加载认领。",
+          "action_failed": "认领操作失败。"
+        }
       },
       "credentials": {
         "list": "凭证",
@@ -4010,13 +4042,6 @@
       },
       "admin": {
         "credentials": {
-          "intro": {
-            "steps": [
-              {},
-              {},
-              {}
-            ]
-          },
           "create_title": "添加凭证",
           "edit_title": "编辑凭证",
           "platform_title": "平台凭证"
@@ -4110,7 +4135,9 @@
           "next": "下一页"
         },
         "video": {
-          "play": "播放"
+          "play": "播放",
+          "region_blocked": "以下地区不可观看：{regions}",
+          "region_allowed": "仅在以下地区可观看：{regions}"
         },
         "events": {
           "heading": "即将开始的活动"
@@ -4166,6 +4193,7 @@
           "contents_empty_filtered": "没有符合筛选条件的内容。",
           "filters_clear": "清除筛选",
           "channels_heading": "频道",
+          "channel_synced": "同步时间：{time}",
           "details": {
             "channels": "频道",
             "platforms": "平台",
