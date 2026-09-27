@@ -19,7 +19,7 @@ Backend twin: `monolith/.cursor/rules/i18n-guardrail.mdc`. Most SPA copy has a b
 ## Order of work
 
 1. Read the **consuming surface** — the `.vue`/`.ts` file that renders the string. Never translate from the English value alone.
-2. Look up the term in the **Domain glossary** ([localization.md](../../monolith/docs/platform/localization.md#domain-glossary)). A settled term is not a suggestion.
+2. Look up the term in the **Domain glossary** ([naming-conventions.md](../../../monolith/docs/platform/naming-conventions.md#domain-glossary)). A settled term is not a suggestion.
 3. Settle **one** wording per key, then mirror it. Do not let two copies drift.
 4. Apply to all seven files, then log each curated key in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`).
 5. Run `npm run check:i18n` and, when a glossary term is involved, the backend gates. Fix, do not suppress.
@@ -60,4 +60,4 @@ php scripts/locale-glossary-scan.php
 php scripts/locale-pack-parity.php
 ```
 
-Details: [i18n.md](../../docs/i18n.md) (SPA), [localization.md](../../monolith/docs/platform/localization.md) (backend).
+Details: [i18n.md](../../docs/i18n.md) (SPA), [localization.md](../../../monolith/docs/platform/localization.md) + [naming-conventions.md](../../../monolith/docs/platform/naming-conventions.md) (backend).

@@ -6,12 +6,50 @@ alwaysApply: false
 
 # Localization (SPA)
 
-Seven locales: `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json`. English is the source.
+Seven locales: `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json`. English is the source, never the destination. Read `i18n-guardrail.mdc` (always-on) for the definition of done and the readability test.
 
 - **Never `Read` an entire locale JSON file.** Grep the key, `StrReplace` it in all seven files, run `npm run check:i18n`.
 - Translate contextually, not literally. Preserve `{placeholders}` and machine-contract English.
-- **Log every curated key** in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`); JSON has no comments, so this sidecar is the flag. `check-curation-log.mjs` validates it as part of `check:i18n`.
+- **Log every curated key** in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`); JSON has no comments, so this sidecar is the flag. `check-curation-log.mjs` validates it as part of `check:i18n` — it validates key existence and timestamps, **not** path existence, so fix a moved/deleted `source` by hand in the same change.
 - A `t()` key that exists in no locale is a build failure (`check-i18n-usage.mjs`) — `fallbackLocale: en` cannot rescue it.
-- Duplicate-English values are gated per locale by `scripts/lib/duplicate-english-allowlist.mjs`. Add a key to `globalDuplicateEnglishKeys` only for brands/machine text, and to `localeDuplicateEnglishKeys` only for the one locale whose accepted term is the English word (`id` today). Any English carryover in `ja`/`ko`/`zh-CN`/`ar`/`ru` is a failure — translate it.
+- Duplicate-English values are gated per locale by `scripts/lib/duplicate-english-allowlist.mjs`. Add to `globalDuplicateEnglishKeys` only for brands/machine text, and to `localeDuplicateEnglishKeys` only for the one locale whose accepted term is the English word (`id` today). Any English carryover in `ja`/`ko`/`zh-CN`/`ar`/`ru` is a failure — translate it.
 - Use `scripts/i18n-pair-dump.mjs` for review batches and `scripts/apply-translations.mjs` to apply them (dotted `web.settings.fields.*` labels need `leaf`).
-- `useI18n()` only inside `setup()`; elsewhere `i18n.global.t`. Details: [docs/i18n.md](../../docs/i18n.md).
+- **Removing a screen means sweeping its keys in the same change:** flatten `en.json`, collect reachable keys from **every** repo file (not just `src/**` — route `titleKey`s live in `src/router/routes/*.ts`), match with a boundary (`(?![A-Za-z0-9_.-])`), keep the whole subtree when a runtime prefix (`t(\`prefix_${x}\`)`) exists, delete from all seven files, prune containers left empty, then drop the stale allowlist + curation-log entries.
+- **Mirrored packs must stay byte-equal to the backend**, sigil aside (`:attr` ↔ `{attr}`): `validation.*`, `http-statuses.*`, `auth.*`, `passwords.*`, `pagination.*`. The SPA `actions.*` block is **not** a mirror — it is curated against its own button surfaces and legitimately differs.
+- Cross-repo guards live in Monolith (`locale-pack-parity.php`, `locale-flat-pack-parity.php`, `locale-glossary-scan.php`, `locale-prose-scan.php`, `locale-rawkey-scan.php`). `check:i18n` cannot see the backend, so a batch that moves a mirrored pack or a glossary term must also run `php artisan test --filter=Locale` from a Monolith checkout that has this repo as a sibling.
+
+## Key mapping (Laravel → vue-i18n)
+
+| Laravel PHP | vue-i18n JSON |
+|-------------|---------------|
+| `lang/{locale}/web/settings.php` | `web.settings.*` (`zh_CN` ↔ `zh-CN` at the API/browser boundary) |
+| `lang/{locale}/ui.php` | `ui.*` |
+| `trans('web/settings.title')` | `t('web.settings.title')` — `.` separator, not `/` |
+| `:variable` placeholder | `{variable}` placeholder |
+| `trans_choice('key', count)` | `t('key', { count })` |
+
+**Translatable payload maps** are keyed by the **backend** code: send `zh_CN`, never `zh-CN`. Go through the helpers beside the shared i18n instance: `translatableValue()` reads a backend-keyed prefill for the row labelled with the SPA code, `normalizeTranslatableMap()` emits the backend key and drops aliases. Only the row label shows the SPA code.
+
+**Placeholder hazard:** a literal colon that is not a Laravel placeholder becomes an interpolation when copy is ported (`payments{sync}-routing-policy`). `check-i18n.mjs` fails `[A-Za-z0-9]{x}`; vue-i18n only needs `{'@'}` escaping for a literal `@`.
+
+## RTL and chunk loading
+
+- `ar` sets `html[dir="rtl"]`, every other locale forces `ltr`. The global CSS entry is direction-split (`main-ltr.css` / `main-rtl.css`, the latter importing `vendor-rtl.css` — a real sibling file, **not** a Vite resolver alias, which no-ops in production builds). Keep both vendor files' import lists in sync.
+- Switching locale across directions reloads the page. The reload must run **after** `auth/locale` persists: `setLocale(locale, { reload: false })` then `reloadForDirection()` last — a synchronous reload aborts the in-flight persist and leaves the dynamic menu on the old locale.
+- Only `en.json` is eager; the other six load through `ensureLocale()` (dynamic import + `setLocaleMessage()`) before the locale switches.
+- Use logical CSS properties (`start`/`end`, `*-inline-*`) with `html[dir="rtl"]` overrides; never add a custom mirror transform for AdminLTE's `.nav-arrow` (the vendor RTL build already mirrors it).
+
+## Register conventions (settled)
+
+- `ko`: instructions/hints/empty states use 해요체 (`-하세요`), statements and toasts keep 합쇼체 (`-합니다`, `-되었습니다`) — never one level for both. Never glue a particle to a `{placeholder}` whose final consonant is unknown; use `{field}을(를)` or reword.
+- `ru`: date columns are nouns (`Дата создания`, `Действует до`), not participles; `checkout` = `оформление заказа` while billing = `оплата`; no `Пожалуйста` filler; `вы` lowercase except at sentence start.
+
+## Usage rules
+
+- `useI18n()` only inside `setup()`; router guards, stores, shell hydration, realtime callbacks and module services import the shared instance and call `i18n.global.t(...)`.
+- Use `computed()` for labels that must follow a runtime locale switch.
+- Format numbers/dates with `Intl.NumberFormat(locale.value)` / `Intl.DateTimeFormat(...)`; API `*_formatted` / `*_human` companions stay authoritative.
+- Fallback errors use `src/i18n/fallbacks.ts` keys, never hardcoded English.
+- Settings labels: `web.settings.fields` / `hints` are literal dotted keys — read via `tm()` + `rt()`, never `t('web.settings.fields.' + key)`.
+
+Details: [docs/i18n.md](../../docs/i18n.md), [monolith/docs/platform/localization.md](../../../monolith/docs/platform/localization.md), glossary [monolith/docs/platform/naming-conventions.md](../../../monolith/docs/platform/naming-conventions.md).

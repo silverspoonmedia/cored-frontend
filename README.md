@@ -4,7 +4,7 @@ Leading Vue 3 SPA for the Monolith `/api/v1/*` API — the **sole browser UI**. 
 
 Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integration/vue-workers-spa.md` (open only when headers, cookies/CSRF, envelopes, or route names change).
 
-**Docs:** agent protocol in [AGENTS.md](AGENTS.md) · full doc map in [docs/README.md](docs/README.md) — architecture, auth/session, API client, i18n, UI patterns, routes, testing, worker, deployment. IDE: open [Monolith-SPA.code-workspace](Monolith-SPA.code-workspace) for UI-only work; sibling fullstack workspace only when the API contract moves.
+**Docs:** agent pakem map in [AGENTS.md](AGENTS.md) · the always-on rules in [.cursor/rules/](.cursor/rules/) · human doc map in [docs/README.md](docs/README.md) — architecture, auth/session, API client, i18n, UI patterns, routes, testing, worker, deployment. IDE: open [Monolith-SPA.code-workspace](Monolith-SPA.code-workspace) for UI-only work; sibling fullstack workspace only when the API contract moves.
 
 ## Scripts
 
@@ -13,6 +13,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 | `npm run dev` | Vite development server (`http://localhost:5173`) |
 | `npm run type-check` | `vue-tsc --build` |
 | `npm run check:i18n` | Locale parity + placeholders + duplicate-English + hardcoded-copy heuristics, code-vs-locale key usage, curation-log integrity |
+| `npm run check:docs` | Doc index parity, brief line budgets, rule glob targets, relative-link integrity (see [docs-pakem.mdc](.cursor/rules/docs-pakem.mdc)) |
 | `npm test` | Vitest (client/session/CSRF/echo/headers/i18n contracts) |
 | `npm run build` | Type-check + production build |
 | `npm run build-only` | Vite production build |
@@ -22,7 +23,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 | `npm run deploy:sandbox` | `cross-env CLOUDFLARE_ENV=sandbox` + `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
 | `npm run deploy:staging` | `cross-env CLOUDFLARE_ENV=staging` + `vite build --mode staging` + `wrangler deploy --env staging` (worker `monolith-spa-staging`) |
 
-CI (GitHub Actions): `type-check` → `check:i18n` → `test` → `build-only`. The backend's cross-repo guards are not part of it — run `php artisan test --filter=Locale` from the Monolith checkout when a batch touches a mirrored pack or a glossary term. The backend workflow does run the full `php artisan test` suite in its own `backend` job (SQLite `:memory:`, no services), so a `tests/Domain/**` regression is caught on push to Monolith. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md#guards).
+CI (GitHub Actions): `type-check` → `check:i18n` → `check:docs` → `test` → `build-only`. The backend's cross-repo guards are not part of it — run `php artisan test --filter=Locale` from the Monolith checkout when a batch touches a mirrored pack or a glossary term. The backend workflow does run the full `php artisan test` suite in its own `backend` job (SQLite `:memory:`, no services), so a `tests/Domain/**` regression is caught on push to Monolith. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md).
 
 ## Setup
 

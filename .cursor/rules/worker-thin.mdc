@@ -1,0 +1,17 @@
+---
+description: Worker shell invariants - thin, never an API/auth proxy
+globs: server/**,wrangler.jsonc,public/_headers,vite.config.ts,src/main.ts
+alwaysApply: false
+---
+
+# Worker stays thin
+
+`server/index.ts` is a **guard-only stub**. The Worker serves static assets; all API/auth traffic goes direct from the browser to the Laravel origin.
+
+- **Never re-add API proxy paths.** Static assets do not invoke the isolate; proxy paths would re-introduce invocation billing and a second auth surface. `X-SPA-Origin` is browser metadata, not Worker traffic.
+- Stray `/api/*` hits on this origin answer a JSON 404 (`{ status: 'error', message: 'Not found.' }`), never the SPA fallback HTML — misconfigured `VITE_API_BASE_URL` stays debuggable.
+- Worker-generated responses stamp the security header set (CSP `default-src 'none'; frame-ancestors 'none'`, `Permissions-Policy`, `Referrer-Policy: no-referrer`, `X-Content-Type-Options`, HSTS, `X-Frame-Options: DENY`). Static-asset headers live in `public/_headers`.
+- `wrangler.jsonc` `vars` are runtime isolate env and **never reach the browser bundle**; browser config is `VITE_*` in the tracked `.env.<mode>` files.
+- Never add a new Wrangler environment unless another API origin exists; never mix a Vite `--mode` with a different `--env`.
+
+Details: [docs/worker.md](../../docs/worker.md), [docs/deployment.md](../../docs/deployment.md).

@@ -1,0 +1,13 @@
+# Agent context budget
+
+Open the workspace that matches the task tag — a dual-root workspace injects both repos' `AGENTS.md` on every turn.
+
+| Workspace | Use for |
+|-----------|---------|
+| [Monolith-SPA.code-workspace](../../Monolith-SPA.code-workspace) | Vue screens, SPA i18n, Worker shell — `[frontend]` |
+| sibling `Monolith-Backend.code-workspace` | Laravel API, migrations, PHP tests — `[backend]` |
+| sibling `Monolith-Fullstack.code-workspace` | Only when the API contract moves |
+
+Per task open: the file under edit + its nearest test, and the **one** owning brief or rule. Never `@folder`, `@AGENTS.md`, or `@src/i18n/locales` in a prompt. Never `Read` a whole locale JSON — Grep the key, patch all seven. Do not `Read` `ArchivdView.vue` whole unless the task touches that SFC.
+
+Targets: `[frontend]` median well under 70k tokens; fullstack contract under 120k.
