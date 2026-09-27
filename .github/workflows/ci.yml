@@ -1,5 +1,16 @@
 name: CI
 
+# One job, `check`, and it is sibling-free: it never checks out `monolith`, so it
+# carries no credentials. That is deliberate — the sibling is private and
+# `GITHUB_TOKEN` is scoped to the repo running the workflow.
+#
+# The consequence to keep in mind: the six links in this repo that point into the
+# sibling `monolith` checkout are **unverifiable** here, so `check:docs` reports them as
+# `unverified` rather than broken. It is not a false green — the count is printed on
+# the OK line — but a green run does not prove those links resolve. Run
+# `npm run check:docs` from a machine with both checkouts when a change moves a file
+# they point at. Backend twin of the guard: `monolith/scripts/docs-guard.php`.
+
 on:
   push:
     branches: [main, master, main-sandbox, main-staging]

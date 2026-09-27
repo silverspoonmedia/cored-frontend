@@ -23,7 +23,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 | `npm run deploy:sandbox` | `cross-env CLOUDFLARE_ENV=sandbox` + `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
 | `npm run deploy:staging` | `cross-env CLOUDFLARE_ENV=staging` + `vite build --mode staging` + `wrangler deploy --env staging` (worker `monolith-spa-staging`) |
 
-CI (GitHub Actions): `type-check` → `check:i18n` → `check:docs` → `test` → `build-only`. The backend's cross-repo guards are not part of it — run `php artisan test --filter=Locale` from the Monolith checkout when a batch touches a mirrored pack or a glossary term. The backend workflow does run the full `php artisan test` suite in its own `backend` job (SQLite `:memory:`, no services), so a `tests/Domain/**` regression is caught on push to Monolith. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md#guards).
+CI (GitHub Actions): `type-check` → `check:i18n` → `check:docs` → `test` → `build-only`. The backend's cross-repo guards are not part of it — run `php artisan test --filter=Locale` from the Monolith checkout when a batch touches a mirrored pack or a glossary term. The backend workflow does run the full `php artisan test` suite in its own `backend` job (SQLite `:memory:`, no services), so a `tests/Domain/**` regression is caught on push to Monolith. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md).
 
 ## Setup
 

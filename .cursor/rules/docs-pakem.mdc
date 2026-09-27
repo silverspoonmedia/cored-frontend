@@ -1,6 +1,6 @@
 # Docs & rules ownership (mandatory)
 
-Two documentation surfaces, **one owner per topic**. Never state the same rule twice — a duplicated rule drifts. Backend twin: `monolith/.cursor/rules/docs-pakem.mdc`.
+Two documentation surfaces, **one owner per topic**. Never state the same rule twice — a duplicated rule drifts. Backend twin: `monolith/.cursor/rules/docs-pakem.mdc`. The two repos' always-on rules are **twins, not copies**: each states its own repo's scope, so a difference is expected and a *contradiction* is the defect.
 
 | Surface | Owns | Shape |
 |---------|------|-------|
@@ -19,6 +19,7 @@ Two documentation surfaces, **one owner per topic**. Never state the same rule t
 
 The kind comes from the file name, so a new kind is a deliberate edit to that function, not a new registry. Budgets: index `docs/README.md` 150 · brief (any other `**/README.md`, and anything unnamed) 90 · deep dive `reference.md` / `reference-*.md` 400 · tracker `implementation-status.md` 500 · glossary `naming-conventions.md` 200 · edge case `*-edge-cases.md` / `daily-free-trial.md` 200.
 
+- Those numbers are asserted against `docKind()` by the backend `DocsBudgetGuardTest` (`php artisan test --filter=Documentation`), which also compares them with the Monolith registry. Editing one repo's copy without the other's fails that suite.
 - A **deep dive** must be linked from the `README.md` in the same directory. Unlinked, it is a second front door to the same topic.
 - Over budget means the content belongs in a rule file or in the Monolith `docs/archive/`. The allowlist `docs/.docs-budget-allowlist.json` is the last resort, every entry carries a reason, and an entry whose file now fits is itself a finding.
 - Glob-scoped rule ≤ 60 lines; all always-on rules combined ≤ 150. The always-on budget is the context every conversation pays for; when it is exceeded, a rule that only matters for one area must move to a glob scope.
@@ -34,5 +35,5 @@ The kind comes from the file name, so a new kind is a deliberate edit to that fu
 
 - Behavior change in the same task/PR: update the owning brief, and the rule file when an invariant moved.
 - Keyword **`wrap up the docs`** = session-wide consolidation of code ↔ docs ↔ rules across both repos, then run the gates.
-- Gates: `npm run check:docs`, `npm run check:i18n`, `npm run type-check`, `npm test`; backend `php artisan test --filter=Documentation` when a Monolith doc moved.
-- The guard resolves link **paths and `#anchors`**: reword a heading and every deep link into it fails, so update the referrers in the same change. Links into the sibling `monolith` checkout are enforced only when that checkout is present.
+- Gates: `npm run check:docs`, `npm run check:i18n`, `npm run type-check`, `npm test`; backend `php artisan test --filter=Documentation` when a Monolith doc moved, and `php scripts/docs-cross-repo-links.php` when both checkouts are present.
+- The guard resolves link **paths and `#anchors`**: reword a heading and every deep link into it fails, so update the referrers in the same change. A link into the sibling `monolith` checkout is reported as *unverified* when that checkout is absent — never as broken, and never as checked.

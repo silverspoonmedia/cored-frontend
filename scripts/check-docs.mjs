@@ -302,18 +302,19 @@ for (const rule of ruleFiles) {
   const alwaysOn = /alwaysApply:\s*true/i.test(frontmatter(contents) ?? '') || frontmatter(contents) === null
   if (alwaysOn) {
     // Always-on rules are governed by the combined budget below, not by the
-    // per-rule one: they carry the rules that must hold in every task.
+    // per-rule one: they carry the rules that must hold in every task. Their
+    // `globs:` are still validated — an always-on rule fires everywhere, but a
+    // glob that matches nothing is a stale declaration either way, and skipping
+    // it here is how eight dead globs survived on the backend twin.
     alwaysOnLines += lines
-  } else {
-    if (lines > RULE_MAX_LINES) {
-      note(`.cursor/rules/${name} is ${lines} lines (budget ${RULE_MAX_LINES}) — split by concern`)
-    }
+  } else if (lines > RULE_MAX_LINES) {
+    note(`.cursor/rules/${name} is ${lines} lines (budget ${RULE_MAX_LINES}) — split by concern`)
+  }
 
-    for (const glob of globsOf(contents)) {
-      const regex = globToRegex(glob)
-      if (!repoFiles.some((path) => regex.test(path))) {
-        note(`.cursor/rules/${name} globs: ${glob} matches no file — the rule never fires`)
-      }
+  for (const glob of globsOf(contents)) {
+    const regex = globToRegex(glob)
+    if (!repoFiles.some((path) => regex.test(path))) {
+      note(`.cursor/rules/${name} globs: ${glob} matches no file — the rule never fires`)
     }
   }
 
@@ -334,12 +335,26 @@ if (agents !== null) {
   }
 }
 
-// 4. Relative markdown links in living docs, rules and AGENTS.md must resolve —
-//    path *and* `#anchor`. The path half catches a file that moved; the anchor half
-//    catches a heading that was reworded, which leaves every deep link into it
-//    pointing at nothing. External links keep the path check only: their anchors
-//    belong to someone else's site.
-for (const source of [...livingDocs, ...ruleFiles, ...(agents !== null ? [AGENTS] : [])]) {
+// 4. Relative markdown links in living docs, rules, AGENTS.md and the root README
+//    must resolve — path *and* `#anchor`. The path half catches a file that moved;
+//    the anchor half catches a heading that was reworded, which leaves every deep
+//    link into it pointing at nothing. External links keep the path check only:
+//    their anchors belong to someone else's site.
+//
+//    The root README is the front door and is not under docs/, so the living-doc
+//    walk never reaches it: a dead anchor there stayed invisible until it was added
+//    here. It gets the link and anchor checks, not a line budget.
+const ROOT_README = join(ROOT, 'README.md')
+const linkSources = [
+  ...livingDocs,
+  ...ruleFiles,
+  ...(agents !== null ? [AGENTS] : []),
+  ...(existsSync(ROOT_README) ? [ROOT_README] : []),
+]
+
+let unverifiable = 0
+
+for (const source of linkSources) {
   const contents = readFileSync(source, 'utf8')
 
   for (const match of contents.matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)) {
@@ -363,8 +378,12 @@ for (const source of [...livingDocs, ...ruleFiles, ...(agents !== null ? [AGENTS
     if (!resolved.startsWith(ROOT)) {
       // Cross-repo reference (the sibling `monolith` checkout). Enforced only
       // when that checkout is present — CI runs this repo alone, so a missing
-      // sibling is an unverifiable link, not a broken one.
-      if (!siblingRepoIsPresent()) continue
+      // sibling is an unverifiable link, not a broken one. The count is reported
+      // on the OK line so a green run cannot be read as "every link verified".
+      if (!siblingRepoIsPresent()) {
+        unverifiable += 1
+        continue
+      }
       if (!existsSync(resolved)) note(`${rel(source)} links to ${link}, which does not exist`)
       continue
     }
@@ -388,6 +407,8 @@ if (failures.length) {
   process.exitCode = 1
 } else {
   console.log(
-    `docs check: OK (${livingDocs.length} living doc(s), ${ruleFiles.length} rule(s), ${alwaysOnLines} always-on line(s))`
+    `docs check: OK (${livingDocs.length} living doc(s), ${ruleFiles.length} rule(s), ${alwaysOnLines} always-on line(s)` +
+      (unverifiable > 0 ? `, ${unverifiable} cross-repo link(s) unverified — sibling checkout absent` : '') +
+      ')'
   )
 }
