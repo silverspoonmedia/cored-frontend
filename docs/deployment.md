@@ -12,14 +12,17 @@ One codebase, three Workers. Pushes to specific branches auto-deploy via GitHub 
 
 The branch name is decoupled from the environment name: `main-sandbox` / `main-staging` are long-lived integration branches cut from `main`, while the Vite mode and Wrangler env stay `sandbox` / `staging`. `VITE_*` values are baked from the tracked mode file (the mode file wins over `.env.local`); `wrangler.jsonc` `vars` never reach the bundle.
 
-## Pending environment values
+## Mode file values
 
-Two tracked mode files still carry provisional values, each marked with an inline `TODO`:
+The three tracked mode files (`.env.production`, `.env.sandbox`, `.env.staging`) hold the values baked into each bundle. They are guarded by `npm run check:env` (wired into CI and into the deploy job), which fails a build when:
 
-- `.env.production` — `VITE_API_BASE_URL` still points at the **sandbox** API host; swap before launch.
-- `.env.staging` — API host not provisioned yet; hCaptcha site key and Pusher app key are sandbox copies.
+- a required `VITE_*` key is missing or empty;
+- a value is a placeholder (`example.com`, `localhost`, `CHANGEME`, `<...>`);
+- production or staging points at a host containing `sandbox`;
+- two environments share the same API origin;
+- an unresolved `TODO` remains in the file.
 
-Swap these per environment; do not move the values into the docs.
+A non-origin credential shared between environments (hCaptcha sitekey, Pusher app key) is reported as a warning, not a failure — it is drift worth fixing, but it does not send traffic to the wrong backend. Swap values per environment; do not move them into the docs.
 
 ## One-time prerequisites
 
@@ -35,6 +38,7 @@ Adding an environment (new branch + Worker) touches six files. Miss the resolver
 |------|--------|
 | `wrangler.jsonc` | `env.<env>` with the Worker `name` |
 | `.env.<env>` | New tracked mode file (mirror an existing one) |
+| `scripts/check-mode-env.mjs` | Add the mode to `MODES` so `check:env` guards it |
 | `.gitignore` | `!.env.<env>` allowlist entry (`.env*` is ignored by default) |
 | `package.json` | `deploy:<env>` = `cross-env CLOUDFLARE_ENV=<env>` + `vite build --mode <env>` + `wrangler deploy --env <env>` |
 | `.github/workflows/deploy.yml` | Branch in `on.push.branches` **and** a `case` arm in the resolver step |
@@ -42,7 +46,7 @@ Adding an environment (new branch + Worker) touches six files. Miss the resolver
 
 ## Workflow
 
-[.github/workflows/deploy.yml](../.github/workflows/deploy.yml) resolves the branch to `DEPLOY_ENV` + `CLOUDFLARE_ENV` (explicit `case`, unmapped branch fails loudly), runs `type-check` → `check:i18n` → `test`, builds with `npx vite build --mode $DEPLOY_ENV`, then deploys with `cloudflare/wrangler-action@v3`. Quality gates re-run inside the deploy job — a deploy never bypasses CI.
+[.github/workflows/deploy.yml](../.github/workflows/deploy.yml) resolves the branch to `DEPLOY_ENV` + `CLOUDFLARE_ENV` (explicit `case`, unmapped branch fails loudly), runs `type-check` → `check:i18n` → `check:env` → `test`, builds with `npx vite build --mode $DEPLOY_ENV`, then deploys with `cloudflare/wrangler-action@v3`. Quality gates re-run inside the deploy job — a deploy never bypasses CI.
 
 **`CLOUDFLARE_ENV` must be set on the build step.** `@cloudflare/vite-plugin` bakes the environment's worker name into the redirected config; without it the output falls back to the top-level name and a sandbox/staging deploy would silently overwrite the **production** Worker. With it set, wrangler also hard-fails a `deploy --env` that mismatches the built `targetEnvironment`.
 
@@ -65,7 +69,8 @@ Each backend environment sets `SPA_URL` to the matching SPA origin, so CORS and 
 | `Unmapped deploy branch <name>` | Branch missing from the workflow `case` resolver (and `on.push.branches`) |
 | `does not match the target environment … used when building` | `--env` mismatches the `CLOUDFLARE_ENV` used at build — rebuild with the matching value; never bypass |
 | Every API call 404s on the SPA origin | `VITE_API_BASE_URL` empty/placeholder, or the build ran without `--mode` |
-| Bundle points at the wrong API origin | Build/deploy pairing broken (`--mode` ≠ `--env`), or the wrong branch deployed |
+| Bundle points at the wrong API origin | Build/deploy pairing broken (`--mode` ≠ `--env`), or the wrong branch deployed — `npm run check:env` catches a wrong origin before the build |
+| `check:env` fails with "points at a sandbox host" | `.env.production` / `.env.staging` `VITE_API_BASE_URL` still names the sandbox API; set that environment's own origin |
 | Actions auth error code 10000 | `CLOUDFLARE_API_TOKEN` missing/expired or lacking `Workers Scripts:Edit` |
 | Login works locally but no cookie on the deployed origin | Monolith `SPA_URL` does not match the SPA origin |
 | Random "CORS error" / `TypeError: Failed to fetch`, clears on retry | Another tab rotated the shared CSRF cookie mid-request — `src/api/netRetry.ts`, invariants in `api-client.mdc` |
