@@ -2,7 +2,7 @@
 
 Vitest (`npm test`), tests in `tests/*.test.ts`, network stubbed — no live API. Conventions and the must-stay-covered contract list: [.cursor/rules/testing.mdc](../.cursor/rules/testing.mdc).
 
-CI order in [.github/workflows/ci.yml](../.github/workflows/ci.yml): `type-check` → `check:i18n` → `check:docs` → `test` → `build-only`.
+CI order in [.github/workflows/ci.yml](../.github/workflows/ci.yml): `type-check` → `check:i18n` → `check:docs` → `check:env` → `test` → `build-only`.
 
 | Need | Path |
 |------|------|

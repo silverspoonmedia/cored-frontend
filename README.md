@@ -14,6 +14,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 | `npm run type-check` | `vue-tsc --build` |
 | `npm run check:i18n` | Locale parity + placeholders + duplicate-English + hardcoded-copy heuristics, code-vs-locale key usage, curation-log integrity |
 | `npm run check:docs` | Doc index parity, brief line budgets, rule glob targets, relative-link integrity (see [docs-pakem.mdc](.cursor/rules/docs-pakem.mdc)) |
+| `npm run check:env` | Tracked Vite mode files: required keys, placeholder values, sandbox origin in production/staging, shared API origin, leftover `TODO` (see [deployment.mdc](.cursor/rules/deployment.mdc)) |
 | `npm test` | Vitest (client/session/CSRF/echo/headers/i18n contracts) |
 | `npm run build` | Type-check + production build |
 | `npm run build-only` | Vite production build |
@@ -23,7 +24,7 @@ Do not store JWTs in JavaScript. Integration contract: Monolith `docs/integratio
 | `npm run deploy:sandbox` | `cross-env CLOUDFLARE_ENV=sandbox` + `vite build --mode sandbox` + `wrangler deploy --env sandbox` (worker `monolith-spa-sandbox`) |
 | `npm run deploy:staging` | `cross-env CLOUDFLARE_ENV=staging` + `vite build --mode staging` + `wrangler deploy --env staging` (worker `monolith-spa-staging`) |
 
-CI (GitHub Actions): `type-check` → `check:i18n` → `check:docs` → `test` → `build-only`. The backend's cross-repo guards are not part of it — run `php artisan test --filter=Locale` from the Monolith checkout when a batch touches a mirrored pack or a glossary term. The backend workflow does run the full `php artisan test` suite in its own `backend` job (SQLite `:memory:`, no services), so a `tests/Domain/**` regression is caught on push to Monolith. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md).
+CI (GitHub Actions): `type-check` → `check:i18n` → `check:docs` → `check:env` → `test` → `build-only`. The backend's cross-repo guards are not part of it — run `php artisan test --filter=Locale` from the Monolith checkout when a batch touches a mirrored pack or a glossary term. The backend workflow does run the full `php artisan test` suite in its own `backend` job (SQLite `:memory:`, no services), so a `tests/Domain/**` regression is caught on push to Monolith. Cross-repo guards and the readability checklist: [docs/i18n.md](docs/i18n.md).
 
 ## Setup
 
@@ -49,7 +50,7 @@ Both the npm scripts and the CI workflow set `CLOUDFLARE_ENV=<env>` during the b
 
 Pushes to `main` / `main-sandbox` / `main-staging` also auto-deploy through GitHub Actions. Full operational guide (required secrets, workflow reference, day-to-day flow, troubleshooting): [docs/deployment.md](docs/deployment.md).
 
-The tables above are topology only. `.env.production` and `.env.staging` still carry provisional API origins/credentials (inline `TODO`s in each file) — [docs/deployment.md — Pending environment values](docs/deployment.md#pending-environment-values).
+The tables above are topology only. The values in each mode file are guarded by `npm run check:env` (part of CI and of the deploy job): it fails a build when a required `VITE_*` key is missing or empty, when a value is a placeholder, when production or staging points at a sandbox host, when two environments share an API origin, or when an unresolved `TODO` remains. Swap values per environment; see [docs/deployment.md — Mode file values](docs/deployment.md#mode-file-values).
 
 ## Environment
 
