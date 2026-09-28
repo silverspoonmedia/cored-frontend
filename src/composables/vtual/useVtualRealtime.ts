@@ -31,6 +31,45 @@ export function unsubscribeVtualPlatformCredentialsRealtime(handlers: VtualRealt
   credentialsChannel.unsubscribe(handlers)
 }
 
+// --- Integration incident triage queue ping ---
+
+/**
+ * Ids + enums only: the incident `title`/`detail` are assembled from platform
+ * error text and fan out to every staff subscriber, so the payload must never
+ * grow a snapshot. The correct reaction to a ping is a refetch.
+ */
+export type VtualIncidentChangedPayload = {
+  action: string
+  incident_id: string | null
+  kind: string | null
+  severity: string | null
+  status: string | null
+}
+
+export type VtualIncidentsRealtimeHandlers = {
+  onIncidentChanged?: (payload: VtualIncidentChangedPayload) => void
+}
+
+const incidentsQueueChannel = createRealtimeChannel<VtualIncidentsRealtimeHandlers>({
+  channel: 'vtual.incidents',
+  events: [
+    {
+      event: '.incident.changed',
+      handle: (handlers, payload: VtualIncidentChangedPayload) => {
+        for (const h of handlers) h.onIncidentChanged?.(payload)
+      },
+    },
+  ],
+})
+
+export function subscribeVtualIncidentsRealtime(handlers: VtualIncidentsRealtimeHandlers): boolean {
+  return incidentsQueueChannel.subscribe(handlers)
+}
+
+export function unsubscribeVtualIncidentsRealtime(handlers: VtualIncidentsRealtimeHandlers): void {
+  incidentsQueueChannel.unsubscribe(handlers)
+}
+
 // --- Creator channel snapshot updates (fetch-pool flush) ---
 
 export type ChannelSnapshotUpdatedPayload = {
@@ -62,11 +101,25 @@ export function unsubscribeVtualCreatorSnapshots(creatorId: string, handler: Sna
   snapshotChannels.unsubscribe(creatorId, handler)
 }
 
-// --- Management org updates (members / invites / creator assignments) ---
+// --- Management org updates (members / invites / creator assignments / events) ---
+
+/**
+ * `kind` mirrors `VtualManagementRealtime::changed()` on the backend, which
+ * passes one of seven values. Keep this union in step with the PHP docblock — a
+ * kind the SPA cannot name is a push a subscriber silently ignores.
+ */
+export type ManagementUpdatedKind =
+  | 'management'
+  | 'member'
+  | 'invite'
+  | 'creator'
+  | 'creator_grant'
+  | 'creator_invite'
+  | 'event'
 
 export type ManagementUpdatedPayload = {
   management_id: string
-  kind: 'management' | 'member' | 'invite' | 'creator'
+  kind: ManagementUpdatedKind
   ref_id: string | null
   action: string
 }
@@ -93,13 +146,64 @@ export function unsubscribeVtualManagement(managementId: string, handler: Manage
   managementChannels.unsubscribe(managementId, handler)
 }
 
+/**
+ * Hold a subscription on several management channels at once, dropping the ones
+ * that left the set. The cross-management event list has no channel of its own
+ * (there is no "all managements" private channel), so it binds the channels of
+ * the orgs on the current page instead.
+ */
+
+/** Which management channels each multi-channel handler currently holds. */
+const boundManagementChannels = new WeakMap<ManagementHandler, Set<string>>()
+
+export function syncVtualManagementChannels(
+  managementIds: readonly string[],
+  handler: ManagementHandler,
+): void {
+  const wanted = new Set(managementIds.filter((id) => id !== ''))
+  const bound = boundManagementChannels.get(handler) ?? new Set<string>()
+
+  for (const id of bound) {
+    if (!wanted.has(id)) {
+      managementChannels.unsubscribe(id, handler)
+      bound.delete(id)
+    }
+  }
+  for (const id of wanted) {
+    if (!bound.has(id)) {
+      managementChannels.subscribe(id, handler)
+      bound.add(id)
+    }
+  }
+
+  if (bound.size === 0) {
+    boundManagementChannels.delete(handler)
+  } else {
+    boundManagementChannels.set(handler, bound)
+  }
+}
+
+export function releaseVtualManagementChannels(handler: ManagementHandler): void {
+  const bound = boundManagementChannels.get(handler)
+  if (bound === undefined) return
+
+  for (const id of bound) {
+    managementChannels.unsubscribe(id, handler)
+  }
+  boundManagementChannels.delete(handler)
+}
+
 export function useVtualRealtime() {
   return {
     subscribe: subscribeVtualPlatformCredentialsRealtime,
     unsubscribe: unsubscribeVtualPlatformCredentialsRealtime,
+    subscribeIncidents: subscribeVtualIncidentsRealtime,
+    unsubscribeIncidents: unsubscribeVtualIncidentsRealtime,
     subscribeCreatorSnapshots: subscribeVtualCreatorSnapshots,
     unsubscribeCreatorSnapshots: unsubscribeVtualCreatorSnapshots,
     subscribeManagement: subscribeVtualManagement,
     unsubscribeManagement: unsubscribeVtualManagement,
+    syncManagementChannels: syncVtualManagementChannels,
+    releaseManagementChannels: releaseVtualManagementChannels,
   }
 }

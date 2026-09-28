@@ -60,6 +60,10 @@ export const globalDuplicateEnglishKeys = new Set([
   'web.vtual.profile_placeholder_youtube',
   'web.vtual.profiles.fields.link_url',
   'web.vtual.profiles.uuid_placeholder',
+  // Platform product names, not translated terms — the backend keeps the same
+  // two values in `lang/*/api/vtual.php` `incident.kinds`.
+  'web.vtual.incidents.kind.websub',
+  'web.vtual.incidents.kind.eventsub',
   'web.vtual.public.directory.live',
   'web.vtual.public.profile.filter_type_live',
   'web.vtual.public.profile.filter_type_vod',
@@ -175,6 +179,9 @@ export const localeDuplicateEnglishKeys = {
     // Same loanword rule as every other vTual status column above: Indonesian
     // product UI ships `Status`, and no native alternative is in use.
     'web.vtual.claims.columns.status',
+    'web.vtual.incidents.columns.status',
+    // Matches `lang/id/api/vtual.php` `incident.severities.info` = `Info`.
+    'web.vtual.incidents.severity.info',
     'web.vtual.platform_col',
     'web.vtual.platform_label',
     'web.vtual.probe_button',

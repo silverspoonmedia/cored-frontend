@@ -383,6 +383,7 @@
       "collection_processing": "コレクションの分析を開始しました。",
       "collection_status": "コレクションの状況を読み込みました。",
       "collection_exported": "コレクションをエクスポートしました。",
+      "upload_queued": "マーケットプレイスへのアップロードを受け付けました。",
       "insufficient_ai_credits": "AI クレジットが不足しています。分析を実行する前に、サービスページから AI クレジットパックを購入してください。",
       "billing_loaded": "AI 請求ステータスを読み込みました。",
       "ledger_loaded": "請求台帳を読み込みました。",
@@ -631,7 +632,9 @@
         "event_cancelled": "イベントをキャンセルしました。",
         "invite_sent": "招待を送信しました。",
         "invite_cancelled": "招待をキャンセルしました。",
-        "member_updated": "メンバーの役割を更新しました。"
+        "member_updated": "メンバーの役割を更新しました。",
+        "grant_created": "クリエイターへのアクセス権限を付与しました。",
+        "grant_revoked": "クリエイターへのアクセス権限を取り消しました。"
       },
       "channel": {
         "list_success": "チャンネル一覧を読み込みました。",
@@ -1808,6 +1811,14 @@
         "analyze": "分析を開始",
         "export_csv": "CSV をエクスポート",
         "download_csv": "CSV をダウンロード",
+        "upload_marketplace": "マーケットプレイスへアップロード",
+        "upload_no_credentials": "マーケットプレイスの認証情報がまだありません。先に追加してください。",
+        "upload_manage_credentials": "認証情報を管理",
+        "credential_status_failed": "失敗",
+        "upload_status_queued": "マーケットプレイスへのアップロードを受け付けました。",
+        "upload_status_uploading": "マーケットプレイスへアップロード中…",
+        "upload_status_uploaded": "マーケットプレイスへアップロードしました。",
+        "upload_status_failed": "マーケットプレイスへのアップロードに失敗しました。",
         "status_locked": "コレクションをロックしました。分析を開始できます。",
         "status_processing": "AI がこのコレクションを分析しています…",
         "status_processing_degraded": "（通常より時間がかかっています）",
@@ -2602,7 +2613,13 @@
       "columns": {
         "marketplace": "マーケットプレイス",
         "label": "ラベル",
+        "status": "ステータス",
         "created_at": "作成日時"
+      },
+      "status": {
+        "pending": "未確認",
+        "verified": "確認済み",
+        "failed": "失敗"
       },
       "errors": {
         "load_failed": "認証情報の読み込みに失敗しました。",
@@ -3589,6 +3606,8 @@
       "add_button": "イベント追加",
       "create_title": "イベント作成",
       "edit_title": "イベント詳細",
+      "locked_title": "このイベントは編集できません",
+      "locked_body": "終了または中止されたため — 別のマネジメントメンバーが操作した可能性があります — このフォームは閲覧のみとなります。",
       "status": {
         "scheduled": "予定",
         "live": "配信中",
@@ -3624,7 +3643,8 @@
       "errors": {
         "load_failed": "イベントの読み込みに失敗しました。",
         "save_failed": "イベントの保存に失敗しました。",
-        "cancel_failed": "イベントの中止に失敗しました。"
+        "cancel_failed": "イベントの中止に失敗しました。",
+        "not_editable": "このイベントは編集できません。"
       }
     },
     "vtual-managements": {
@@ -3670,6 +3690,28 @@
         "columns": {
           "creator": "クリエイター",
           "joined_at": "参加日"
+        }
+      },
+      "grants": {
+        "section_title": "クリエイターへのアクセス権限",
+        "section_help": "1人のメンバーに、リンク済みの vTuber プロフィール1件へのアクセス権限を付与します。これはロールに追加される権限です。オーナーと管理者は引き続き組織内のすべてのプロフィールにアクセスできます。",
+        "member": "メンバー",
+        "member_placeholder": "メンバーを選択",
+        "creator": "vTuber プロフィール",
+        "creator_placeholder": "プロフィールを選択",
+        "capability": "アクセス権限",
+        "capabilities": {
+          "view": "閲覧",
+          "edit": "編集"
+        },
+        "grant_button": "権限を付与",
+        "revoke_button": "取り消す",
+        "table_caption": "このマネジメントで委任されたクリエイターへのアクセス権限",
+        "empty": "委任されたアクセス権限はまだありません。",
+        "columns": {
+          "member": "メンバー",
+          "creator": "vTuber プロフィール",
+          "capability": "アクセス権限"
         }
       },
       "members": {
@@ -3746,7 +3788,9 @@
         "archive_failed": "マネジメントのアーカイブに失敗しました。",
         "member_update_failed": "メンバーの役割の更新に失敗しました。",
         "invite_send_failed": "招待の送信に失敗しました。",
-        "invite_cancel_failed": "招待のキャンセルに失敗しました。"
+        "invite_cancel_failed": "招待のキャンセルに失敗しました。",
+        "grant_save_failed": "クリエイターへのアクセス権限の付与に失敗しました。",
+        "grant_revoke_failed": "クリエイターへのアクセス権限の取り消しに失敗しました。"
       }
     },
     "vtual-invites": {
@@ -3974,6 +4018,55 @@
           "action_failed": "申請の操作に失敗しました。"
         }
       },
+      "incidents": {
+        "title": "インシデント",
+        "breadcrumb": "インシデント",
+        "list_title": "連携インシデント",
+        "subtitle": "vTual プラットフォーム連携で発生した障害の一覧です。対応中のものは確認済みにし、連携が復旧したら解決済みにします。",
+        "search_placeholder": "タイトルまたは詳細を検索",
+        "columns": {
+          "kind": "連携",
+          "subject": "対象",
+          "title": "障害",
+          "severity": "重大度",
+          "status": "ステータス",
+          "occurrences": "発生回数",
+          "last_seen": "最終発生"
+        },
+        "filters": {
+          "all_statuses": "すべてのステータス",
+          "all_severities": "すべての重大度",
+          "all_kinds": "すべての連携",
+          "clear": "フィルターを解除"
+        },
+        "kind": {
+          "websub": "YouTube WebSub",
+          "eventsub": "Twitch EventSub",
+          "eventsub_notification": "Twitch EventSub 配信",
+          "credential": "プラットフォーム認証情報",
+          "platform_http": "プラットフォーム API",
+          "ingestion": "コンテンツ取り込み"
+        },
+        "severity": {
+          "info": "情報",
+          "warning": "警告",
+          "critical": "重大"
+        },
+        "status": {
+          "open": "未対応",
+          "acknowledged": "確認済み",
+          "resolved": "解決済み"
+        },
+        "datatable": {
+          "empty": "インシデントはありません。すべての連携は正常です。",
+          "zero_records": "このフィルターに一致するインシデントはありません。"
+        },
+        "action_done": "インシデントを更新しました。",
+        "errors": {
+          "load_failed": "インシデントを読み込めませんでした。",
+          "action_failed": "インシデントの操作に失敗しました。"
+        }
+      },
       "credentials": {
         "list": "認証情報",
         "add": "認証情報を追加",
@@ -4188,6 +4281,9 @@
           "filter_type_live": "LIVE",
           "filter_type_archive": "アーカイブ",
           "filter_type_vod": "VOD",
+          "filter_content_type_all": "すべての楽曲種別",
+          "filter_content_type_music": "楽曲",
+          "filter_content_type_non_music": "楽曲以外",
           "filter_sort_newest": "新しい順",
           "filter_sort_oldest": "古い順",
           "contents_empty_filtered": "この絞り込みに一致するコンテンツはありません。",

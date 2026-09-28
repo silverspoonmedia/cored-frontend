@@ -106,8 +106,25 @@ async function handleDelete(row: MicrostockCredential, action: QueryRowAction): 
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'marketplace', label: t('web.microstock-credentials.columns.marketplace'), sortable: true },
   { key: 'label', label: t('web.microstock-credentials.columns.label'), sortable: true },
+  { key: 'status', label: t('web.microstock-credentials.columns.status') },
   { key: 'created_at', label: t('web.microstock-credentials.columns.created_at'), sortable: true },
 ])
+
+/**
+ * The status column is written by the upload job, not by the owner: a credential
+ * is `pending` until a transfer succeeds, `failed` when the marketplace rejected
+ * it. The row shows the reason on the badge title so the fix is discoverable.
+ */
+function credentialStatusClass(status: string | null | undefined): string {
+  if (status === 'verified') return 'text-bg-success'
+  if (status === 'failed') return 'text-bg-danger'
+  return 'text-bg-secondary'
+}
+
+function credentialStatusLabel(status: string | null | undefined): string {
+  const key = status === 'verified' || status === 'failed' ? status : 'pending'
+  return t(`web.microstock-credentials.status.${key}`)
+}
 
 // Live update: credentials added/deleted in another tab refresh the list.
 const { subscribe: subscribeArchivd, unsubscribe: unsubscribeArchivd } = useArchivdRealtime()
@@ -190,6 +207,14 @@ onUnmounted(() => {
         >
           <template #cell-marketplace="{ row }: { row: MicrostockCredential }">
             <code>{{ row.marketplace }}</code>
+          </template>
+
+          <template #cell-status="{ row }: { row: MicrostockCredential }">
+            <span
+              class="badge"
+              :class="credentialStatusClass(row.status)"
+              :title="row.last_error ?? undefined"
+            >{{ credentialStatusLabel(row.status) }}</span>
           </template>
 
           <template #cell-created_at="{ row }: { row: MicrostockCredential }">

@@ -155,6 +155,23 @@ export const vtualAdminEarlyRoutes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/apps/vtual/incidents',
+    name: 'vtual.incidents.index',
+    component: AppLayout,
+    meta: {
+      requiresAuth: true,
+      titleKey: 'web.vtual.incidents.title',
+      breadcrumb: { labelKey: 'web.vtual.incidents.breadcrumb' },
+    },
+    children: [
+      {
+        path: '',
+        name: 'vtual.incidents.index.view',
+        component: () => import('@/views/vtual/VtualIncidentsView.vue'),
+      },
+    ],
+  },
+  {
     path: '/apps/vtual/managements',
     name: 'vtual.managements.index',
     component: AppLayout,

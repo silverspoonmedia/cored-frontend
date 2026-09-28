@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/Card.vue'
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue'
@@ -7,6 +7,7 @@ import RowActions from '@/components/RowActions.vue'
 import { useVtualEvents } from '@/composables/vtual/useVtualEvents'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
+import { useVtualRealtime, type ManagementUpdatedPayload } from '@/composables/vtual/useVtualRealtime'
 import type { QueryRowAction, VtualManagementEvent } from '@/api/types'
 import { confirmQueryMutate, mapQueryRowActions } from '@/utils/mapQueryRowActions'
 
@@ -40,6 +41,7 @@ async function loadList(params?: { page?: number; per_page?: number }): Promise<
     total.value = list.pagination.total
     currentPage.value = list.pagination.current_page
     perPage.value = list.pagination.per_page
+    syncEventChannels()
   } catch (e) {
     showError(e instanceof Error ? e.message : t('web.vtual-events.errors.load_failed'))
     items.value = []
@@ -48,6 +50,31 @@ async function loadList(params?: { page?: number; per_page?: number }): Promise<
     loading.value = false
   }
 }
+
+// --- Realtime ---------------------------------------------------------------
+// The cross-management list has no channel of its own, so it binds one channel
+// per management visible on the page and refetches when that org's events
+// change. Only `kind=event` matters here: a member or invite push would reload
+// the page for a row that cannot have changed.
+
+const { syncManagementChannels, releaseManagementChannels } = useVtualRealtime()
+
+function onManagementUpdated(payload: ManagementUpdatedPayload): void {
+  if (payload.kind !== 'event') return
+  void loadList({ page: currentPage.value, per_page: perPage.value })
+}
+
+function syncEventChannels(): void {
+  const managementIds = items.value
+    .map((row) => row.management_id)
+    .filter((id): id is string => typeof id === 'string' && id !== '')
+
+  syncManagementChannels([...new Set(managementIds)], onManagementUpdated)
+}
+
+onUnmounted(() => {
+  releaseManagementChannels(onManagementUpdated)
+})
 
 function handlePage(page: number): void {
   void loadList({ page, per_page: perPage.value })

@@ -383,6 +383,7 @@
       "collection_processing": "بدأ تحليل المجموعة.",
       "collection_status": "تم تحميل حالة المجموعة.",
       "collection_exported": "تم تصدير المجموعة.",
+      "upload_queued": "تمت إضافة الرفع إلى المتجر إلى قائمة الانتظار.",
       "insufficient_ai_credits": "رصيد الذكاء الاصطناعي غير كافٍ. اشترِ حزمة أرصدة الذكاء الاصطناعي من الخدمات قبل تشغيل التحليل.",
       "billing_loaded": "تم تحميل حالة فوترة الذكاء الاصطناعي.",
       "ledger_loaded": "تم تحميل دفتر الفوترة.",
@@ -631,7 +632,9 @@
         "event_cancelled": "تم إلغاء الفعالية.",
         "invite_sent": "تم إرسال الدعوة.",
         "invite_cancelled": "تم إلغاء الدعوة.",
-        "member_updated": "تم تحديث دور العضو."
+        "member_updated": "تم تحديث دور العضو.",
+        "grant_created": "تم منح صلاحية الوصول إلى منشئ المحتوى.",
+        "grant_revoked": "تم إلغاء صلاحية الوصول إلى منشئ المحتوى."
       },
       "channel": {
         "list_success": "تم تحميل القنوات.",
@@ -1402,6 +1405,9 @@
           "filter_type_live": "مباشر",
           "filter_type_archive": "أرشيف",
           "filter_type_vod": "VOD",
+          "filter_content_type_all": "كل أنواع الموسيقى",
+          "filter_content_type_music": "موسيقى",
+          "filter_content_type_non_music": "غير موسيقي",
           "filter_sort_newest": "الأحدث",
           "filter_sort_oldest": "الأقدم",
           "contents_empty_filtered": "لا يوجد محتوى مطابق لعوامل التصفية هذه.",
@@ -1556,6 +1562,55 @@
         "errors": {
           "load_failed": "تعذّر تحميل المطالبات.",
           "action_failed": "فشل إجراء المطالبة."
+        }
+      },
+      "incidents": {
+        "title": "الحوادث",
+        "breadcrumb": "الحوادث",
+        "list_title": "حوادث التكامل",
+        "subtitle": "أعطال مجمّعة من تكاملات منصة vTual. حدّد ما تعمل عليه كمطّلع عليه، ثم حدّده كمحلول بعد استعادة التكامل.",
+        "search_placeholder": "ابحث في العنوان أو التفاصيل",
+        "columns": {
+          "kind": "التكامل",
+          "subject": "الموضوع",
+          "title": "العطل",
+          "severity": "الخطورة",
+          "status": "الحالة",
+          "occurrences": "عدد التكرار",
+          "last_seen": "آخر ظهور"
+        },
+        "filters": {
+          "all_statuses": "كل الحالات",
+          "all_severities": "كل درجات الخطورة",
+          "all_kinds": "كل التكاملات",
+          "clear": "مسح عوامل التصفية"
+        },
+        "kind": {
+          "websub": "YouTube WebSub",
+          "eventsub": "Twitch EventSub",
+          "eventsub_notification": "تسليم Twitch EventSub",
+          "credential": "بيانات اعتماد المنصة",
+          "platform_http": "واجهة المنصة البرمجية",
+          "ingestion": "استيراد المحتوى"
+        },
+        "severity": {
+          "info": "معلومات",
+          "warning": "تحذير",
+          "critical": "حرج"
+        },
+        "status": {
+          "open": "مفتوح",
+          "acknowledged": "تم الاطلاع",
+          "resolved": "محلول"
+        },
+        "datatable": {
+          "empty": "لا توجد حوادث. جميع التكاملات تعمل بشكل سليم.",
+          "zero_records": "لا توجد حوادث مطابقة لعوامل التصفية هذه."
+        },
+        "action_done": "تم تحديث الحادث.",
+        "errors": {
+          "load_failed": "تعذّر تحميل الحوادث.",
+          "action_failed": "فشل إجراء الحادث."
         }
       },
       "credentials": {
@@ -1919,6 +1974,14 @@
         "analyze": "ابدأ التحليل",
         "export_csv": "تصدير CSV",
         "download_csv": "تحميل CSV",
+        "upload_marketplace": "الرفع إلى المتجر",
+        "upload_no_credentials": "لا توجد بيانات اعتماد للمتجر بعد. أضف واحدة أولًا.",
+        "upload_manage_credentials": "إدارة بيانات الاعتماد",
+        "credential_status_failed": "فشل",
+        "upload_status_queued": "تمت إضافة الرفع إلى المتجر إلى قائمة الانتظار.",
+        "upload_status_uploading": "جارٍ الرفع إلى المتجر…",
+        "upload_status_uploaded": "تم الرفع إلى المتجر.",
+        "upload_status_failed": "فشل الرفع إلى المتجر.",
         "status_locked": "المجموعة مقفلة. جاهزة للتحليل.",
         "status_processing": "يحلل الذكاء الاصطناعي هذه المجموعة…",
         "status_processing_degraded": "(يستغرق وقتًا أطول من المعتاد)",
@@ -2595,7 +2658,13 @@
       "columns": {
         "marketplace": "السوق",
         "label": "الاسم",
+        "status": "الحالة",
         "created_at": "تاريخ الإنشاء"
+      },
+      "status": {
+        "pending": "لم يتم التحقق",
+        "verified": "تم التحقق",
+        "failed": "فشل"
       },
       "errors": {
         "load_failed": "تعذّر تحميل بيانات الاعتماد.",
@@ -3333,6 +3402,8 @@
       "add_button": "إضافة فعالية",
       "create_title": "إنشاء فعالية",
       "edit_title": "تفاصيل الفعالية",
+      "locked_title": "لم يعد بالإمكان تحرير هذه الفعالية",
+      "locked_body": "انتهت الفعالية أو أُلغيت — ربما بواسطة عضو آخر في الإدارة — لذلك هذا النموذج للقراءة فقط.",
       "status": {
         "scheduled": "مجدولة",
         "live": "مباشرة",
@@ -3368,7 +3439,8 @@
       "errors": {
         "load_failed": "فشل تحميل الفعاليات.",
         "save_failed": "فشل حفظ الفعالية.",
-        "cancel_failed": "فشل إلغاء الفعالية."
+        "cancel_failed": "فشل إلغاء الفعالية.",
+        "not_editable": "لم يعد بالإمكان تحرير هذه الفعالية."
       }
     },
     "vtual-managements": {
@@ -3414,6 +3486,28 @@
         "columns": {
           "creator": "منشئ المحتوى",
           "joined_at": "تاريخ الانضمام"
+        }
+      },
+      "grants": {
+        "section_title": "صلاحية الوصول إلى منشئي المحتوى",
+        "section_help": "امنح أحد الأعضاء صلاحية الوصول إلى ملف vTuber واحد مرتبط. تُضاف هذه الصلاحية إلى دوره، ويحتفظ المالك والمسؤولون بالوصول إلى جميع الملفات في الإدارة.",
+        "member": "العضو",
+        "member_placeholder": "اختر عضوًا",
+        "creator": "ملف vTuber",
+        "creator_placeholder": "اختر ملفًا",
+        "capability": "مستوى الوصول",
+        "capabilities": {
+          "view": "عرض",
+          "edit": "تعديل"
+        },
+        "grant_button": "منح الصلاحية",
+        "revoke_button": "إلغاء",
+        "table_caption": "صلاحيات الوصول المفوّضة لمنشئي المحتوى في هذه الإدارة",
+        "empty": "لا توجد صلاحيات وصول مفوّضة بعد.",
+        "columns": {
+          "member": "العضو",
+          "creator": "ملف vTuber",
+          "capability": "مستوى الوصول"
         }
       },
       "members": {
@@ -3490,7 +3584,9 @@
         "archive_failed": "تعذّر أرشفة الإدارة.",
         "member_update_failed": "تعذّر تحديث دور العضو.",
         "invite_send_failed": "تعذّر إرسال الدعوة.",
-        "invite_cancel_failed": "تعذّر إلغاء الدعوة."
+        "invite_cancel_failed": "تعذّر إلغاء الدعوة.",
+        "grant_save_failed": "تعذّر منح صلاحية الوصول إلى منشئ المحتوى.",
+        "grant_revoke_failed": "تعذّر إلغاء صلاحية الوصول إلى منشئ المحتوى."
       }
     },
     "vtual-invites": {

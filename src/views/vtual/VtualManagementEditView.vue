@@ -7,6 +7,7 @@ import FormSelect from '@/components/FormSelect.vue'
 import FormCheckbox from '@/components/FormCheckbox.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 import VtualManagementMembersSection from '@/components/vtual/VtualManagementMembersSection.vue'
+import VtualManagementGrantsSection from '@/components/vtual/VtualManagementGrantsSection.vue'
 import VtualManagementCreatorInvitesSection from '@/components/vtual/VtualManagementCreatorInvitesSection.vue'
 import { useVtualManagementEdit } from '@/composables/vtual/useVtualManagementEdit'
 import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'
@@ -43,6 +44,11 @@ const {
   handleUpdateMemberRole,
   handleCreatorInviteChanged,
   managementId,
+  creatorGrants,
+  mutatingGrantKey,
+  mutatingGrantId,
+  handleGrantCapability,
+  handleRevokeGrant,
 } = useVtualManagementEdit()
 
 // Trailing breadcrumb crumb: the edited management's name, so the crumb reads
@@ -145,6 +151,17 @@ useBreadcrumbTitle(() => (isEdit.value ? form.name : null))
           @send-invite="handleSendInvite"
           @cancel-invite="handleCancelInvite"
           @update-member-role="handleUpdateMemberRole"
+        />
+
+        <VtualManagementGrantsSection
+          :can-manage-members="canManageMembers"
+          :members="members"
+          :creators="creators"
+          :grants="creatorGrants"
+          :mutating-grant-key="mutatingGrantKey"
+          :mutating-grant-id="mutatingGrantId"
+          @grant="handleGrantCapability"
+          @revoke="handleRevokeGrant"
         />
 
         <hr class="my-4">

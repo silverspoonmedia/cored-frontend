@@ -68,7 +68,7 @@ export function prefetchVtualProfile(slug: string): void {
 }
 
 export function defaultProfileFilters(): VtualPublicContentFilters {
-  return { platform: null, type: null, sort: 'newest' }
+  return { platform: null, type: null, content_type: null, sort: 'newest' }
 }
 
 // Single source of truth for the profile SWR key. Filters MUST be part of the
@@ -80,7 +80,7 @@ function profileCacheKey(
   perPage: number,
   filters: VtualPublicContentFilters,
 ): string {
-  return `profile:${slug}:${page}:${perPage}:${filters.platform ?? '-'}:${filters.type ?? '-'}:${filters.sort}`
+  return `profile:${slug}:${page}:${perPage}:${filters.platform ?? '-'}:${filters.type ?? '-'}:${filters.content_type ?? '-'}:${filters.sort}`
 }
 
 async function fetchVtualDirectory(
@@ -120,6 +120,7 @@ async function fetchVtualProfile(
       per_page: perPage,
       ...(filters.platform !== null ? { platform: filters.platform } : {}),
       ...(filters.type !== null ? { type: filters.type } : {}),
+      ...(filters.content_type !== null ? { content_type: filters.content_type } : {}),
       ...(filters.sort !== 'newest' ? { sort: filters.sort } : {}),
     },
   )

@@ -14,7 +14,7 @@ import { useVtualCreatorInvites } from '@/composables/vtual/useVtualCreatorInvit
 import { useAlert } from '@/composables/useAlert'
 import { useAuth } from '@/stores/auth'
 import { ApiError } from '@/api/types'
-import type { VtualCreatorInvite, VtualManagement, VtualManagementCreatorAssignment, VtualManagementInvite, VtualManagementMember } from '@/api/types'
+import type { VtualCreatorInvite, VtualGrantCapability, VtualManagement, VtualManagementCreatorAssignment, VtualManagementCreatorGrant, VtualManagementInvite, VtualManagementMember } from '@/api/types'
 
 export function useVtualManagementEdit() {
   const route = useRoute()
@@ -38,6 +38,7 @@ export function useVtualManagementEdit() {
   })
 
   const creators = ref<VtualManagementCreatorAssignment[]>([])
+  const creatorGrants = ref<VtualManagementCreatorGrant[]>([])
 
   const members = ref<VtualManagementMember[]>([])
   const invites = ref<VtualManagementInvite[]>([])
@@ -49,6 +50,8 @@ export function useVtualManagementEdit() {
   const memberErrors = ref<Record<string, string[]>>({})
   const mutatingMemberId = ref<string | null>(null)
   const mutatingInviteId = ref<string | null>(null)
+  const mutatingGrantKey = ref<string | null>(null)
+  const mutatingGrantId = ref<string | null>(null)
   const myRole = ref<string | null>(null)
   const isOrphanCreate = ref(false)
   const { user: authUser, hasPermission } = useAuth()
@@ -79,6 +82,7 @@ export function useVtualManagementEdit() {
     form.logo_url = m.logo_url ?? ''
     form.status = m.status
     creators.value = m.creators ?? []
+    creatorGrants.value = m.creator_grants ?? []
     members.value = m.members ?? []
     myRole.value = m.my_role ?? null
   }
@@ -90,6 +94,7 @@ export function useVtualManagementEdit() {
    */
   function applyManagementRealtime(m: VtualManagement): void {
     creators.value = m.creators ?? []
+    creatorGrants.value = m.creator_grants ?? []
     members.value = m.members ?? []
     myRole.value = m.my_role ?? null
   }
@@ -270,6 +275,44 @@ export function useVtualManagementEdit() {
     }
   }
 
+  /**
+   * Delegated per-creator capability grants (additive on top of the role).
+   * Refetch the org payload so `creator_grants` stays authoritative rather
+   * than being patched locally.
+   */
+  async function handleGrantCapability(creatorId: string, memberId: string, capability: VtualGrantCapability): Promise<void> {
+    if (!isEdit.value || mutatingGrantKey.value) return
+    mutatingGrantKey.value = `${memberId}:${creatorId}`
+    try {
+      await mgmt.grantCreatorCapability(managementId.value, {
+        member_id: memberId,
+        creator_id: creatorId,
+        capability,
+      })
+      const m = await mgmt.fetchOne(managementId.value)
+      applyManagementRealtime(m)
+      showSuccess(t('api.vtual.management.grant_created'))
+    } catch (e) {
+      showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.grant_save_failed'))
+    } finally {
+      mutatingGrantKey.value = null
+    }
+  }
+
+  async function handleRevokeGrant(grantId: string): Promise<void> {
+    if (!isEdit.value || mutatingGrantId.value) return
+    mutatingGrantId.value = grantId
+    try {
+      await mgmt.revokeCreatorCapability(managementId.value, grantId)
+      creatorGrants.value = creatorGrants.value.filter((g) => g.id !== grantId)
+      showSuccess(t('api.vtual.management.grant_revoked'))
+    } catch (e) {
+      showError(e instanceof Error ? e.message : t('web.vtual-managements.errors.grant_revoke_failed'))
+    } finally {
+      mutatingGrantId.value = null
+    }
+  }
+
   function goIndex(): void {
     void router.push({ name: 'vtual.managements.index.view' })
   }
@@ -297,6 +340,11 @@ export function useVtualManagementEdit() {
     memberErrors,
     mutatingMemberId,
     mutatingInviteId,
+    creatorGrants,
+    mutatingGrantKey,
+    mutatingGrantId,
+    handleGrantCapability,
+    handleRevokeGrant,
     authUser,
     memberRoleOptions,
     canManageMembers,

@@ -383,6 +383,7 @@
       "collection_processing": "Analisis koleksi dimulai.",
       "collection_status": "Status koleksi berhasil dimuat.",
       "collection_exported": "Koleksi berhasil diekspor.",
+      "upload_queued": "Unggahan ke marketplace masuk antrean.",
       "insufficient_ai_credits": "Kredit AI tidak cukup. Beli paket kredit AI dari halaman Layanan sebelum menjalankan analisis.",
       "billing_loaded": "Status penagihan AI berhasil dimuat.",
       "ledger_loaded": "Buku besar penagihan berhasil dimuat.",
@@ -631,7 +632,9 @@
         "event_cancelled": "Acara berhasil dibatalkan.",
         "invite_sent": "Undangan terkirim.",
         "invite_cancelled": "Undangan dibatalkan.",
-        "member_updated": "Peran anggota berhasil diperbarui."
+        "member_updated": "Peran anggota berhasil diperbarui.",
+        "grant_created": "Akses kreator diberikan.",
+        "grant_revoked": "Pemberian akses kreator dibatalkan."
       },
       "channel": {
         "list_success": "Daftar kanal berhasil dimuat.",
@@ -1808,6 +1811,14 @@
         "analyze": "Mulai analisis",
         "export_csv": "Ekspor CSV",
         "download_csv": "Unduh CSV",
+        "upload_marketplace": "Unggah ke marketplace",
+        "upload_no_credentials": "Belum ada kredensial marketplace. Tambahkan dulu.",
+        "upload_manage_credentials": "Kelola kredensial",
+        "credential_status_failed": "Gagal",
+        "upload_status_queued": "Unggahan ke marketplace masuk antrean.",
+        "upload_status_uploading": "Mengunggah ke marketplace…",
+        "upload_status_uploaded": "Sudah diunggah ke marketplace.",
+        "upload_status_failed": "Unggahan ke marketplace gagal.",
         "status_locked": "Koleksi terkunci. Siap dianalisis.",
         "status_processing": "AI sedang menganalisis koleksi ini…",
         "status_processing_degraded": "(lebih lama dari biasanya)",
@@ -2602,7 +2613,13 @@
       "columns": {
         "marketplace": "Marketplace",
         "label": "Label",
+        "status": "Status verifikasi",
         "created_at": "Dibuat"
+      },
+      "status": {
+        "pending": "Belum diverifikasi",
+        "verified": "Terverifikasi",
+        "failed": "Gagal"
       },
       "errors": {
         "load_failed": "Kredensial tidak dapat dimuat.",
@@ -3589,6 +3606,8 @@
       "add_button": "Tambah acara",
       "create_title": "Buat acara",
       "edit_title": "Detail acara",
+      "locked_title": "Acara ini tidak dapat lagi diedit",
+      "locked_body": "Acara sudah selesai atau dibatalkan — mungkin oleh anggota manajemen lain — sehingga formulir ini hanya dapat dibaca.",
       "status": {
         "scheduled": "Terjadwal",
         "live": "Live",
@@ -3624,7 +3643,8 @@
       "errors": {
         "load_failed": "Gagal memuat acara.",
         "save_failed": "Gagal menyimpan acara.",
-        "cancel_failed": "Gagal membatalkan acara."
+        "cancel_failed": "Gagal membatalkan acara.",
+        "not_editable": "Acara ini tidak dapat lagi diedit."
       }
     },
     "vtual-managements": {
@@ -3670,6 +3690,28 @@
         "columns": {
           "creator": "Kreator",
           "joined_at": "Bergabung"
+        }
+      },
+      "grants": {
+        "section_title": "Akses kreator",
+        "section_help": "Berikan satu anggota akses ke satu profil vTuber yang tertaut. Ini menambah akses di luar perannya — pemilik dan admin tetap memiliki akses ke semua profil di organisasi.",
+        "member": "Anggota",
+        "member_placeholder": "Pilih anggota",
+        "creator": "Profil vTuber",
+        "creator_placeholder": "Pilih profil",
+        "capability": "Tingkat akses",
+        "capabilities": {
+          "view": "Lihat",
+          "edit": "Ubah"
+        },
+        "grant_button": "Berikan akses",
+        "revoke_button": "Batalkan",
+        "table_caption": "Akses kreator yang didelegasikan untuk manajemen ini",
+        "empty": "Belum ada akses yang didelegasikan.",
+        "columns": {
+          "member": "Anggota",
+          "creator": "Profil vTuber",
+          "capability": "Tingkat akses"
         }
       },
       "members": {
@@ -3746,7 +3788,9 @@
         "archive_failed": "Gagal mengarsipkan manajemen.",
         "member_update_failed": "Gagal memperbarui peran anggota.",
         "invite_send_failed": "Gagal mengirim undangan.",
-        "invite_cancel_failed": "Gagal membatalkan undangan."
+        "invite_cancel_failed": "Gagal membatalkan undangan.",
+        "grant_save_failed": "Gagal memberikan akses kreator.",
+        "grant_revoke_failed": "Gagal membatalkan akses kreator."
       }
     },
     "vtual-invites": {
@@ -3978,6 +4022,55 @@
           "action_failed": "Tindakan klaim gagal."
         }
       },
+      "incidents": {
+        "title": "Insiden",
+        "breadcrumb": "Insiden",
+        "list_title": "Insiden integrasi",
+        "subtitle": "Kegagalan terkelompok dari integrasi platform vTual. Tandai yang sedang Anda tangani sebagai diketahui, lalu tandai selesai setelah integrasi pulih.",
+        "search_placeholder": "Cari judul atau detail",
+        "columns": {
+          "kind": "Integrasi",
+          "subject": "Subjek",
+          "title": "Kegagalan",
+          "severity": "Tingkat",
+          "status": "Status",
+          "occurrences": "Kejadian",
+          "last_seen": "Terakhir terlihat"
+        },
+        "filters": {
+          "all_statuses": "Semua status",
+          "all_severities": "Semua tingkat",
+          "all_kinds": "Semua integrasi",
+          "clear": "Bersihkan filter"
+        },
+        "kind": {
+          "websub": "WebSub YouTube",
+          "eventsub": "EventSub Twitch",
+          "eventsub_notification": "Pengiriman EventSub Twitch",
+          "credential": "Kredensial platform",
+          "platform_http": "API platform",
+          "ingestion": "Ingest konten"
+        },
+        "severity": {
+          "info": "Info",
+          "warning": "Peringatan",
+          "critical": "Kritis"
+        },
+        "status": {
+          "open": "Terbuka",
+          "acknowledged": "Diketahui",
+          "resolved": "Terselesaikan"
+        },
+        "datatable": {
+          "empty": "Tidak ada insiden. Semua integrasi berjalan normal.",
+          "zero_records": "Tidak ada insiden yang cocok dengan filter ini."
+        },
+        "action_done": "Insiden diperbarui.",
+        "errors": {
+          "load_failed": "Gagal memuat insiden.",
+          "action_failed": "Tindakan insiden gagal."
+        }
+      },
       "credentials": {
         "list": "Kredensial",
         "add": "Tambah kredensial",
@@ -4188,6 +4281,9 @@
           "filter_type_live": "LIVE",
           "filter_type_archive": "Arsip",
           "filter_type_vod": "VOD",
+          "filter_content_type_all": "Semua jenis musik",
+          "filter_content_type_music": "Musik",
+          "filter_content_type_non_music": "Nonmusik",
           "filter_sort_newest": "Terbaru",
           "filter_sort_oldest": "Terlama",
           "contents_empty_filtered": "Tidak ada konten yang cocok dengan filter ini.",

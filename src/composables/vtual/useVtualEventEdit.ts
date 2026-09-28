@@ -3,14 +3,18 @@
  * Mirrors useVtualManagementEdit: create vs edit via route param,
  * load/save, ApiError validation mapping.
  */
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useVtualEvents } from '@/composables/vtual/useVtualEvents'
 import { useVtualManagements } from '@/composables/vtual/useVtualManagements'
 import { useAlert } from '@/composables/useAlert'
+import { useVtualRealtime, type ManagementUpdatedPayload } from '@/composables/vtual/useVtualRealtime'
 import { ApiError } from '@/api/types'
 import type { VtualManagement, VtualManagementEvent } from '@/api/types'
+
+/** Statuses the backend refuses to update (`event_not_actionable`). */
+const LOCKED_STATUSES = new Set(['ended', 'cancelled'])
 
 function toDatetimeLocal(value: string | null): string {
   if (!value) return ''
@@ -82,19 +86,13 @@ export function useVtualEventEdit() {
       return
     }
     loading.value = true
+    remoteLocked.value = false
     try {
       const event = await events.fetchOne(eventId.value)
       loadedEvent.value = event
       form.management_id = event.management_id
-      form.title = event.title
-      form.description = event.description ?? ''
-      form.thumbnail_url = event.thumbnail_url ?? ''
-      form.url = event.url ?? ''
-      form.starts_at = toDatetimeLocal(event.starts_at)
-      form.ends_at = toDatetimeLocal(event.ends_at)
-      form.timezone = event.timezone ?? ''
-      form.creator_id = event.creator_id ?? ''
-      form.is_featured = event.is_featured
+      applyEvent(event)
+      remoteLocked.value = LOCKED_STATUSES.has(event.status)
     } catch (e) {
       showError(e instanceof Error ? e.message : t('web.vtual-events.errors.load_failed'))
     } finally {
@@ -128,7 +126,7 @@ export function useVtualEventEdit() {
   }
 
   async function handleSubmit(): Promise<void> {
-    if (saving.value) return
+    if (saving.value || remoteLocked.value) return
     saving.value = true
     errors.value = {}
 
@@ -165,12 +163,127 @@ export function useVtualEventEdit() {
     void router.push({ name: 'vtual.events.index.view' })
   }
 
+  // --- Realtime -------------------------------------------------------------
+  // Another org member may create/update/cancel an event while this form is
+  // open. The form holds only editable fields, so applying a remote snapshot
+  // blindly would overwrite whatever the actor has typed — the same hazard
+  // `useVtualManagementEdit` avoids by applying collections only.
+  //
+  // Rule: refetch on the push, then
+  //   - event gone, or left an editable status → lock the form (the submit
+  //     would only fail with `event_not_actionable`) and say why;
+  //   - otherwise → adopt the fresh values only when the actor has no unsaved
+  //     edits. While they are typing, the form is left alone.
+
+  const remoteLocked = ref(false)
+
+  /**
+   * Whether our handler is registered on the management channel. Deliberately
+   * not `subscribeManagement()`'s return value: that reports whether the channel
+   * is *attached*, and attach is deferred until Echo exists, so a form opened
+   * before `initEcho()` would read `false` and never release its handler.
+   */
+  let realtimeRegistered = false
+
+  /** Does the form still hold exactly what the server last told us? */
+  function formIsPristine(event: VtualManagementEvent): boolean {
+    return (
+      form.title === event.title
+      && form.description === (event.description ?? '')
+      && form.thumbnail_url === (event.thumbnail_url ?? '')
+      && form.url === (event.url ?? '')
+      && form.starts_at === toDatetimeLocal(event.starts_at)
+      && form.ends_at === toDatetimeLocal(event.ends_at)
+      && form.timezone === (event.timezone ?? '')
+      && form.is_featured === event.is_featured
+    )
+  }
+
+  function applyEvent(event: VtualManagementEvent): void {
+    form.title = event.title
+    form.description = event.description ?? ''
+    form.thumbnail_url = event.thumbnail_url ?? ''
+    form.url = event.url ?? ''
+    form.starts_at = toDatetimeLocal(event.starts_at)
+    form.ends_at = toDatetimeLocal(event.ends_at)
+    form.timezone = event.timezone ?? ''
+    form.creator_id = event.creator_id ?? ''
+    form.is_featured = event.is_featured
+  }
+
+  async function refetchRealtime(): Promise<void> {
+    if (!isEdit.value || saving.value) return
+
+    try {
+      const event = await events.fetchOne(eventId.value)
+
+      if (LOCKED_STATUSES.has(event.status)) {
+        loadedEvent.value = event
+        remoteLocked.value = true
+        showError(t('web.vtual-events.errors.not_editable'))
+        return
+      }
+
+      if (loadedEvent.value && formIsPristine(loadedEvent.value)) {
+        applyEvent(event)
+      }
+      loadedEvent.value = event
+    } catch {
+      // 404 / gone: the event was archived out from under the form. Lock it
+      // rather than let the actor submit into a 404.
+      remoteLocked.value = true
+      showError(t('web.vtual-events.errors.not_editable'))
+    }
+  }
+
+  function onManagementUpdated(payload: ManagementUpdatedPayload): void {
+    if (payload.kind !== 'event') return
+    // A null ref_id means the push did not name the row; treat it as relevant.
+    if (payload.ref_id !== null && payload.ref_id !== eventId.value) return
+    void refetchRealtime()
+  }
+
+  function subscribeRealtime(): void {
+    if (realtimeRegistered || !isEdit.value) return
+    const managementId = loadedEvent.value?.management_id
+    if (!managementId) return
+
+    const { subscribeManagement } = useVtualRealtime()
+    subscribeManagement(managementId, onManagementUpdated)
+    realtimeRegistered = true
+  }
+
+  function unsubscribeRealtime(): void {
+    if (!realtimeRegistered) return
+    const managementId = loadedEvent.value?.management_id
+    if (managementId) {
+      const { unsubscribeManagement } = useVtualRealtime()
+      unsubscribeManagement(managementId, onManagementUpdated)
+    }
+    realtimeRegistered = false
+  }
+
+  onUnmounted(() => {
+    unsubscribeRealtime()
+  })
+
   watch(isEdit, () => {
     void load()
   }, { immediate: true })
 
-  watch([isEdit, loadedEvent], () => {
+  watch(isEdit, () => {
     void loadManagements()
+  }, { immediate: true })
+
+  // Re-subscribe when the target org changes (create → edit, or a different id).
+  // Keyed on the id, not on `loadedEvent`, so a realtime refetch — which
+  // replaces that object — does not re-bind or re-fetch the org list.
+  watch([isEdit, loadedManagementId], () => {
+    if (isEdit.value && loadedManagementId.value !== '') {
+      subscribeRealtime()
+    } else {
+      unsubscribeRealtime()
+    }
   }, { immediate: true })
 
   return {
@@ -183,5 +296,6 @@ export function useVtualEventEdit() {
     fieldError,
     handleSubmit,
     goIndex,
+    remoteLocked,
   }
 }
