@@ -21,6 +21,7 @@ const {
   fieldError,
   handleSubmit,
   goIndex,
+  remoteLocked,
 } = useVtualEventEdit()
 
 // Trailing breadcrumb crumb: the edited event's title, so the crumb reads
@@ -44,7 +45,16 @@ useBreadcrumbTitle(() => (isEdit.value ? form.title : null))
     </div>
 
     <div v-else>
+      <div v-if="remoteLocked" class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+        <i class="bi bi-lock-fill mt-1"></i>
+        <div>
+          <div class="fw-semibold">{{ t('web.vtual-events.locked_title') }}</div>
+          <div class="small">{{ t('web.vtual-events.locked_body') }}</div>
+        </div>
+      </div>
+
       <form @submit.prevent="handleSubmit">
+        <fieldset :disabled="saving || remoteLocked">
         <FormSelect
           name="management_id"
           :label="t('web.vtual-events.form.management')"
@@ -117,11 +127,13 @@ useBreadcrumbTitle(() => (isEdit.value ? form.title : null))
           v-model="form.is_featured"
           :disabled="saving"
         />
+        </fieldset>
         <div class="d-flex gap-2">
           <SubmitButton
             :label="isEdit ? t('web.vtual-events.form.submit_update') : t('web.vtual-events.form.submit_create')"
             :loading="saving"
             variant="primary"
+            :disabled="remoteLocked"
           />
           <button type="button" class="btn btn-outline-secondary" :disabled="saving" @click="goIndex">
             {{ t('ui.actions.cancel') }}

@@ -8,6 +8,7 @@ import type {
   MicrostockCollectionPayload,
   MicrostockCollectionStatusPayload,
   MicrostockCollectionExportPayload,
+  MicrostockMarketplaceUpload,
   MicrostockSlotStatus,
 } from '@/api/types'
 
@@ -59,6 +60,31 @@ export function useMicrostock() {
   async function downloadCollectionCsv(folderId: string): Promise<void> {
     const { blob, filename } = await getBlob(`microstock/collections/${folderId}/download`)
     saveBlob(blob, filename ?? `collection-${folderId}.csv`)
+  }
+
+  /**
+   * Queue a marketplace upload (202). Additive to the CSV path: the decision
+   * record keeps export as the primary route out.
+   */
+  async function uploadCollection(
+    folderId: string,
+    credentialId: string,
+  ): Promise<MicrostockMarketplaceUpload> {
+    const res = await post<ApiResponse<MicrostockMarketplaceUpload>>(
+      `microstock/collections/${folderId}/upload`,
+      { credential_id: credentialId },
+    )
+    if (res.status === 'success' && res.data) return res.data
+    throw new Error(res.message ?? t('web.archivd.operation_failed'))
+  }
+
+  /** Latest attempt for this collection, or null when never attempted. */
+  async function fetchUploadStatus(folderId: string): Promise<MicrostockMarketplaceUpload | null> {
+    const res = await get<ApiResponse<MicrostockMarketplaceUpload | null>>(
+      `microstock/collections/${folderId}/upload`,
+    )
+    if (res.status === 'success') return res.data ?? null
+    throw new Error(res.message ?? t('web.archivd.operation_failed'))
   }
 
   async function fetchAssetMetadata(fileId: string): Promise<MicrostockAssetMetadata> {
@@ -128,6 +154,8 @@ export function useMicrostock() {
     fetchCollectionStatus,
     exportCollection,
     downloadCollectionCsv,
+    uploadCollection,
+    fetchUploadStatus,
     fetchAssetMetadata,
     updateAssetMetadata,
     analyzeAsset,

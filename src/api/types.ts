@@ -563,6 +563,11 @@ export interface MicrostockCredential {
   id: string
   marketplace: string
   label: string
+  /** pending | verified | failed — set by the upload job, not by the owner. */
+  status?: string | null
+  last_error?: string | null
+  last_used_at?: string | null
+  last_verified_at?: string | null
   created_at: string | null
 }
 
@@ -1126,6 +1131,66 @@ export interface VtualPlatformCredentialTestPayload {
   test: { ok: boolean; message: string; platform: string }
 }
 
+/**
+ * Grouped vTual integration incident (ops triage queue).
+ *
+ * `context` is redacted server-side at write time, so it is safe to render —
+ * but it is free-form, so the view must not assume any particular key.
+ * `kind_label` / `severity_label` / `status_label` are translated by the API:
+ * the enums are a backend contract and the SPA must not re-map them.
+ */
+export interface VtualIncident {
+  actions?: QueryRowAction[]
+  id: string
+  kind: string
+  kind_label: string
+  severity: string
+  severity_label: string
+  status: string
+  status_label: string
+  platform_id: string | null
+  platform_key: string | null
+  platform_name: string | null
+  channel_id: string | null
+  channel_handle: string | null
+  channel_display_name: string | null
+  credential_id: string | null
+  credential_label: string | null
+  title: string
+  detail: string | null
+  context: Record<string, unknown>
+  occurrences: number
+  first_seen_at: string | null
+  first_seen_at_formatted: string | null
+  first_seen_at_human: string | null
+  last_seen_at: string | null
+  last_seen_at_formatted: string | null
+  last_seen_at_human: string | null
+  acknowledged_at: string | null
+  acknowledged_at_formatted: string | null
+  acknowledged_at_human: string | null
+  acknowledged_by: { id: string; name: string; email?: string } | null
+  resolved_at: string | null
+  resolved_at_formatted: string | null
+  resolved_at_human: string | null
+  resolved_by: { id: string; name: string; email?: string } | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface VtualIncidentPagedList {
+  items: VtualIncident[]
+  pagination: ListPagination
+}
+
+/** Incident queue filters, mapped 1:1 onto the endpoint's validated query. */
+export interface VtualIncidentFilters {
+  status?: string
+  severity?: string
+  kind?: string
+  q?: string
+}
+
 // --- Subscriptions ---
 export interface Subscription {
   actions?: QueryRowAction[]
@@ -1474,6 +1539,17 @@ export interface VtualManagementCreatorAssignment {
   creator: VtualCreator
 }
 
+export type VtualGrantCapability = 'view' | 'edit'
+
+export interface VtualManagementCreatorGrant {
+  id: string
+  member_id: string
+  creator_id: string
+  capability: VtualGrantCapability
+  creator_display_name?: string | null
+  member_user_name?: string | null
+}
+
 export type VtualCreatorInviteMode = 'existing' | 'new'
 
 export interface VtualCreatorInvite {
@@ -1511,6 +1587,7 @@ export interface VtualManagement {
   my_role: string | null
   members?: VtualManagementMember[]
   creators?: VtualManagementCreatorAssignment[]
+  creator_grants?: VtualManagementCreatorGrant[]
   created_at: string | null
   created_at_formatted?: string | null
   created_at_human?: string | null
@@ -1622,6 +1699,8 @@ export interface VtualPublicContentChannel {
 export interface VtualPublicContent {
   type: string | null
   status: string | null
+  /** Music layer: `music` | `non_music` | null when unclassified. */
+  content_type?: string | null
   title: string | null
   thumbnail_url: string | null
   url: string | null
@@ -1649,6 +1728,8 @@ export interface VtualPublicContentFeed {
 export interface VtualPublicContentFilters {
   platform: string | null
   type: string | null
+  /** Music layer: `music` | `non_music`. Rows classified `unknown` match neither. */
+  content_type: string | null
   sort: 'newest' | 'oldest'
 }
 
@@ -1933,6 +2014,20 @@ export interface MicrostockCollectionStatusPayload {
 export interface MicrostockCollectionExportPayload {
   path: string
   count: number
+}
+
+export interface MicrostockMarketplaceUpload {
+  id: string
+  marketplace: string
+  /** queued | uploading | uploaded | failed */
+  status: string | null
+  remote_path: string | null
+  file_count: number
+  byte_count: number
+  error: string | null
+  started_at: string | null
+  finished_at: string | null
+  created_at: string | null
 }
 
 export interface MicrostockSlotStatus {

@@ -88,10 +88,26 @@ const typeOptions = computed(() => [
   { value: 'vod', label: t('web.vtual.public.profile.filter_type_vod') },
 ])
 
+// Music layer (`music` | `non_music`). Rows the classifier left unknown match
+// neither value, so the row only appears once this creator has classified rows
+// — a chip that can never match anything is a dead end for the visitor.
+const contentTypeOptions = computed(() => [
+  { value: null as string | null, label: t('web.vtual.public.profile.filter_content_type_all') },
+  { value: 'music', label: t('web.vtual.public.profile.filter_content_type_music') },
+  { value: 'non_music', label: t('web.vtual.public.profile.filter_content_type_non_music') },
+])
+
+const showContentTypeFilter = computed(
+  () =>
+    filters.value.content_type !== null ||
+    (profile.value?.contents.items ?? []).some((item) => item.content_type != null),
+)
+
 const hasActiveFilters = computed(
   () =>
     filters.value.platform !== null ||
     filters.value.type !== null ||
+    filters.value.content_type !== null ||
     filters.value.sort !== 'newest',
 )
 
@@ -408,6 +424,27 @@ onUnmounted(() => {
                     : 'bg-gray-150 text-gray-600 hover:text-accent dark:bg-gray-800 dark:text-gray-300'
                 "
                 @click="filters.type = option.value"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+
+            <div
+              v-if="showContentTypeFilter"
+              class="flex flex-wrap items-center gap-x-2 gap-y-2"
+            >
+              <button
+                v-for="option in contentTypeOptions"
+                :key="`content-type:${option.value ?? 'all'}`"
+                type="button"
+                :aria-pressed="filters.content_type === option.value"
+                class="px-3 py-1.5 text-xs font-bold uppercase transition-colors"
+                :class="
+                  filters.content_type === option.value
+                    ? 'bg-accent text-white dark:text-gray-900'
+                    : 'bg-gray-150 text-gray-600 hover:text-accent dark:bg-gray-800 dark:text-gray-300'
+                "
+                @click="filters.content_type = option.value"
               >
                 {{ option.label }}
               </button>

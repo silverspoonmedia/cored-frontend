@@ -17,6 +17,7 @@ import ArNameMoveModal, { type ArNameMoveModal as ArNameMoveModalState } from '@
 import { useArchivd } from '@/composables/archivd/useArchivd'
 import { useArchivdBrowse } from '@/composables/archivd/useArchivdBrowse'
 import { useMicrostock } from '@/composables/microstock/useMicrostock'
+import { useMicrostockCredentials } from '@/composables/microstock/useMicrostockCredentials'
 import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 import { useAlert } from '@/composables/useAlert'
@@ -24,7 +25,7 @@ import { useArchivdDragMove } from '@/composables/archivd/useArchivdDragMove'
 import { applyBrowseClick, listingKeys, idsByEntity } from '@/composables/archivd/useArchivdSelection'
 import { resolveMicrostockBadge, formatCollectionProgress, type arMicrostockBadgeLabels } from '@/utils/archivd/arMicrostockBadge'
 import { useAuth } from '@/stores/auth'
-import type { HostedFile, ArFolder, MicrostockCollectionStatusPayload } from '@/api/types'
+import type { HostedFile, ArFolder, MicrostockCollectionStatusPayload, MicrostockCredential, MicrostockMarketplaceUpload } from '@/api/types'
 
 const VIS_LINK = 'anyone_with_link'
 
@@ -33,6 +34,7 @@ const router = useRouter()
 const { t } = useI18n()
 const ar = useArchivd()
 const ms = useMicrostock()
+const credentials = useMicrostockCredentials()
 const { hasPermission } = useAuth()
 const { success: showSuccess, error: showError } = useAlert()
 const { subscribe: subscribeArRealtime, unsubscribe: unsubscribeArRealtime, setWorkspaceChannel: setArWorkspaceChannel } = useArchivdRealtime()
@@ -130,6 +132,11 @@ const showReviewBtn = computed(() => {
 })
 const showExportBtn = computed(() => isMicrostock.value && collectionStatus.value === 'review')
 const showDownloadBtn = computed(() => isMicrostock.value && collectionStatus.value === 'exported')
+// A marketplace upload is allowed from `review` (upload the finalized set without
+// exporting the CSV) and from `exported`; the backend re-checks both.
+const showUploadBtn = computed(() =>
+  isMicrostock.value && ['review', 'exported'].includes(collectionStatus.value ?? ''),
+)
 
 function canLockCollection(folder: ArFolder): boolean {
   if (!folder.collection_status) return false
@@ -500,6 +507,25 @@ const showCreateMs = ref(false)
 const createMsName = ref('')
 const creatingMs = ref(false)
 
+// Marketplace upload: the picker is a credential list, the status is the latest
+// attempt for the open collection (docs/domains/microstock/reference-marketplace-upload.md).
+const uploadingCollection = ref(false)
+const uploadPickerOpen = ref(false)
+const uploadCredentials = ref<MicrostockCredential[]>([])
+const uploadCredentialsLoaded = ref(false)
+const uploadStatus = ref<MicrostockMarketplaceUpload | null>(null)
+
+const uploadStatusLabel = computed(() => {
+  const status = uploadStatus.value?.status
+  return status ? t(`web.archivd.microstock.upload_status_${status}`) : ''
+})
+
+const uploadStatusClass = computed(() => {
+  if (uploadStatus.value?.status === 'uploaded') return 'text-success'
+  if (uploadStatus.value?.status === 'failed') return 'text-danger'
+  return 'text-muted'
+})
+
 const reviewFileIds = computed(() => files.value.map((f) => f.id))
 
 function openCollectionModal(folder: ArFolder): void {
@@ -575,6 +601,43 @@ async function handleDownloadCsv(): Promise<void> {
   }
 }
 
+async function toggleUploadPicker(): Promise<void> {
+  uploadPickerOpen.value = !uploadPickerOpen.value
+  if (uploadPickerOpen.value && !uploadCredentialsLoaded.value) {
+    uploadCredentials.value = await credentials.fetchList()
+    uploadCredentialsLoaded.value = true
+  }
+}
+
+async function handleUploadCollection(credential: MicrostockCredential): Promise<void> {
+  const folder = browse.value?.folder
+  if (!folder || uploadingCollection.value) return
+  uploadPickerOpen.value = false
+  uploadingCollection.value = true
+  try {
+    uploadStatus.value = await ms.uploadCollection(folder.id, credential.id)
+    showSuccess(t('api.microstock.upload_queued'))
+    await loadAll()
+  } catch (e) {
+    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
+  } finally {
+    uploadingCollection.value = false
+  }
+}
+
+async function refreshUploadStatus(): Promise<void> {
+  if (!isMicrostock.value || !currentFolderId.value
+    || !['review', 'exported'].includes(collectionStatus.value ?? '')) {
+    uploadStatus.value = null
+    return
+  }
+  try {
+    uploadStatus.value = await ms.fetchUploadStatus(currentFolderId.value)
+  } catch {
+    uploadStatus.value = null
+  }
+}
+
 async function handleCreateMicrostock(): Promise<void> {
   if (creatingMs.value) return
   creatingMs.value = true
@@ -629,8 +692,13 @@ const ArRealtimeHandlers = {
   onCollectionAnalysisProgress: () => {
     loadBrowse({ keepSelection: true })
     void refreshCollectionStatus()
+    void refreshUploadStatus()
   },
   onAssetMetadataProgress: () => loadBrowse({ keepSelection: true }),
+  onMicrostockCredentialsChanged: () => {
+    // A credential edited in another tab invalidates the cached picker list.
+    uploadCredentialsLoaded.value = false
+  },
 }
 
 function onEsc(e: KeyboardEvent): void {
@@ -646,7 +714,18 @@ function onEsc(e: KeyboardEvent): void {
 useEchoResync(() => {
   loadBrowse({ keepSelection: true })
   void loadQuota()
+  void refreshCollectionStatus()
+  void refreshUploadStatus()
 })
+
+// The upload status column only exists for a curated collection, so follow the
+// status instead of polling: `loadAll()` (route change) re-reads the folder and
+// this watch picks the new value up.
+watch(
+  () => `${currentFolderId.value ?? ''}|${collectionStatus.value ?? ''}`,
+  () => { void refreshUploadStatus() },
+  { immediate: true },
+)
 
 // Team uploads/mutations broadcast on archivd.workspace.{id}; join the
 // active workspace channel and follow route changes between spaces.
@@ -793,6 +872,38 @@ onUnmounted(() => {
       >
         <i class="bi bi-download me-1"></i>{{ t('web.archivd.microstock.download_csv') }}
       </button>
+      <div v-if="showUploadBtn" class="dropdown d-inline-block">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-sm"
+          :disabled="uploadingCollection"
+          data-ar-upload-marketplace
+          @click="toggleUploadPicker"
+        >
+          <span v-if="uploadingCollection" class="spinner-border spinner-border-sm me-1"></span>
+          <i v-else class="bi bi-cloud-upload me-1"></i>{{ t('web.archivd.microstock.upload_marketplace') }}
+        </button>
+        <ul v-if="uploadPickerOpen" class="dropdown-menu show" data-ar-upload-picker>
+          <li v-if="!uploadCredentials.length" class="dropdown-item-text small text-muted">
+            {{ t('web.archivd.microstock.upload_no_credentials') }}
+          </li>
+          <li v-for="credential in uploadCredentials" :key="credential.id">
+            <button type="button" class="dropdown-item" @click="handleUploadCollection(credential)">
+              {{ credential.label }}
+              <span class="text-muted small">— {{ credential.marketplace }}</span>
+              <span v-if="credential.status === 'failed'" class="badge bg-danger ms-1">
+                {{ t('web.archivd.microstock.credential_status_failed') }}
+              </span>
+            </button>
+          </li>
+          <li>
+            <router-link
+              class="dropdown-item small text-muted"
+              :to="{ name: 'archivd.microstock-credentials.view' }"
+            >{{ t('web.archivd.microstock.upload_manage_credentials') }}</router-link>
+          </li>
+        </ul>
+      </div>
       <ArWorkspaceSwitcher
         :active-workspace-id="typeof route.query.workspace_id === 'string' ? route.query.workspace_id : null"
         :root-label="rootLabel"
@@ -855,9 +966,12 @@ onUnmounted(() => {
           :style="{ width: (Number(quota.quota_bytes) > 0 ? quotaPct : 3) + '%' }"
         ></div>
         </div>
-        <div v-if="collectionProgressText || collectionStatusHint" class="small text-muted mt-1">
+        <div v-if="collectionProgressText || collectionStatusHint || uploadStatusLabel" class="small text-muted mt-1">
           <span v-if="collectionStatusHint">{{ collectionStatusHint }}</span>
           <span v-if="collectionProgressText">{{ collectionStatusHint ? ' — ' : '' }}{{ collectionProgressText }}</span>
+          <span v-if="uploadStatusLabel" :class="uploadStatusClass">
+            {{ (collectionStatusHint || collectionProgressText) ? ' — ' : '' }}{{ uploadStatusLabel }}
+          </span>
         </div>
       </div>
     </div>

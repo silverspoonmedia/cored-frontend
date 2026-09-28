@@ -383,6 +383,7 @@
       "collection_processing": "Анализ коллекции запущен.",
       "collection_status": "Статус коллекции загружен.",
       "collection_exported": "Коллекция экспортирована.",
+      "upload_queued": "Загрузка в магазин добавлена в очередь.",
       "insufficient_ai_credits": "Недостаточно ИИ-кредитов. Приобретите пакет ИИ-кредитов в разделе «Сервисы» перед запуском анализа.",
       "billing_loaded": "Статус оплаты ИИ загружен.",
       "ledger_loaded": "Журнал оплаты загружен.",
@@ -631,7 +632,9 @@
         "event_cancelled": "Событие отменено.",
         "invite_sent": "Приглашение отправлено.",
         "invite_cancelled": "Приглашение отменено.",
-        "member_updated": "Роль участника обновлена."
+        "member_updated": "Роль участника обновлена.",
+        "grant_created": "Право доступа к автору выдано.",
+        "grant_revoked": "Право доступа к автору отозвано."
       },
       "channel": {
         "list_success": "Каналы загружены.",
@@ -2004,6 +2007,9 @@
           "filter_type_live": "LIVE",
           "filter_type_archive": "Архив",
           "filter_type_vod": "VOD",
+          "filter_content_type_all": "Все типы музыки",
+          "filter_content_type_music": "Музыка",
+          "filter_content_type_non_music": "Не музыка",
           "filter_sort_newest": "Сначала новые",
           "filter_sort_oldest": "Сначала старые",
           "contents_empty_filtered": "Нет контента, подходящего под этот фильтр.",
@@ -2158,6 +2164,55 @@
         "errors": {
           "load_failed": "Не удалось загрузить заявки.",
           "action_failed": "Не удалось выполнить действие с заявкой."
+        }
+      },
+      "incidents": {
+        "title": "Инциденты",
+        "breadcrumb": "Инциденты",
+        "list_title": "Инциденты интеграций",
+        "subtitle": "Сгруппированные сбои интеграций платформы vTual. Отметьте то, над чем работаете, как принятое в работу, а после восстановления интеграции — как решённое.",
+        "search_placeholder": "Поиск по заголовку или деталям",
+        "columns": {
+          "kind": "Интеграция",
+          "subject": "Объект",
+          "title": "Сбой",
+          "severity": "Критичность",
+          "status": "Статус",
+          "occurrences": "Повторов",
+          "last_seen": "Последний раз"
+        },
+        "filters": {
+          "all_statuses": "Все статусы",
+          "all_severities": "Все уровни критичности",
+          "all_kinds": "Все интеграции",
+          "clear": "Сбросить фильтры"
+        },
+        "kind": {
+          "websub": "YouTube WebSub",
+          "eventsub": "Twitch EventSub",
+          "eventsub_notification": "Доставка Twitch EventSub",
+          "credential": "Учётные данные платформы",
+          "platform_http": "API платформы",
+          "ingestion": "Загрузка контента"
+        },
+        "severity": {
+          "info": "Информация",
+          "warning": "Предупреждение",
+          "critical": "Критический"
+        },
+        "status": {
+          "open": "Открыт",
+          "acknowledged": "Принят в работу",
+          "resolved": "Решён"
+        },
+        "datatable": {
+          "empty": "Инцидентов нет. Все интеграции работают штатно.",
+          "zero_records": "По этим фильтрам инцидентов нет."
+        },
+        "action_done": "Инцидент обновлён.",
+        "errors": {
+          "load_failed": "Не удалось загрузить инциденты.",
+          "action_failed": "Не удалось выполнить действие с инцидентом."
         }
       },
       "credentials": {
@@ -2521,6 +2576,14 @@
         "analyze": "Начать анализ",
         "export_csv": "Экспорт CSV",
         "download_csv": "Скачать CSV",
+        "upload_marketplace": "Загрузить в магазин",
+        "upload_no_credentials": "Учётных данных магазина пока нет. Добавьте их.",
+        "upload_manage_credentials": "Управление учётными данными",
+        "credential_status_failed": "Ошибка",
+        "upload_status_queued": "Загрузка в магазин добавлена в очередь.",
+        "upload_status_uploading": "Загрузка в магазин…",
+        "upload_status_uploaded": "Загружено в магазин.",
+        "upload_status_failed": "Не удалось загрузить в магазин.",
         "status_locked": "Коллекция заблокирована. Готова к анализу.",
         "status_processing": "ИИ анализирует эту коллекцию…",
         "status_processing_degraded": "(занимает больше времени, чем обычно)",
@@ -3197,7 +3260,13 @@
       "columns": {
         "marketplace": "Маркетплейс",
         "label": "Метка",
+        "status": "Статус",
         "created_at": "Дата создания"
+      },
+      "status": {
+        "pending": "Не проверены",
+        "verified": "Проверены",
+        "failed": "Ошибка"
       },
       "errors": {
         "load_failed": "Не удалось загрузить учётные данные.",
@@ -3957,6 +4026,8 @@
       "add_button": "Добавить событие",
       "create_title": "Создать событие",
       "edit_title": "Детали события",
+      "locked_title": "Это событие больше нельзя редактировать",
+      "locked_body": "Событие завершено или отменено — возможно, другим участником организации — поэтому форма доступна только для чтения.",
       "status": {
         "scheduled": "Запланировано",
         "live": "В эфире",
@@ -3992,7 +4063,8 @@
       "errors": {
         "load_failed": "Не удалось загрузить события.",
         "save_failed": "Не удалось сохранить событие.",
-        "cancel_failed": "Не удалось отменить событие."
+        "cancel_failed": "Не удалось отменить событие.",
+        "not_editable": "Это событие больше нельзя редактировать."
       }
     },
     "vtual-managements": {
@@ -4038,6 +4110,28 @@
         "columns": {
           "creator": "Автор",
           "joined_at": "Присоединился"
+        }
+      },
+      "grants": {
+        "section_title": "Доступ к авторам",
+        "section_help": "Дайте одному участнику доступ к одному связанному профилю vTuber. Это дополняет его роль: владелец и администраторы сохраняют доступ ко всем профилям организации.",
+        "member": "Участник",
+        "member_placeholder": "Выберите участника",
+        "creator": "Профиль vTuber",
+        "creator_placeholder": "Выберите профиль",
+        "capability": "Уровень доступа",
+        "capabilities": {
+          "view": "Просмотр",
+          "edit": "Редактирование"
+        },
+        "grant_button": "Выдать доступ",
+        "revoke_button": "Отозвать",
+        "table_caption": "Делегированный доступ к авторам в этой организации",
+        "empty": "Делегированного доступа пока нет.",
+        "columns": {
+          "member": "Участник",
+          "creator": "Профиль vTuber",
+          "capability": "Уровень доступа"
         }
       },
       "members": {
@@ -4114,7 +4208,9 @@
         "archive_failed": "Не удалось архивировать организацию.",
         "member_update_failed": "Не удалось обновить роль участника.",
         "invite_send_failed": "Не удалось отправить приглашение.",
-        "invite_cancel_failed": "Не удалось отменить приглашение."
+        "invite_cancel_failed": "Не удалось отменить приглашение.",
+        "grant_save_failed": "Не удалось выдать право доступа к автору.",
+        "grant_revoke_failed": "Не удалось отозвать право доступа к автору."
       }
     },
     "vtual-invites": {

@@ -383,6 +383,7 @@
       "collection_processing": "集合分析已开始。",
       "collection_status": "集合状态已加载。",
       "collection_exported": "集合已导出。",
+      "upload_queued": "已加入上传到市场的队列。",
       "insufficient_ai_credits": "AI 点数不足。请先在服务页面购买 AI 点数包，再运行分析。",
       "billing_loaded": "AI 计费状态已加载。",
       "ledger_loaded": "计费账本已加载。",
@@ -631,7 +632,9 @@
         "event_cancelled": "活动已取消。",
         "invite_sent": "邀请已发送。",
         "invite_cancelled": "邀请已取消。",
-        "member_updated": "成员角色已更新。"
+        "member_updated": "成员角色已更新。",
+        "grant_created": "已授予创作者访问权限。",
+        "grant_revoked": "已撤销创作者访问权限。"
       },
       "channel": {
         "list_success": "频道已加载。",
@@ -1808,6 +1811,14 @@
         "analyze": "开始分析",
         "export_csv": "导出 CSV",
         "download_csv": "下载 CSV",
+        "upload_marketplace": "上传到市场",
+        "upload_no_credentials": "还没有市场凭证。请先添加。",
+        "upload_manage_credentials": "管理凭证",
+        "credential_status_failed": "失败",
+        "upload_status_queued": "已加入上传到市场的队列。",
+        "upload_status_uploading": "正在上传到市场…",
+        "upload_status_uploaded": "已上传到市场。",
+        "upload_status_failed": "上传到市场失败。",
         "status_locked": "集合已锁定，可以开始分析了。",
         "status_processing": "AI 正在分析此集合…",
         "status_processing_degraded": "（耗时比平时更长）",
@@ -2602,7 +2613,13 @@
       "columns": {
         "marketplace": "市场",
         "label": "名称",
+        "status": "状态",
         "created_at": "已创建"
+      },
+      "status": {
+        "pending": "未验证",
+        "verified": "已验证",
+        "failed": "失败"
       },
       "errors": {
         "load_failed": "无法加载凭证。",
@@ -3589,6 +3606,8 @@
       "add_button": "添加活动",
       "create_title": "创建活动",
       "edit_title": "活动详情",
+      "locked_title": "此活动已无法编辑",
+      "locked_body": "活动已结束或已取消 — 可能由其他管理机构成员操作 — 因此此表单为只读。",
       "status": {
         "scheduled": "已排期",
         "live": "进行中",
@@ -3624,7 +3643,8 @@
       "errors": {
         "load_failed": "加载活动失败。",
         "save_failed": "保存活动失败。",
-        "cancel_failed": "取消活动失败。"
+        "cancel_failed": "取消活动失败。",
+        "not_editable": "此活动已无法编辑。"
       }
     },
     "vtual-managements": {
@@ -3670,6 +3690,28 @@
         "columns": {
           "creator": "创作者",
           "joined_at": "已加入"
+        }
+      },
+      "grants": {
+        "section_title": "创作者访问权限",
+        "section_help": "为一位成员授予对某个已关联 vTuber 个人资料的访问权限。这是在角色之外额外增加的权限，所有者和管理员仍可访问机构内的所有个人资料。",
+        "member": "成员",
+        "member_placeholder": "选择成员",
+        "creator": "vTuber 个人资料",
+        "creator_placeholder": "选择个人资料",
+        "capability": "访问权限级别",
+        "capabilities": {
+          "view": "查看",
+          "edit": "编辑"
+        },
+        "grant_button": "授予权限",
+        "revoke_button": "撤销",
+        "table_caption": "该管理机构委派的创作者访问权限",
+        "empty": "尚无委派的访问权限。",
+        "columns": {
+          "member": "成员",
+          "creator": "vTuber 个人资料",
+          "capability": "访问权限级别"
         }
       },
       "members": {
@@ -3746,7 +3788,9 @@
         "archive_failed": "归档管理机构失败。",
         "member_update_failed": "无法更新成员角色。",
         "invite_send_failed": "邀请发送失败。",
-        "invite_cancel_failed": "取消邀请失败。"
+        "invite_cancel_failed": "取消邀请失败。",
+        "grant_save_failed": "授予创作者访问权限失败。",
+        "grant_revoke_failed": "撤销创作者访问权限失败。"
       }
     },
     "vtual-invites": {
@@ -3978,6 +4022,55 @@
           "action_failed": "认领操作失败。"
         }
       },
+      "incidents": {
+        "title": "事件",
+        "breadcrumb": "事件",
+        "list_title": "集成事件",
+        "subtitle": "汇总 vTual 平台集成出现的故障。请将正在处理的标记为已确认，集成恢复后再标记为已解决。",
+        "search_placeholder": "搜索标题或详情",
+        "columns": {
+          "kind": "集成",
+          "subject": "对象",
+          "title": "故障",
+          "severity": "严重程度",
+          "status": "状态",
+          "occurrences": "发生次数",
+          "last_seen": "最近发生"
+        },
+        "filters": {
+          "all_statuses": "全部状态",
+          "all_severities": "全部严重程度",
+          "all_kinds": "全部集成",
+          "clear": "清除筛选"
+        },
+        "kind": {
+          "websub": "YouTube WebSub",
+          "eventsub": "Twitch EventSub",
+          "eventsub_notification": "Twitch EventSub 投递",
+          "credential": "平台凭证",
+          "platform_http": "平台 API",
+          "ingestion": "内容采集"
+        },
+        "severity": {
+          "info": "提示",
+          "warning": "警告",
+          "critical": "严重"
+        },
+        "status": {
+          "open": "未处理",
+          "acknowledged": "已确认",
+          "resolved": "已解决"
+        },
+        "datatable": {
+          "empty": "暂无事件，所有集成运行正常。",
+          "zero_records": "没有符合当前筛选条件的事件。"
+        },
+        "action_done": "事件已更新。",
+        "errors": {
+          "load_failed": "加载事件失败。",
+          "action_failed": "事件操作失败。"
+        }
+      },
       "credentials": {
         "list": "凭证",
         "add": "添加凭证",
@@ -4188,6 +4281,9 @@
           "filter_type_live": "直播",
           "filter_type_archive": "回放",
           "filter_type_vod": "VOD",
+          "filter_content_type_all": "全部音乐类型",
+          "filter_content_type_music": "音乐",
+          "filter_content_type_non_music": "非音乐",
           "filter_sort_newest": "最新",
           "filter_sort_oldest": "最早",
           "contents_empty_filtered": "没有符合筛选条件的内容。",

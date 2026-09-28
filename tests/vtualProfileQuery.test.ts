@@ -17,17 +17,23 @@ async function importCodec(): Promise<QueryModule> {
 }
 
 describe('profileFiltersFromQuery', () => {
-  it('seeds platform, type, sort and page from the query', async () => {
+  it('seeds platform, type, content_type, sort and page from the query', async () => {
     const { profileFiltersFromQuery } = await importCodec()
 
     const state = profileFiltersFromQuery({
       platform: 'youtube',
       type: 'vod',
+      content_type: 'music',
       sort: 'oldest',
       page: '3',
     })
 
-    expect(state.filters).toEqual({ platform: 'youtube', type: 'vod', sort: 'oldest' })
+    expect(state.filters).toEqual({
+      platform: 'youtube',
+      type: 'vod',
+      content_type: 'music',
+      sort: 'oldest',
+    })
     expect(state.page).toBe(3)
   })
 
@@ -35,7 +41,7 @@ describe('profileFiltersFromQuery', () => {
     const { profileFiltersFromQuery } = await importCodec()
 
     expect(profileFiltersFromQuery({})).toEqual({
-      filters: { platform: null, type: null, sort: 'newest' },
+      filters: { platform: null, type: null, content_type: null, sort: 'newest' },
       page: 1,
     })
   })
@@ -46,21 +52,32 @@ describe('profileFiltersFromQuery', () => {
     const state = profileFiltersFromQuery({
       platform: 'myspace',
       type: 'shorts',
+      content_type: 'podcast',
       sort: 'random',
       page: '0',
     })
 
-    expect(state.filters).toEqual({ platform: null, type: null, sort: 'newest' })
+    expect(state.filters).toEqual({
+      platform: null,
+      type: null,
+      content_type: null,
+      sort: 'newest',
+    })
     expect(state.page).toBe(1)
   })
 
   it('tolerates repeated params and whitespace', async () => {
     const { profileFiltersFromQuery } = await importCodec()
 
-    const state = profileFiltersFromQuery({ platform: ['twitch', 'youtube'], type: ' live ' })
+    const state = profileFiltersFromQuery({
+      platform: ['twitch', 'youtube'],
+      type: ' live ',
+      content_type: ['music', 'non_music'],
+    })
 
     expect(state.filters.platform).toBe('twitch')
     expect(state.filters.type).toBe('live')
+    expect(state.filters.content_type).toBe('music')
   })
 })
 
@@ -68,15 +85,23 @@ describe('profileQueryFromFilters', () => {
   it('omits defaults so the unfiltered first page is a bare URL', async () => {
     const { profileQueryFromFilters } = await importCodec()
 
-    expect(profileQueryFromFilters({ platform: null, type: null, sort: 'newest' }, 1)).toEqual({})
+    expect(
+      profileQueryFromFilters({ platform: null, type: null, content_type: null, sort: 'newest' }, 1),
+    ).toEqual({})
   })
 
   it('serializes every non-default filter plus the page', async () => {
     const { profileQueryFromFilters } = await importCodec()
 
-    expect(profileQueryFromFilters({ platform: 'youtube', type: 'vod', sort: 'oldest' }, 3)).toEqual({
+    expect(
+      profileQueryFromFilters(
+        { platform: 'youtube', type: 'vod', content_type: 'non_music', sort: 'oldest' },
+        3,
+      ),
+    ).toEqual({
       platform: 'youtube',
       type: 'vod',
+      content_type: 'non_music',
       sort: 'oldest',
       page: '3',
     })
@@ -87,7 +112,13 @@ describe('round trip and normalization', () => {
   it('survives query -> state -> query unchanged', async () => {
     const { profileFiltersFromQuery, profileQueryFromFilters, profileQueryKey } = await importCodec()
 
-    const raw = { platform: 'twitch', type: 'live', sort: 'oldest', page: '2' }
+    const raw = {
+      platform: 'twitch',
+      type: 'live',
+      content_type: 'music',
+      sort: 'oldest',
+      page: '2',
+    }
     const state = profileFiltersFromQuery(raw)
 
     expect(profileQueryKey(profileQueryFromFilters(state.filters, state.page))).toBe(

@@ -21,6 +21,9 @@ export const PROFILE_TYPE_VALUES = ['live', 'archive', 'vod'] as const
 /** `sort` values the backend filter accepts. */
 export const PROFILE_SORT_VALUES = ['newest', 'oldest'] as const
 
+/** Music-layer values the backend filter accepts (`App\Domain\Vtual\Enums\ContentKind`). */
+export const PROFILE_CONTENT_TYPE_VALUES = ['music', 'non_music'] as const
+
 /** Platform keys known to the backend (`App\Domain\Vtual\Enums\PlatformKey`). */
 export const PROFILE_PLATFORM_VALUES = ['youtube', 'twitch', 'kick'] as const
 
@@ -50,6 +53,7 @@ function isOneOf<T extends string>(value: string | null, allowed: readonly T[]):
 export function profileFiltersFromQuery(query: LocationQuery): ProfileQueryState {
   const platform = firstValue(query.platform)
   const type = firstValue(query.type)
+  const contentType = firstValue(query.content_type)
   const sort = firstValue(query.sort)
 
   const rawPage = firstValue(query.page)
@@ -59,6 +63,7 @@ export function profileFiltersFromQuery(query: LocationQuery): ProfileQueryState
     filters: {
       platform: isOneOf(platform, PROFILE_PLATFORM_VALUES) ? platform : null,
       type: isOneOf(type, PROFILE_TYPE_VALUES) ? type : null,
+      content_type: isOneOf(contentType, PROFILE_CONTENT_TYPE_VALUES) ? contentType : null,
       sort: isOneOf(sort, PROFILE_SORT_VALUES) ? sort : 'newest',
     },
     page: Number.isFinite(parsedPage) && parsedPage > 1 ? parsedPage : 1,
@@ -82,6 +87,9 @@ export function profileQueryFromFilters(
   if (filters.type !== null) {
     query.type = filters.type
   }
+  if (filters.content_type !== null) {
+    query.content_type = filters.content_type
+  }
   if (filters.sort !== 'newest') {
     query.sort = filters.sort
   }
@@ -104,5 +112,10 @@ export function profileFiltersEqual(
   a: VtualPublicContentFilters,
   b: VtualPublicContentFilters,
 ): boolean {
-  return a.platform === b.platform && a.type === b.type && a.sort === b.sort
+  return (
+    a.platform === b.platform &&
+    a.type === b.type &&
+    a.content_type === b.content_type &&
+    a.sort === b.sort
+  )
 }

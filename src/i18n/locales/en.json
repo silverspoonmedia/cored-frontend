@@ -383,6 +383,7 @@
       "collection_processing": "Collection analysis started.",
       "collection_status": "Collection status loaded.",
       "collection_exported": "Collection exported.",
+      "upload_queued": "Marketplace upload queued.",
       "insufficient_ai_credits": "Insufficient AI credits. Purchase an AI credit pack from Services before running analysis.",
       "billing_loaded": "AI billing status loaded.",
       "ledger_loaded": "Billing ledger loaded.",
@@ -631,7 +632,9 @@
         "event_cancelled": "Event cancelled.",
         "invite_sent": "Invitation sent.",
         "invite_cancelled": "Invitation cancelled.",
-        "member_updated": "Member role updated."
+        "member_updated": "Member role updated.",
+        "grant_created": "Creator access granted.",
+        "grant_revoked": "Creator access grant revoked."
       },
       "channel": {
         "list_success": "Channels loaded.",
@@ -1808,6 +1811,14 @@
         "analyze": "Start analysis",
         "export_csv": "Export CSV",
         "download_csv": "Download CSV",
+        "upload_marketplace": "Upload to marketplace",
+        "upload_no_credentials": "No marketplace credential yet. Add one first.",
+        "upload_manage_credentials": "Manage credentials",
+        "credential_status_failed": "Failed",
+        "upload_status_queued": "Marketplace upload queued.",
+        "upload_status_uploading": "Uploading to marketplace…",
+        "upload_status_uploaded": "Uploaded to marketplace.",
+        "upload_status_failed": "Marketplace upload failed.",
         "status_locked": "Collection locked. Ready to analyze.",
         "status_processing": "AI is analyzing this collection…",
         "status_processing_degraded": "(taking longer than usual)",
@@ -2602,7 +2613,13 @@
       "columns": {
         "marketplace": "Marketplace",
         "label": "Label",
+        "status": "Status",
         "created_at": "Created"
+      },
+      "status": {
+        "pending": "Not verified",
+        "verified": "Verified",
+        "failed": "Failed"
       },
       "errors": {
         "load_failed": "Failed to load credentials.",
@@ -3589,6 +3606,8 @@
       "add_button": "Add event",
       "create_title": "Create event",
       "edit_title": "Event details",
+      "locked_title": "This event can no longer be edited",
+      "locked_body": "It was ended or cancelled — possibly by another management member — so the form is read-only.",
       "status": {
         "scheduled": "Scheduled",
         "live": "Live",
@@ -3624,7 +3643,8 @@
       "errors": {
         "load_failed": "Failed to load events.",
         "save_failed": "Failed to save the event.",
-        "cancel_failed": "Failed to cancel the event."
+        "cancel_failed": "Failed to cancel the event.",
+        "not_editable": "This event can no longer be edited."
       }
     },
     "vtual-managements": {
@@ -3670,6 +3690,28 @@
         "columns": {
           "creator": "Creator",
           "joined_at": "Joined"
+        }
+      },
+      "grants": {
+        "section_title": "Creator access",
+        "section_help": "Give one member access to one linked vTuber profile. This adds to their role — owners and admins keep access to every profile in the organisation.",
+        "member": "Member",
+        "member_placeholder": "Select a member",
+        "creator": "vTuber profile",
+        "creator_placeholder": "Select a profile",
+        "capability": "Access level",
+        "capabilities": {
+          "view": "View",
+          "edit": "Edit"
+        },
+        "grant_button": "Grant access",
+        "revoke_button": "Revoke",
+        "table_caption": "Delegated creator access for this management",
+        "empty": "No delegated access yet.",
+        "columns": {
+          "member": "Member",
+          "creator": "vTuber profile",
+          "capability": "Access level"
         }
       },
       "members": {
@@ -3746,7 +3788,9 @@
         "archive_failed": "Failed to archive management.",
         "member_update_failed": "Failed to update member role.",
         "invite_send_failed": "Failed to send invitation.",
-        "invite_cancel_failed": "Failed to cancel invitation."
+        "invite_cancel_failed": "Failed to cancel invitation.",
+        "grant_save_failed": "Failed to grant creator access.",
+        "grant_revoke_failed": "Failed to revoke creator access."
       }
     },
     "vtual-invites": {
@@ -3978,6 +4022,55 @@
           "action_failed": "Claim action failed."
         }
       },
+      "incidents": {
+        "title": "Incidents",
+        "breadcrumb": "Incidents",
+        "list_title": "Integration incidents",
+        "subtitle": "Grouped failures from the vTual platform integrations. Acknowledge what you are working on, and resolve it once the integration recovers.",
+        "search_placeholder": "Search title or detail",
+        "columns": {
+          "kind": "Integration",
+          "subject": "Subject",
+          "title": "Failure",
+          "severity": "Severity",
+          "status": "Status",
+          "occurrences": "Hits",
+          "last_seen": "Last seen"
+        },
+        "filters": {
+          "all_statuses": "All statuses",
+          "all_severities": "All severities",
+          "all_kinds": "All integrations",
+          "clear": "Clear filters"
+        },
+        "kind": {
+          "websub": "YouTube WebSub",
+          "eventsub": "Twitch EventSub",
+          "eventsub_notification": "Twitch EventSub delivery",
+          "credential": "Platform credential",
+          "platform_http": "Platform API",
+          "ingestion": "Content ingestion"
+        },
+        "severity": {
+          "info": "Info",
+          "warning": "Warning",
+          "critical": "Critical"
+        },
+        "status": {
+          "open": "Open",
+          "acknowledged": "Acknowledged",
+          "resolved": "Resolved"
+        },
+        "datatable": {
+          "empty": "No incidents. Every integration is reporting clean.",
+          "zero_records": "No incidents match these filters."
+        },
+        "action_done": "Incident updated.",
+        "errors": {
+          "load_failed": "Failed to load incidents.",
+          "action_failed": "Incident action failed."
+        }
+      },
       "credentials": {
         "list": "Credentials",
         "add": "Add credential",
@@ -4188,6 +4281,9 @@
           "filter_type_live": "LIVE",
           "filter_type_archive": "Archive",
           "filter_type_vod": "VOD",
+          "filter_content_type_all": "All music types",
+          "filter_content_type_music": "Music",
+          "filter_content_type_non_music": "Non-music",
           "filter_sort_newest": "Newest",
           "filter_sort_oldest": "Oldest",
           "contents_empty_filtered": "No content matches these filters.",

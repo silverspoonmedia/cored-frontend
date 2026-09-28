@@ -9351,6 +9351,366 @@
         "curated_at": "2026-09-25T21:30:00+07:00",
         "surface": "table cell fallback in the profile platform channels table when a channel has never been synced",
         "source": "src/components/vtual/VtualProfileChannelsCard.vue"
+      },
+      "web.vtual-events.errors.not_editable": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "toast when a realtime push revealed the open event is ended/cancelled and the form locked itself",
+        "source": "src/composables/vtual/useVtualEventEdit.ts"
+      },
+      "web.vtual-events.locked_body": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "body line of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual-events.locked_title": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "heading of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual.incidents.action_done": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "success toast after acknowledge / resolve",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.breadcrumb": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.kind": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.last_seen": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.occurrences": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.severity": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.status": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.subject": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.empty": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when nothing is broken",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.zero_records": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when the filters exclude every row",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.action_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when a triage transition fails",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.load_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when the queue fails to load",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_kinds": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_severities": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_statuses": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.clear": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.credential": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub_notification": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.ingestion": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.platform_http": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.websub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.list_title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "card heading on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.search_placeholder": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "server-side search input placeholder",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.critical": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.info": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.warning": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.acknowledged": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.open": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.resolved": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.subtitle": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "helper line under the card heading",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "api.vtual.management.grant_created": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "api.vtual.management.grant_revoked": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_title": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_help": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.view": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.edit": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.grant_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.revoke_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.table_caption": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.empty": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_save_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_revoke_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual.public.profile.filter_content_type_all": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_non_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.archivd.microstock.upload_marketplace": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "toolbar button that opens the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_no_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "empty state inside the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_manage_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "link at the foot of the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.credential_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "badge beside a credential whose last upload failed, in the picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after an upload was queued (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploading": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line while the marketplace transfer runs (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploaded": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a successful marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a failed marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.microstock-credentials.columns.status": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status column header in the marketplace credentials table (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.pending": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential no upload has used yet (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.verified": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential a transfer has succeeded with (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential the marketplace rejected (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "api.microstock.upload_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "success toast after POST /api/v1/microstock/collections/{folder}/upload (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
       }
     },
     "en": {
@@ -9623,6 +9983,301 @@
         "curated_at": "2026-09-25T21:30:00+07:00",
         "surface": "table cell fallback in the profile platform channels table when a channel has never been synced",
         "source": "src/components/vtual/VtualProfileChannelsCard.vue"
+      },
+      "web.vtual-events.errors.not_editable": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "toast when a realtime push revealed the open event is ended/cancelled and the form locked itself",
+        "source": "src/composables/vtual/useVtualEventEdit.ts"
+      },
+      "web.vtual-events.locked_body": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "body line of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual-events.locked_title": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "heading of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual.incidents.action_done": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "success toast after acknowledge / resolve",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.breadcrumb": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.kind": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.last_seen": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.occurrences": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.severity": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.status": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.subject": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.empty": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when nothing is broken",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.zero_records": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when the filters exclude every row",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.action_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when a triage transition fails",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.load_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when the queue fails to load",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_kinds": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_severities": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_statuses": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.clear": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.credential": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub_notification": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.ingestion": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.platform_http": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.websub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.list_title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "card heading on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.search_placeholder": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "server-side search input placeholder",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.critical": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.info": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.warning": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.acknowledged": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.open": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.resolved": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.subtitle": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "helper line under the card heading",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "api.vtual.management.grant_created": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "api.vtual.management.grant_revoked": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_title": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_help": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.view": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.edit": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.grant_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.revoke_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.table_caption": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.empty": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_save_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_revoke_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual.public.profile.filter_content_type_all": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_non_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
       }
     },
     "id": {
@@ -15075,6 +15730,366 @@
         "curated_at": "2026-09-25T21:30:00+07:00",
         "surface": "table cell fallback in the profile platform channels table when a channel has never been synced",
         "source": "src/components/vtual/VtualProfileChannelsCard.vue"
+      },
+      "web.vtual-events.errors.not_editable": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "toast when a realtime push revealed the open event is ended/cancelled and the form locked itself",
+        "source": "src/composables/vtual/useVtualEventEdit.ts"
+      },
+      "web.vtual-events.locked_body": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "body line of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual-events.locked_title": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "heading of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual.incidents.action_done": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "success toast after acknowledge / resolve",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.breadcrumb": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.kind": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.last_seen": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.occurrences": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.severity": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.status": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.subject": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.empty": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when nothing is broken",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.zero_records": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when the filters exclude every row",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.action_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when a triage transition fails",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.load_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when the queue fails to load",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_kinds": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_severities": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_statuses": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.clear": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.credential": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub_notification": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.ingestion": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.platform_http": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.websub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.list_title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "card heading on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.search_placeholder": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "server-side search input placeholder",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.critical": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.info": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.warning": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.acknowledged": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.open": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.resolved": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.subtitle": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "helper line under the card heading",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "api.vtual.management.grant_created": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "api.vtual.management.grant_revoked": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_title": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_help": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.view": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.edit": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.grant_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.revoke_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.table_caption": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.empty": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_save_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_revoke_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual.public.profile.filter_content_type_all": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_non_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.archivd.microstock.upload_marketplace": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "toolbar button that opens the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_no_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "empty state inside the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_manage_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "link at the foot of the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.credential_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "badge beside a credential whose last upload failed, in the picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after an upload was queued (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploading": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line while the marketplace transfer runs (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploaded": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a successful marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a failed marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.microstock-credentials.columns.status": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status column header in the marketplace credentials table (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.pending": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential no upload has used yet (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.verified": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential a transfer has succeeded with (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential the marketplace rejected (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "api.microstock.upload_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "success toast after POST /api/v1/microstock/collections/{folder}/upload (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
       }
     },
     "ja": {
@@ -20432,6 +21447,366 @@
         "curated_at": "2026-09-25T21:30:00+07:00",
         "surface": "table cell fallback in the profile platform channels table when a channel has never been synced",
         "source": "src/components/vtual/VtualProfileChannelsCard.vue"
+      },
+      "web.vtual-events.errors.not_editable": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "toast when a realtime push revealed the open event is ended/cancelled and the form locked itself",
+        "source": "src/composables/vtual/useVtualEventEdit.ts"
+      },
+      "web.vtual-events.locked_body": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "body line of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual-events.locked_title": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "heading of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual.incidents.action_done": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "success toast after acknowledge / resolve",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.breadcrumb": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.kind": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.last_seen": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.occurrences": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.severity": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.status": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.subject": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.empty": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when nothing is broken",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.zero_records": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when the filters exclude every row",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.action_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when a triage transition fails",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.load_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when the queue fails to load",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_kinds": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_severities": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_statuses": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.clear": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.credential": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub_notification": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.ingestion": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.platform_http": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.websub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.list_title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "card heading on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.search_placeholder": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "server-side search input placeholder",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.critical": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.info": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.warning": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.acknowledged": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.open": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.resolved": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.subtitle": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "helper line under the card heading",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "api.vtual.management.grant_created": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "api.vtual.management.grant_revoked": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_title": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_help": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.view": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.edit": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.grant_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.revoke_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.table_caption": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.empty": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_save_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_revoke_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual.public.profile.filter_content_type_all": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_non_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.archivd.microstock.upload_marketplace": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "toolbar button that opens the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_no_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "empty state inside the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_manage_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "link at the foot of the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.credential_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "badge beside a credential whose last upload failed, in the picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after an upload was queued (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploading": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line while the marketplace transfer runs (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploaded": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a successful marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a failed marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.microstock-credentials.columns.status": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status column header in the marketplace credentials table (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.pending": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential no upload has used yet (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.verified": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential a transfer has succeeded with (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential the marketplace rejected (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "api.microstock.upload_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "success toast after POST /api/v1/microstock/collections/{folder}/upload (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
       }
     },
     "ko": {
@@ -27854,6 +29229,366 @@
         "curated_at": "2026-09-25T21:30:00+07:00",
         "surface": "table cell fallback in the profile platform channels table when a channel has never been synced",
         "source": "src/components/vtual/VtualProfileChannelsCard.vue"
+      },
+      "web.vtual-events.errors.not_editable": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "toast when a realtime push revealed the open event is ended/cancelled and the form locked itself",
+        "source": "src/composables/vtual/useVtualEventEdit.ts"
+      },
+      "web.vtual-events.locked_body": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "body line of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual-events.locked_title": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "heading of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual.incidents.action_done": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "success toast after acknowledge / resolve",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.breadcrumb": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.kind": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.last_seen": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.occurrences": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.severity": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.status": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.subject": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.empty": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when nothing is broken",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.zero_records": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when the filters exclude every row",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.action_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when a triage transition fails",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.load_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when the queue fails to load",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_kinds": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_severities": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_statuses": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.clear": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.credential": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub_notification": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.ingestion": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.platform_http": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.websub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.list_title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "card heading on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.search_placeholder": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "server-side search input placeholder",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.critical": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.info": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.warning": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.acknowledged": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.open": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.resolved": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.subtitle": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "helper line under the card heading",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "api.vtual.management.grant_created": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "api.vtual.management.grant_revoked": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_title": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_help": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.view": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.edit": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.grant_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.revoke_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.table_caption": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.empty": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_save_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_revoke_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual.public.profile.filter_content_type_all": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_non_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.archivd.microstock.upload_marketplace": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "toolbar button that opens the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_no_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "empty state inside the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_manage_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "link at the foot of the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.credential_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "badge beside a credential whose last upload failed, in the picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after an upload was queued (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploading": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line while the marketplace transfer runs (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploaded": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a successful marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a failed marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.microstock-credentials.columns.status": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status column header in the marketplace credentials table (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.pending": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential no upload has used yet (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.verified": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential a transfer has succeeded with (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential the marketplace rejected (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "api.microstock.upload_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "success toast after POST /api/v1/microstock/collections/{folder}/upload (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
       }
     },
     "ru": {
@@ -32031,6 +33766,366 @@
         "curated_at": "2026-09-25T21:30:00+07:00",
         "surface": "table cell fallback in the profile platform channels table when a channel has never been synced",
         "source": "src/components/vtual/VtualProfileChannelsCard.vue"
+      },
+      "web.vtual-events.errors.not_editable": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "toast when a realtime push revealed the open event is ended/cancelled and the form locked itself",
+        "source": "src/composables/vtual/useVtualEventEdit.ts"
+      },
+      "web.vtual-events.locked_body": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "body line of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual-events.locked_title": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "heading of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual.incidents.action_done": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "success toast after acknowledge / resolve",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.breadcrumb": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.kind": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.last_seen": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.occurrences": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.severity": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.status": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.subject": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.empty": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when nothing is broken",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.zero_records": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when the filters exclude every row",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.action_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when a triage transition fails",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.load_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when the queue fails to load",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_kinds": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_severities": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_statuses": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.clear": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.credential": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub_notification": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.ingestion": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.platform_http": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.websub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.list_title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "card heading on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.search_placeholder": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "server-side search input placeholder",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.critical": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.info": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.warning": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.acknowledged": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.open": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.resolved": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.subtitle": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "helper line under the card heading",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "api.vtual.management.grant_created": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "api.vtual.management.grant_revoked": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_title": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_help": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.view": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.edit": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.grant_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.revoke_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.table_caption": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.empty": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_save_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_revoke_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual.public.profile.filter_content_type_all": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_non_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.archivd.microstock.upload_marketplace": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "toolbar button that opens the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_no_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "empty state inside the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_manage_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "link at the foot of the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.credential_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "badge beside a credential whose last upload failed, in the picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after an upload was queued (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploading": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line while the marketplace transfer runs (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploaded": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a successful marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a failed marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.microstock-credentials.columns.status": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status column header in the marketplace credentials table (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.pending": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential no upload has used yet (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.verified": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential a transfer has succeeded with (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential the marketplace rejected (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "api.microstock.upload_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "success toast after POST /api/v1/microstock/collections/{folder}/upload (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
       }
     },
     "zh-CN": {
@@ -39178,8 +41273,368 @@
         "curated_at": "2026-09-25T21:30:00+07:00",
         "surface": "table cell fallback in the profile platform channels table when a channel has never been synced",
         "source": "src/components/vtual/VtualProfileChannelsCard.vue"
+      },
+      "web.vtual-events.errors.not_editable": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "toast when a realtime push revealed the open event is ended/cancelled and the form locked itself",
+        "source": "src/composables/vtual/useVtualEventEdit.ts"
+      },
+      "web.vtual-events.locked_body": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "body line of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual-events.locked_title": {
+        "curated_at": "2026-09-27T15:05:00+07:00",
+        "surface": "heading of the read-only notice on the event form after a remote cancel/end",
+        "source": "src/views/vtual/VtualEventEditView.vue"
+      },
+      "web.vtual.incidents.action_done": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "success toast after acknowledge / resolve",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.breadcrumb": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.kind": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.last_seen": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.occurrences": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.severity": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.status": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.subject": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.columns.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "table column header on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.empty": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when nothing is broken",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.datatable.zero_records": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "empty state title when the filters exclude every row",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.action_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when a triage transition fails",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.errors.load_failed": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "error toast when the queue fails to load",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_kinds": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_severities": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.all_statuses": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.filters.clear": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "filter dropdown default option / clear button",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.credential": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.eventsub_notification": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.ingestion": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.platform_http": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.kind.websub": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "integration filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.list_title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "card heading on the triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.search_placeholder": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "server-side search input placeholder",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.critical": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.info": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.severity.warning": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "severity filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.acknowledged": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.open": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.status.resolved": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "status filter option label",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.subtitle": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "helper line under the card heading",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "web.vtual.incidents.title": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "page title + sidebar breadcrumb for the incident triage queue",
+        "source": "src/views/vtual/VtualIncidentsView.vue"
+      },
+      "api.vtual.management.grant_created": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "api.vtual.management.grant_revoked": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_title": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.section_help": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.member_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.creator_placeholder": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.view": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.capabilities.edit": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.grant_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.revoke_button": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.table_caption": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.empty": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.member": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.creator": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.grants.columns.capability": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_save_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual-managements.errors.grant_revoke_failed": {
+        "curated_at": "2026-09-27T19:45:00+07:00",
+        "surface": "vTual management edit: delegated per-creator access section (form labels, table headers, capability badges, buttons, toasts, errors)",
+        "source": "src/components/vtual/VtualManagementGrantsSection.vue, src/composables/vtual/useVtualManagementEdit.ts, src/composables/vtual/useVtualManagements.ts"
+      },
+      "web.vtual.public.profile.filter_content_type_all": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.vtual.public.profile.filter_content_type_non_music": {
+        "curated_at": "2026-09-27T20:05:00+07:00",
+        "surface": "vTual public profile content grid: music-layer chip row (all / music / non-music) in the filter bar",
+        "source": "src/valkivid3/views/VkStr1VtuberShowView.vue"
+      },
+      "web.archivd.microstock.upload_marketplace": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "toolbar button that opens the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_no_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "empty state inside the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_manage_credentials": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "link at the foot of the marketplace credential picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.credential_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "badge beside a credential whose last upload failed, in the picker (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after an upload was queued (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploading": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line while the marketplace transfer runs (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_uploaded": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a successful marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.archivd.microstock.upload_status_failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "collection status line after a failed marketplace transfer (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
+      },
+      "web.microstock-credentials.columns.status": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status column header in the marketplace credentials table (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.pending": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential no upload has used yet (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.verified": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential a transfer has succeeded with (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "web.microstock-credentials.status.failed": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "status badge for a credential the marketplace rejected (MicrostockCredentialsView.vue)",
+        "source": "src/views/microstock/MicrostockCredentialsView.vue"
+      },
+      "api.microstock.upload_queued": {
+        "curated_at": "2026-09-27T20:30:00+07:00",
+        "surface": "success toast after POST /api/v1/microstock/collections/{folder}/upload (ArchivdView.vue)",
+        "source": "src/views/archivd/ArchivdView.vue"
       }
     }
   },
-  "updated_at": "2026-09-25T21:30:00+07:00"
+  "updated_at": "2026-09-27T20:30:00+07:00"
 }

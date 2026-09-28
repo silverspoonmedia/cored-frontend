@@ -54,6 +54,7 @@ Before finishing, read the string back as a native speaker of the target locale,
 
 ```sh
 npm run check:i18n
+npm run check:env   # only when the task touched a `.env.<mode>` file or added an environment
 # backend gates (monolith repo), when the string has a backend twin or a glossary term moved:
 php scripts/locale-prose-scan.php
 php scripts/locale-glossary-scan.php
