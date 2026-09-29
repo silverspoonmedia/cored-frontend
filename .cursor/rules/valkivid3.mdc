@@ -16,8 +16,8 @@ Self-contained Tailwind v4 tree (`src/valkivid3/{layouts,components,composables,
 - **Buttons:** fills fork opposite to labels (`bg-accent`/`bg-primary` CTAs use `text-white dark:text-gray-900`); `bg-primary` hovers via `hover:bg-primary-500`, `bg-accent` via its own `hover:bg-accent-500` (never reuse `primary-500` on accent — dark values collide). Any element with a hover fill forks its label too.
 - **Error panel pattern:** async failures render a retryable panel (key `<scope>.retry`), not bare `text-danger` text.
 - **Presentation decisions are pure functions** in `src/utils/vtualPresentation.ts` (`channelSyncedTime`, `regionNotice`) and `src/utils/vtualJsonLd.ts`, so they are testable without a DOM. Never render a placeholder timestamp; never hide a region-restricted card (show the notice).
-- **SWR key rule:** the guest profile cache key includes the filter tuple (`platform`/`type`/`sort`). Any new query param on `vtual/public/vtubers/{slug}` must be added to that key in the same change, or a filtered request poisons the unfiltered slot.
+- **SWR key rule:** the guest profile cache key includes the filter tuple (`platform`/`type`/`content_type`/`sort`). Any new query param on `vtual/public/vtubers/{slug}` must be added to that key in the same change, or a filtered request poisons the unfiltered slot.
 - **LIVE badge** comes from the backend predicate (`LiveContentScope::applyIsLiveSelect()`); never re-derive it client-side.
-- Content filters mirror into the URL via `useVtualProfileQuery` (`?platform=&type=&sort=&page=`, normalized `router.replace`, `sort=newest`/`page=1` omitted) and seed from `route.query` on mount.
+- Content filters mirror into the URL via `useVtualProfileQuery` (`?platform=&type=&content_type=&sort=&page=`, normalized `router.replace`, `sort=newest`/`page=1` omitted) and seed from `route.query` on mount.
 
 Details: [docs/ui-patterns.md](../../docs/ui-patterns.md), [docs/head-meta.md](../../docs/head-meta.md).
