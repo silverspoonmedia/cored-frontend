@@ -35,7 +35,7 @@ Type-then-domain: screens under `src/views/{domain}/` with matching `src/composa
 | `src/components/` | Shared chrome (`AppNavbar`, `DataTable`, `RowActions`, `ErrorState`, `EmptyState`, `SkeletonBlock`) | Cross-domain only; domain components live with their view |
 | `src/lib/` | Side-effect vendor wrappers (`swal.ts`, `safeRedirect.ts`) | App-wide, not domain-scoped |
 | `src/utils/` | Pure helpers + `utils/{domain}/` | No Vue lifecycle, no fetch. A presentation **decision** belongs here so node can unit-test it |
-| `src/stores/` | Pinia stores | Shared client state (auth, shell, notifications) |
+| `src/stores/` | Module-scope reactive state (`auth.ts`) | No Pinia — one plain module holding `ref`/`computed` state, read through an accessor (`useAuth()`). Add a store only for state shared across unrelated trees |
 | `src/router/` | `index.ts` + `routes/*.ts` | [routes.md](routes.md) |
 | `src/i18n/` | `locales/*.json`, `fallbacks.ts`, shared instance | [i18n.md](i18n.md) |
 | `src/layouts/` | `AppLayout`, `PublicLayout` | — |

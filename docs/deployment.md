@@ -32,7 +32,7 @@ A non-origin credential shared between environments (hCaptcha sitekey, Pusher ap
 
 ## Adding another environment
 
-Adding an environment (new branch + Worker) touches six files. Miss the resolver arm and the deploy hard-fails with `Unmapped deploy branch <name>`; miss the Vite mode or Wrangler env and the bundle bakes the wrong API origin.
+Adding an environment (new branch + Worker) touches seven files. Miss the resolver arm and the deploy hard-fails with `Unmapped deploy branch <name>`; miss the Vite mode or Wrangler env and the bundle bakes the wrong API origin.
 
 | File | Change |
 |------|--------|
