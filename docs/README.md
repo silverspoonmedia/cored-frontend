@@ -12,8 +12,9 @@ Backend-side contract docs live in the sibling Monolith repo (`monolith/docs/`).
 | Need | Open |
 |------|------|
 | Agent pakem map | [AGENTS.md](../AGENTS.md) · rules in [.cursor/rules/](../.cursor/rules/) |
+| User-facing docs site | [help.silverspoon.me](https://help.silverspoon.me) — sibling `docs` repo (Docusaurus, customer manual); agent pakem in that repo's `AGENTS.md` + `.cursor/rules/` |
 | Scope tags, context budget, docs ownership | `task-scope.mdc` · `context-budget.mdc` · `docs-pakem.mdc` |
-| IDE workspace | [Monolith-SPA.code-workspace](../Monolith-SPA.code-workspace) (this repo) · sibling `Monolith-Fullstack.code-workspace` only when the API contract moves |
+| IDE workspace | [Monolith-SPA.code-workspace](../Monolith-SPA.code-workspace) (this repo) · sibling `Monolith-Fullstack.code-workspace` only when the API contract moves; all three load the `docs` repo as a peer root |
 | Project layout, `src/` layers, direct-to-API routing | [architecture.md](architecture.md) |
 | Auth/session lifecycle | [auth-session.md](auth-session.md) |
 | API client conventions | [api-client.md](api-client.md) |
