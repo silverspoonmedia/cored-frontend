@@ -3,6 +3,10 @@
     {
       "name": "monolith-vue-workers",
       "path": "."
+    },
+    {
+      "name": "docs",
+      "path": "../docs"
     }
   ],
   "settings": {}
