@@ -5052,41 +5052,6 @@
         "surface": "error toast when resending the verification email fails",
         "source": "src/views/auth/VerifyEmailView.vue"
       },
-      "web.blog.categories.columns.slug": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "table header cell",
-        "source": "src/views/blog/CategoriesView.vue"
-      },
-      "web.blog.categories.form.slug": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "form field label",
-        "source": "src/views/blog/CategoriesView.vue"
-      },
-      "web.blog.posts.form.slug": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "form field label",
-        "source": "src/views/blog/PostEditView.vue"
-      },
-      "web.blog.posts.form.taxonomies_section": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "form sidebar card header",
-        "source": "src/views/blog/PostEditView.vue"
-      },
-      "web.blog.posts.trashed_breadcrumb": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "breadcrumb crumb for the trashed posts screen",
-        "source": "src/router/routes/blog.ts"
-      },
-      "web.blog.tags.columns.slug": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "table header cell",
-        "source": "src/views/blog/TagsView.vue"
-      },
-      "web.blog.tags.form.slug": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "form field label",
-        "source": "src/views/blog/TagsView.vue"
-      },
       "web.currencies.columns.settlement": {
         "curated_at": "2026-09-22T20:35:38+07:00",
         "surface": "currencies datatable column header",
@@ -13626,71 +13591,6 @@
         "surface": "Auth flows, validation messages, dashboard, navbar, notifications, profile",
         "source": "src/views/auth/*, src/i18n/locales, src/views/dashboard/*"
       },
-      "web.blog.categories.created": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.categories.deleted": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.categories.updated": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.posts.created": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.posts.deleted": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.posts.empty_trashed": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.posts.filter_status": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.posts.restored": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.posts.trashed_title": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.posts.updated": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.tags.created": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.tags.deleted": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
-      "web.blog.tags.updated": {
-        "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
-      },
       "web.currencies.activated": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
@@ -13833,58 +13733,58 @@
       },
       "web.inference.model_cards.edit_title": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.model_cards.empty_title": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.providers.edit_title": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.providers.empty_title": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.providers.rates_lead": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.providers.saved": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.usage.by_source": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.usage.events_load_failed": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.usage.load_more": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.usage.no_events": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.inference.usage.subtitle": {
         "curated_at": "2026-09-21T16:21:01+07:00",
-        "surface": "Inference catalog/usage tables; Blog posts/categories/tags CRUD",
-        "source": "src/views/inference/*, src/views/blog/*"
+        "surface": "Inference catalog/usage tables",
+        "source": "src/views/inference/*"
       },
       "web.menus.breadcrumb": {
         "curated_at": "2026-09-21T16:25:04+07:00",
@@ -16360,18 +16260,18 @@
       },
       "api.inference.providers.rates_synced": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "api.inference.usage.events": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "api.inference.usage.overview": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "api.lookups.menus_success": {
         "curated_at": "2026-09-21T16:29:41+07:00",
@@ -18913,36 +18813,6 @@
         "surface": "auth screens (login, register, 2FA, password reset) and connected accounts page",
         "source": "src/views/auth/**, src/views/identity/**"
       },
-      "web.blog.categories.form.slug_hint": {
-        "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
-      },
-      "web.blog.editor.bullet_list": {
-        "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
-      },
-      "web.blog.posts.columns.deleted_at": {
-        "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
-      },
-      "web.blog.posts.columns.updated_at": {
-        "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
-      },
-      "web.blog.posts.form.taxonomies_section": {
-        "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
-      },
-      "web.blog.tags.form.slug_hint": {
-        "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
-      },
       "web.currencies.no_currencies_message": {
         "curated_at": "2026-09-21T16:44:02+07:00",
         "surface": "services catalog/checkout screens, user management, currencies admin",
@@ -19095,58 +18965,58 @@
       },
       "web.inference.model_cards.needs_rate_label": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.model_cards.provider_rate": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.model_cards.slug_hint": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.model_cards.usage_summary": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.providers.input_rate": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.providers.output_rate": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.providers.rates_lead": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.providers.saved": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.usage.columns.billable": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.usage.filters.from": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.usage.filters.to": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.usage.filters.user_id": {
         "curated_at": "2026-09-21T16:51:52+07:00",
@@ -19155,18 +19025,18 @@
       },
       "web.inference.usage.no_data": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.usage.subtitle": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.inference.usage.totals.billable": {
         "curated_at": "2026-09-21T16:42:20+07:00",
-        "surface": "blog admin screens (posts, categories, tags, editor) and inference admin screens (model catalog, providers, usage)",
-        "source": "src/views/blog/**, src/views/inference/**"
+        "surface": "inference admin screens (model catalog, providers, usage)",
+        "source": "src/views/inference/**"
       },
       "web.menus.columns.ancestors": {
         "curated_at": "2026-09-21T16:42:59+07:00",
@@ -31927,16 +31797,6 @@
         "surface": "reset password success message",
         "source": "src/views/auth"
       },
-      "web.blog.posts.columns.deleted_at": {
-        "curated_at": "2026-09-23T20:24:52+07:00",
-        "surface": "blog posts datatable column header",
-        "source": "src/views/blog"
-      },
-      "web.blog.posts.columns.updated_at": {
-        "curated_at": "2026-09-23T20:24:52+07:00",
-        "surface": "blog posts datatable column header",
-        "source": "src/views/blog"
-      },
       "web.domain-access.load_failed": {
         "curated_at": "2026-09-21T15:50:00+07:00",
         "surface": "inline error on the Domain Access screen",
@@ -37763,36 +37623,6 @@
         "curated_at": "2026-09-22T16:21:39+07:00",
         "surface": "verify-email success continue button",
         "source": "src/views/auth/VerifyEmailView.vue"
-      },
-      "web.blog.categories.columns.slug": {
-        "curated_at": "2026-09-22T11:01:22+07:00",
-        "surface": "blog categories table column header",
-        "source": "src/views/blog"
-      },
-      "web.blog.categories.form.slug": {
-        "curated_at": "2026-09-22T11:01:22+07:00",
-        "surface": "blog category form field label",
-        "source": "src/views/blog"
-      },
-      "web.blog.posts.form.slug": {
-        "curated_at": "2026-09-22T11:01:22+07:00",
-        "surface": "blog post form field label",
-        "source": "src/views/blog"
-      },
-      "web.blog.posts.trashed_title": {
-        "curated_at": "2026-09-22T16:21:36+07:00",
-        "surface": "trashed posts card title",
-        "source": "src/views/blog/PostsTrashedView.vue"
-      },
-      "web.blog.tags.columns.slug": {
-        "curated_at": "2026-09-22T11:01:22+07:00",
-        "surface": "blog tags table column header",
-        "source": "src/views/blog"
-      },
-      "web.blog.tags.form.slug": {
-        "curated_at": "2026-09-22T11:01:22+07:00",
-        "surface": "blog tag form field label",
-        "source": "src/views/blog"
       },
       "web.currencies.activate": {
         "curated_at": "2026-09-22T16:21:39+07:00",
