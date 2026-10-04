@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T18:13:37.199Z",
+  "generated_at": "2026-10-02T09:03:19.632Z",
   "reference_locale": "en",
   "locales": [
     "id",
@@ -10,13 +10,13 @@
     "ru"
   ],
   "allowlist": {
-    "entries": 156,
+    "entries": 153,
     "stale": []
   },
   "summary": {
-    "duplicate_pairs": 359,
-    "unique_duplicate_keys": 156,
-    "allowlisted_pairs": 359,
+    "duplicate_pairs": 364,
+    "unique_duplicate_keys": 153,
+    "allowlisted_pairs": 364,
     "actionable_pairs": 0,
     "empty_translation_values": 0
   },
@@ -30,8 +30,8 @@
   },
   "by_locale": {
     "id": {
-      "total": 150,
-      "allowlisted_count": 150,
+      "total": 145,
+      "allowlisted_count": 145,
       "actionable_count": 0,
       "by_namespace": {
         "api.common": {
@@ -212,60 +212,6 @@
             {
               "key": "web.archivd.type_video",
               "english": "Video",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.blog": {
-          "count": 7,
-          "keys": [
-            {
-              "key": "web.blog.categories.columns.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.blog.categories.form.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.blog.posts.columns.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.blog.posts.form.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.blog.posts.form.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.blog.tags.columns.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.blog.tags.form.slug",
-              "english": "Slug",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
@@ -892,11 +838,25 @@
           ]
         },
         "web.vtual": {
-          "count": 27,
+          "count": 29,
           "keys": [
             {
               "key": "web.vtual.claims.columns.status",
               "english": "Status",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.incidents.columns.status",
+              "english": "Status",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.incidents.severity.info",
+              "english": "Info",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
@@ -1226,8 +1186,8 @@
       }
     },
     "ja": {
-      "total": 40,
-      "allowlisted_count": 40,
+      "total": 42,
+      "allowlisted_count": 42,
       "actionable_count": 0,
       "by_namespace": {
         "api.common": {
@@ -1476,8 +1436,22 @@
           ]
         },
         "web.vtual": {
-          "count": 13,
+          "count": 15,
           "keys": [
+            {
+              "key": "web.vtual.incidents.kind.eventsub",
+              "english": "Twitch EventSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.incidents.kind.websub",
+              "english": "YouTube WebSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
             {
               "key": "web.vtual.probe.method_fetch_channels",
               "english": "fetch_channels",
@@ -1577,6 +1551,409 @@
       }
     },
     "ko": {
+      "total": 46,
+      "allowlisted_count": 46,
+      "actionable_count": 0,
+      "by_namespace": {
+        "api.common": {
+          "count": 1,
+          "keys": [
+            {
+              "key": "api.common.pong",
+              "english": "Pong",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "product-activations.tier_n/a": {
+          "count": 1,
+          "keys": [
+            {
+              "key": "product-activations.tier_n/a",
+              "english": "N/A",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "web.archivd": {
+          "count": 6,
+          "keys": [
+            {
+              "key": "web.archivd.blocklist_sha256",
+              "english": "sha256",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.archivd.blocklist_sha256_col",
+              "english": "SHA-256",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.archivd.char_count",
+              "english": "{count} / 2000",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": [
+                "count"
+              ]
+            },
+            {
+              "key": "web.archivd.microstock_title",
+              "english": "Microstock",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.archivd.microstock.name_placeholder",
+              "english": "Microstock",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.archivd.title",
+              "english": "Archivd",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "web.identity-connections": {
+          "count": 2,
+          "keys": [
+            {
+              "key": "web.identity-connections.discord_heading",
+              "english": "Discord",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.identity-connections.provider_heading",
+              "english": "{name}",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": [
+                "name"
+              ]
+            }
+          ]
+        },
+        "web.microstock": {
+          "count": 1,
+          "keys": [
+            {
+              "key": "web.microstock.menu",
+              "english": "Microstock",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "web.microstock-credentials": {
+          "count": 9,
+          "keys": [
+            {
+              "key": "web.microstock-credentials.marketplaces.123rf",
+              "english": "123RF",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.adobe_stock",
+              "english": "Adobe Stock",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.depositphotos",
+              "english": "Depositphotos",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.dreamstime",
+              "english": "Dreamstime",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.freepik",
+              "english": "Freepik",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.getty_images",
+              "english": "Getty Images",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.istock",
+              "english": "iStock",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.shutterstock",
+              "english": "Shutterstock",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.microstock-credentials.marketplaces.vecteezy",
+              "english": "Vecteezy",
+              "classification": "brand",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "web.payments": {
+          "count": 4,
+          "keys": [
+            {
+              "key": "web.payments.channels.kinds.qris",
+              "english": "QRIS",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.payments.income.filters.gateway_ipaymu",
+              "english": "iPaymu",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.payments.income.filters.gateway_midtrans",
+              "english": "Midtrans",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.payments.subscriptions.fields.date_hint",
+              "english": "YYYY-MM-DD",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "web.services": {
+          "count": 2,
+          "keys": [
+            {
+              "key": "web.services.microstock.title",
+              "english": "Microstock",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.services.show.stack_quantity_equation",
+              "english": "{current} + {purchase} = {total}",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": [
+                "current",
+                "purchase",
+                "total"
+              ]
+            }
+          ]
+        },
+        "web.settings": {
+          "count": 3,
+          "keys": [
+            {
+              "key": "web.settings.groups.archivd",
+              "english": "Archivd",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.settings.groups.microstock",
+              "english": "Microstock",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.settings.groups.vtual",
+              "english": "vTual",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "web.vtual": {
+          "count": 14,
+          "keys": [
+            {
+              "key": "web.vtual.incidents.kind.eventsub",
+              "english": "Twitch EventSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.incidents.kind.websub",
+              "english": "YouTube WebSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.probe.method_fetch_channels",
+              "english": "fetch_channels",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.probe.method_fetch_videos",
+              "english": "fetch_videos",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.probe.method_fetch_videos_chunked",
+              "english": "fetch_videos_chunked",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.probe.method_resolve_channel",
+              "english": "resolve_channel",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.profile_placeholder_twitch",
+              "english": "12345678 / login / https://twitch.tv/login",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.profile_placeholder_youtube",
+              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": [
+                "@",
+                "@"
+              ]
+            },
+            {
+              "key": "web.vtual.profiles.fields.link_url",
+              "english": "URL",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.profiles.uuid_placeholder",
+              "english": "UUID",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.public.profile.filter_type_live",
+              "english": "LIVE",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.public.profile.filter_type_vod",
+              "english": "VOD",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.public.profile.live",
+              "english": "LIVE",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.public.profile.vod",
+              "english": "VOD",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        },
+        "web.vtual-orphans": {
+          "count": 2,
+          "keys": [
+            {
+              "key": "web.vtual-orphans.channels.profile_placeholder_twitch",
+              "english": "12345678 / login / https://twitch.tv/login",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual-orphans.channels.profile_placeholder_youtube",
+              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
+              "classification": "format",
+              "allowed": true,
+              "placeholders": [
+                "@",
+                "@"
+              ]
+            }
+          ]
+        },
+        "web.vtual-vtuber": {
+          "count": 1,
+          "keys": [
+            {
+              "key": "web.vtual-vtuber.hub_title",
+              "english": "vTual",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            }
+          ]
+        }
+      }
+    },
+    "zh-CN": {
       "total": 44,
       "allowlisted_count": 44,
       "actionable_count": 0,
@@ -1841,394 +2218,19 @@
           "count": 12,
           "keys": [
             {
-              "key": "web.vtual.probe.method_fetch_channels",
-              "english": "fetch_channels",
+              "key": "web.vtual.incidents.kind.eventsub",
+              "english": "Twitch EventSub",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
             },
             {
-              "key": "web.vtual.probe.method_fetch_videos",
-              "english": "fetch_videos",
+              "key": "web.vtual.incidents.kind.websub",
+              "english": "YouTube WebSub",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
             },
-            {
-              "key": "web.vtual.probe.method_fetch_videos_chunked",
-              "english": "fetch_videos_chunked",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_resolve_channel",
-              "english": "resolve_channel",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_url",
-              "english": "URL",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.uuid_placeholder",
-              "english": "UUID",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-orphans": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            }
-          ]
-        },
-        "web.vtual-vtuber": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "web.vtual-vtuber.hub_title",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        }
-      }
-    },
-    "zh-CN": {
-      "total": 42,
-      "allowlisted_count": 42,
-      "actionable_count": 0,
-      "by_namespace": {
-        "api.common": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "api.common.pong",
-              "english": "Pong",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "product-activations.tier_n/a": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "product-activations.tier_n/a",
-              "english": "N/A",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.archivd": {
-          "count": 6,
-          "keys": [
-            {
-              "key": "web.archivd.blocklist_sha256",
-              "english": "sha256",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.archivd.blocklist_sha256_col",
-              "english": "SHA-256",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.archivd.char_count",
-              "english": "{count} / 2000",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": [
-                "count"
-              ]
-            },
-            {
-              "key": "web.archivd.microstock_title",
-              "english": "Microstock",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.archivd.microstock.name_placeholder",
-              "english": "Microstock",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.archivd.title",
-              "english": "Archivd",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.identity-connections": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.identity-connections.discord_heading",
-              "english": "Discord",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.identity-connections.provider_heading",
-              "english": "{name}",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "name"
-              ]
-            }
-          ]
-        },
-        "web.microstock": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "web.microstock.menu",
-              "english": "Microstock",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.microstock-credentials": {
-          "count": 9,
-          "keys": [
-            {
-              "key": "web.microstock-credentials.marketplaces.123rf",
-              "english": "123RF",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.adobe_stock",
-              "english": "Adobe Stock",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.depositphotos",
-              "english": "Depositphotos",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.dreamstime",
-              "english": "Dreamstime",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.freepik",
-              "english": "Freepik",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.getty_images",
-              "english": "Getty Images",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.istock",
-              "english": "iStock",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.shutterstock",
-              "english": "Shutterstock",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.microstock-credentials.marketplaces.vecteezy",
-              "english": "Vecteezy",
-              "classification": "brand",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.payments": {
-          "count": 4,
-          "keys": [
-            {
-              "key": "web.payments.channels.kinds.qris",
-              "english": "QRIS",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.payments.income.filters.gateway_ipaymu",
-              "english": "iPaymu",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.payments.income.filters.gateway_midtrans",
-              "english": "Midtrans",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.payments.subscriptions.fields.date_hint",
-              "english": "YYYY-MM-DD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.services": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.services.microstock.title",
-              "english": "Microstock",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.services.show.stack_quantity_equation",
-              "english": "{current} + {purchase} = {total}",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "current",
-                "purchase",
-                "total"
-              ]
-            }
-          ]
-        },
-        "web.settings": {
-          "count": 3,
-          "keys": [
-            {
-              "key": "web.settings.groups.archivd",
-              "english": "Archivd",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.microstock",
-              "english": "Microstock",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.vtual",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual": {
-          "count": 10,
-          "keys": [
             {
               "key": "web.vtual.probe.method_fetch_channels",
               "english": "fetch_channels",
@@ -2341,8 +2343,8 @@
       }
     },
     "ar": {
-      "total": 39,
-      "allowlisted_count": 39,
+      "total": 41,
+      "allowlisted_count": 41,
       "actionable_count": 0,
       "by_namespace": {
         "web.archivd": {
@@ -2578,8 +2580,22 @@
           ]
         },
         "web.vtual": {
-          "count": 9,
+          "count": 11,
           "keys": [
+            {
+              "key": "web.vtual.incidents.kind.eventsub",
+              "english": "Twitch EventSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.incidents.kind.websub",
+              "english": "YouTube WebSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
             {
               "key": "web.vtual.probe.method_fetch_channels",
               "english": "fetch_channels",
@@ -2685,8 +2701,8 @@
       }
     },
     "ru": {
-      "total": 44,
-      "allowlisted_count": 44,
+      "total": 46,
+      "allowlisted_count": 46,
       "actionable_count": 0,
       "by_namespace": {
         "http-statuses.200": {
@@ -2934,8 +2950,22 @@
           ]
         },
         "web.vtual": {
-          "count": 13,
+          "count": 15,
           "keys": [
+            {
+              "key": "web.vtual.incidents.kind.eventsub",
+              "english": "Twitch EventSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
+            {
+              "key": "web.vtual.incidents.kind.websub",
+              "english": "YouTube WebSub",
+              "classification": "identifier",
+              "allowed": true,
+              "placeholders": []
+            },
             {
               "key": "web.vtual.probe.method_fetch_channels",
               "english": "fetch_channels",
