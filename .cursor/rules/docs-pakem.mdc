@@ -9,6 +9,8 @@ Three documentation surfaces, **one owner per topic**. Never state the same rule
 | `AGENTS.md` (repo root) | Pakem map: scope tag + one line per rule file | ~50 lines, zero rule detail |
 | sibling `docs` repo | **User-facing** pages (Docusaurus, published, English only) — the customer's manual | Own pakem: `docs/AGENTS.md` + `docs/.cursor/rules/`; coverage claim in `docs/docs-coverage.json` |
 
+`.cursor/skills/**` is a **Monolith** surface — ordered procedures for multi-step cross-repo operations (e.g. `domain-remove`). This repo carries none: when a procedure spans both repos the skill lives in the backend, and this repo's half is the manifest entry in [AGENTS.md](../../AGENTS.md) Protocol item 4.
+
 ## Human brief template (all four parts, nothing else)
 
 1. `# Title` + one sentence naming the scope.
