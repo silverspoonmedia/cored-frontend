@@ -30,7 +30,7 @@ Type-then-domain: screens under `src/views/{domain}/` with matching `src/composa
 | Layer | Contents | Notes |
 |-------|----------|-------|
 | `src/api/` | `client.ts`, `csrf.ts`, `netRetry.ts`, `batch.ts`, `baseUrl.ts`, `requestHeaders.ts`, `types.ts` | The only HTTP layer. `types.ts` mirrors Laravel API Resources exactly (snake_case, no transform layer) |
-| `src/views/{domain}/` | Vue Router page components | One folder per domain (19) |
+| `src/views/{domain}/` | Vue Router page components | One folder per domain (18) |
 | `src/composables/` | Root composables (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`) + `{domain}/` + `echo/` | `echo/` is the only place allowed to touch raw Echo APIs |
 | `src/components/` | Shared chrome (`AppNavbar`, `DataTable`, `RowActions`, `ErrorState`, `EmptyState`, `SkeletonBlock`) | Cross-domain only; domain components live with their view |
 | `src/lib/` | Side-effect vendor wrappers (`swal.ts`, `safeRedirect.ts`) | App-wide, not domain-scoped |
