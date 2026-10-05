@@ -14,6 +14,7 @@
 1. **Assess before changing** — open the owning rule for the area you touch (table below) and the file's nearest test. No blind edits.
 2. **Update docs and rules with every task** — the owning brief in `docs/` and the rule file when an invariant moved. `wrap up the docs` = session-wide consolidation of code ↔ docs ↔ rules across both repos.
 3. **Respect scope and context** — tag the task `[frontend]`/`[backend]`/`[fullstack]`, and follow the context budget. All user-facing copy follows the always-on i18n guardrail: every locale in the same change.
+4. **Record product-domain files in the backend manifest** — anything added here for a product domain (view, composable, component, router entry, locale key, test) is listed in that domain's `uninstall.json` in the sibling `monolith` repo, in the same task. The backend drift guard (`DomainUninstallManifestTest`) fails on an unlisted reference, and the backend-scoped rule does not fire when you work only in this repo.
 
 ## Rule map (all `.cursor/rules/*.mdc`)
 
