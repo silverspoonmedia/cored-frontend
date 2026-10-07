@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T09:03:19.632Z",
+  "generated_at": "2026-10-07T13:16:37.920Z",
   "reference_locale": "en",
   "locales": [
     "id",
@@ -10,13 +10,13 @@
     "ru"
   ],
   "allowlist": {
-    "entries": 153,
+    "entries": 103,
     "stale": []
   },
   "summary": {
-    "duplicate_pairs": 364,
-    "unique_duplicate_keys": 153,
-    "allowlisted_pairs": 364,
+    "duplicate_pairs": 234,
+    "unique_duplicate_keys": 103,
+    "allowlisted_pairs": 234,
     "actionable_pairs": 0,
     "empty_translation_values": 0
   },
@@ -30,8 +30,8 @@
   },
   "by_locale": {
     "id": {
-      "total": 145,
-      "allowlisted_count": 145,
+      "total": 99,
+      "allowlisted_count": 99,
       "actionable_count": 0,
       "by_namespace": {
         "api.common": {
@@ -786,7 +786,7 @@
           ]
         },
         "web.settings": {
-          "count": 4,
+          "count": 3,
           "keys": [
             {
               "key": "web.settings.groups.archivd",
@@ -805,13 +805,6 @@
             {
               "key": "web.settings.groups.platform",
               "english": "Platform",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.vtual",
-              "english": "vTual",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
@@ -836,358 +829,12 @@
               "placeholders": []
             }
           ]
-        },
-        "web.vtual": {
-          "count": 29,
-          "keys": [
-            {
-              "key": "web.vtual.claims.columns.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.incidents.columns.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.incidents.severity.info",
-              "english": "Info",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.platform_col",
-              "english": "Platform",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.platform_label",
-              "english": "Platform",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe_button",
-              "english": "Probe",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_channels",
-              "english": "fetch_channels",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos",
-              "english": "fetch_videos",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos_chunked",
-              "english": "fetch_videos_chunked",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_resolve_channel",
-              "english": "resolve_channel",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual.profiles.channels.avatar",
-              "english": "Avatar",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.channels.platform",
-              "english": "Platform",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.channels.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_label",
-              "english": "Label",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_url",
-              "english": "URL",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.fields.platform",
-              "english": "Platform",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.fields.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.token_label",
-              "english": "Token",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.directory.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.details.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filters_label",
-              "english": "Filter",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.schedule.platform",
-              "english": "Platform",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.slug_col",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-events": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.vtual-events.datatable.columns.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-events.status.live",
-              "english": "Live",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-managements": {
-          "count": 6,
-          "keys": [
-            {
-              "key": "web.vtual-managements.datatable.columns.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-managements.datatable.columns.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-managements.form.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-managements.form.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-managements.invites.columns.email",
-              "english": "Email",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-managements.invites.email",
-              "english": "Email",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-orphans": {
-          "count": 7,
-          "keys": [
-            {
-              "key": "web.vtual-orphans.channels.avatar",
-              "english": "Avatar",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.platform",
-              "english": "Platform",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual-orphans.channels.status",
-              "english": "Status",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.datatable.columns.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.form.slug",
-              "english": "Slug",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-platform-credentials": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "web.vtual-platform-credentials.client_id_label",
-              "english": "Client ID",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
         }
       }
     },
     "ja": {
-      "total": 42,
-      "allowlisted_count": 42,
+      "total": 26,
+      "allowlisted_count": 26,
       "actionable_count": 0,
       "by_namespace": {
         "api.common": {
@@ -1410,7 +1057,7 @@
           ]
         },
         "web.settings": {
-          "count": 3,
+          "count": 2,
           "keys": [
             {
               "key": "web.settings.groups.archivd",
@@ -1422,126 +1069,6 @@
             {
               "key": "web.settings.groups.microstock",
               "english": "Microstock",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.vtual",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual": {
-          "count": 15,
-          "keys": [
-            {
-              "key": "web.vtual.incidents.kind.eventsub",
-              "english": "Twitch EventSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.incidents.kind.websub",
-              "english": "YouTube WebSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_channels",
-              "english": "fetch_channels",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos",
-              "english": "fetch_videos",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos_chunked",
-              "english": "fetch_videos_chunked",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_resolve_channel",
-              "english": "resolve_channel",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_url",
-              "english": "URL",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.uuid_placeholder",
-              "english": "UUID",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.directory.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.vod",
-              "english": "VOD",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
@@ -1551,8 +1078,8 @@
       }
     },
     "ko": {
-      "total": 46,
-      "allowlisted_count": 46,
+      "total": 28,
+      "allowlisted_count": 28,
       "actionable_count": 0,
       "by_namespace": {
         "api.common": {
@@ -1786,7 +1313,7 @@
           ]
         },
         "web.settings": {
-          "count": 3,
+          "count": 2,
           "keys": [
             {
               "key": "web.settings.groups.archivd",
@@ -1798,153 +1325,6 @@
             {
               "key": "web.settings.groups.microstock",
               "english": "Microstock",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.vtual",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual": {
-          "count": 14,
-          "keys": [
-            {
-              "key": "web.vtual.incidents.kind.eventsub",
-              "english": "Twitch EventSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.incidents.kind.websub",
-              "english": "YouTube WebSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_channels",
-              "english": "fetch_channels",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos",
-              "english": "fetch_videos",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos_chunked",
-              "english": "fetch_videos_chunked",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_resolve_channel",
-              "english": "resolve_channel",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_url",
-              "english": "URL",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.uuid_placeholder",
-              "english": "UUID",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-orphans": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            }
-          ]
-        },
-        "web.vtual-vtuber": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "web.vtual-vtuber.hub_title",
-              "english": "vTual",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
@@ -1954,8 +1334,8 @@
       }
     },
     "zh-CN": {
-      "total": 44,
-      "allowlisted_count": 44,
+      "total": 28,
+      "allowlisted_count": 28,
       "actionable_count": 0,
       "by_namespace": {
         "api.common": {
@@ -2189,7 +1569,7 @@
           ]
         },
         "web.settings": {
-          "count": 3,
+          "count": 2,
           "keys": [
             {
               "key": "web.settings.groups.archivd",
@@ -2204,147 +1584,14 @@
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.vtual",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual": {
-          "count": 12,
-          "keys": [
-            {
-              "key": "web.vtual.incidents.kind.eventsub",
-              "english": "Twitch EventSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.incidents.kind.websub",
-              "english": "YouTube WebSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_channels",
-              "english": "fetch_channels",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos",
-              "english": "fetch_videos",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos_chunked",
-              "english": "fetch_videos_chunked",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_resolve_channel",
-              "english": "resolve_channel",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_url",
-              "english": "URL",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.uuid_placeholder",
-              "english": "UUID",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-orphans": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            }
-          ]
-        },
-        "web.vtual-vtuber": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "web.vtual-vtuber.hub_title",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
             }
           ]
         }
       }
     },
     "ar": {
-      "total": 41,
-      "allowlisted_count": 41,
+      "total": 26,
+      "allowlisted_count": 26,
       "actionable_count": 0,
       "by_namespace": {
         "web.archivd": {
@@ -2554,7 +1801,7 @@
           ]
         },
         "web.settings": {
-          "count": 3,
+          "count": 2,
           "keys": [
             {
               "key": "web.settings.groups.archivd",
@@ -2569,140 +1816,14 @@
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.vtual",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual": {
-          "count": 11,
-          "keys": [
-            {
-              "key": "web.vtual.incidents.kind.eventsub",
-              "english": "Twitch EventSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.incidents.kind.websub",
-              "english": "YouTube WebSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_channels",
-              "english": "fetch_channels",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos",
-              "english": "fetch_videos",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos_chunked",
-              "english": "fetch_videos_chunked",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_resolve_channel",
-              "english": "resolve_channel",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_url",
-              "english": "URL",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.uuid_placeholder",
-              "english": "UUID",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-orphans": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            }
-          ]
-        },
-        "web.vtual-vtuber": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "web.vtual-vtuber.hub_title",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
             }
           ]
         }
       }
     },
     "ru": {
-      "total": 46,
-      "allowlisted_count": 46,
+      "total": 27,
+      "allowlisted_count": 27,
       "actionable_count": 0,
       "by_namespace": {
         "http-statuses.200": {
@@ -2924,7 +2045,7 @@
           ]
         },
         "web.settings": {
-          "count": 3,
+          "count": 2,
           "keys": [
             {
               "key": "web.settings.groups.archivd",
@@ -2936,160 +2057,6 @@
             {
               "key": "web.settings.groups.microstock",
               "english": "Microstock",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.settings.groups.vtual",
-              "english": "vTual",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual": {
-          "count": 15,
-          "keys": [
-            {
-              "key": "web.vtual.incidents.kind.eventsub",
-              "english": "Twitch EventSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.incidents.kind.websub",
-              "english": "YouTube WebSub",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_channels",
-              "english": "fetch_channels",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos",
-              "english": "fetch_videos",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_fetch_videos_chunked",
-              "english": "fetch_videos_chunked",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.probe.method_resolve_channel",
-              "english": "resolve_channel",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            },
-            {
-              "key": "web.vtual.profiles.fields.link_url",
-              "english": "URL",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.profiles.uuid_placeholder",
-              "english": "UUID",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.directory.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.filter_type_vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.live",
-              "english": "LIVE",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual.public.profile.vod",
-              "english": "VOD",
-              "classification": "identifier",
-              "allowed": true,
-              "placeholders": []
-            }
-          ]
-        },
-        "web.vtual-orphans": {
-          "count": 2,
-          "keys": [
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_twitch",
-              "english": "12345678 / login / https://twitch.tv/login",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": []
-            },
-            {
-              "key": "web.vtual-orphans.channels.profile_placeholder_youtube",
-              "english": "UC… / {'@'}handle / https://youtube.com/{'@'}handle",
-              "classification": "format",
-              "allowed": true,
-              "placeholders": [
-                "@",
-                "@"
-              ]
-            }
-          ]
-        },
-        "web.vtual-vtuber": {
-          "count": 1,
-          "keys": [
-            {
-              "key": "web.vtual-vtuber.hub_title",
-              "english": "vTual",
               "classification": "identifier",
               "allowed": true,
               "placeholders": []
