@@ -3,6 +3,3 @@
 
 # i18n curation scratch (pair dumps + apply batches) — regenerable, gitignored
 /.tmp-i18n/
-
-# Visual baseline images / JSON (open only when editing FROZEN landing)
-/src/valkivid3/.baseline/

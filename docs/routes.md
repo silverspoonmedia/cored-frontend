@@ -12,9 +12,9 @@ Route records live in `src/router/routes/*.ts` (one module per domain); `src/rou
 
 ## Layout
 
-- Authenticated app under **`/apps/*`**; guest/public at the site root (`/vtual`, `/s/*`, payment bounce); auth pages at root.
-- Module order in `index.ts` matters: vTual admin early/late routes and the 404 catch-all are position-sensitive.
-- Meta flags: `requiresAuth`, `guestOnly`, `public`, `template: 'valkivid3'`, `breadcrumb` (`titleKey`, `parent`, `labelKey`).
+- Authenticated app under **`/apps/*`**; guest/public at the site root (`/s/*`, payment bounce); auth pages at root.
+- Module order in `index.ts` matters: the public share routes and the 404 catch-all are position-sensitive.
+- Meta flags: `requiresAuth`, `guestOnly`, `public`, `breadcrumb` (`titleKey`, `parent`, `labelKey`).
 - Breadcrumbs are declared on the route records — there is no central label map, so a new route needs no registration. Entity titles come from `useBreadcrumbTitle()` reading the hydrated record's own name.
 
 ## Naming contract

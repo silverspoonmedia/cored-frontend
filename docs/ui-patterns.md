@@ -1,6 +1,6 @@
 # UI patterns
 
-Two CSS systems coexist and stay strictly separate; every screen renders explicit loading/error/empty states; all notifications go through SweetAlert2. Normative rules: [.cursor/rules/ui-patterns.mdc](../.cursor/rules/ui-patterns.mdc) (AdminLTE namespace) and [.cursor/rules/valkivid3.mdc](../.cursor/rules/valkivid3.mdc) (public vTual template).
+AdminLTE4 CSS stays isolated from third-party widget styles; every screen renders explicit loading/error/empty states; all notifications go through SweetAlert2. Normative rule: [.cursor/rules/ui-patterns.mdc](../.cursor/rules/ui-patterns.mdc).
 
 | Need | Path |
 |------|------|
@@ -10,15 +10,14 @@ Two CSS systems coexist and stay strictly separate; every screen renders explici
 | Dialogs/toasts | `src/lib/swal.ts` |
 | Safe URL/redirect rules | `src/utils/safeUrl.ts`, `src/lib/safeRedirect.ts` |
 | Realtime channels | `src/composables/echo/channelRegistry.ts` |
-| Valkivid3 mechanics (frozen landing, CSS scoping, theme forks) | `valkivid3.mdc` |
+| AdminLTE4 layout and component patterns | `ui-patterns.mdc` |
 | Tests | [testing.md](testing.md) |
 
 ## Template namespaces
 
 - **AdminLTE4** (Bootstrap 5, `src/assets/main-ltr.css` / `main-rtl.css`) — the authenticated `/apps/*` shell and auth pages. One card at content root, two cards share a breakpoint, a missing sibling expands the remaining cell to `col-12`.
-- **Valkivid3** (Tailwind v4, `src/valkivid3/`) — public `/vtual` surfaces only, imported by `VkStr1Layout.vue` alone, utilities scoped under `.vk3-root`.
 
-Never import one namespace's CSS from the other; the two bundles must stay loadable in the same DOM. The vTual landing components are **frozen** — see `valkivid3.mdc`.
+Keep vendor widget styles scoped to their owning component. Do not add a second global CSS namespace.
 
 ## States, actions, dialogs
 

@@ -14,8 +14,8 @@
 // a link whose `#anchor` no longer matches any heading, and `docs/agents/`
 // creeping back as a second home for agent rules.
 //
-// Not every living doc is a brief. A deep dive, a progress tracker, a
-// settled-terms glossary and an edge-case inventory each have their own budget
+// Not every living doc is a brief. A deep dive, a settled-terms glossary and an
+// edge-case inventory each have their own budget
 // (see `docKind()`), and a deep dive only earns its size when the brief in the
 // same directory links to it. The allowlist is the last resort for a file that
 // outgrows even its own kind — and an entry whose file now fits is itself a
@@ -64,7 +64,7 @@ const siblingRepoIsPresent = () => existsSync(join(SIBLING, '.cursor', 'rules'))
  * `reference-<topic>.md` siblings; the `reference` prefix keeps every one of them
  * a deep dive, so each is still linked from the brief in the same directory.
  *
- * @param {string} relativeToDocs path relative to docs/, e.g. `vtual/reference.md`
+ * @param {string} relativeToDocs path relative to docs/, e.g. `archivd/reference.md`
  * @returns {{name: string, budget: number}}
  */
 function docKind(relativeToDocs) {
@@ -72,7 +72,6 @@ function docKind(relativeToDocs) {
 
   if (relativeToDocs === 'README.md') return { name: 'index', budget: 150 }
   if (name.startsWith('reference')) return { name: 'deep-dive', budget: 400 }
-  if (name === 'implementation-status.md') return { name: 'tracker', budget: 500 }
   if (name === 'naming-conventions.md') return { name: 'glossary', budget: 200 }
   if (['billing-edge-cases.md', 'daily-free-trial.md'].includes(name)) return { name: 'edge-case', budget: 200 }
 

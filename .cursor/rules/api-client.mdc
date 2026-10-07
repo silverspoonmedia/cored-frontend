@@ -18,6 +18,6 @@ alwaysApply: false
 - **Blob:** `getBlob()` parses `Content-Disposition` (`filename*=` first); cross-origin this only works because Laravel's `config/cors.php` exposes the header.
 - **Echo:** authorizers go through `client.post('broadcasting/auth')` (inherits CSRF/419 retry) and are **serialized** in `useEcho.ts` — at most one authorize in flight per socket, because pusher-js fires a parallel burst on connect. `AppNavbar` awaits `hydrateShell()` **and** `whenCsrfCookieQuiet()` before `initEcho()`.
 - **Channel lifecycle goes through the registry.** Never `echo.private()` / `echo.leave()` / `subscribeWhenEchoReady()` in a view or composable — use `src/composables/echo/channelRegistry.ts` (`acquireChannel`) or the declarative `createRealtimeChannel` / `createKeyedRealtimeChannel`. Ref-counting is per channel name; attach always defers until Echo exists; `retarget()` leaves the previous dynamic name. `tests/echoConventions.test.ts` fails the build otherwise.
-- **Never widen a secret-bearing channel — add a sibling.** `vtual.claim.{id}` is owner-only (its payload includes the bio token); the staff ping rides `vtual.claims` with ids + action + status only, and its only correct reaction is a refetch.
+- **Never widen a secret-bearing channel — add a sibling.** A channel whose payload includes a token is owner-only; the staff ping rides a separate aggregate channel with ids + action + status only, and its only correct reaction is a refetch.
 
 Details: [docs/api-client.md](../../docs/api-client.md), [docs/architecture.md](../../docs/architecture.md).
