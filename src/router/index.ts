@@ -13,7 +13,6 @@ import { navigationRoutes } from '@/router/routes/navigation'
 import { inferenceCatalogRoutes, inferenceUsageRoutes } from '@/router/routes/inference'
 import { aiConnectionRoutes } from '@/router/routes/ai'
 import { subscriptionRoutes, serviceCatalogRoutes, servicePurchaseRoutes } from '@/router/routes/service'
-import { vtualAdminEarlyRoutes, vtualAdminLateRoutes, vtualPublicRoutes } from '@/router/routes/vtual'
 import { productActivationRoutes } from '@/router/routes/product-activations'
 import { archivdMicrostockUsageRoutes, archivdRoutes } from '@/router/routes/archivd'
 import { microstockRoutes } from '@/router/routes/microstock'
@@ -54,7 +53,6 @@ const router = createRouter({
     ...subscriptionRoutes,
     ...serviceCatalogRoutes,
     ...invoiceRoutes,
-    ...vtualAdminEarlyRoutes,
     ...productActivationRoutes,
     ...inferenceUsageRoutes,
     ...paymentsIncomeRoutes,
@@ -64,8 +62,6 @@ const router = createRouter({
     ...servicePurchaseRoutes,
     ...archivdRoutes,
     ...publicShareRoutes,
-    ...vtualAdminLateRoutes,
-    ...vtualPublicRoutes,
     ...paymentReturnRoutes,
     ...legacyRoutes,
     ...notFoundRoutes,

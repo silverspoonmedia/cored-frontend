@@ -28,8 +28,8 @@ describe('setHeadMeta jsonLd', () => {
   it('writes one marked ld+json block and keeps the meta tags marked too', () => {
     setHeadMeta({
       title: 'Aoi',
-      description: 'A vTuber',
-      url: 'https://example.test/vtual/vtubers/aoi',
+      description: 'A shared file',
+      url: 'https://example.test/s/f/01a0a300',
       jsonLd: { '@context': 'https://schema.org', '@type': 'Person', name: 'Aoi' },
     })
 
@@ -41,7 +41,7 @@ describe('setHeadMeta jsonLd', () => {
       name: 'Aoi',
     })
     expect(document.head.querySelector('meta[property="og:title"][data-monolith-meta]')?.getAttribute('content')).toBe('Aoi')
-    expect(document.head.querySelector('link[rel="canonical"][data-monolith-meta]')?.getAttribute('href')).toBe('https://example.test/vtual/vtubers/aoi')
+    expect(document.head.querySelector('link[rel="canonical"][data-monolith-meta]')?.getAttribute('href')).toBe('https://example.test/s/f/01a0a300')
   })
 
   it('replaces the block on navigation instead of stacking a second one', () => {
@@ -55,14 +55,14 @@ describe('setHeadMeta jsonLd', () => {
 
   it('removes the block when the next page has no schema', () => {
     setHeadMeta({ title: 'Aoi', jsonLd: { '@type': 'Person', name: 'Aoi' } })
-    setHeadMeta({ title: 'vTual' })
+    setHeadMeta({ title: 'Dashboard' })
 
     expect(jsonLdBlocks()).toHaveLength(0)
   })
 
   it('removes the block when jsonLd is explicitly null', () => {
     setHeadMeta({ title: 'Aoi', jsonLd: { '@type': 'Person', name: 'Aoi' } })
-    setHeadMeta({ title: 'vTual', jsonLd: null })
+    setHeadMeta({ title: 'Dashboard', jsonLd: null })
 
     expect(jsonLdBlocks()).toHaveLength(0)
   })
@@ -73,8 +73,8 @@ describe('clearHeadMeta', () => {
     document.head.insertAdjacentHTML('afterbegin', '<meta name="description" content="static from index.html">')
     setHeadMeta({
       title: 'Aoi',
-      description: 'A vTuber',
-      url: 'https://example.test/vtual/vtubers/aoi',
+      description: 'A shared file',
+      url: 'https://example.test/s/f/01a0a300',
       jsonLd: { '@type': 'Person', name: 'Aoi' },
     })
 

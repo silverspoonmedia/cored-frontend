@@ -22,7 +22,6 @@ const iconMap: Record<string, string> = {
   platform: 'bi-sliders',
   'archivd': 'bi-cloud-upload',
   microstock: 'bi-images',
-  vtual: 'bi-broadcast',
   identity: 'bi-person-badge',
 }
 

@@ -49,9 +49,8 @@ export function useBreadcrumbTitle(source: () => string | null | undefined): voi
   // One watcher for both triggers: a new path (previous record's name must never
   // survive into the next screen) and a new title (record hydrated, or cleared on
   // load error). Re-reading the source on a path change matters for a view that
-  // navigates to itself — `VtualVtuberShowView` canonicalizes its slug with
-  // `router.replace`, and the record is already loaded, so a path-only reset
-  // would blank the crumb for good.
+  // navigates to itself (canonicalizing its slug with `router.replace`, record
+  // already loaded), where a path-only reset would blank the crumb for good.
   watch([path, source], () => claim(normalizeEntityLabel(source())), { immediate: true })
 
   onUnmounted(() => {
@@ -87,8 +86,8 @@ export function useBreadcrumbs() {
    * Resolve a parent crumb by route name. The resolved location carries the
    * `meta` merged down its own `matched` chain (that is how a `.view` child
    * inherits its family record's `titleKey` / `breadcrumb`), plus that route's
-   * params so the crumb stays a working link — `/apps/vtual/vtubers/:slug` needs
-   * the `slug` of the page we came from.
+   * params so the crumb stays a working link — `/apps/archivd/files/:id` needs
+   * the `id` of the page we came from.
    */
   function resolveParent(name: string, params: BreadcrumbParams): BreadcrumbLocation | null {
     try {
