@@ -17,7 +17,7 @@ describe('resolveApiUrl', () => {
     ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL = ''
     expect(resolveApiUrl('auth/me')).toBe('/api/v1/auth/me')
     expect(resolveApiUrl('/apps/roles')).toBe('/api/v1/apps/roles')
-    expect(resolveApiUrl('archivd/workspaces')).toBe('/api/v1/archivd/workspaces')
+    expect(resolveApiUrl('notifications')).toBe('/api/v1/notifications')
   })
 
   it('routes auth and data paths alike to the absolute API origin', () => {
@@ -26,8 +26,8 @@ describe('resolveApiUrl', () => {
     expect(resolveApiUrl('auth/login')).toBe('https://monolith-ph24.spnd.uk/api/v1/auth/login')
     expect(resolveApiUrl('auth/me')).toBe('https://monolith-ph24.spnd.uk/api/v1/auth/me')
     expect(resolveApiUrl('auth/refresh')).toBe('https://monolith-ph24.spnd.uk/api/v1/auth/refresh')
-    expect(resolveApiUrl('archivd/workspaces')).toBe(
-      'https://monolith-ph24.spnd.uk/api/v1/archivd/workspaces',
+    expect(resolveApiUrl('notifications')).toBe(
+      'https://monolith-ph24.spnd.uk/api/v1/notifications',
     )
   })
 

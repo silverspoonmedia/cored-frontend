@@ -3,8 +3,8 @@ import { safeInternalRedirect } from '../src/lib/safeRedirect'
 
 describe('safeInternalRedirect', () => {
   it('accepts same-app paths', () => {
-    expect(safeInternalRedirect('/apps/product-activations/microstock')).toBe(
-      '/apps/product-activations/microstock',
+    expect(safeInternalRedirect('/apps/activity-logs/01a0a300')).toBe(
+      '/apps/activity-logs/01a0a300',
     )
     expect(safeInternalRedirect('/apps/settings/platform')).toBe('/apps/settings/platform')
   })

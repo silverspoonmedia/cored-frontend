@@ -86,8 +86,8 @@ export function useBreadcrumbs() {
    * Resolve a parent crumb by route name. The resolved location carries the
    * `meta` merged down its own `matched` chain (that is how a `.view` child
    * inherits its family record's `titleKey` / `breadcrumb`), plus that route's
-   * params so the crumb stays a working link — `/apps/archivd/files/:id` needs
-   * the `id` of the page we came from.
+   * params so the crumb stays a working link — a detail screen whose parent
+   * route carries `:id` needs the `id` of the record we came from.
    */
   function resolveParent(name: string, params: BreadcrumbParams): BreadcrumbLocation | null {
     try {
