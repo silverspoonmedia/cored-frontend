@@ -79,20 +79,9 @@ export const AI_CONNECTION_STATUS_BADGE: Record<string, BadgeColor> = {
 }
 
 /**
- * vTual channel / credential / claim statuses.
- * Matches Blade `x-adminlte4::vtual.status-badge` + credentials-platform.js.
- * Unknown keys should use StatusBadge `fallback="light"`.
+ * Resolve a status string to a badge color: the caller's mapping first, then
+ * the shared default table, then `fallback`.
  */
-export const VTUAL_STATUS_BADGE: Record<string, BadgeColor> = {
-  active: 'success',
-  pending: 'warning',
-  archived: 'secondary',
-  revoked: 'dark',
-  disconnected: 'light',
-}
-
-export type VtualStatus = 'active' | 'pending' | 'archived' | 'revoked' | 'disconnected' | string
-
 export function resolveBadgeColor(
   status: string | null | undefined,
   mapping: Record<string, BadgeColor> = {},

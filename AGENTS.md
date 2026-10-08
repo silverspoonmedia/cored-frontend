@@ -29,7 +29,6 @@
 | `auth-session.mdc` | Session, CSRF, hydrate, logout, cross-tab sync |
 | `worker-thin.mdc` | `server/**`, `wrangler.jsonc`, `public/_headers` |
 | `ui-patterns.mdc` | Views, components, assets — AdminLTE namespace conventions |
-| `valkivid3.mdc` | `src/valkivid3/**`, vTual presentation/JSON-LD utils (landing is FROZEN) |
 | `routes-contract.mdc` | `src/router/**` — route names sync with `monolith/config/spa-routes.php` |
 | `archivd-spa.mdc` | `src/views|composables|components/archivd/**` |
 | `testing.mdc` | `tests/**` — which contracts must stay covered |

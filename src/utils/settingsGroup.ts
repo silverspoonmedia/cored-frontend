@@ -1,6 +1,6 @@
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 
-export const SETTINGS_MENU_GROUPS = ['platform', 'archivd', 'microstock', 'vtual'] as const
+export const SETTINGS_MENU_GROUPS = ['platform', 'archivd', 'microstock'] as const
 
 export type SettingsMenuGroup = (typeof SETTINGS_MENU_GROUPS)[number]
 

@@ -20,7 +20,7 @@ Three documentation surfaces, **one owner per topic**. Never state the same rule
 
 ## Doc kinds and size budgets (registry: `docKind()` in `scripts/check-docs.mjs`)
 
-The kind comes from the file name, so a new kind is a deliberate edit to that function, not a new registry. Budgets: index `docs/README.md` 150 · brief (any other `**/README.md`, and anything unnamed) 90 · deep dive `reference.md` / `reference-*.md` 400 · tracker `implementation-status.md` 500 · glossary `naming-conventions.md` 200 · edge case `*-edge-cases.md` / `daily-free-trial.md` 200.
+The kind comes from the file name, so a new kind is a deliberate edit to that function, not a new registry. Budgets: index `docs/README.md` 150 · brief (any other `**/README.md`, and anything unnamed) 90 · deep dive `reference.md` / `reference-*.md` 400 · glossary `naming-conventions.md` 200 · edge case `*-edge-cases.md` / `daily-free-trial.md` 200.
 
 - Those numbers are asserted against `docKind()` by the backend `DocsBudgetGuardTest` (`php artisan test --filter=Documentation`), which also compares them with the Monolith registry. Editing one repo's copy without the other's fails that suite.
 - A **deep dive** must be linked from the `README.md` in the same directory. Unlinked, it is a second front door to the same topic.

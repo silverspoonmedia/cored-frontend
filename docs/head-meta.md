@@ -1,6 +1,6 @@
 # Runtime head meta (`useHeadMeta`)
 
-Client-side OG/SEO meta injection for the public SPA surfaces, in `src/composables/useHeadMeta.ts`. Invariants: [.cursor/rules/valkivid3.mdc](../.cursor/rules/valkivid3.mdc) (JSON-LD + presentation), [.cursor/rules/worker-thin.mdc](../.cursor/rules/worker-thin.mdc) (no SSR).
+Client-side OG/SEO meta injection for public SPA surfaces, in `src/composables/useHeadMeta.ts`. Invariant: [.cursor/rules/worker-thin.mdc](../.cursor/rules/worker-thin.mdc) (no SSR).
 
 **Never add a Worker/Pages Function, middleware SSR, HTML rewriter, or `server/` route for meta injection.** Every Worker invocation bills a request; social crawlers execute JavaScript, so runtime `document.head` injection is the maximum coverage available while `assets.run_worker_first` stays empty.
 
@@ -21,10 +21,9 @@ clearHeadMeta() // on unmount / route leave
 
 | Need | Path |
 |------|------|
-| JSON-LD builders | `src/utils/vtualJsonLd.ts` (pure functions) |
-| Public views | [ui-patterns.md](ui-patterns.md) · `valkivid3.mdc` |
-| Meta copy keys | [i18n.md](i18n.md) — `web.vtual.public.meta.*` in all seven locales |
-| Tests | `tests/headMetaJsonLd.test.ts` (jsdom), `tests/vtualJsonLd.test.ts` |
+| The composable | `src/composables/useHeadMeta.ts` |
+| Public views | [ui-patterns.md](ui-patterns.md) · `ui-patterns.mdc` |
+| Tests | `tests/headMetaJsonLd.test.ts` (jsdom) |
 
 ## Behavior contract
 
@@ -34,10 +33,6 @@ clearHeadMeta() // on unmount / route leave
 - **`og:url` / canonical** is `origin + route.path` — never with query params.
 - **Upsert, not duplicate**, and every caller must `clearHeadMeta()` in `onUnmounted()`.
 
-## Consumers
+## Adding a consumer
 
-| View | Meta |
-|------|------|
-| `VkStr1VtualHomeView` (`/vtual`) | title + landing description, `website`, no image, no JSON-LD |
-| `VkStr1VtuberShowView` (`/vtual/vtubers/{slug}`) | `display_name` + truncated bio (fallback key), avatar ?? banner, `profile`, JSON-LD `Person` + `ItemList` of the rendered page of `VideoObject`s |
-| `VkStr1ManagementShowView` (`/vtual/managements/{slug}`) | name + truncated description (fallback key), logo, `profile`, JSON-LD `Organization` + `member` roster |
+Call `setHeadMeta` from the public view's setup, keep the `title`/`description` copy in the locale packs, and `clearHeadMeta()` on unmount. JSON-LD is built as a plain object at the call site — there is no shared builder layer, so a new schema type needs no registry entry.

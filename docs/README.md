@@ -34,9 +34,9 @@ Backend-side contract docs live in the sibling Monolith repo (`monolith/docs/`).
 | [architecture.md](architecture.md) | `task-scope.mdc`, `worker-thin.mdc` | Direct-to-API model, `VITE_API_BASE_URL`, `src/` layer map, type-then-domain rule |
 | [auth-session.md](auth-session.md) | `auth-session.mdc` | `__Host-spa_jwt` cookie, CSRF double-submit, hydrate, logout barrier/epoch, cross-tab sync |
 | [api-client.md](api-client.md) | `api-client.mdc` | `client.ts` behavior, headers, query serialization, error normalization, batch, Echo auth + channel registry |
-| [head-meta.md](head-meta.md) | `valkivid3.mdc` | Client-side OG/SEO meta for public surfaces (`useHeadMeta`), JSON-LD builders |
+| [head-meta.md](head-meta.md) | `worker-thin.mdc` | Client-side OG/SEO meta for public surfaces (`useHeadMeta`) |
 | [i18n.md](i18n.md) | `i18n-locales.mdc`, `i18n-guardrail.mdc` | Seven locales, lazy chunks, `zh-CN`↔`zh_CN`, RTL reload, `check:i18n` chain, curation log |
-| [ui-patterns.md](ui-patterns.md) | `ui-patterns.mdc`, `valkivid3.mdc` | Template scoping, loading/error states, RowActions, Swal-only, selects, safe URLs |
+| [ui-patterns.md](ui-patterns.md) | `ui-patterns.mdc` | Loading/error states, RowActions, Swal-only, selects, safe URLs |
 | [routes.md](routes.md) | `routes-contract.mdc` | Route modules, naming contract, sync with `monolith/config/spa-routes.php`, breadcrumbs |
 | [testing.md](testing.md) | `testing.mdc` | Vitest setup, which contracts must stay covered, adding tests |
 | [worker.md](worker.md) | `worker-thin.mdc` | `server/index.ts` guard-only stub, never-re-add-proxy invariant, security headers |

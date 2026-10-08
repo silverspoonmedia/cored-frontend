@@ -6,7 +6,7 @@ alwaysApply: false
 
 # UI patterns (AdminLTE namespace)
 
-- **Template namespaces never cross-import CSS.** AdminLTE4 (Bootstrap 5, `src/assets/main-ltr.css` / `main-rtl.css`) owns `/apps/*` and auth pages; Valkivid3 (Tailwind, `src/valkivid3/`) owns the public vTual surfaces — see `valkivid3.mdc`. Never Tailwind classes in an AdminLTE view, never Bootstrap reliance inside Valkivid3.
+- **Template namespaces never cross-import CSS.** AdminLTE4 (Bootstrap 5, `src/assets/main-ltr.css` / `main-rtl.css`) owns `/apps/*` and auth pages. Never Tailwind classes in an AdminLTE view, never Bootstrap reliance inside a Tailwind island.
 - **Loading states are mandatory.** Every data view renders skeleton → error-with-retry → empty/data through the shared primitives: `SkeletonBlock`, `ErrorState` (emits `retry`), `EmptyState`, `TableEmptyRow`, `useDetailLoader`. No view goes blank on fetch failure. `DataTable` extends the same order in its body and needs `:error` + `@retry`.
 - **First load is explicit.** `useResource` never fetches on its own, and neither `useListingLiveUpdate` nor `useEchoResync` triggers the initial pull. A list view calls `useServerDataTable(fetchList, pagination)` (loads page 1) or `void fetchList()` in `onMounted`.
 - **Navigation buttons are links.** A button whose only effect is `router.push` is a `<router-link :to>`, so hover reveals the URL. Real actions and `router.back()` stay `<button>`. A disabled nav uses `<router-link>` + `class="disabled"` + `aria-disabled="true"` + `tabindex="-1"`.

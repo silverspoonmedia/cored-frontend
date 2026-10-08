@@ -113,23 +113,29 @@ describe('buildBreadcrumbChain', () => {
 
   it('carries the child params into a param-bound parent link', () => {
     const resolve = resolverFrom({
-      'vtual.vtuber.show.view': location('vtual.vtuber.show.view', {
-        titleKey: 'web.vtual-vtuber.title',
-        breadcrumb: { parent: 'vtual.vtuber.index.view' },
+      'inference.providers.show.view': location('inference.providers.show.view', {
+        titleKey: 'web.inference.providers.show_title',
+        breadcrumb: { parent: 'inference.providers.index.view' },
       }),
     })
 
     const chain = buildBreadcrumbChain({
       start: location(
-        'vtual.vtuber.claim.view',
-        { titleKey: 'web.vtual-vtuber.claim_page_title', breadcrumb: { parent: 'vtual.vtuber.show.view' } },
-        { slug: 'kirin' },
+        'inference.providers.edit.view',
+        {
+          titleKey: 'web.inference.providers.edit_title',
+          breadcrumb: { parent: 'inference.providers.show.view' },
+        },
+        { id: '01a0a300' },
       ),
       resolve,
     })
 
-    expect(chain[0]?.params).toEqual({ slug: 'kirin' })
-    expect(chain.map((c) => c.routeName)).toEqual(['vtual.vtuber.show.view', 'vtual.vtuber.claim.view'])
+    expect(chain[0]?.params).toEqual({ id: '01a0a300' })
+    expect(chain.map((c) => c.routeName)).toEqual([
+      'inference.providers.show.view',
+      'inference.providers.edit.view',
+    ])
   })
 
   it('stops when a parent cannot be resolved', () => {
@@ -160,9 +166,9 @@ describe('buildBreadcrumbChain', () => {
 describe('paramKeysOf / pickParams', () => {
   it('reads param names out of a route path, in order and without duplicates', () => {
     expect(paramKeysOf('/apps/users/:id/edit')).toEqual(['id'])
-    expect(paramKeysOf('/apps/vtual/platform-credentials/:platformId/create')).toEqual(['platformId'])
+    expect(paramKeysOf('/apps/inference/providers/:id/edit')).toEqual(['id'])
     expect(paramKeysOf('/apps/users')).toEqual([])
-    expect(paramKeysOf('/apps/vtual/vtubers/:slug/claim')).toEqual(['slug'])
+    expect(paramKeysOf('/apps/product-activations/:productKey')).toEqual(['productKey'])
   })
 
   it('keeps only the params the target route declares', () => {

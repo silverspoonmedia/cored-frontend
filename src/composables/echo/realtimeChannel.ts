@@ -103,7 +103,7 @@ export interface KeyedRealtimeChannel<K, H> {
 
 /**
  * Family of channels addressed by a key (`payments.invoice.{id}`,
- * `vtual.claim.{id}`, `services.purchase.{id}`). Each key gets its own
+ * `archivd.workspace.{id}`, `services.purchase.{id}`). Each key gets its own
  * ref-counted channel, created lazily and dropped when its last handler
  * detaches — so N simultaneous entities never share (or tear down) one channel.
  */

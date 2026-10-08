@@ -17,6 +17,5 @@ declare module 'vue-router' {
       parent?: string
       labelKey?: string
     }
-    template?: 'adminlte4' | 'valkivid3'
   }
 }

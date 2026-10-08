@@ -88,7 +88,7 @@ function startRealtime(): void {
   // Shared navigation.menus channel (useMenusChannel) — ref-counted with the
   // Menus admin views, so unmounting a view can't kill shell nav updates.
   detachMenus = listenMenusChannel((e) => {
-    // Targeted refresh (e.g. vTual management membership changed): ignore
+    // Targeted refresh (e.g. a role change on a membership record): ignore
     // events meant for other viewers; broadcast-all events keep old behavior.
     const { user } = useAuth()
     if (e.target_user_id && String(e.target_user_id) !== String(user.value?.id ?? '')) {

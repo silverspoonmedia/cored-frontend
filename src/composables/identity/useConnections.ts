@@ -8,11 +8,7 @@ import type {
 } from '@/api/types'
 import { safeDiscordAuthorizeUrl } from '@/utils/safeUrl'
 
-export type DiscordAuthorizeIntent =
-  | 'profile'
-  | 'claim_verify'
-  | 'claim_channel'
-  | 'channel_claim_verify'
+export type DiscordAuthorizeIntent = 'profile'
 
 export function providerByKey(
   snapshot: ProfileConnections | null | undefined,
@@ -54,9 +50,6 @@ export function useConnections() {
   async function authorizeUrl(params: {
     intent: DiscordAuthorizeIntent
     return_path: string
-    slug?: string
-    claim_id?: string
-    channel_id?: string
   }): Promise<string> {
     const res = await get<ApiResponse<DiscordAuthorizeUrl>>('auth/discord/authorize-url', params)
     if (res.status === 'success' && res.data?.url) {

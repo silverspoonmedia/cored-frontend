@@ -19,20 +19,16 @@ function reloadPage(): void {
 
 const AUTH_BODY_CLASSES = ['login-page', 'bg-body-secondary'] as const
 const APP_BODY_CLASSES = ['layout-fixed', 'sidebar-expand-lg', 'bg-body-tertiary'] as const
-const VK3_BODY_CLASSES = ['vk3-page'] as const
-const MANAGED_BODY_CLASSES = [...AUTH_BODY_CLASSES, ...APP_BODY_CLASSES, ...VK3_BODY_CLASSES]
+const MANAGED_BODY_CLASSES = [...AUTH_BODY_CLASSES, ...APP_BODY_CLASSES]
 
 function applyBodyClass(): void {
   const body = document.body
-  const isValkivid = route.matched.some((record) => record.meta.template === 'valkivid3')
   const isAuth = route.matched.some(
     (record) => record.meta.guestOnly === true || record.meta.authChrome === true,
   )
 
   body.classList.remove(...MANAGED_BODY_CLASSES)
-  body.classList.add(
-    ...(isValkivid ? VK3_BODY_CLASSES : isAuth ? AUTH_BODY_CLASSES : APP_BODY_CLASSES),
-  )
+  body.classList.add(...(isAuth ? AUTH_BODY_CLASSES : APP_BODY_CLASSES))
 }
 
 onMounted(() => {

@@ -5,7 +5,7 @@
 // IT vocabulary keeps `Status`, `Folder` and `Settlement`, while Korean and
 // Chinese translate the very same key. A flat key-only list silences every
 // locale at once, which is how `ko.ui.copyright` and
-// `zh-CN.web.vtual.public.title` stayed English while both were allowlisted.
+// `zh-CN.web.archivd.title` stayed English while both were allowlisted.
 //
 // Add a key to `globalDuplicateEnglishKeys` only when it is machine-contract
 // text or a brand; otherwise add it to the one locale that legitimately needs
@@ -48,27 +48,6 @@ export const globalDuplicateEnglishKeys = new Set([
   'web.services.show.stack_quantity_equation',
   'web.settings.groups.archivd',
   'web.settings.groups.microstock',
-  'web.settings.groups.vtual',
-  'web.vtual-orphans.channels.profile_placeholder_twitch',
-  'web.vtual-orphans.channels.profile_placeholder_youtube',
-  'web.vtual-vtuber.hub_title',
-  'web.vtual.probe.method_fetch_channels',
-  'web.vtual.probe.method_fetch_videos',
-  'web.vtual.probe.method_fetch_videos_chunked',
-  'web.vtual.probe.method_resolve_channel',
-  'web.vtual.profile_placeholder_twitch',
-  'web.vtual.profile_placeholder_youtube',
-  'web.vtual.profiles.fields.link_url',
-  'web.vtual.profiles.uuid_placeholder',
-  // Platform product names, not translated terms — the backend keeps the same
-  // two values in `lang/*/api/vtual.php` `incident.kinds`.
-  'web.vtual.incidents.kind.websub',
-  'web.vtual.incidents.kind.eventsub',
-  'web.vtual.public.directory.live',
-  'web.vtual.public.profile.filter_type_live',
-  'web.vtual.public.profile.filter_type_vod',
-  'web.vtual.public.profile.live',
-  'web.vtual.public.profile.vod',
 ])
 
 /**
@@ -155,40 +134,6 @@ export const localeDuplicateEnglishKeys = {
     'web.settings.groups.platform',
     'web.users.datatable.columns.email',
     'web.users.form.email_label',
-    'web.vtual-events.datatable.columns.status',
-    'web.vtual-events.status.live',
-    'web.vtual-managements.datatable.columns.slug',
-    'web.vtual-managements.datatable.columns.status',
-    'web.vtual-managements.form.slug',
-    'web.vtual-managements.form.status',
-    'web.vtual-managements.invites.columns.email',
-    'web.vtual-managements.invites.email',
-    'web.vtual-orphans.channels.avatar',
-    'web.vtual-orphans.channels.platform',
-    'web.vtual-orphans.channels.status',
-    'web.vtual-orphans.datatable.columns.slug',
-    'web.vtual-orphans.form.slug',
-    'web.vtual-platform-credentials.client_id_label',
-    // Same loanword rule as every other vTual status column above: Indonesian
-    // product UI ships `Status`, and no native alternative is in use.
-    'web.vtual.claims.columns.status',
-    'web.vtual.incidents.columns.status',
-    // Matches `lang/id/api/vtual.php` `incident.severities.info` = `Info`.
-    'web.vtual.incidents.severity.info',
-    'web.vtual.platform_col',
-    'web.vtual.platform_label',
-    'web.vtual.probe_button',
-    'web.vtual.profiles.channels.avatar',
-    'web.vtual.profiles.channels.platform',
-    'web.vtual.profiles.channels.status',
-    'web.vtual.profiles.fields.link_label',
-    'web.vtual.profiles.fields.platform',
-    'web.vtual.profiles.fields.slug',
-    'web.vtual.profiles.token_label',
-    'web.vtual.public.profile.details.status',
-    'web.vtual.public.profile.filters_label',
-    'web.vtual.public.schedule.platform',
-    'web.vtual.slug_col',
   ]),
   'ja': new Set([
   ]),

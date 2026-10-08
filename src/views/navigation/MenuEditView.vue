@@ -82,7 +82,7 @@ const audienceOptions = computed<Record<string, string>>(() => ({
 }))
 
 const layoutOptions = computed<Record<string, string>>(() => {
-  const keys = availableLayouts.value.length ? availableLayouts.value : ['sidebar', 'navbar', 'vtual']
+  const keys = availableLayouts.value.length ? availableLayouts.value : ['sidebar', 'navbar']
   return Object.fromEntries(keys.map((key) => [key, t(`web.menus.form.layouts.${key}`)]))
 })
 
