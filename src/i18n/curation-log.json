@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-10-07T17:30:00+07:00",
+  "updated_at": "2026-10-08T19:00:00+07:00",
   "locales": {
     "ar": {
       "actions.actions": {
@@ -1863,16 +1863,6 @@
         "surface": "required-field message shown inside a SweetAlert confirm dialog",
         "source": "src/lib/swal.ts"
       },
-      "ui.empty_state.default_message": {
-        "curated_at": "2026-09-22T22:23:25+07:00",
-        "surface": "empty-state placeholder title and body",
-        "source": "src/components/DataTable.vue, src/lib/swal.ts, src/App.vue, src/components/AppSidebar.vue"
-      },
-      "ui.empty_state.default_title": {
-        "curated_at": "2026-09-22T22:23:25+07:00",
-        "surface": "empty-state placeholder title and body",
-        "source": "src/components/DataTable.vue, src/lib/swal.ts, src/App.vue, src/components/AppSidebar.vue"
-      },
       "ui.error_state.message": {
         "curated_at": "2026-09-22T22:40:29+07:00",
         "surface": "default body text of the shared ErrorState component",
@@ -1912,11 +1902,6 @@
         "curated_at": "2026-09-22T22:23:25+07:00",
         "surface": "short form/table field caption",
         "source": "src/components/DataTable.vue, src/lib/swal.ts, src/App.vue, src/components/AppSidebar.vue"
-      },
-      "ui.navigation.load_failed": {
-        "curated_at": "2026-09-21T15:50:00+07:00",
-        "surface": "shell navigation load error",
-        "source": "src/composables/navigation/useNavigation.ts"
       },
       "ui.shared.create_failed": {
         "curated_at": "2026-09-22T22:40:29+07:00",
@@ -5014,8 +4999,8 @@
         "source": "src/views/navigation/MenuEditView.vue"
       },
       "web.menus.form.hash_hint": {
-        "curated_at": "2026-09-22T20:56:57+07:00",
-        "surface": "form field hint under the hash input",
+        "curated_at": "2026-10-08T19:00:00+07:00",
+        "surface": "form field hint under the hash anchor input",
         "source": "src/views/navigation/MenuEditView.vue"
       },
       "web.menus.form.hash_label": {
@@ -7080,11 +7065,6 @@
         "surface": "checkout started toast",
         "source": "src/views/service/ServiceShowView.vue:95"
       },
-      "ui.navigation.load_failed": {
-        "curated_at": "2026-09-21T15:50:00+07:00",
-        "surface": "shell navigation load error",
-        "source": "src/composables/navigation/useNavigation.ts"
-      },
       "web.domain-access.load_failed": {
         "curated_at": "2026-09-21T15:50:00+07:00",
         "surface": "inline error on the Domain Access screen",
@@ -7174,6 +7154,11 @@
         "curated_at": "2026-10-07T17:30:00+07:00",
         "surface": "page subtitle above the AI connections table",
         "source": "src/views/ai/AiConnectionsView.vue:127"
+      },
+      "web.menus.form.hash_hint": {
+        "curated_at": "2026-10-08T19:00:00+07:00",
+        "surface": "form field hint under the hash anchor input",
+        "source": "src/views/navigation/MenuEditView.vue"
       }
     },
     "id": {
@@ -7922,11 +7907,6 @@
         "surface": "API success/error toast + validation message",
         "source": "backend /api/v1 responses consumed via src/composables"
       },
-      "api.navigation.load_failed": {
-        "curated_at": "2026-09-21T16:09:15+07:00",
-        "surface": "API success/error toast + validation message",
-        "source": "backend /api/v1 responses consumed via src/composables"
-      },
       "api.navigation.not_found": {
         "curated_at": "2026-09-21T16:09:15+07:00",
         "surface": "API success/error toast + validation message",
@@ -8512,16 +8492,6 @@
         "surface": "shared UI chrome (buttons, empty/error states, dialogs)",
         "source": "src/components + src/composables shared primitives"
       },
-      "ui.empty_state.default_message": {
-        "curated_at": "2026-09-21T16:06:45+07:00",
-        "surface": "shared UI chrome (buttons, empty/error states, dialogs)",
-        "source": "src/components + src/composables shared primitives"
-      },
-      "ui.navigation.load_failed": {
-        "curated_at": "2026-09-21T15:50:00+07:00",
-        "surface": "shell navigation load error",
-        "source": "src/composables/navigation/useNavigation.ts"
-      },
       "ui.shared.create_failed": {
         "curated_at": "2026-09-21T16:06:45+07:00",
         "surface": "shared UI chrome (buttons, empty/error states, dialogs)",
@@ -8940,57 +8910,57 @@
       "web.ai-connections.default_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.default_updated": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.delete_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.fields.api_key_hint": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.fields.api_key_hint_edit": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.fields.enabled_hint": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.fields.test_model_hint": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.form_help": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.load_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.pending_notice": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.save_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.ai-connections.subtitle": {
         "curated_at": "2026-10-07T17:30:00+07:00",
@@ -9000,7 +8970,7 @@
       "web.ai-connections.test_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.archivd.back": {
         "curated_at": "2026-09-21T16:18:27+07:00",
@@ -9690,22 +9660,22 @@
       "web.currencies.activated": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.currencies.deactivated": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.currencies.no_currencies_message": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.currencies.subtitle": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.dashboard.no_permissions": {
         "curated_at": "2026-09-21T16:23:58+07:00",
@@ -9765,67 +9735,67 @@
       "web.error-log.actions.resolve": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.error-log.empty_title": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.error-log.fields.fingerprint": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.error-log.filters.search": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.error-log.levels.alert": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.error-log.load_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.error-log.status_update_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.error-log.status_updated": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.identity-connections.disconnected": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.identity-connections.discord_callback_invalid": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.identity-connections.discord_disconnect_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.identity-connections.discord_disconnected": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.identity-connections.synced": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.inference.model_cards.edit_title": {
         "curated_at": "2026-09-21T16:21:01+07:00",
@@ -9928,9 +9898,9 @@
         "source": "src/views/navigation/*, src/views/microstock/*"
       },
       "web.menus.form.hash_hint": {
-        "curated_at": "2026-09-21T16:22:04+07:00",
-        "surface": "Menu builder admin UI; Microstock usage/ledger tables",
-        "source": "src/views/navigation/*, src/views/microstock/*"
+        "curated_at": "2026-10-08T19:00:00+07:00",
+        "surface": "form field hint under the hash anchor input",
+        "source": "src/views/navigation/MenuEditView.vue"
       },
       "web.menus.form.hash_label": {
         "curated_at": "2026-09-21T16:22:04+07:00",
@@ -10010,22 +9980,22 @@
       "web.microstock-credentials.add_help": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.microstock-credentials.errors.delete_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.microstock-credentials.errors.load_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.microstock-credentials.errors.save_failed": {
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
-        "source": "src/views/error-log/*, src/views/ai/*, src/views/currencies/*, src/views/identity/*"
+        "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
       },
       "web.microstock.ai_failed": {
         "curated_at": "2026-09-21T15:50:00+07:00",
@@ -11592,37 +11562,32 @@
       "ui.datatable.info": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "ui.hcaptcha.challenge_closed": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "ui.hcaptcha.challenge_expired": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "ui.hcaptcha.challenge_failed": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "ui.hcaptcha.execute_failed": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "ui.hcaptcha.not_ready": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
-      },
-      "ui.navigation.load_failed": {
-        "curated_at": "2026-09-21T15:50:00+07:00",
-        "surface": "shell navigation load error",
-        "source": "src/composables/navigation/useNavigation.ts"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "validation.accepted": {
         "curated_at": "2026-09-21T16:44:57+07:00",
@@ -12632,7 +12597,7 @@
       "web.archivd.collab.free_cannot_invite": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "web.archivd.collab.free_heading": {
         "curated_at": "2026-09-21T16:39:41+07:00",
@@ -12662,7 +12627,7 @@
       "web.archivd.collab.invite_token_share": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "web.archivd.collab.member_readonly_hint": {
         "curated_at": "2026-09-21T16:39:41+07:00",
@@ -13012,7 +12977,7 @@
       "web.archivd.microstock.panel_keyword_placeholder": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "web.archivd.microstock.slots_counter": {
         "curated_at": "2026-09-21T16:39:41+07:00",
@@ -13612,7 +13577,7 @@
       "web.menus.form.layout_hint": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "web.menus.form.layout_readonly_hint": {
         "curated_at": "2026-09-21T16:42:59+07:00",
@@ -13807,7 +13772,7 @@
       "web.payments.channels.intro.steps.1.body": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "web.payments.channels.intro.steps.1.title": {
         "curated_at": "2026-09-21T16:32:49+07:00",
@@ -14317,352 +14282,352 @@
       "web.settings.fields.archivd.allowed_mime_prefixes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.base_owned_workspace_slots": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.chunk_size_bytes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.default_quota_bytes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.disabled_regions": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.download_vault.enabled": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "web.settings.fields.archivd.max_concurrent_parts": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.max_concurrent_uploads": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.max_file_size_bytes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.max_files_per_batch": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.max_presigned_parts_per_response": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.multipart_threshold_bytes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.orphan_inactivity_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.presign_ttl_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.public_download_signature_ttl_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.session_ttl_hours": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.signed_download_cache_margin_seconds": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.signed_download_ttl_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.archivd.stale_upload_grace_hours": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.identity.discord.connections_snapshot_max_age_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.batch_chunk": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.batch_min_files": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.http_retries": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.image_jpeg_quality": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.image_max_px": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.inference_provider_slug": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.max_request_image_bytes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.phase.grace_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.phase.normal_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.stage.thinking_backlog_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.stage.thinking_grace_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.stage.vision_grace_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.thinking.connection": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.thinking.free_model": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.thinking.model": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.thinking.timeout": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.thinking_visual_attempts": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.collection_thinking_concurrency": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.collection_vision_concurrency": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.max_concurrent_thinking": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.max_concurrent_vision": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.release_after_seconds": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.solo_thinking_concurrency": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.solo_vision_concurrency": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.token_budget": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.upstream.window_seconds": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.vision.connection": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.vision.free_model": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.vision.model": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.vision.timeout": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.vision_image.delivery": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.vision_image.signed_url_ttl_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai.vision_image.variant_kind": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai_billing.estimate_thinking_attempt_factor": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai_billing.estimated_billable_micro_usd_per_asset": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.ai_billing.markup_multiplier": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.csv_disk": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.daily_free.enabled": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.daily_free.limit_per_user": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.microstock.daily_free.timezone": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.activitylog.buffer_enabled": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.activitylog.enabled": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.auth.verification_expire": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.errorlog.clean_after_days": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.errorlog.enabled": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.errorlog.max_context_json_length": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.errorlog.max_message_length": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.errorlog.max_trace_length": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.frankfurter.cache_ttl": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.frankfurter.timeout": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.hcaptcha.enabled": {
         "curated_at": "2026-09-21T16:51:52+07:00",
@@ -14672,187 +14637,187 @@
       "web.settings.fields.platform.inference.default_input_per_million_usd": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.inference.default_output_per_million_usd": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.inference.default_provider_slug": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.inference.unknown_input_per_million_usd": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.inference.unknown_output_per_million_usd": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.jwt.blacklist_grace_period": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.jwt.refresh_skew": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.jwt.refresh_ttl": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.jwt.remember_ttl": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.jwt.ttl": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.localization.locale_cookie": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.localization.locale_cookie_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.mail.from_address": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.mail.from_name": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.notifications.delivery": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.notifications.polling_interval": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.payment.channel_fee_bearer": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.payment.default_buyer_phone": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.payment.prefer_channel_checkout": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.payment.reporting_timezone": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.service.grace_days": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.service.purchase_max_quantity": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.two_factor.issuer": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.fields.platform.two_factor.window": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.groups.identity": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.groups.notification_audiences": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.identity.discord.connections_snapshot_max_age_minutes": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.phase.grace_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.phase.normal_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.stage.thinking_backlog_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.stage.thinking_grace_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.stage.vision_grace_after": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.thinking.connection": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.thinking.free_model": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.upstream.window_seconds": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.vision.connection": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.microstock.ai.vision.free_model": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.platform.frankfurter.timeout": {
         "curated_at": "2026-09-21T16:51:52+07:00",
@@ -14862,32 +14827,32 @@
       "web.settings.hints.platform.inference.default_input_per_million_usd": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.platform.inference.default_provider_slug": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.platform.inference.unknown_input_per_million_usd": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.platform.jwt.refresh_skew": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.platform.mail.from_address": {
         "curated_at": "2026-09-21T16:53:26+07:00",
         "surface": "hCaptcha error toasts, admin hint copy",
-        "source": "src/components/HCaptcha*, src/views/settings/**"
+        "source": "src/components/auth/HcaptchaWidget.vue, src/views/settings/**"
       },
       "web.settings.hints.platform.payment.channel_fee_bearer": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.hints.platform.payment.default_buyer_phone": {
         "curated_at": "2026-09-21T16:51:52+07:00",
@@ -14897,27 +14862,27 @@
       "web.settings.options.platform.notifications.delivery.polling": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.options.platform.notifications.delivery.realtime": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.read_only": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.source": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.settings.subtitle": {
         "curated_at": "2026-09-21T16:40:47+07:00",
         "surface": "admin settings screens (field labels, hints, options)",
-        "source": "src/views/settings/**, src/views/platform-settings/**"
+        "source": "src/views/settings/**"
       },
       "web.users.activity_history_title": {
         "curated_at": "2026-09-21T16:44:02+07:00",
@@ -15008,6 +14973,11 @@
         "curated_at": "2026-10-07T17:30:00+07:00",
         "surface": "page subtitle above the AI connections table",
         "source": "src/views/ai/AiConnectionsView.vue:127"
+      },
+      "web.menus.form.hash_hint": {
+        "curated_at": "2026-10-08T19:00:00+07:00",
+        "surface": "form field hint under the hash anchor input",
+        "source": "src/views/navigation/MenuEditView.vue"
       }
     },
     "ko": {
@@ -17356,16 +17326,6 @@
         "surface": "app footer copyright line",
         "source": "src/layouts/AppLayout.vue:98"
       },
-      "ui.empty_state.default_message": {
-        "curated_at": "2026-09-23T13:30:21+07:00",
-        "surface": "cross-side alignment pass: term unification (visibility/suspend/reject/tier/source/access/handle/indexed), date-noun column headers, retrieved verb, register and 캡차",
-        "source": "lang/ko/**/*.php (backend authority) + en.json"
-      },
-      "ui.empty_state.default_title": {
-        "curated_at": "2026-09-23T13:30:21+07:00",
-        "surface": "cross-side alignment pass: term unification (visibility/suspend/reject/tier/source/access/handle/indexed), date-noun column headers, retrieved verb, register and 캡차",
-        "source": "lang/ko/**/*.php (backend authority) + en.json"
-      },
       "ui.hcaptcha.challenge_closed": {
         "curated_at": "2026-09-23T13:30:21+07:00",
         "surface": "cross-side alignment pass: term unification (visibility/suspend/reject/tier/source/access/handle/indexed), date-noun column headers, retrieved verb, register and 캡차",
@@ -17400,11 +17360,6 @@
         "curated_at": "2026-09-23T13:30:21+07:00",
         "surface": "cross-side alignment pass: term unification (visibility/suspend/reject/tier/source/access/handle/indexed), date-noun column headers, retrieved verb, register and 캡차",
         "source": "lang/ko/**/*.php (backend authority) + en.json"
-      },
-      "ui.navigation.load_failed": {
-        "curated_at": "2026-09-21T15:50:00+07:00",
-        "surface": "shell navigation load error",
-        "source": "src/composables/navigation/useNavigation.ts"
       },
       "ui.skip_to_content": {
         "curated_at": "2026-09-23T13:30:21+07:00",
@@ -20744,7 +20699,7 @@
       "web.session.csrf_expired": {
         "curated_at": "2026-09-23T11:55:19+07:00",
         "surface": "connected-accounts / session UI",
-        "source": "monolith/lang/ko/api/web.session.php (backend authority)"
+        "source": "monolith/lang/ko/web/session.php (backend authority)"
       },
       "web.session.expired": {
         "curated_at": "2026-09-23T13:19:02+07:00",
@@ -22368,11 +22323,6 @@
         "surface": "settled ru wording mirrored from the backend lang/ru tree",
         "source": "lang/ru/**/*.php (parity wave)"
       },
-      "ui.empty_state.default_title": {
-        "curated_at": "2026-09-23T19:37:28+07:00",
-        "surface": "settled ru wording mirrored from the backend lang/ru tree",
-        "source": "lang/ru/**/*.php (parity wave)"
-      },
       "ui.labels.breadcrumb": {
         "curated_at": "2026-09-23T19:37:28+07:00",
         "surface": "settled ru wording mirrored from the backend lang/ru tree",
@@ -22392,11 +22342,6 @@
         "curated_at": "2026-09-23T19:37:28+07:00",
         "surface": "settled ru wording mirrored from the backend lang/ru tree",
         "source": "lang/ru/**/*.php (parity wave)"
-      },
-      "ui.navigation.load_failed": {
-        "curated_at": "2026-09-21T15:50:00+07:00",
-        "surface": "shell navigation load error",
-        "source": "src/composables/navigation/useNavigation.ts"
       },
       "ui.skip_to_content": {
         "curated_at": "2026-09-23T19:37:28+07:00",
@@ -24127,6 +24072,11 @@
         "curated_at": "2026-10-07T17:30:00+07:00",
         "surface": "page subtitle above the AI connections table",
         "source": "src/views/ai/AiConnectionsView.vue:127"
+      },
+      "web.menus.form.hash_hint": {
+        "curated_at": "2026-10-08T19:00:00+07:00",
+        "surface": "form field hint under the hash anchor input",
+        "source": "src/views/navigation/MenuEditView.vue"
       }
     },
     "zh-CN": {
@@ -24985,11 +24935,6 @@
         "surface": "default confirm dialog body",
         "source": "src/lib/swal.ts"
       },
-      "ui.empty_state.default_message": {
-        "curated_at": "2026-09-22T16:21:39+07:00",
-        "surface": "EmptyState default explanatory line",
-        "source": "src/components/EmptyState.vue"
-      },
       "ui.error_state.message": {
         "curated_at": "2026-09-22T16:21:39+07:00",
         "surface": "ErrorState default explanatory line",
@@ -24999,11 +24944,6 @@
         "curated_at": "2026-09-22T16:21:39+07:00",
         "surface": "navbar user dropdown aria-label",
         "source": "src/components/AppNavbar.vue"
-      },
-      "ui.navigation.load_failed": {
-        "curated_at": "2026-09-21T15:50:00+07:00",
-        "surface": "shell navigation load error",
-        "source": "src/composables/navigation/useNavigation.ts"
       },
       "ui.shared.create_failed": {
         "curated_at": "2026-09-22T16:21:39+07:00",
@@ -27611,7 +27551,7 @@
         "source": "src/views/navigation/MenuEditView.vue"
       },
       "web.menus.form.hash_hint": {
-        "curated_at": "2026-09-22T16:21:36+07:00",
+        "curated_at": "2026-10-08T19:00:00+07:00",
         "surface": "form field hint under the hash anchor input",
         "source": "src/views/navigation/MenuEditView.vue"
       },

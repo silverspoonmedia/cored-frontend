@@ -401,7 +401,6 @@
       "admin_billing_forbidden": "플랫폼 과금을 볼 권한이 없습니다."
     },
     "navigation": {
-      "load_failed": "내비게이션을 불러올 수 없습니다.",
       "tree_success": "내비게이션 트리를 불러왔습니다.",
       "list_success": "메뉴 목록을 불러왔습니다.",
       "show_success": "메뉴를 불러왔습니다.",
@@ -2736,10 +2735,6 @@
       "hide": "비밀번호 숨기기"
     },
     "skip_to_content": "본문으로 건너뛰기",
-    "empty_state": {
-      "default_title": "아직 항목이 없습니다",
-      "default_message": "항목이 생성되면 여기에 표시됩니다."
-    },
     "breadcrumb": {
       "add": "추가",
       "edit": "편집"
@@ -2759,9 +2754,6 @@
       "empty_title": "레코드가 없습니다",
       "info": "총 {total}개 중 {from}~{to}번째 표시 중",
       "per_page": "페이지당 {n}개"
-    },
-    "navigation": {
-      "load_failed": "내비게이션 메뉴를 불러오지 못했습니다."
     },
     "swal": {
       "ok": "확인",
