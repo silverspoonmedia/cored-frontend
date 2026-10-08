@@ -744,36 +744,6 @@ code {
     word-break: break-word;
 }
 
-.vtuber-content-card {
-    display: flex;
-    flex-direction: column;
-}
-
-.vtuber-content-card .card-body {
-    flex: 1 1 auto;
-}
-
-.vtuber-content-card__title {
-    min-height: calc(1rem * 1.4 * 2);
-    margin-bottom: 0.375rem;
-    overflow: hidden;
-}
-
-.vtuber-content-card__meta {
-    min-height: 1.25rem;
-    margin-bottom: 0.375rem;
-    overflow: hidden;
-}
-
-.vtuber-content-card__badges {
-    min-height: 1.5rem;
-    margin-top: auto;
-}
-
-.vtuber-content-card .badge {
-    max-width: 100%;
-}
-
 @media (max-width: 575.98px) {
     .monolith-truncate-md {
         max-width: 100%;
