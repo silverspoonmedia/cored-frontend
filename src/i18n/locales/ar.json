@@ -401,7 +401,6 @@
       "admin_billing_forbidden": "غير مسموح لك بمشاهدة فوترة المنصة."
     },
     "navigation": {
-      "load_failed": "تعذر تحميل التنقل.",
       "tree_success": "تم جلب شجرة التنقل بنجاح.",
       "list_success": "تم جلب القوائم بنجاح.",
       "show_success": "تم جلب القائمة بنجاح.",
@@ -792,7 +791,7 @@
         "route_label": "اسم المسار",
         "route_hint": "اسم مسار Laravel مسجَّل (مثل dashboard)، وليس رابط URL.",
         "hash_label": "مرساة التجزئة",
-        "hash_hint": "مرساة اختيارية داخل الصفحة (مثل #vtubers) تُضاف إلى المسار النهائي.",
+        "hash_hint": "مرساة اختيارية داخل الصفحة (مثل #section) تُضاف إلى المسار النهائي.",
         "icon_label": "الأيقونة",
         "icon_hint": "فئة الأيقونة كاملة، مثل bi bi-house.",
         "parent_label": "القائمة الأب",
@@ -2736,10 +2735,6 @@
       "hide": "إخفاء كلمة المرور"
     },
     "skip_to_content": "الانتقال إلى المحتوى الرئيسي",
-    "empty_state": {
-      "default_title": "لا يوجد شيء بعد",
-      "default_message": "ستظهر العناصر هنا بعد إنشائها."
-    },
     "breadcrumb": {
       "add": "إضافة",
       "edit": "تعديل"
@@ -2759,9 +2754,6 @@
       "empty_title": "لم يتم العثور على سجلات",
       "info": "عرض {from} إلى {to} من إجمالي {total}",
       "per_page": "{n} / صفحة"
-    },
-    "navigation": {
-      "load_failed": "تعذّر تحميل قائمة التنقل."
     },
     "swal": {
       "ok": "موافق",

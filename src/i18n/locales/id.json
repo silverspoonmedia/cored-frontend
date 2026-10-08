@@ -401,7 +401,6 @@
       "admin_billing_forbidden": "Anda tidak diizinkan melihat penagihan platform."
     },
     "navigation": {
-      "load_failed": "Navigasi tidak dapat dimuat.",
       "tree_success": "Struktur navigasi berhasil dimuat.",
       "list_success": "Daftar menu berhasil dimuat.",
       "show_success": "Detail menu berhasil dimuat.",
@@ -864,10 +863,6 @@
       "hide": "Sembunyikan kata sandi"
     },
     "skip_to_content": "Lewati ke konten utama",
-    "empty_state": {
-      "default_title": "Belum ada data",
-      "default_message": "Data akan muncul di sini setelah dibuat."
-    },
     "error_state": {
       "title": "Gagal memuat",
       "message": "Terjadi kesalahan saat memuat data. Silakan coba lagi.",
@@ -892,9 +887,6 @@
         "delete_menu": "Hapus item menu ini?",
         "restore_menu": "Pulihkan item menu ini beserta seluruh turunannya yang terhapus?"
       }
-    },
-    "navigation": {
-      "load_failed": "Menu navigasi tidak dapat dimuat."
     },
     "swal": {
       "ok": "OK",
@@ -2293,7 +2285,7 @@
         "reference_label": "Menu referensi",
         "route_hint": "Nama route Laravel yang terdaftar (mis. dashboard), bukan URL.",
         "hash_label": "Anchor hash",
-        "hash_hint": "Anchor dalam halaman opsional (mis. #vtubers) yang ditambahkan ke rute hasil resolusi.",
+        "hash_hint": "Anchor dalam halaman opsional (mis. #section) yang ditambahkan ke rute hasil resolusi.",
         "icon_label": "Ikon",
         "icon_hint": "Kelas ikon lengkap, mis. bi bi-house.",
         "audience_label": "Siapa yang dapat melihat menu ini?",

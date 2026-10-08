@@ -401,7 +401,6 @@
       "admin_billing_forbidden": "You are not allowed to view platform billing."
     },
     "navigation": {
-      "load_failed": "Could not load navigation.",
       "tree_success": "Navigation tree retrieved successfully.",
       "list_success": "Menus retrieved successfully.",
       "show_success": "Menu retrieved successfully.",
@@ -864,10 +863,6 @@
       "hide": "Hide password"
     },
     "skip_to_content": "Skip to main content",
-    "empty_state": {
-      "default_title": "Nothing here yet",
-      "default_message": "Items will appear here once they are created."
-    },
     "error_state": {
       "title": "Failed to load",
       "message": "Something went wrong while loading the data. Please try again.",
@@ -892,9 +887,6 @@
         "delete_menu": "Delete this menu item?",
         "restore_menu": "Restore this menu item and its trashed subtree?"
       }
-    },
-    "navigation": {
-      "load_failed": "Could not load the navigation menu."
     },
     "swal": {
       "ok": "OK",
@@ -2293,7 +2285,7 @@
         "reference_label": "Reference menu",
         "route_hint": "Registered Laravel route name (e.g. dashboard), not a URL.",
         "hash_label": "Hash Anchor",
-        "hash_hint": "Optional in-page anchor (e.g. #vtubers) appended to the resolved route.",
+        "hash_hint": "Optional in-page anchor (e.g. #section) appended to the resolved route.",
         "icon_label": "Icon",
         "icon_hint": "Full icon class, e.g. bi bi-house.",
         "audience_label": "Who can see this menu?",

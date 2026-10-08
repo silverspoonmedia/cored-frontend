@@ -401,7 +401,6 @@
       "admin_billing_forbidden": "无权查看平台计费信息。"
     },
     "navigation": {
-      "load_failed": "无法加载导航。",
       "tree_success": "导航树已加载。",
       "list_success": "菜单列表已加载。",
       "show_success": "菜单已加载。",
@@ -864,10 +863,6 @@
       "hide": "隐藏密码"
     },
     "skip_to_content": "跳转到主要内容",
-    "empty_state": {
-      "default_title": "暂无内容",
-      "default_message": "创建后将显示在此处。"
-    },
     "error_state": {
       "title": "加载失败",
       "message": "加载数据时出错，请重试。",
@@ -892,9 +887,6 @@
         "delete_menu": "确定要删除此菜单项吗？",
         "restore_menu": "要恢复此菜单项及其已删除的子树吗？"
       }
-    },
-    "navigation": {
-      "load_failed": "无法加载导航菜单。"
     },
     "swal": {
       "ok": "确定",
@@ -2293,7 +2285,7 @@
         "reference_label": "参考菜单",
         "route_hint": "已注册的 Laravel 路由名称（例如 dashboard），不是 URL。",
         "hash_label": "哈希锚点",
-        "hash_hint": "可选，追加到解析后路由的页面内锚点（例如 #vtubers）。",
+        "hash_hint": "可选，追加到解析后路由的页面内锚点（例如 #section）。",
         "icon_label": "图标",
         "icon_hint": "完整图标类名，例如 bi bi-house。",
         "audience_label": "谁可以看此菜单？",
