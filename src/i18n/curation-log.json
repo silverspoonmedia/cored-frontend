@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-10-08T19:00:00+07:00",
+  "updated_at": "2026-10-12T12:56:26+07:00",
   "locales": {
     "ar": {
       "actions.actions": {
@@ -4544,12 +4544,12 @@
         "source": "src/views/identity/ConnectionsView.vue, src/composables/identity/useConnections.ts"
       },
       "web.identity-connections.discord_not_connected": {
-        "curated_at": "2026-09-22T22:23:25+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "connected accounts view copy",
         "source": "src/views/identity/ConnectionsView.vue, src/composables/identity/useConnections.ts"
       },
       "web.identity-connections.linked_accounts_empty": {
-        "curated_at": "2026-09-22T22:23:25+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "connected accounts view copy",
         "source": "src/views/identity/ConnectionsView.vue, src/composables/identity/useConnections.ts"
       },
@@ -7159,6 +7159,16 @@
         "curated_at": "2026-10-08T19:00:00+07:00",
         "surface": "form field hint under the hash anchor input",
         "source": "src/views/navigation/MenuEditView.vue"
+      },
+      "web.identity-connections.discord_not_connected": {
+        "curated_at": "2026-10-12T12:56:26+07:00",
+        "surface": "connected accounts page — provider-generic wording",
+        "source": "src/views/identity/ConnectionsView.vue, src/composables/identity/useConnections.ts"
+      },
+      "web.identity-connections.linked_accounts_empty": {
+        "curated_at": "2026-10-12T12:56:26+07:00",
+        "surface": "connected accounts page — provider-generic wording",
+        "source": "src/views/identity/ConnectionsView.vue, src/composables/identity/useConnections.ts"
       }
     },
     "id": {
@@ -9791,6 +9801,16 @@
         "curated_at": "2026-09-21T16:23:02+07:00",
         "surface": "Error log triage, AI connections admin, Currencies admin, Identity connections",
         "source": "src/views/error-log/*, src/views/ai/*, src/views/payment-gateway/CurrenciesView.vue, src/views/identity/*"
+      },
+      "web.identity-connections.discord_not_connected": {
+        "curated_at": "2026-10-12T12:56:26+07:00",
+        "surface": "connected accounts page — provider-generic wording",
+        "source": "src/views/identity/ConnectionsView.vue, src/composables/identity/useConnections.ts"
+      },
+      "web.identity-connections.linked_accounts_empty": {
+        "curated_at": "2026-10-12T12:56:26+07:00",
+        "surface": "connected accounts page — provider-generic wording",
+        "source": "src/views/identity/ConnectionsView.vue, src/composables/identity/useConnections.ts"
       },
       "web.identity-connections.synced": {
         "curated_at": "2026-09-21T16:23:02+07:00",
@@ -13430,12 +13450,12 @@
         "source": "src/i18n/locales/en.json api.* (spacing normalization between Latin and Japanese)"
       },
       "web.identity-connections.discord_not_connected": {
-        "curated_at": "2026-09-21T16:41:48+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "auth screens (login, register, 2FA, password reset) and connected accounts page",
         "source": "src/views/auth/**, src/views/identity/**"
       },
       "web.identity-connections.linked_accounts_empty": {
-        "curated_at": "2026-09-21T16:41:48+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "auth screens (login, register, 2FA, password reset) and connected accounts page",
         "source": "src/views/auth/**, src/views/identity/**"
       },
@@ -19652,12 +19672,12 @@
         "source": "src/composables/identity/useConnections.ts"
       },
       "web.identity-connections.discord_not_connected": {
-        "curated_at": "2026-09-23T11:55:19+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "connected-accounts / session UI",
         "source": "src/views/identity/ConnectionsView.vue:28"
       },
       "web.identity-connections.linked_accounts_empty": {
-        "curated_at": "2026-09-23T11:55:19+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "connected-accounts / session UI",
         "source": "src/views/identity/ConnectionsView.vue:33"
       },
@@ -22944,12 +22964,12 @@
         "source": "lang/ru/**/*.php (parity wave)"
       },
       "web.identity-connections.discord_not_connected": {
-        "curated_at": "2026-09-23T19:37:28+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "settled ru wording mirrored from the backend lang/ru tree",
         "source": "lang/ru/**/*.php (parity wave)"
       },
       "web.identity-connections.linked_accounts_empty": {
-        "curated_at": "2026-09-23T19:37:28+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "settled ru wording mirrored from the backend lang/ru tree",
         "source": "lang/ru/**/*.php (parity wave)"
       },
@@ -27191,12 +27211,12 @@
         "source": "src/views/identity/ConnectionsView.vue"
       },
       "web.identity-connections.discord_not_connected": {
-        "curated_at": "2026-09-22T16:21:39+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "disconnected-provider explanatory line",
         "source": "src/views/identity/ConnectionsView.vue"
       },
       "web.identity-connections.linked_accounts_empty": {
-        "curated_at": "2026-09-22T16:21:39+07:00",
+        "curated_at": "2026-10-12T12:56:26+07:00",
         "surface": "linked-platforms empty line",
         "source": "src/views/identity/ConnectionsView.vue"
       },
