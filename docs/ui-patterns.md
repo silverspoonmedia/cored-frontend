@@ -27,3 +27,9 @@ Keep vendor widget styles scoped to their owning component. Do not add a second 
 - All notifications/confirmations use `src/lib/swal.ts` (`useAlert`, `confirmDialog`, `inputDialog`); never native `alert`/`confirm`/`prompt`, never raw `Swal.fire` modals.
 - Extract by concern: composable per concern + section components with typed props/emits; realtime handlers live in the composable. Heavy vendor widgets (select2) load through `defineAsyncComponent`.
 - Dependent field visibility is gated in the control, the option list, a reset watcher, and the request payload — `disabled` (still visible) differs from hidden.
+
+## Select2
+
+`FormSelect2` wraps jQuery Select2 over paginated lookups: identity `lookups/users`, `lookups/roles`, navigation `navigation/lookups/menus` (nested tree per root group, flattened by `flattenTreeForSelect2()` into one-level optgroups with the root as its own group's first leaf). `grouped` must be set for that tree source.
+
+**Select2 values must survive a failed hydrate.** Ajax-backed selects receive their `selectedOptions` after mount, so the component appends them in place and re-applies the value instead of re-initialising select2 (a re-init drops the ajax adapter). `applyValue()` suppresses its own `change.select2` echo: a select whose `<option>` rows are not hydrated yet would otherwise read as "cleared" and wipe the stored pivot. `MenuEditView` prunes only lookups that actually succeeded, tracked by `failedLookups` and surfaced through `web.menus.hydrate_partial_warning`.
