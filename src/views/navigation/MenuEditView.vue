@@ -390,7 +390,7 @@ onUnmounted(() => {
         name="parent"
         :label="t('web.menus.form.parent_label')"
         v-model="form.parent"
-        :ajax-url="'lookups/menus'"
+        :ajax-url="'navigation/lookups/menus'"
         :ajax-params="menuAjaxParams"
         :selected-options="selectedParent"
         grouped
@@ -500,7 +500,7 @@ onUnmounted(() => {
             name="reference_id"
             :label="t('web.menus.form.reference_label')"
             v-model="form.reference_id"
-            :ajax-url="'lookups/menus'"
+            :ajax-url="'navigation/lookups/menus'"
             :ajax-params="menuAjaxParams"
             :selected-options="selectedReference"
             grouped

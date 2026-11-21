@@ -73,7 +73,7 @@ async function hydrateMenuEdit(menuId: string): Promise<MenuEditResult> {
 
   if (menu.parent_id) {
     keys.push('parent')
-    requests.push({ path: 'lookups/menus', query: { 'ids[]': menu.parent_id, layout: menu.layout, exclude: menuId } })
+    requests.push({ path: 'navigation/lookups/menus', query: { 'ids[]': menu.parent_id, layout: menu.layout, exclude: menuId } })
   }
   if (menu.role_ids && menu.role_ids.length > 0) {
     keys.push('roles')

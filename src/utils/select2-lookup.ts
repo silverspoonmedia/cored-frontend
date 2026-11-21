@@ -48,7 +48,7 @@ export function processLookupResults(data: unknown): Select2Paginated {
  *
  * Select2 only supports one level of `children` (HTML forbids nested
  * `<optgroup>`, and nested `children` beyond one level render broken —
- * unselectable options, scroll jumps). The backend `lookups/menus` payload
+ * unselectable options, scroll jumps). The backend `navigation/lookups/menus` payload
  * is a nested tree (one node per root menu, recursive `children`, `level`
  * per node). This converts it: each root becomes a `{ text, children }`
  * group whose first child is the root itself as a selectable leaf
