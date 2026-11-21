@@ -108,7 +108,7 @@ describe('hydrateMenuEdit', () => {
 
     const requests = batch.mock.calls[1][0] as Array<{ path: string; query?: Record<string, unknown> }>
     expect(requests.map((r) => r.path)).toEqual([
-      'lookups/menus',
+      'navigation/lookups/menus',
       'lookups/roles',
       'lookups/users',
       'lookups/users',

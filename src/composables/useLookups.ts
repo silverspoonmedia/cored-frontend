@@ -30,7 +30,7 @@ export function useLookups() {
     if (ids.length === 0) return []
     const params: Record<string, unknown> = { 'ids[]': ids, layout }
     if (exclude) params.exclude = exclude
-    const res = await get<ApiResponse<LookupPayload>>('lookups/menus', params)
+    const res = await get<ApiResponse<LookupPayload>>('navigation/lookups/menus', params)
     return res.data?.results ?? []
   }
 

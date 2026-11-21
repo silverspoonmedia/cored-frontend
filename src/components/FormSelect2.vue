@@ -119,10 +119,10 @@ function buildAjaxConfig() {
     processResults(data: unknown) {
       const page = processLookupResults(data)
       return {
-        // Grouped ajax sources (lookups/menus) return nested trees from the
-        // backend. Select2 only renders one level of children (nested beyond
-        // that breaks selection), so flatten to 1-level optgroups with the
-        // root itself as the group's first selectable leaf.
+        // Grouped ajax sources (navigation/lookups/menus) return nested trees
+        // from the backend. Select2 only renders one level of children (nested
+        // beyond that breaks selection), so flatten to 1-level optgroups with
+        // the root itself as the group's first selectable leaf.
         results: props.grouped
           ? flattenTreeForSelect2(page.results)
           : page.results,

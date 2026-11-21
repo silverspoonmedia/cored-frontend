@@ -124,7 +124,7 @@ describe('apiUrl', () => {
   })
 
   it('keeps scalar values as single params', () => {
-    const url = apiUrl('lookups/menus', { layout: 'sidebar', exclude: 'menu-1' })
+    const url = apiUrl('navigation/lookups/menus', { layout: 'sidebar', exclude: 'menu-1' })
 
     expect(url.searchParams.get('layout')).toBe('sidebar')
     expect(url.searchParams.get('exclude')).toBe('menu-1')
