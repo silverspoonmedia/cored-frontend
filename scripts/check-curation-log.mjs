@@ -13,9 +13,9 @@
 // Wired into `npm run check:i18n` so a curation wave cannot silently drop its
 // own provenance record.
 import { readFileSync, existsSync } from 'node:fs'
+import { loadLocale } from './lib/locale-files.mjs'
 
 const LOG = new URL('../src/i18n/curation-log.json', import.meta.url)
-const EN = new URL('../src/i18n/locales/en.json', import.meta.url)
 const LOCALES = ['en', 'id', 'ja', 'ko', 'zh-CN', 'ar', 'ru']
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
 
@@ -38,7 +38,7 @@ function flatten(value, prefix = '', out = new Map()) {
 }
 
 const log = JSON.parse(readFileSync(LOG, 'utf8'))
-const en = flatten(JSON.parse(readFileSync(EN, 'utf8')))
+const en = flatten(loadLocale('en'))
 const prefixes = new Set()
 for (const key of en.keys()) {
   const parts = key.split('.')

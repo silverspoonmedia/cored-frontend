@@ -5,6 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * 419 on POST /batch must refresh the nonce and retry once.
  */
 
+// This suite exercises the real client, so it defeats any mock a sibling suite
+// registered. Vitest hoists both calls above the module under test's imports.
+vi.unmock('@/api/client')
+vi.mock('@/stores/auth', () => ({
+  useAuth: () => ({ user: { value: null } }),
+}))
+
 type ClientModule = typeof import('../src/api/client')
 
 interface FakeChannel {
@@ -46,6 +53,9 @@ async function importClient(): Promise<ClientModule> {
 beforeEach(() => {
   channels = []
   vi.resetModules()
+  // The client now reaches the realtime registry, and a view inside that chain
+  // imports the router shell; give it a history even in the node environment.
+  vi.stubGlobal('history', { state: null, replaceState: () => {}, pushState: () => {} })
   vi.stubGlobal('BroadcastChannel', fakeBroadcastChannel())
   vi.stubGlobal('window', { location: { origin: 'http://localhost:5173' } })
   vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => undefined })

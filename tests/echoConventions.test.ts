@@ -25,6 +25,8 @@ const LIFECYCLE_OWNERS = new Set(['composables/echo/channelRegistry.ts'])
 /** Files allowed to reference the ready-bus helper. */
 const READY_BUS_OWNERS = new Set([
   'composables/echo/channelRegistry.ts',
+  // The leaf the registry reads the bindings from; it only declares the type.
+  'composables/echo/echoBindings.ts',
   'composables/useEcho.ts',
 ])
 

@@ -1,10 +1,6 @@
 import { batch } from '@/api/client'
 import { bodyOf } from '@/api/batch'
-import type {
-  UserManagement,
-  UserAssignableRole,
-  ActivityLog,
-} from '@/api/types'
+import type { UserManagement, UserAssignableRole, ActivityLog } from '@/api/types'
 
 /**
  * Batch-hydrate for User management views.

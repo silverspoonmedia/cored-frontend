@@ -6,7 +6,7 @@ import ErrorState from '@/components/ErrorState.vue'
 import SkeletonBlock from '@/components/SkeletonBlock.vue'
 import { useSettings } from '@/composables/settings/useSettings'
 import { useEchoResync } from '@/composables/useEcho'
-import { isSettingsMenuGroup } from '@/utils/settingsGroup'
+import { isSettingsMenuGroup, settingsMenuGroupIcon } from '@/utils/settingsGroup'
 
 interface SettingsCard {
   label: string
@@ -18,11 +18,15 @@ interface SettingsCard {
 const { t } = useI18n()
 const { groups, fetchGroups, loading, error } = useSettings()
 
+// Icons for kernel groups; a product registers its own through
+// `registerSettingsMenuGroup()` from its feature boot.
 const iconMap: Record<string, string> = {
   platform: 'bi-sliders',
-  'archivd': 'bi-cloud-upload',
-  microstock: 'bi-images',
   identity: 'bi-person-badge',
+}
+
+function groupIcon(slug: string): string {
+  return settingsMenuGroupIcon(slug) ?? iconMap[slug] ?? 'bi-gear'
 }
 
 function groupLabel(slug: string): string {
@@ -33,7 +37,7 @@ function groupLabel(slug: string): string {
 const cards = computed<SettingsCard[]>(() => {
   const dynamic: SettingsCard[] = groups.value.map((slug) => ({
     label: groupLabel(slug),
-    icon: iconMap[slug] ?? 'bi-gear',
+    icon: groupIcon(slug),
     group: slug,
     to: isSettingsMenuGroup(slug)
       ? { name: `settings.${slug}.view` }

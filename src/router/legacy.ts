@@ -1,6 +1,10 @@
 import type { RouteLocation, RouteLocationRaw } from 'vue-router'
 
-export const LEGACY_APP_ROOTS = new Set([
+/**
+ * Legacy `/apps/...` roots the core SPA redirects. A feature adds its own root
+ * from `boot()` so the core never names a product route.
+ */
+const CORE_LEGACY_APP_ROOTS = [
   'dashboard',
   'profile',
   'currencies',
@@ -19,10 +23,19 @@ export const LEGACY_APP_ROOTS = new Set([
   'invoices',
   'product-activations',
   'payments',
-  'archivd',
   'payment-channels',
   'service-purchases',
-])
+]
+
+const featureRoots = new Set<string>()
+
+export const LEGACY_APP_ROOTS = new Set(CORE_LEGACY_APP_ROOTS)
+
+/** Register a product route root that still answers an old `/apps/<root>/…` URL. */
+export function registerLegacyAppRoot(root: string): void {
+  featureRoots.add(root)
+  LEGACY_APP_ROOTS.add(root)
+}
 
 export function legacyAppsRedirect(to: RouteLocation): RouteLocationRaw {
   const root = String(to.params.legacyRoot ?? '')

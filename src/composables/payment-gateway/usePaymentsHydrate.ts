@@ -1,9 +1,6 @@
 import { batch } from '@/api/client'
 import { bodyOf } from '@/api/batch'
-import type {
-  PaymentIncomeOverview,
-  PaymentIncomeInvoicesPayload,
-} from '@/api/types'
+import type { PaymentIncomeOverview, PaymentIncomeInvoicesPayload } from '@/api/types'
 
 /**
  * Batch-hydrate for Payments income views.

@@ -142,7 +142,7 @@ async function handleExport(): Promise<void> {
     if (filters.to) query.paid_to = filters.to
     await exportCsv(query)
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
+    showError(e instanceof Error ? e.message : t('ui.shared.operation_failed'))
   } finally {
     exporting.value = false
   }

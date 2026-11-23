@@ -5,6 +5,8 @@
 //   --surface=<text>     UI surface the keys belong to (button, toast, ...)
 //   --source=<text>      consuming code reference, e.g. src/views/x.vue:42
 //   --curated-at=<iso>   override the curation timestamp (default: now, +07:00)
+//   --feature=<name>     target src/i18n/features/<name>/<locale>.json instead of
+//                        the core src/i18n/locales/<locale>.json (feature copy)
 //   --dry-run            report what would change, write nothing
 //
 // <map.json> is either:
@@ -32,7 +34,7 @@ const flags = argv.filter((a) => a.startsWith('--'));
 const [locale, mapPath] = argv.filter((a) => !a.startsWith('--'));
 
 if (!locale || !mapPath) {
-  console.error('usage: node scripts/apply-translations.mjs <locale> <translations.json> [--surface=<text>] [--source=<text>] [--curated-at=<iso>] [--dry-run]');
+  console.error('usage: node scripts/apply-translations.mjs <locale> <translations.json> [--surface=<text>] [--source=<text>] [--curated-at=<iso>] [--feature=<name>] [--dry-run]');
   process.exit(1);
 }
 
@@ -52,8 +54,16 @@ function isoWithOffset(date = new Date()) {
 const curatedAt = flagValue('curated-at') ?? isoWithOffset();
 const surface = flagValue('surface') ?? '';
 const source = flagValue('source') ?? '';
+const feature = flagValue('feature');
 
-const file = new URL(`../src/i18n/locales/${locale}.json`, import.meta.url);
+const file = feature
+  ? new URL(`../src/i18n/features/${feature}/${locale}.json`, import.meta.url)
+  : new URL(`../src/i18n/locales/${locale}.json`, import.meta.url);
+
+if (!existsSync(file)) {
+  console.error(`no translation file for ${feature ? `feature ${feature}` : 'core'} / ${locale}: ${file.pathname}`);
+  process.exit(1);
+}
 const raw = readFileSync(file, 'utf8');
 const eol = raw.includes('\r\n') ? '\r\n' : '\n';
 const data = JSON.parse(raw);
@@ -215,11 +225,14 @@ function writeCurationLog(records) {
   log.locales[locale] ??= {};
 
   for (const [key, entry] of records) {
-    log.locales[locale][key] = {
+    const record = {
       curated_at: curatedAt,
       surface: entry.surface ?? surface,
       source: entry.source ?? source,
     };
+    // Feature copy lives outside the core pack; the log records which pack owns it.
+    if (feature) record.feature = feature;
+    log.locales[locale][key] = record;
   }
 
   const sorted = {};

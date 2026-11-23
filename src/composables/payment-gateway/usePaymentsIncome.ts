@@ -1,11 +1,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { get } from '@/api/client'
-import type {
-  ApiResponse,
-  PaymentIncomeOverview,
-  PaymentIncomeInvoicesPayload,
-} from '@/api/types'
+import type { ApiResponse, PaymentIncomeOverview, PaymentIncomeInvoicesPayload } from '@/api/types'
 
 export function usePaymentsIncome() {
   const { t } = useI18n()

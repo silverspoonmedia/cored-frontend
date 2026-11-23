@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// This suite exercises the real client, so it defeats any mock a sibling suite
+// registered. Vitest hoists both calls above the module under test's imports.
+vi.unmock('@/api/client')
+vi.mock('@/stores/auth', () => ({
+  useAuth: () => ({ user: { value: null } }),
+}))
+
 /**
  * Multi-tab CSRF nonce sync. Each test re-imports the module fresh so the
  * module-level `token` / `pendingFetch` / channel state does not leak between
@@ -46,6 +53,9 @@ async function importFresh(): Promise<CsrfModule> {
 beforeEach(() => {
   channels = []
   vi.resetModules()
+  // The client now reaches the realtime registry, and a view inside that chain
+  // imports the router shell; give it a history even in the node environment.
+  vi.stubGlobal('history', { state: null, replaceState: () => {}, pushState: () => {} })
   vi.stubGlobal('BroadcastChannel', fakeBroadcastChannel())
   // apiUrl() builds from window.location.origin; node env has no window.
   vi.stubGlobal('window', { location: { origin: 'http://localhost:5173' } })

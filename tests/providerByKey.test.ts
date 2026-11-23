@@ -1,6 +1,17 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { providerByKey } from '../src/composables/identity/useConnections'
 import type { ProfileConnections } from '../src/api/types'
+
+// `useConnections` pulls `@/api/client`, which pulls the CSRF layer and, in
+// turn, the realtime registry. Seed the client's handler slots so the store
+// registering them on import cannot re-enter a partially evaluated module.
+vi.mock('@/api/client', () => ({
+  get: vi.fn(),
+  post: vi.fn(),
+  del: vi.fn(),
+  setRefreshHandler: vi.fn(),
+  setUnauthorizedHandler: vi.fn(),
+}))
 
 const snapshot: ProfileConnections = {
   providers: [

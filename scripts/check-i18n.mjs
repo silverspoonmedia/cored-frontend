@@ -3,10 +3,9 @@ import { readdir } from 'node:fs/promises'
 import { extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { allDuplicateEnglishKeys, isDuplicateEnglishAllowed } from './lib/duplicate-english-allowlist.mjs'
+import { LOCALES as locales, loadLocale } from './lib/locale-files.mjs'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const localeDir = join(root, 'src', 'i18n', 'locales')
-const locales = ['en', 'id', 'ja', 'ko', 'zh-CN', 'ar', 'ru']
 const sourceDir = join(root, 'src')
 
 const hardcodedPatterns = [
@@ -88,11 +87,6 @@ function gluedPlaceholder(value) {
   return /[A-Za-z0-9]\{[A-Za-z_][A-Za-z0-9_]*\}/.test(value)
 }
 
-async function loadLocale(locale) {
-  const path = join(localeDir, `${locale}.json`)
-  return JSON.parse(await readFile(path, 'utf8'))
-}
-
 async function listSourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true })
   const files = []
@@ -108,9 +102,9 @@ async function listSourceFiles(directory) {
   return files
 }
 
-const rawMessages = Object.fromEntries(await Promise.all(
-  locales.map(async (locale) => [locale, await loadLocale(locale)]),
-))
+const rawMessages = Object.fromEntries(
+  locales.map((locale) => [locale, loadLocale(locale)]),
+)
 const messages = Object.fromEntries(
   locales.map((locale) => [locale, flatten(rawMessages[locale])]),
 )

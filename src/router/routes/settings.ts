@@ -1,8 +1,11 @@
 import type { RouteRecordRaw } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { SETTINGS_MENU_GROUPS } from '@/utils/settingsGroup'
+import { CORE_SETTINGS_MENU_GROUPS } from '@/utils/settingsGroup'
 
-const settingsMenuRoutes: RouteRecordRaw[] = SETTINGS_MENU_GROUPS.map((group) => ({
+// Product settings groups render through their feature's own route
+// contribution (`src/features/{name}/routes/feature.ts`), so this file only
+// needs the kernel groups.
+const settingsMenuRoutes: RouteRecordRaw[] = CORE_SETTINGS_MENU_GROUPS.map((group) => ({
   path: `/apps/settings/${group}`,
   name: `settings.${group}`,
   component: AppLayout,

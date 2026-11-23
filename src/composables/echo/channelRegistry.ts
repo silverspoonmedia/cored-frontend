@@ -1,4 +1,4 @@
-import { getEcho, subscribeWhenEchoReady } from '@/composables/useEcho'
+import { echoBindings } from '@/composables/echo/echoBindings'
 
 /**
  * One place that owns private-channel lifecycles.
@@ -59,7 +59,7 @@ function bindEvent(state: ChannelState, event: string): void {
 }
 
 function attach(state: ChannelState, name: string): boolean {
-  const echo = getEcho()
+  const echo = echoBindings().getEcho()
   if (echo === null) return false
 
   try {
@@ -81,9 +81,9 @@ function ensureAttached(state: ChannelState, name: string): void {
 
   // `echo.private()` threw: retrying would spin, so only a missing Echo
   // instance (the normal pre-init case) is worth deferring.
-  if (getEcho() !== null) return
+  if (echoBindings().getEcho() !== null) return
 
-  state.cancelDeferred = subscribeWhenEchoReady(() => {
+  state.cancelDeferred = echoBindings().subscribeWhenEchoReady(() => {
     state.cancelDeferred = null
     return attach(state, name)
   })
@@ -100,7 +100,7 @@ function releaseChannel(name: string, state: ChannelState, listeners: ChannelLis
   state.cancelDeferred?.()
   state.cancelDeferred = null
 
-  const echo = getEcho()
+  const echo = echoBindings().getEcho()
   if (echo !== null && state.channel !== null) {
     try {
       echo.leave(name)

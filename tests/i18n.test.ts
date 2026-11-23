@@ -2,8 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   backendLocale,
   intlLocale,
+  preloadLocale,
   setLocale,
   spaLocale,
+  translationsSettled,
   type AppLocale,
 } from '../src/i18n'
 
@@ -31,7 +33,11 @@ function installDom(): { attributes: Record<string, string> } {
   return { attributes }
 }
 
-afterEach(() => {
+afterEach(async () => {
+  // `setLocale` starts a detached dynamic import. Awaiting every load before the
+  // environment goes away is what keeps a slow CI runner from resolving one
+  // after teardown, which Vitest reports as an unhandled error on a green run.
+  await translationsSettled()
   if (originalWindow === undefined) delete (globalThis as Record<string, unknown>).window
   else vi.stubGlobal('window', originalWindow)
   if (originalDocument === undefined) delete (globalThis as Record<string, unknown>).document
@@ -70,10 +76,22 @@ describe('locale presentation', () => {
   it('sets browser lang and RTL only for Arabic', () => {
     const dom = installDom()
 
+    // `setLocale` persists the choice, stamps `lang`/`dir` and only then asks for
+    // the copy, so the direction attributes are asserted on the synchronous path.
+    // The load it starts is awaited by the `afterEach` settle, never raced.
     setLocale('ar')
     expect(dom.attributes).toEqual({ lang: 'ar', dir: 'rtl' })
 
     setLocale('zh-CN')
     expect(dom.attributes).toEqual({ lang: 'zh-CN', dir: 'ltr' })
+  })
+
+  it('keeps the document untouched when the locale is preloaded first', async () => {
+    const dom = installDom()
+
+    await preloadLocale('ja')
+    setLocale('ja')
+
+    expect(dom.attributes).toEqual({ lang: 'ja', dir: 'ltr' })
   })
 })

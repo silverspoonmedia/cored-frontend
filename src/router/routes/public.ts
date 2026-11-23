@@ -1,35 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 
-export const publicShareRoutes: RouteRecordRaw[] = [
-  {
-    path: '/s/f/:id',
-    name: 'public.file',
-    component: () => import('@/layouts/PublicLayout.vue'),
-    meta: { public: true },
-    children: [
-      {
-        path: '',
-        name: 'public.file.view',
-        component: () => import('@/views/public/PublicFileView.vue'),
-      },
-    ],
-  },
-  {
-    path: '/s/d/:id',
-    name: 'public.folder',
-    component: () => import('@/layouts/PublicLayout.vue'),
-    meta: { public: true },
-    children: [
-      {
-        path: '',
-        name: 'public.folder.view',
-        component: () => import('@/views/public/PublicFolderView.vue'),
-      },
-    ],
-  },
-]
-
+/** 404 catch-all. `/s/*` public share routes come from the Archivd feature. */
 export const notFoundRoutes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',

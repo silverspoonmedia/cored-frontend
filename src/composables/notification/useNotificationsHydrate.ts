@@ -1,10 +1,6 @@
 import { batch } from '@/api/client'
 import { bodyOf } from '@/api/batch'
-import type {
-  AssignableRole,
-  NotificationAudience,
-  NotificationAudienceListPayload,
-} from '@/api/types'
+import type { AssignableRole, NotificationAudience, NotificationAudienceListPayload } from '@/api/types'
 
 /**
  * Batch-hydrate for Notification audience edit view.

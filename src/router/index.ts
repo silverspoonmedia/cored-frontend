@@ -14,10 +14,9 @@ import { inferenceCatalogRoutes, inferenceUsageRoutes } from '@/router/routes/in
 import { aiConnectionRoutes } from '@/router/routes/ai'
 import { subscriptionRoutes, serviceCatalogRoutes, servicePurchaseRoutes } from '@/router/routes/service'
 import { productActivationRoutes } from '@/router/routes/product-activations'
-import { archivdMicrostockUsageRoutes, archivdRoutes } from '@/router/routes/archivd'
-import { microstockRoutes } from '@/router/routes/microstock'
-import { publicShareRoutes, notFoundRoutes } from '@/router/routes/public'
+import { notFoundRoutes } from '@/router/routes/public'
 import { legacyRoutes } from '@/router/routes/legacy'
+import { featureRoutes } from '@/features/registry'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,12 +55,11 @@ const router = createRouter({
     ...productActivationRoutes,
     ...inferenceUsageRoutes,
     ...paymentsIncomeRoutes,
-    ...archivdMicrostockUsageRoutes,
-    ...microstockRoutes,
+    // Product features (Archivd, Microstock, …). Order inside the registry is
+    // the render order; core routes above keep their historical precedence.
+    ...featureRoutes(),
     ...paymentChannelRoutes,
     ...servicePurchaseRoutes,
-    ...archivdRoutes,
-    ...publicShareRoutes,
     ...paymentReturnRoutes,
     ...legacyRoutes,
     ...notFoundRoutes,

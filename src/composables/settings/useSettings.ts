@@ -1,12 +1,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { get, put } from '@/api/client'
-import type {
-  ApiResponse,
-  SettingsGroupsPayload,
-  SettingsShowPayload,
-  SettingGroup,
-} from '@/api/types'
+import type { ApiResponse, SettingsGroupsPayload, SettingsShowPayload, SettingGroup } from '@/api/types'
 
 export function useSettings() {
   const { t } = useI18n()

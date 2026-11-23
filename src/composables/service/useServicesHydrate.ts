@@ -1,10 +1,6 @@
 import { batch } from '@/api/client'
 import { bodyOfOrThrow } from '@/api/batch'
-import type {
-  Service,
-  ServiceOptions,
-  ServicePurchase,
-} from '@/api/types'
+import type { Service, ServiceOptions, ServicePurchase } from '@/api/types'
 
 /**
  * Batch-hydrate for Service domain views.

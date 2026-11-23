@@ -2,12 +2,35 @@ import Echo, { type EchoOptions } from 'laravel-echo'
 import Pusher from 'pusher-js'
 import type { ChannelAuthorizerGenerator } from 'pusher-js'
 import { onUnmounted, ref, type Ref } from 'vue'
+import * as authStore from '@/stores/auth'
 import { post } from '@/api/client'
 import { whenCsrfCookieQuiet } from '@/api/csrf'
 import { resolveApiUrl } from '@/api/baseUrl'
 import { acquireChannel } from '@/composables/echo/channelRegistry'
-import { useAuth } from '@/stores/auth'
-import i18n from '@/i18n'
+import { registerEchoBindings } from '@/composables/echo/echoBindings'
+import i18n, { ensureI18nMessages } from '@/i18n'
+
+/**
+ * The auth store namespace (`import * as`), bound at module evaluation without
+ * reading a single binding — ES live bindings mean `loadAuth()` sees the store
+ * no matter which side of the `client → csrf → channelRegistry → useEcho → auth
+ * → client` cycle finished first. A named import would let this module's body
+ * run `setRefreshHandler` while `client` is half-initialised.
+ */
+type AuthModule = typeof authStore
+
+let authModule: AuthModule | null = null
+
+function loadAuth(): AuthModule {
+  authModule ??= authStore
+  return authModule
+}
+
+/** The i18n singleton, with every feature pack's eager English merged. */
+function loadI18n(): typeof i18n {
+  ensureI18nMessages()
+  return i18n
+}
 
 type PusherEcho = Echo<'pusher'>
 type PusherEchoOptions = EchoOptions<'pusher'> & { broadcaster: 'pusher' }
@@ -48,7 +71,7 @@ export async function authorizeBroadcastChannel(
     || !('auth' in data)
     || typeof (data as { auth: unknown }).auth !== 'string'
   ) {
-    throw new Error(i18n.global.t('ui.realtime.broadcast_auth_invalid'))
+    throw new Error(loadI18n().global.t('ui.realtime.broadcast_auth_invalid'))
   }
 
   const payload = data as { auth: string; channel_data?: unknown; shared_secret?: unknown }
@@ -306,8 +329,7 @@ export function useEchoResync(fn: ResyncFn): void {
 type PersonalListener = (e: unknown) => void
 
 function resolvePersonalChannel(): string | null {
-  const { user } = useAuth()
-  const id = user.value?.id
+  const id = loadAuth().useAuth().user.value?.id
   return id ? `App.Models.User.${id}` : null
 }
 
@@ -328,5 +350,9 @@ export function listenPersonalChannel(events: Record<string, PersonalListener>):
 
   return () => subscription.release()
 }
+
+// Bind the realtime primitives into the leaf module `channelRegistry` reads, so
+// it never imports this file (the two share a cycle through `@/api/client`).
+registerEchoBindings({ getEcho, subscribeWhenEchoReady })
 
 

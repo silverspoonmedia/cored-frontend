@@ -25,23 +25,29 @@ Browser (SPA origin)
 
 ## `src/` layer map
 
-Type-then-domain: screens under `src/views/{domain}/` with matching `src/composables/{domain}/` and `src/utils/{domain}/`; shared chrome at the type root.
+Two zones. **Core** is everything the shell needs on a product-free install (`api`, `stores`, `composables/echo`, `i18n`, `layouts`, shared `components`, `router`, `lib`, `utils`). **Features** are product modules under `src/features/{name}/` — views, components, composables, routes, types and utils for one product, plus its copy in `src/i18n/features/{name}/`. Core never imports a feature except through `src/features/registry.ts`; a fork deletes a feature directory and one registry line. `npm run check:features` enforces the boundary, registry parity (every directory registered, every registry entry has routes + 7 locale packs) and product-name neutrality in core.
 
 | Layer | Contents | Notes |
 |-------|----------|-------|
 | `src/api/` | `client.ts`, `csrf.ts`, `netRetry.ts`, `batch.ts`, `baseUrl.ts`, `requestHeaders.ts`, `types.ts` | The only HTTP layer. `types.ts` mirrors Laravel API Resources exactly (snake_case, no transform layer) |
-| `src/views/{domain}/` | Vue Router page components | One folder per domain (17) |
-| `src/composables/` | Root composables (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`) + `{domain}/` + `echo/` | `echo/` is the only place allowed to touch raw Echo APIs |
+| `src/views/{domain}/` | Core Vue Router page components | One folder per core domain (17) |
+| `src/features/{name}/` | Product module: `index.ts` (`FeatureModule`), `routes/`, `views/`, `components/`, `composables/`, `types.ts` | Registered in `registry.ts`; no core file imports it directly |
+| `src/composables/` | Root composables (`useResource`, `useDetailLoader`, `useEcho`, `useAlert`) + `{domain}/` + `echo/` | `echo/` is the only place allowed to touch raw Echo APIs. `useEcho` registers its primitives into the leaf `echo/echoBindings.ts`, which the registry reads, so neither imports the other |
 | `src/components/` | Shared chrome (`AppNavbar`, `DataTable`, `RowActions`, `ErrorState`, `EmptyState`, `SkeletonBlock`) | Cross-domain only; domain components live with their view |
 | `src/lib/` | Side-effect vendor wrappers (`swal.ts`, `safeRedirect.ts`) | App-wide, not domain-scoped |
 | `src/utils/` | Pure helpers + `utils/{domain}/` | No Vue lifecycle, no fetch. A presentation **decision** belongs here so node can unit-test it |
 | `src/stores/` | Module-scope reactive state (`auth.ts`) | No Pinia — one plain module holding `ref`/`computed` state, read through an accessor (`useAuth()`). Add a store only for state shared across unrelated trees |
 | `src/router/` | `index.ts` + `routes/*.ts` | [routes.md](routes.md) |
-| `src/i18n/` | `locales/*.json`, `fallbacks.ts`, shared instance | [i18n.md](i18n.md) |
+| `src/features/` | `types.ts` (`FeatureModule`), `registry.ts`, `messages.ts` (deep-merge helper) | The only core↔feature surface |
+| `src/i18n/` | `locales/*.json` (core), `features/{name}/*.json` (product), `fallbacks.ts`, `featurePacks.ts` (lazy feature packs), shared instance | [i18n.md](i18n.md) |
 | `src/layouts/` | `AppLayout`, `PublicLayout` | — |
 | `src/assets/` | AdminLTE global CSS entries, overrides | — |
 
-Placement rule of thumb: Vue-lifecycle logic → `composables/`; vendor wrapper → `lib/`; pure function → `utils/`; domain-scoped anything → the matching `{domain}/` subfolder. Raw Echo channel management belongs to `composables/echo/` only.
+Placement rule of thumb: Vue-lifecycle logic → `composables/`; vendor wrapper → `lib/`; pure function → `utils/`; domain-scoped anything → the matching `{domain}/` subfolder, or inside the owning `src/features/{name}/`. Raw Echo channel management belongs to `composables/echo/` only.
+
+A feature that needs a core signal (a realtime event, a shared list action) registers a handler from its `boot()` instead of the core importing the feature: `registerShellRealtime(handler)` in `composables/echo/` is the seam Archivd uses for `onQuotaChanged`.
+
+Two dependency cycles are broken by a leaf module, not by looser imports: `composables/echo/echoBindings.ts` (useEcho → registry → useEcho) and `i18n/featurePacks.ts` (i18n → registry → feature → i18n). Both are `import`-only leaves; everything that reads them does so inside a call, after module evaluation. A feature composable takes copy from `useI18n()`, never from the `@/i18n` singleton. `vitest.config.ts` loads `@vitejs/plugin-vue`, because importing `@/api/client` now reaches route tables whose entries are `.vue` files.
 
 ## One route, two audiences
 

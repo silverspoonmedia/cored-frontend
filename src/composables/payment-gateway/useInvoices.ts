@@ -2,13 +2,7 @@ import i18n from '@/i18n'
 import { useResource } from '@/composables/useResource'
 import { get, post, getBlob } from '@/api/client'
 import { saveBlob } from '@/utils/download'
-import type {
-  ApiResponse,
-  Invoice,
-  PaymentChannel,
-  CheckoutResult,
-  SyncStatusResult,
-} from '@/api/types'
+import type { ApiResponse, Invoice, PaymentChannel, CheckoutResult, SyncStatusResult } from '@/api/types'
 
 export function useInvoices() {
   const base = useResource<Invoice>('invoices')

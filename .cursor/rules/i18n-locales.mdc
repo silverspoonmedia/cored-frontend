@@ -1,20 +1,21 @@
 ---
 description: Patch SPA locale keys; never dump whole JSON files
-globs: src/i18n/**,src/views/**,src/components/**,src/composables/**,src/**/*.vue,src/**/*.ts,docs/i18n.md
+globs: src/i18n/**,src/features/**,src/views/**,src/components/**,src/composables/**,src/**/*.vue,src/**/*.ts,docs/i18n.md
 alwaysApply: false
 ---
 
 # Localization (SPA)
 
-Seven locales: `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json`. English is the source, never the destination. Read `i18n-guardrail.mdc` (always-on) for the definition of done and the readability test.
+Seven locales, in two packs: **core** `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json` (shell + shared domains) and **per feature** `src/i18n/features/{name}/{locale}.json` (everything a product owns). `src/features/messages.ts` deep-merges them; `scripts/lib/locale-files.mjs` is the single discovery used by every guard and by `apply-translations.mjs --feature=<name>`. English is the source, never the destination. Read `i18n-guardrail.mdc` (always-on) for the definition of done and the readability test.
 
-- **Never `Read` an entire locale JSON file.** Grep the key, `StrReplace` it in all seven files, run `npm run check:i18n`.
+- **A key lives in the pack that renders it.** Product copy goes to the feature pack — core copy must not mention a product name, and `scripts/check-features.mjs` fails the build when it does. A feature's seven files are created, curated, and deleted together with the feature.
+- **Never `Read` an entire locale JSON file.** Grep the key, `StrReplace` it in all seven files of the owning pack, run `npm run check:i18n`.
 - Translate contextually, not literally. Preserve `{placeholders}` and machine-contract English.
-- **Log every curated key** in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`); JSON has no comments, so this sidecar is the flag. `check-curation-log.mjs` validates it as part of `check:i18n` — it validates key existence and timestamps, **not** path existence, so fix a moved/deleted `source` by hand in the same change.
-- A `t()` key that exists in no locale is a build failure (`check-i18n-usage.mjs`) — `fallbackLocale: en` cannot rescue it.
+- **Log every curated key** in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`, plus `feature` when the key is feature-owned); JSON has no comments, so this sidecar is the flag. `check-curation-log.mjs` validates it as part of `check:i18n` — it validates key existence and timestamps across **both** packs, **not** path existence, so fix a moved/deleted `source` by hand in the same change.
+- A `t()` key that exists in no locale is a build failure (`check-i18n-usage.mjs`, which resolves against the merged tree) — `fallbackLocale: en` cannot rescue it.
 - Duplicate-English values are gated per locale by `scripts/lib/duplicate-english-allowlist.mjs`. Add to `globalDuplicateEnglishKeys` only for brands/machine text, and to `localeDuplicateEnglishKeys` only for the one locale whose accepted term is the English word (`id` today). Any English carryover in `ja`/`ko`/`zh-CN`/`ar`/`ru` is a failure — translate it.
 - Use `scripts/i18n-pair-dump.mjs` for review batches and `scripts/apply-translations.mjs` to apply them (dotted `web.settings.fields.*` labels need `leaf`).
-- **Removing a screen means sweeping its keys in the same change:** flatten `en.json`, collect reachable keys from **every** repo file (not just `src/**` — route `titleKey`s live in `src/router/routes/*.ts`), match with a boundary (`(?![A-Za-z0-9_.-])`), keep the whole subtree when a runtime prefix (`t(\`prefix_${x}\`)`) exists, delete from all seven files, prune containers left empty, then drop the stale allowlist + curation-log entries.
+- **Removing a screen means sweeping its keys in the same change:** flatten the owning pack's `en.json` (core or feature), collect reachable keys from **every** repo file (not just `src/**` — route `titleKey`s live in `src/router/routes/*.ts` and `src/features/*/routes/*.ts`), match with a boundary (`(?![A-Za-z0-9_.-])`), keep the whole subtree when a runtime prefix (`t(\`prefix_${x}\`)`) exists, delete from all seven files of that pack, prune containers left empty, then drop the stale allowlist + curation-log entries. A whole feature leaving takes its `src/i18n/features/{name}/` directory with it.
 - **Mirrored packs must stay byte-equal to the backend**, sigil aside (`:attr` ↔ `{attr}`): `validation.*`, `http-statuses.*`, `auth.*`, `passwords.*`, `pagination.*`. The SPA `actions.*` block is **not** a mirror — it is curated against its own button surfaces and legitimately differs.
 - Cross-repo guards live in Monolith (`locale-pack-parity.php`, `locale-flat-pack-parity.php`, `locale-glossary-scan.php`, `locale-prose-scan.php`, `locale-rawkey-scan.php`). `check:i18n` cannot see the backend, so a batch that moves a mirrored pack or a glossary term must also run `php artisan test --filter=Locale` from a Monolith checkout that has this repo as a sibling.
 
@@ -47,6 +48,7 @@ Seven locales: `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json`. English is the
 ## Usage rules
 
 - `useI18n()` only inside `setup()`; router guards, stores, shell hydration, realtime callbacks and module services import the shared instance and call `i18n.global.t(...)`.
+- **A feature module never imports `@/i18n`.** The core bundle loads `src/features/registry.ts`, so a feature's static import of the singleton closes the cycle and reads i18n before it exists — copy goes through `useI18n()` inside a composable, or through a `t`/`locale` parameter threaded from one. The eager English merge lives in `src/i18n/featurePacks.ts`, which `src/i18n/index.ts` calls lazily (`ensureI18nMessages()`).
 - Use `computed()` for labels that must follow a runtime locale switch.
 - Format numbers/dates with `Intl.NumberFormat(locale.value)` / `Intl.DateTimeFormat(...)`; API `*_formatted` / `*_human` companions stay authoritative.
 - Fallback errors use `src/i18n/fallbacks.ts` keys, never hardcoded English.

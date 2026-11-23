@@ -23,7 +23,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }))
 
-type ComposableModule = typeof import('../src/composables/microstock/useMicrostock')
+type ComposableModule = typeof import('../src/features/microstock/composables/useMicrostock')
 
 function attempt(partial: Record<string, unknown> = {}) {
   return {
@@ -42,7 +42,7 @@ function attempt(partial: Record<string, unknown> = {}) {
 }
 
 async function importComposable(): Promise<ComposableModule> {
-  return import('../src/composables/microstock/useMicrostock')
+  return import('../src/features/microstock/composables/useMicrostock')
 }
 
 beforeEach(() => {

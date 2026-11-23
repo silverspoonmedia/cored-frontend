@@ -18,6 +18,8 @@
     "cf-typegen": "wrangler types",
     "check:docs": "node scripts/check-docs.mjs",
     "check:env": "node scripts/check-mode-env.mjs",
+    "check:features": "node scripts/check-features.mjs",
+    "check": "npm run check:docs && npm run check:features && npm run check:i18n && npm run check:env",
     "check:i18n": "node scripts/check-i18n.mjs && node scripts/check-i18n-usage.mjs && node scripts/check-curation-log.mjs",
     "check:i18n:usage": "node scripts/check-i18n-usage.mjs"
   },

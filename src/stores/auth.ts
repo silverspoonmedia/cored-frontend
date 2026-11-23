@@ -132,7 +132,7 @@ function receiveLogout(epoch?: number): void {
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (event) => {
+  window.addEventListener?.('storage', (event) => {
     if (event.key !== LOGOUT_EVENT_KEY || !event.newValue) return
     const epoch = Number(event.newValue)
     receiveLogout(Number.isFinite(epoch) ? epoch : undefined)

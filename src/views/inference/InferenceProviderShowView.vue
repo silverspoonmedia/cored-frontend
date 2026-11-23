@@ -12,7 +12,7 @@ import { useInferenceModelCards } from '@/composables/inference/useInferenceMode
 import { useInferenceHydrate } from '@/composables/inference/useInferenceHydrate'
 import { useInferenceRealtime } from '@/composables/inference/useInferenceRealtime'
 import { useEchoResync } from '@/composables/useEcho'
-import { useRatePlanAdmin } from '@/composables/microstock/useRatePlanAdmin'
+import { useRatePlanAdmin } from '@/composables/inference/useRatePlanAdmin'
 import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useBreadcrumbTitle } from '@/composables/useBreadcrumbs'

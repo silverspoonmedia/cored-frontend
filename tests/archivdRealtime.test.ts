@@ -27,19 +27,26 @@ let echoInstance: {
   leave: (name: string) => void
 } | null
 
+vi.mock('@/composables/echo/echoBindings', () => ({
+  registerEchoBindings: () => {},
+  echoBindings: () => ({
+    getEcho: () => echoInstance,
+    subscribeWhenEchoReady: (attach: () => boolean) => {
+      if (echoInstance !== null) {
+        attach()
+        return () => {}
+      }
+      onReadyCbs.push(attach)
+      return () => {
+        const i = onReadyCbs.indexOf(attach)
+        if (i >= 0) onReadyCbs.splice(i, 1)
+      }
+    },
+  }),
+}))
+
 vi.mock('@/composables/useEcho', () => ({
   getEcho: () => echoInstance,
-  subscribeWhenEchoReady: (attach: () => boolean) => {
-    if (echoInstance !== null) {
-      attach()
-      return () => {}
-    }
-    onReadyCbs.push(attach)
-    return () => {
-      const i = onReadyCbs.indexOf(attach)
-      if (i >= 0) onReadyCbs.splice(i, 1)
-    }
-  },
   onEchoReady: (fn: () => void) => {
     readyCbs.push(fn)
     return () => {
@@ -77,8 +84,8 @@ function makeEcho() {
   }
 }
 
-function importRealtime(): Promise<typeof import('../src/composables/archivd/useArchivdRealtime')> {
-  return import('../src/composables/archivd/useArchivdRealtime')
+function importRealtime(): Promise<typeof import('../src/features/archivd/composables/useArchivdRealtime')> {
+  return import('../src/features/archivd/composables/useArchivdRealtime')
 }
 
 function userChannel() {

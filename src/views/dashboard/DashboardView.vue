@@ -7,7 +7,7 @@ import { useAuth } from '@/stores/auth'
 import { useAlert } from '@/composables/useAlert'
 import { useAuthSelfRealtime } from '@/composables/identity/useAuthSelfRealtime'
 import { useAdminRealtime } from '@/composables/useAdminRealtime'
-import { useArchivdRealtime } from '@/composables/archivd/useArchivdRealtime'
+import { useShellSignal } from '@/composables/echo/shellRealtime'
 import { useEchoResync } from '@/composables/useEcho'
 
 const { user, hasPermission, resendVerification, fetchMe } = useAuth()
@@ -34,21 +34,21 @@ const adminHandlers = {
   },
 }
 
-const { subscribe: subscribeArchivd, unsubscribe: unsubscribeArchivd } = useArchivdRealtime()
-const archivdHandlers = { onQuotaChanged: () => { void fetchMe() } }
+// A product feature that changes the user summary (for example a quota
+// counter) raises a shell signal instead of this view importing the product's
+// realtime composable. A fork without that product never receives it.
+useShellSignal('quota', () => { void fetchMe() })
 
 useEchoResync(() => { void fetchMe() })
 
 onMounted(() => {
   subscribeAuthSelf(authSelfHandlers)
   subscribeAdmin(adminHandlers)
-  subscribeArchivd(archivdHandlers)
 })
 
 onUnmounted(() => {
   unsubscribeAuthSelf(authSelfHandlers)
   unsubscribeAdmin(adminHandlers)
-  unsubscribeArchivd(archivdHandlers)
 })
 
 const sessionLabels = computed(() => ({

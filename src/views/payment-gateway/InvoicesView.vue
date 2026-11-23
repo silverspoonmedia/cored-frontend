@@ -51,7 +51,7 @@ async function handleExport(): Promise<void> {
   try {
     await exportCsv()
   } catch (e) {
-    showError(e instanceof Error ? e.message : t('web.archivd.operation_failed'))
+    showError(e instanceof Error ? e.message : t('ui.shared.operation_failed'))
   } finally {
     exporting.value = false
   }

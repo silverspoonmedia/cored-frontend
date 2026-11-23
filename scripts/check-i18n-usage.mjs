@@ -17,9 +17,9 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { loadLocale } from './lib/locale-files.mjs'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const localeDir = join(root, 'src', 'i18n', 'locales')
 const sourceDir = join(root, 'src')
 
 function flatten(value, prefix = '', out = new Map()) {
@@ -33,7 +33,7 @@ function flatten(value, prefix = '', out = new Map()) {
   return out
 }
 
-const en = flatten(JSON.parse(readFileSync(join(localeDir, 'en.json'), 'utf8')))
+const en = flatten(loadLocale('en'))
 const prefixes = new Set()
 for (const key of en.keys()) {
   const parts = key.split('.')

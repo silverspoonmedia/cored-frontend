@@ -1,12 +1,13 @@
 ---
 description: Route names are a cross-repo contract with the backend menu registry
-globs: src/router/**,src/utils/notificationTarget.ts,src/utils/breadcrumb.ts,src/composables/useBreadcrumbs.ts
+globs: src/router/**,src/features/**/routes/**,src/utils/notificationTarget.ts,src/utils/breadcrumb.ts,src/composables/useBreadcrumbs.ts
 alwaysApply: false
 ---
 
 # Route names are a cross-repo contract
 
-- Route records live in `src/router/routes/*.ts`, one module per domain; `src/router/index.ts` assembles them (order matters — 404 catch-all last), owns the `beforeEach` guard and `scrollBehavior`.
+- Route records live in `src/router/routes/*.ts` (core domains) or `src/features/{name}/routes/*.ts` (one product feature), one module per domain; `src/router/index.ts` assembles core modules and spreads `featureRoutes()` from `src/features/registry.ts` (order matters — 404 catch-all last), owns the `beforeEach` guard and `scrollBehavior`.
+- **The shell never names a product route module.** `src/features/registry.ts` is the only assembler of feature routes, in registry order; a feature owns its `FeatureModule.routes` and its `boot()` wiring. Core must not import `@/features/{name}/routes/*` (`scripts/check-features.mjs`). A fork drops a feature by deleting its directory, its `src/i18n/features/{name}/` pack and its one line in the registry.
 - URL layout: authenticated app under **`/apps/*`**, guest/public at the site root (`/s/*`, payment bounce), auth pages at root.
 - **Symbolic route names are consumed by the backend.** Monolith menu rows store them and validate against `monolith/config/spa-routes.php` (`SpaRouteRegistry`); notification deep links resolve `${route}.view` via `src/utils/notificationTarget.ts`. Renaming or adding a named route = update `config/spa-routes.php` + `MenuSeeder` (when menu-bound) in the same change, plus both integration docs.
 - **Guard invariants** (do not regress): one-shot `hydrateShell()` per cold boot with `resetRouterHydration()` on logout, `fetchMe()` re-probe only when the cookie may have arrived from another tab, `guestOnly` → `dashboard.view`, and `revokeCurrentProtectedRoute()` replacing the current protected route with `login.view?redirect=<fullPath>` on logout.
