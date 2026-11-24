@@ -1,48 +1,66 @@
 name: Deploy
 
+# Manual only. A fresh fork has no Cloudflare credentials and no Worker of its
+# own, so a push-triggered deploy would either fail on a missing secret or push
+# to an account it does not own. Run this from the Actions tab once the repo has
+# `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and `wrangler.jsonc` names
+# this project's own Workers.
 on:
-  push:
-    branches: [main, main-sandbox, main-staging]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment (must match a `.env.<env>` file and a `wrangler.jsonc` env).
+        type: choice
+        required: true
+        default: sandbox
+        options:
+          - sandbox
+          - staging
+          - production
 
 concurrency:
-  group: deploy-${{ github.ref_name }}
+  group: deploy-${{ github.event.inputs.environment }}
   cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Branch → Vite mode + Wrangler env. The two names must stay identical
-      # (the same-named `.env.<env>` file is baked and `--env` selects the
-      # Worker); an unmapped branch fails loudly instead of defaulting to
-      # production.
       - name: Resolve deploy environment
         run: |
-          case "${GITHUB_REF_NAME}" in
-            main)         ENV_NAME=production ;;
-            main-sandbox) ENV_NAME=sandbox ;;
-            main-staging) ENV_NAME=staging ;;
-            *) echo "::error::Unmapped deploy branch ${GITHUB_REF_NAME}"; exit 1 ;;
-          esac
+          ENV_NAME="${{ github.event.inputs.environment }}"
+          if [ ! -f ".env.${ENV_NAME}" ]; then
+            echo "::error::No .env.${ENV_NAME} — add the mode file before deploying."
+            exit 1
+          fi
           {
             echo "DEPLOY_ENV=${ENV_NAME}"
             echo "CLOUDFLARE_ENV=${ENV_NAME}"
           } >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - run: npm ci
       - run: npm run type-check
-      - run: npm run check:i18n
-      - run: npm run check:env
+      - run: npm run check
       - run: npm test
+
       # CLOUDFLARE_ENV is already exported: @cloudflare/vite-plugin bakes the
       # environment's worker name into the redirected deploy config.
       - run: npx vite build --mode ${{ env.DEPLOY_ENV }}
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env ${{ env.DEPLOY_ENV }}
+
+      - name: Deploy to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID on this repo before deploying."
+            exit 1
+          fi
+          npx wrangler deploy --env "$DEPLOY_ENV"
