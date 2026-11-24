@@ -16,7 +16,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { loadLocale } from './lib/locale-files.mjs'
 
 const LOG = new URL('../src/i18n/curation-log.json', import.meta.url)
-const LOCALES = ['en', 'id', 'ja', 'ko', 'zh-CN', 'ar', 'ru']
+const LOCALES = ['en', 'id']
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
 
 const failures = []

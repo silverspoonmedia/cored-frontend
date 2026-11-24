@@ -11,7 +11,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "monolith-spa-prod",
+	"name": "cored-spa-prod",
 	"compatibility_date": "2026-08-08",
 	"main": "server/index.ts",
 	"assets": {
@@ -33,15 +33,15 @@
 	"vars": {},
 	"env": {
 		"production": {
-			"name": "monolith-spa-prod",
+			"name": "cored-spa-prod",
 			"vars": {}
 		},
 		"sandbox": {
-			"name": "monolith-spa-sandbox",
+			"name": "cored-spa-sandbox",
 			"vars": {}
 		},
 		"staging": {
-			"name": "monolith-spa-staging",
+			"name": "cored-spa-staging",
 			"vars": {}
 		}
 	}

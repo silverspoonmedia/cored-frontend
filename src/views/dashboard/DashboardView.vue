@@ -19,7 +19,7 @@ const canViewMenu = computed(() => hasPermission('view menu'))
 const resending = ref(false)
 
 // Live update: session/2FA state changes (any tab) + RBAC role changes +
-// personal Archivd quota changes refresh the dashboard summary live.
+// a personal quota change a product feature reports refreshes the dashboard summary live.
 const { subscribe: subscribeAuthSelf, unsubscribe: unsubscribeAuthSelf } = useAuthSelfRealtime()
 const authSelfHandlers = {
   onSecurityStateChanged: () => { void fetchMe() },

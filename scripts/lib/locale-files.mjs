@@ -13,7 +13,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-export const LOCALES = ['en', 'id', 'ja', 'ko', 'zh-CN', 'ar', 'ru']
+export const LOCALES = ['en', 'id']
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 export const localeDir = join(root, 'src', 'i18n', 'locales')

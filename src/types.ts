@@ -13,4 +13,4 @@ export interface NavNode {
 
 export type ThemeMode = 'light' | 'dark' | 'auto'
 
-export type Locale = 'en' | 'id' | 'ja'
+export type Locale = 'en' | 'id'

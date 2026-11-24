@@ -25,7 +25,7 @@ import { applySpaRequestHeader } from './requestHeaders'
  * in-memory copy. A tab that fetches a fresh nonce rotates the shared cookie,
  * which would strand every other tab on its stale in-memory value (their next
  * mutation sends header=old vs cookie=new and gets a 419). To keep all tabs on
- * one nonce, whichever tab fetches broadcasts it on the `monolith-csrf`
+ * one nonce, whichever tab fetches broadcasts it on the `cored-csrf`
  * BroadcastChannel; every other tab adopts it. Same pattern as `authChannel`
  * in `stores/auth.ts`.
  */
@@ -52,7 +52,7 @@ let pendingRefresh: Promise<void> | null = null
 let lastMintAt = 0
 
 const csrfChannel: BroadcastChannel | null =
-  typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('monolith-csrf') : null
+  typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('cored-csrf') : null
 
 function broadcastNonce(value: string): void {
   try {

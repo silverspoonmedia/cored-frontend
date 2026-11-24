@@ -21,7 +21,7 @@ Browser (SPA origin)
 | Session/cookie contract | [auth-session.md](auth-session.md) · `auth-session.mdc` |
 | Worker shell | [worker.md](worker.md) · `worker-thin.mdc` |
 | UI conventions | [ui-patterns.md](ui-patterns.md) · `ui-patterns.mdc` |
-| Backend architecture | `monolith/docs/platform/architecture.md` |
+| Backend architecture | `cored-backend/docs/platform/architecture.md` |
 
 ## `src/` layer map
 
@@ -45,14 +45,14 @@ Two zones. **Core** is everything the shell needs on a product-free install (`ap
 
 Placement rule of thumb: Vue-lifecycle logic → `composables/`; vendor wrapper → `lib/`; pure function → `utils/`; domain-scoped anything → the matching `{domain}/` subfolder, or inside the owning `src/features/{name}/`. Raw Echo channel management belongs to `composables/echo/` only.
 
-A feature that needs a core signal (a realtime event, a shared list action) registers a handler from its `boot()` instead of the core importing the feature: `registerShellRealtime(handler)` in `composables/echo/` is the seam Archivd uses for `onQuotaChanged`.
+A feature that needs a core signal (a realtime event, a shared list action) registers a handler from its `boot()` instead of the core importing the feature: `registerShellRealtime(handler)` in `composables/echo/` is the seam a product feature uses to ride a core signal.
 
 Two dependency cycles are broken by a leaf module, not by looser imports: `composables/echo/echoBindings.ts` (useEcho → registry → useEcho) and `i18n/featurePacks.ts` (i18n → registry → feature → i18n). Both are `import`-only leaves; everything that reads them does so inside a call, after module evaluation. A feature composable takes copy from `useI18n()`, never from the `@/i18n` singleton. `vitest.config.ts` loads `@vitejs/plugin-vue`, because importing `@/api/client` now reaches route tables whose entries are `.vue` files.
 
 ## One route, two audiences
 
-The microstock usage hub (`/apps/archivd/microstock-usage`, `ArchivdMicrostockUsageView.vue`) is the reference for a screen two permission levels share: one route, tabs whose **visibility is gated on the same permission the endpoint and the realtime channel require** (`canViewPlatform` hides the platform tab *and* its panel). Every tab reads the same envelope and drives `RowActions` from the server's `actions[]` — the client routes the click, the server decides which keys are legal. Never clone the view into a staff copy, never let the client widen the action set.
+A product screen two permission levels share is the reference pattern: one route, tabs whose **visibility is gated on the same permission the endpoint and the realtime channel require** (`canViewPlatform` hides the platform tab *and* its panel). Every tab reads the same envelope and drives `RowActions` from the server's `actions[]` — the client routes the click, the server decides which keys are legal. Never clone the view into a staff copy, never let the client widen the action set.
 
 ## Env files
 
-Vite stacks env files by mode: `.env` → `.env.local` → `.env.<mode>`; during `vite build --mode <env>` the tracked mode file wins over `.env.local`. Variable matrix and deploy pairing: [deployment.md](deployment.md). Discord OAuth return is Monolith `SPA_URL` on the API host, not a Vite var.
+Vite stacks env files by mode: `.env` → `.env.local` → `.env.<mode>`; during `vite build --mode <env>` the tracked mode file wins over `.env.local`. Variable matrix and deploy pairing: [deployment.md](deployment.md). Discord OAuth return is `cored-backend` `SPA_URL` on the API host, not a Vite var.

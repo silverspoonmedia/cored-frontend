@@ -7,7 +7,7 @@
 | Deploy topology and CI | [deployment.md](deployment.md) · `deployment.mdc` |
 | Static-asset headers | `public/_headers` |
 | Security headers on Worker responses | `server/index.ts` |
-| Backend perimeter (Tunnel, CORS) | `monolith/docs/platform/security.md` |
+| Backend perimeter (Tunnel, CORS) | `cored-backend/docs/platform/security.md` |
 | Why meta is client-side | [head-meta.md](head-meta.md) |
 
 ## The four invariants

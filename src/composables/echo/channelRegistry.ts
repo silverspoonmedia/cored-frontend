@@ -10,7 +10,7 @@ import { echoBindings } from '@/composables/echo/echoBindings'
  *
  * - two consumers of one channel (`navigation.menus`, `App.Models.User.{id}`)
  *   each calling `echo.leave()` and killing the other's live updates;
- * - dynamic channel names (`settings.{group}`, `archivd.workspace.{id}`) where
+ * - dynamic channel names (`settings.{group}`, `purchase.{id}`) where
  *   the "leave the old name" branch was easy to forget;
  * - deferred attach (views mount before `AppNavbar` finishes `initEcho()`) that
  *   was sometimes missed entirely, leaving the tab deaf for the session.

@@ -163,13 +163,13 @@ describe('createRealtimeChannel', () => {
     channel.subscribe({ onChanged: () => {} })
     expect(channels.has('settings.platform')).toBe(true)
 
-    channel.retarget('settings.archivd')
+    channel.retarget('settings.product')
     expect(leftChannels).toContain('settings.platform')
-    expect(channels.has('settings.archivd')).toBe(true)
+    expect(channels.has('settings.product')).toBe(true)
 
     // Same name again is a no-op (no leave/join churn on re-render).
     leftChannels.length = 0
-    channel.retarget('settings.archivd')
+    channel.retarget('settings.product')
     expect(leftChannels).toHaveLength(0)
   })
 

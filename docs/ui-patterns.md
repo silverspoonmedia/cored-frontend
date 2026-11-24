@@ -6,7 +6,7 @@ AdminLTE4 CSS stays isolated from third-party widget styles; every screen render
 |------|------|
 | Shared primitives | `src/components/{SkeletonBlock,ErrorState,EmptyState,TableEmptyRow,DataTable,RowActions}.vue` |
 | Detail loader | `src/composables/useDetailLoader.ts` |
-| Server-driven row actions | `src/utils/mapQueryRowActions.ts` + Monolith `row.actions[]` |
+| Server-driven row actions | `src/utils/mapQueryRowActions.ts` + backend `row.actions[]` |
 | Dialogs/toasts | `src/lib/swal.ts` |
 | Safe URL/redirect rules | `src/utils/safeUrl.ts`, `src/lib/safeRedirect.ts` |
 | Realtime channels | `src/composables/echo/channelRegistry.ts` |

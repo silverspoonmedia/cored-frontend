@@ -10,15 +10,15 @@ One codebase, **three Workers**, split at the Wrangler environment level. Each d
 
 | Wrangler env | Vite mode | Env file | Worker | Branch |
 |--------------|-----------|----------|--------|--------|
-| `production` | `production` | `.env.production` | `monolith-spa-prod` | `main` |
-| `sandbox` | `sandbox` | `.env.sandbox` | `monolith-spa-sandbox` | `main-sandbox` |
-| `staging` | `staging` | `.env.staging` | `monolith-spa-staging` | `main-staging` |
+| `production` | `production` | `.env.production` | `cored-spa-prod` | `main` |
+| `sandbox` | `sandbox` | `.env.sandbox` | `cored-spa-sandbox` | `main-sandbox` |
+| `staging` | `staging` | `.env.staging` | `cored-spa-staging` | `main-staging` |
 
 - `CLOUDFLARE_ENV=<env>` must be set during the build — `@cloudflare/vite-plugin` bakes the worker name into the redirected deploy config, and wrangler hard-fails a `deploy --env` that mismatches it. **Never** run a bare `vite build` + `wrangler deploy` pair: a sandbox build without it would deploy onto the production Worker.
 - Unmapped deploy branches fail loudly (`.github/workflows/deploy.yml`) instead of defaulting to production.
 - **`npm run check:env` guards the mode files.** Branch→mode→env mapping was always checked; the *values* were not, so `.env.production` shipped pointing at the sandbox API origin. The guard fails a build when a required `VITE_*` key is missing or empty, when a value is a placeholder, when production/staging points at a sandbox host, when two environments share an API origin, or when an unresolved `TODO` remains. A shared non-origin credential (captcha sitekey, Pusher app key) is a warning, not a failure. Run it after editing any `.env.<mode>` file.
 - **No `VITE_*` secrets** — everything in the browser bundle is public. Worker `vars` never reach the bundle.
 - Vite stacks env files by mode: `.env` → `.env.local` → `.env.<mode>`; during a mode build the tracked mode file wins over `.env.local`.
-- Discord OAuth return is Monolith `SPA_URL` on the API host, not a Vite var.
+- Discord OAuth return is `cored-backend` `SPA_URL` on the API host, not a Vite var.
 
 Details, required secrets, rollback, troubleshooting: [docs/deployment.md](../../docs/deployment.md).

@@ -43,11 +43,11 @@ describe('safe URL helpers', () => {
   })
 
   it('allows only HOTP/TOTP otpauth URLs with a secret', () => {
-    expect(safeOtpAuthUrl('otpauth://totp/Monolith:user@example.test?secret=ABC')).toBe(
-      'otpauth://totp/Monolith:user@example.test?secret=ABC',
+    expect(safeOtpAuthUrl('otpauth://totp/Cored:user@example.test?secret=ABC')).toBe(
+      'otpauth://totp/Cored:user@example.test?secret=ABC',
     )
-    expect(safeOtpAuthUrl('otpauth://totp/Monolith:user@example.test')).toBeNull()
-    expect(safeOtpAuthUrl('otpauth://steam/Monolith:user@example.test?secret=ABC')).toBeNull()
+    expect(safeOtpAuthUrl('otpauth://totp/Cored:user@example.test')).toBeNull()
+    expect(safeOtpAuthUrl('otpauth://steam/Cored:user@example.test?secret=ABC')).toBeNull()
   })
 
   it('pins Discord authorization navigation to Discord endpoint', () => {

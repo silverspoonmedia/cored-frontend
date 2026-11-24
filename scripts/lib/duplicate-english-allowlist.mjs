@@ -25,29 +25,15 @@ export const globalDuplicateEnglishKeys = new Set([
   'web.archivd.blocklist_sha256',
   'web.archivd.blocklist_sha256_col',
   'web.archivd.char_count',
-  'web.archivd.microstock.name_placeholder',
-  'web.archivd.microstock_title',
   'web.archivd.title',
   'web.identity-connections.discord_heading',
   'web.identity-connections.provider_heading',
-  'web.microstock-credentials.marketplaces.123rf',
-  'web.microstock-credentials.marketplaces.adobe_stock',
-  'web.microstock-credentials.marketplaces.depositphotos',
-  'web.microstock-credentials.marketplaces.dreamstime',
-  'web.microstock-credentials.marketplaces.freepik',
-  'web.microstock-credentials.marketplaces.getty_images',
-  'web.microstock-credentials.marketplaces.istock',
-  'web.microstock-credentials.marketplaces.shutterstock',
-  'web.microstock-credentials.marketplaces.vecteezy',
-  'web.microstock.menu',
   'web.payments.channels.kinds.qris',
   'web.payments.income.filters.gateway_ipaymu',
   'web.payments.income.filters.gateway_midtrans',
   'web.payments.subscriptions.fields.date_hint',
-  'web.services.microstock.title',
   'web.services.show.stack_quantity_equation',
   'web.settings.groups.archivd',
-  'web.settings.groups.microstock',
 ])
 
 /**
@@ -98,14 +84,6 @@ export const localeDuplicateEnglishKeys = {
     'web.inference.usage.totals.margin',
     'web.menus.form.layouts.navbar',
     'web.menus.form.layouts.sidebar',
-    'web.microstock-credentials.columns.label',
-    'web.microstock-credentials.columns.marketplace',
-    'web.microstock-credentials.form.host',
-    'web.microstock-credentials.form.label',
-    'web.microstock-credentials.form.marketplace',
-    'web.microstock.usage.col_margin',
-    'web.microstock.usage.col_model',
-    'web.microstock.usage.tabs.platform',
     'web.notifications.columns.status',
     'web.payments.bank_label',
     'web.payments.channels.route_columns.gateway',
@@ -134,16 +112,6 @@ export const localeDuplicateEnglishKeys = {
     'web.settings.groups.platform',
     'web.users.datatable.columns.email',
     'web.users.form.email_label',
-  ]),
-  'ja': new Set([
-  ]),
-  'ko': new Set([
-  ]),
-  'zh-CN': new Set([
-  ]),
-  'ar': new Set([
-  ]),
-  'ru': new Set([
   ]),
 }
 

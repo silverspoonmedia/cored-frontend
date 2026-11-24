@@ -3,7 +3,7 @@
  *
  * Pure client-side DOM — never add a Worker/Pages Function for this
  * (every invocation bills a request; see docs/worker.md invariant 1).
- * Tags carry `data-monolith-meta` so clearHeadMeta() only removes what
+ * Tags carry `data-cored-meta` so clearHeadMeta() only removes what
  * this module owns, leaving index.html's static meta untouched.
  */
 
@@ -22,8 +22,8 @@ export interface HeadMetaInput {
   jsonLd?: Record<string, unknown> | null
 }
 
-const MARKER = 'data-monolith-meta'
-const SITE_NAME = 'Monolith'
+const MARKER = 'data-cored-meta'
+const SITE_NAME = 'Cored'
 
 function upsertMeta(attr: 'name' | 'property', key: string, content: string): void {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"][${MARKER}]`)

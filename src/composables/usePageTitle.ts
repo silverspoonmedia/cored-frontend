@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { settingsGroupFromRoute, settingsGroupLabelKey } from '@/utils/settingsGroup'
 
-const APP_NAME = 'Monolith'
+const APP_NAME = 'Cored'
 const documentTitleOverride = ref<string | null>(null)
 
 /** Full `document.title` string, or null to resume route meta titles. */

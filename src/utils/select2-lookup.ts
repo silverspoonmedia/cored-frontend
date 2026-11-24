@@ -1,5 +1,5 @@
 /**
- * Unwrap Monolith API envelope `{ data: { results, pagination } }` for Select2.
+ * Unwrap the API envelope `{ data: { results, pagination } }` for Select2.
  *
  * Port of resources/js/select2-lookup.js — used by FormSelect2 processResults.
  */

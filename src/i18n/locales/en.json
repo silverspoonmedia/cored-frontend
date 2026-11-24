@@ -2044,7 +2044,7 @@
         },
         "intro": {
           "title": "How channel checkout routing works",
-          "lead": "Customers pick a logical channel (QRIS, bank VA, e-wallet). Monolith then tries gateway routes in policy order (route role, then priority) until payment instructions are created.",
+          "lead": "Customers pick a logical channel (QRIS, bank VA, e-wallet). The backend then tries gateway routes in policy order (route role, then priority) until payment instructions are created.",
           "steps": [
             {
               "title": "Enable the channel",

@@ -1,15 +1,15 @@
 # Agent context budget
 
-Open the workspace that matches the task tag — every workspace is multi-root and injects each loaded repo's `AGENTS.md` on every turn; all three also carry the sibling `docs` site repo as a peer root.
+Open the workspace that matches the task tag — every workspace is multi-root and injects each loaded repo's `AGENTS.md` on every turn; both also carry the sibling `docs` site repo as a peer root.
 
 | Workspace | Use for |
 |-----------|---------|
-| [Monolith-SPA.code-workspace](../../Monolith-SPA.code-workspace) | Vue screens, SPA i18n, Worker shell — `[frontend]` |
-| sibling `Monolith-Backend.code-workspace` | Laravel API, migrations, PHP tests — `[backend]` |
-| sibling `Monolith-Fullstack.code-workspace` | Only when the API contract moves |
+| [Cored-Frontend.code-workspace](../../Cored-Frontend.code-workspace) | Vue screens, SPA i18n, Worker shell — `[frontend]` |
+| sibling `Cored-Backend.code-workspace` | Laravel API, migrations, PHP tests — `[backend]` |
+| sibling `Cored-Fullstack.code-workspace` | Only when the API contract moves |
 
-All three workspaces also carry the sibling `docs` repo (Docusaurus) as a peer root, so its `AGENTS.md` and always-on rules inject on every turn too. A `[frontend]` change that a customer can see is not finished until that page is updated.
+Every workspace also carries the sibling `docs` repo (Docusaurus) as a peer root, so its `AGENTS.md` and always-on rules inject on every turn too. A `[frontend]` change that a customer can see is not finished until that page is updated.
 
-Per task open: the file under edit + its nearest test, and the **one** owning brief or rule. Never `@folder`, `@AGENTS.md`, or `@src/i18n/locales` in a prompt. Never `Read` a whole locale JSON — Grep the key, patch all seven. Do not `Read` `ArchivdView.vue` whole unless the task touches that SFC.
+Per task open: the file under edit + its nearest test, and the **one** owning brief or rule. Never `@folder`, `@AGENTS.md`, or `@src/i18n/locales` in a prompt. Never `Read` a whole locale JSON — Grep the key, patch every supported locale.
 
 Targets: `[frontend]` median well under 70k tokens; fullstack contract under 120k.

@@ -2,29 +2,19 @@ import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
 import { featureEnglishPack, featurePackFor, withFeaturePack } from './featurePacks'
 
-export type AppLocale = 'en' | 'id' | 'ja' | 'ko' | 'zh-CN' | 'ar' | 'ru'
-export type BackendLocale = 'en' | 'id' | 'ja' | 'ko' | 'zh_CN' | 'ar' | 'ru'
+export type AppLocale = 'en' | 'id'
+export type BackendLocale = 'en' | 'id'
 
-export const SUPPORTED_LOCALES: AppLocale[] = ['en', 'id', 'ja', 'ko', 'zh-CN', 'ar', 'ru']
+export const SUPPORTED_LOCALES: AppLocale[] = ['en', 'id']
 
 export const LOCALE_LABELS: Record<AppLocale, string> = {
   en: 'English',
   id: 'Bahasa Indonesia',
-  ja: '日本語',
-  ko: '한국어',
-  'zh-CN': '简体中文',
-  ar: 'العربية',
-  ru: 'Русский',
 }
 
 const BACKEND_LOCALE_MAP: Record<AppLocale, BackendLocale> = {
   en: 'en',
   id: 'id',
-  ja: 'ja',
-  ko: 'ko',
-  'zh-CN': 'zh_CN',
-  ar: 'ar',
-  ru: 'ru',
 }
 
 const SPA_LOCALE_MAP: Record<BackendLocale, AppLocale> = Object.fromEntries(
@@ -37,17 +27,19 @@ export function backendLocale(locale: AppLocale = i18n.global.locale.value as Ap
 
 export function spaLocale(locale: string): AppLocale | null {
   const normalized = locale.trim()
-  if (normalized === 'zh_CN') return 'zh-CN'
   if (SUPPORTED_LOCALES.includes(normalized as AppLocale)) return normalized as AppLocale
   return null
 }
 
 /**
- * Translatable payload maps (menu name/description, …) are keyed by the
- * canonical BACKEND locale code (`zh_CN`), not the SPA code (`zh-CN`).
- * `zh-CN` is accepted as a read alias so pre-existing maps mixed with edits
- * still resolve, but writes always normalize to the backend key and drop the
- * alias so the API never receives `zh-CN` keys.
+ * Fold a backend-keyed translatable map (menu name/description, …) into a map
+ * this build can render.
+ *
+ * The API keys those maps by backend locale code, and a payload written before
+ * the locale set was pruned still carries codes this build does not ship. A key
+ * with no supported locale is dropped rather than forwarded: there is no copy
+ * behind it, and forwarding it would invite the API to echo a language the UI
+ * cannot display.
  */
 export function normalizeTranslatableMap(
   map: Record<string, string> | null | undefined,
@@ -69,9 +61,9 @@ export function normalizeTranslatableMap(
 }
 
 /**
- * Read one locale out of a backend-keyed translatable map (`zh_CN`) using an
- * SPA locale code (`zh-CN`). Falls back to the raw SPA key so maps written by
- * an older writer still render.
+ * Read one locale out of a backend-keyed translatable map using an SPA locale
+ * code. Falls back to the raw SPA key so maps written by an older writer still
+ * render.
  */
 export function translatableValue(
   map: Record<string, string> | null | undefined,
@@ -82,8 +74,19 @@ export function translatableValue(
   return map[backendLocale(locale)] ?? map[locale] ?? ''
 }
 
+/**
+ * Right-to-left locales.
+ *
+ * The shipped set is Latin-only, so this is always `false` today. It is kept —
+ * with `main-rtl.css`, `vendor-rtl.css` and `reloadForDirection` — because the
+ * direction switch is wired end to end, and re-adding a RTL locale should be a
+ * list edit, not a rebuild of the pipeline.
+ */
+const RTL_LOCALES: BackendLocale[] = []
+
 export function isRtl(locale: string = i18n.global.locale.value): boolean {
-  return spaLocale(locale) === 'ar'
+  const spa = spaLocale(locale)
+  return spa !== null && RTL_LOCALES.includes(backendLocale(spa))
 }
 
 export function intlLocale(locale: string = i18n.global.locale.value): string {
@@ -98,10 +101,9 @@ function detectLocale(): AppLocale {
     const candidates = [navigator.language, ...(navigator.languages ?? [])]
     for (const candidate of candidates) {
       const normalized = candidate.toLowerCase()
-      const match = SUPPORTED_LOCALES.find((locale) => {
-        if (locale === 'zh-CN') return normalized === 'zh-cn' || normalized.startsWith('zh-cn-')
-        return normalized === locale || normalized.startsWith(`${locale}-`)
-      })
+      const match = SUPPORTED_LOCALES.find(
+        (locale) => normalized === locale || normalized.startsWith(`${locale}-`),
+      )
       if (match) return match
     }
   }
@@ -136,11 +138,6 @@ export function ensureI18nMessages(): void {
 // to the eagerly bundled `en` until the import resolves.
 const LAZY_LOCALES: Record<Exclude<AppLocale, 'en'>, () => Promise<{ default: unknown }>> = {
   id: () => import('./locales/id.json'),
-  ja: () => import('./locales/ja.json'),
-  ko: () => import('./locales/ko.json'),
-  'zh-CN': () => import('./locales/zh-CN.json'),
-  ar: () => import('./locales/ar.json'),
-  ru: () => import('./locales/ru.json'),
 }
 
 const loadedLocales = new Set<AppLocale>(['en'])

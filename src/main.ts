@@ -15,7 +15,7 @@ import { initTheme } from '@/composables/useTheme'
 import { showErrorDialog } from '@/lib/swal'
 import { markChunkLoadFailed } from '@/composables/useChunkLoadError'
 
-// Apply theme before mount to prevent FOUC (matches Monolith's theme-scroll.js).
+// Apply theme before mount to prevent FOUC (matches the backend's theme-scroll.js).
 initTheme()
 applyHtmlLang()
 

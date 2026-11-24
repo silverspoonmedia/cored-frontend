@@ -6,44 +6,44 @@ alwaysApply: false
 
 # Localization (SPA)
 
-Seven locales, in two packs: **core** `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru}.json` (shell + shared domains) and **per feature** `src/i18n/features/{name}/{locale}.json` (everything a product owns). `src/features/messages.ts` deep-merges them; `scripts/lib/locale-files.mjs` is the single discovery used by every guard and by `apply-translations.mjs --feature=<name>`. English is the source, never the destination. Read `i18n-guardrail.mdc` (always-on) for the definition of done and the readability test.
+Two locales, in two packs: **core** `src/i18n/locales/{en,id}.json` (shell + shared domains) and **per feature** `src/i18n/features/{name}/{locale}.json` (everything a product owns). `src/features/messages.ts` deep-merges them; `scripts/lib/locale-files.mjs` is the single discovery used by every guard and by `apply-translations.mjs --feature=<name>`. English is the source, never the destination. Read `i18n-guardrail.mdc` (always-on) for the definition of done and the readability test.
 
-- **A key lives in the pack that renders it.** Product copy goes to the feature pack — core copy must not mention a product name, and `scripts/check-features.mjs` fails the build when it does. A feature's seven files are created, curated, and deleted together with the feature.
-- **Never `Read` an entire locale JSON file.** Grep the key, `StrReplace` it in all seven files of the owning pack, run `npm run check:i18n`.
+- **A key lives in the pack that renders it.** Product copy goes to the feature pack — core copy must not mention a product name, and `scripts/check-features.mjs` fails the build when it does. A feature's two files are created, curated, and deleted together with the feature.
+- **Never `Read` an entire locale JSON file.** Grep the key, `StrReplace` it in both files of the owning pack, run `npm run check:i18n`.
 - Translate contextually, not literally. Preserve `{placeholders}` and machine-contract English.
 - **Log every curated key** in `src/i18n/curation-log.json` (`curated_at` + `surface` + `source`, plus `feature` when the key is feature-owned); JSON has no comments, so this sidecar is the flag. `check-curation-log.mjs` validates it as part of `check:i18n` — it validates key existence and timestamps across **both** packs, **not** path existence, so fix a moved/deleted `source` by hand in the same change.
 - A `t()` key that exists in no locale is a build failure (`check-i18n-usage.mjs`, which resolves against the merged tree) — `fallbackLocale: en` cannot rescue it.
-- Duplicate-English values are gated per locale by `scripts/lib/duplicate-english-allowlist.mjs`. Add to `globalDuplicateEnglishKeys` only for brands/machine text, and to `localeDuplicateEnglishKeys` only for the one locale whose accepted term is the English word (`id` today). Any English carryover in `ja`/`ko`/`zh-CN`/`ar`/`ru` is a failure — translate it.
+- Duplicate-English values are gated per locale by `scripts/lib/duplicate-english-allowlist.mjs`. Add to `globalDuplicateEnglishKeys` only for brands/machine text, and to `localeDuplicateEnglishKeys` only for the one locale whose accepted term is the English word (`id` today). Any English carryover in `id` is a failure — translate it.
 - Use `scripts/i18n-pair-dump.mjs` for review batches and `scripts/apply-translations.mjs` to apply them (dotted `web.settings.fields.*` labels need `leaf`).
-- **Removing a screen means sweeping its keys in the same change:** flatten the owning pack's `en.json` (core or feature), collect reachable keys from **every** repo file (not just `src/**` — route `titleKey`s live in `src/router/routes/*.ts` and `src/features/*/routes/*.ts`), match with a boundary (`(?![A-Za-z0-9_.-])`), keep the whole subtree when a runtime prefix (`t(\`prefix_${x}\`)`) exists, delete from all seven files of that pack, prune containers left empty, then drop the stale allowlist + curation-log entries. A whole feature leaving takes its `src/i18n/features/{name}/` directory with it.
+- **Removing a screen means sweeping its keys in the same change:** flatten the owning pack's `en.json` (core or feature), collect reachable keys from **every** repo file (not just `src/**` — route `titleKey`s live in `src/router/routes/*.ts` and `src/features/*/routes/*.ts`), match with a boundary (`(?![A-Za-z0-9_.-])`), keep the whole subtree when a runtime prefix (`t(\`prefix_${x}\`)`) exists, delete from both files of that pack, prune containers left empty, then drop the stale allowlist + curation-log entries. A whole feature leaving takes its `src/i18n/features/{name}/` directory with it.
 - **Mirrored packs must stay byte-equal to the backend**, sigil aside (`:attr` ↔ `{attr}`): `validation.*`, `http-statuses.*`, `auth.*`, `passwords.*`, `pagination.*`. The SPA `actions.*` block is **not** a mirror — it is curated against its own button surfaces and legitimately differs.
-- Cross-repo guards live in Monolith (`locale-pack-parity.php`, `locale-flat-pack-parity.php`, `locale-glossary-scan.php`, `locale-prose-scan.php`, `locale-rawkey-scan.php`). `check:i18n` cannot see the backend, so a batch that moves a mirrored pack or a glossary term must also run `php artisan test --filter=Locale` from a Monolith checkout that has this repo as a sibling.
+- Cross-repo guards live in `cored-backend` (`locale-pack-parity.php`, `locale-flat-pack-parity.php`, `locale-glossary-scan.php`, `locale-prose-scan.php`, `locale-rawkey-scan.php`). `check:i18n` cannot see the backend, so a batch that moves a mirrored pack or a glossary term must also run `php artisan test --filter=Locale` from the `cored-backend` checkout this repo is the sibling of.
 
 ## Key mapping (Laravel → vue-i18n)
 
 | Laravel PHP | vue-i18n JSON |
 |-------------|---------------|
-| `lang/{locale}/web/settings.php` | `web.settings.*` (`zh_CN` ↔ `zh-CN` at the API/browser boundary) |
+| `lang/{locale}/web/settings.php` | `web.settings.*` |
 | `lang/{locale}/ui.php` | `ui.*` |
 | `trans('web/settings.title')` | `t('web.settings.title')` — `.` separator, not `/` |
 | `:variable` placeholder | `{variable}` placeholder |
 | `trans_choice('key', count)` | `t('key', { count })` |
 
-**Translatable payload maps** are keyed by the **backend** code: send `zh_CN`, never `zh-CN`. Go through the helpers beside the shared i18n instance: `translatableValue()` reads a backend-keyed prefill for the row labelled with the SPA code, `normalizeTranslatableMap()` emits the backend key and drops aliases. Only the row label shows the SPA code.
+**Translatable payload maps** are keyed by the backend locale code. Go through the helpers beside the shared i18n instance: `translatableValue()` reads a backend-keyed prefill for the row labelled with the SPA code, and `normalizeTranslatableMap()` drops any key this build does not ship instead of forwarding a language the API has no copy for. Only the row label shows the SPA code.
 
 **Placeholder hazard:** a literal colon that is not a Laravel placeholder becomes an interpolation when copy is ported (`payments{sync}-routing-policy`). `check-i18n.mjs` fails `[A-Za-z0-9]{x}`; vue-i18n only needs `{'@'}` escaping for a literal `@`.
 
 ## RTL and chunk loading
 
-- `ar` sets `html[dir="rtl"]`, every other locale forces `ltr`. The global CSS entry is direction-split (`main-ltr.css` / `main-rtl.css`, the latter importing `vendor-rtl.css` — a real sibling file, **not** a Vite resolver alias, which no-ops in production builds). Keep both vendor files' import lists in sync.
+- `RTL_LOCALES` in `src/i18n/index.ts` is empty, so every shipped locale stamps `html[dir="ltr"]`. The pipeline is kept end to end: the global CSS entry is direction-split (`main-ltr.css` / `main-rtl.css`, the latter importing `vendor-rtl.css` — a real sibling file, **not** a Vite resolver alias, which no-ops in production builds). Keep both vendor files' import lists in sync, and re-adding a right-to-left language means one list edit.
 - Switching locale across directions reloads the page. The reload must run **after** `auth/locale` persists: `setLocale(locale, { reload: false })` then `reloadForDirection()` last — a synchronous reload aborts the in-flight persist and leaves the dynamic menu on the old locale.
-- Only `en.json` is eager; the other six load through `ensureLocale()` (dynamic import + `setLocaleMessage()`) before the locale switches.
+- Only `en.json` is eager; `id.json` loads through `ensureLocale()` (dynamic import + `setLocaleMessage()`) before the locale switches.
 - Use logical CSS properties (`start`/`end`, `*-inline-*`) with `html[dir="rtl"]` overrides; never add a custom mirror transform for AdminLTE's `.nav-arrow` (the vendor RTL build already mirrors it).
 
 ## Register conventions (settled)
 
-- `ko`: instructions/hints/empty states use 해요체 (`-하세요`), statements and toasts keep 합쇼체 (`-합니다`, `-되었습니다`) — never one level for both. Never glue a particle to a `{placeholder}` whose final consonant is unknown; use `{field}을(를)` or reword.
-- `ru`: date columns are nouns (`Дата создания`, `Действует до`), not participles; `checkout` = `оформление заказа` while billing = `оплата`; no `Пожалуйста` filler; `вы` lowercase except at sentence start.
+- `id`: Anda, formal neutral. `403 Forbidden` = `Terlarang`, `401` = `Tidak sah`; `management` = `manajemen`, `creator` = `kreator` — an English noun left in Indonesian copy is the defect this rule exists for.
+- Retired locales (`ja`, `ko`, `zh-CN`, `ar`, `ru`) were removed in Nov 2026. A language costs its wording, not its files: backend first (`php artisan locale:add <code>` in `cored-backend`), then the settled register notes in `cored-backend/.cursor/rules/i18n-guardrail.mdc`, then wire `SUPPORTED_LOCALES`, both locale maps, `LOCALE_LABELS`, `LAZY_LOCALES`, each feature's `messages.load`, the three `scripts/lib` lists, and `RTL_LOCALES` for a right-to-left script.
 
 ## Usage rules
 
@@ -54,4 +54,4 @@ Seven locales, in two packs: **core** `src/i18n/locales/{en,id,ja,ko,zh-CN,ar,ru
 - Fallback errors use `src/i18n/fallbacks.ts` keys, never hardcoded English.
 - Settings labels: `web.settings.fields` / `hints` are literal dotted keys — read via `tm()` + `rt()`, never `t('web.settings.fields.' + key)`.
 
-Details: [docs/i18n.md](../../docs/i18n.md), [monolith/docs/platform/localization.md](../../../monolith/docs/platform/localization.md), glossary [monolith/docs/platform/naming-conventions.md](../../../monolith/docs/platform/naming-conventions.md).
+Details: [docs/i18n.md](../../docs/i18n.md), [cored-backend docs/platform/localization.md](../../../cored-backend/docs/platform/localization.md), glossary [cored-backend docs/platform/naming-conventions.md](../../../cored-backend/docs/platform/naming-conventions.md).

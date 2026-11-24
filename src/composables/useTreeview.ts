@@ -3,7 +3,7 @@ import type { NavNode } from '@/types'
 
 /**
  * Treeview open/closed state — replaces AdminLTE's data-lte-toggle="treeview".
- * Monolith uses data-accordion="false" which means multiple branches can be
+ * The vendor treeview uses data-accordion="false" which means multiple branches can be
  * open simultaneously (NOT accordion mode). We honour that: toggling one
  * branch does not close its siblings.
  */

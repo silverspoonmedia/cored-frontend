@@ -1,7 +1,5 @@
 import type { FeatureModule, Messages } from '@/features/types'
 import { mergeMessages } from '@/features/messages'
-import { archivdFeature } from '@/features/archivd'
-import { microstockFeature } from '@/features/microstock'
 
 /**
  * The one place that names the product features a build ships.
@@ -17,7 +15,14 @@ import { microstockFeature } from '@/features/microstock'
  * feature can register its settings group, legacy root, and shell signals in
  * time for route generation.
  */
-export const features: FeatureModule[] = [archivdFeature, microstockFeature]
+
+/**
+ * The product features this build ships.
+ *
+ * Empty in the boilerplate — every shipped screen is a core domain. A consumer
+ * adds `import { myFeature } from './my-feature'` here and nothing else moves.
+ */
+export const features: FeatureModule[] = []
 
 for (const feature of features) {
   feature.boot?.()

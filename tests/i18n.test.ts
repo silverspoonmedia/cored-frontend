@@ -52,18 +52,16 @@ describe('locale mapping', () => {
   it.each([
     ['en', 'en'],
     ['id', 'id'],
-    ['ja', 'ja'],
-    ['ko', 'ko'],
-    ['zh-CN', 'zh_CN'],
-    ['ar', 'ar'],
-    ['ru', 'ru'],
   ] as Array<[AppLocale, string]>)('maps %s to backend %s', (locale, expected) => {
     expect(backendLocale(locale)).toBe(expected)
   })
 
-  it('maps the canonical backend Chinese code back to SPA form', () => {
-    expect(spaLocale('zh_CN')).toBe('zh-CN')
-    expect(intlLocale('zh_CN')).toBe('zh-CN')
+  it('rejects the locales this build no longer ships', () => {
+    // The backend packs for these were retired; resolving one here would send a
+    // `SPA_LOCALE` header the API cannot answer.
+    for (const retired of ['ja', 'ko', 'zh-CN', 'zh_CN', 'ar', 'ru']) {
+      expect(spaLocale(retired)).toBeNull()
+    }
   })
 
   it('rejects unsupported locale values', () => {
@@ -73,25 +71,25 @@ describe('locale mapping', () => {
 })
 
 describe('locale presentation', () => {
-  it('sets browser lang and RTL only for Arabic', () => {
+  it('sets browser lang and a left-to-right direction', () => {
     const dom = installDom()
 
     // `setLocale` persists the choice, stamps `lang`/`dir` and only then asks for
     // the copy, so the direction attributes are asserted on the synchronous path.
     // The load it starts is awaited by the `afterEach` settle, never raced.
-    setLocale('ar')
-    expect(dom.attributes).toEqual({ lang: 'ar', dir: 'rtl' })
+    setLocale('id')
+    expect(dom.attributes).toEqual({ lang: 'id', dir: 'ltr' })
 
-    setLocale('zh-CN')
-    expect(dom.attributes).toEqual({ lang: 'zh-CN', dir: 'ltr' })
+    setLocale('en')
+    expect(dom.attributes).toEqual({ lang: 'en', dir: 'ltr' })
   })
 
   it('keeps the document untouched when the locale is preloaded first', async () => {
     const dom = installDom()
 
-    await preloadLocale('ja')
-    setLocale('ja')
+    await preloadLocale('id')
+    setLocale('id')
 
-    expect(dom.attributes).toEqual({ lang: 'ja', dir: 'ltr' })
+    expect(dom.attributes).toEqual({ lang: 'id', dir: 'ltr' })
   })
 })

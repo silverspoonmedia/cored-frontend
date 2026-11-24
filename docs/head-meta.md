@@ -27,7 +27,7 @@ clearHeadMeta() // on unmount / route leave
 
 ## Behavior contract
 
-- **Managed tags only:** every injected tag carries `data-monolith-meta="1"`; `clearHeadMeta()` removes only those, never the static `index.html` tags.
+- **Managed tags only:** every injected tag carries `data-cored-meta="1"`; `clearHeadMeta()` removes only those, never the static `index.html` tags.
 - **Tags:** description, robots (`index, follow` — overrides the `noindex` inherited from `PublicLayout`), OG (`title`, `description`, `type`, `site_name`, `url`, `image`), Twitter card/title/description/image, `link[rel=canonical]`, `script[type=application/ld+json]`.
 - **Exactly one JSON-LD block per page**, keyed on the same marker: passing `jsonLd` replaces it, passing `null` removes it (a stale `Person` on an unrelated route is worse than no schema).
 - **`og:url` / canonical** is `origin + route.path` — never with query params.

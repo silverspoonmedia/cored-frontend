@@ -55,7 +55,7 @@ const router = createRouter({
     ...productActivationRoutes,
     ...inferenceUsageRoutes,
     ...paymentsIncomeRoutes,
-    // Product features (Archivd, Microstock, …). Order inside the registry is
+    // Product features. Order inside the registry is
     // the render order; core routes above keep their historical precedence.
     ...featureRoutes(),
     ...paymentChannelRoutes,

@@ -22,12 +22,12 @@ describe('resolveApiUrl', () => {
 
   it('routes auth and data paths alike to the absolute API origin', () => {
     ;(import.meta.env as Record<string, unknown>).VITE_API_BASE_URL =
-      'https://monolith-ph24.spnd.uk/api/v1'
-    expect(resolveApiUrl('auth/login')).toBe('https://monolith-ph24.spnd.uk/api/v1/auth/login')
-    expect(resolveApiUrl('auth/me')).toBe('https://monolith-ph24.spnd.uk/api/v1/auth/me')
-    expect(resolveApiUrl('auth/refresh')).toBe('https://monolith-ph24.spnd.uk/api/v1/auth/refresh')
+      'https://cored-api.example.test/api/v1'
+    expect(resolveApiUrl('auth/login')).toBe('https://cored-api.example.test/api/v1/auth/login')
+    expect(resolveApiUrl('auth/me')).toBe('https://cored-api.example.test/api/v1/auth/me')
+    expect(resolveApiUrl('auth/refresh')).toBe('https://cored-api.example.test/api/v1/auth/refresh')
     expect(resolveApiUrl('notifications')).toBe(
-      'https://monolith-ph24.spnd.uk/api/v1/notifications',
+      'https://cored-api.example.test/api/v1/notifications',
     )
   })
 
@@ -154,7 +154,7 @@ describe('isCrossOrigin', () => {
   })
 
   it('returns true for absolute URLs on a different origin', () => {
-    expect(isCrossOrigin('https://monolith-ph24.spnd.uk/api/v1/apps/roles')).toBe(true)
+    expect(isCrossOrigin('https://cored-api.example.test/api/v1/apps/roles')).toBe(true)
   })
 
   it('returns false for absolute URLs on the same origin', () => {

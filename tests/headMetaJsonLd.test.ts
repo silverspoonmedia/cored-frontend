@@ -4,7 +4,7 @@ import { clearHeadMeta, setHeadMeta } from '../src/composables/useHeadMeta'
 
 /**
  * `useHeadMeta` writes OG/Twitter/canonical tags plus one
- * `application/ld+json` block, all marked `data-monolith-meta` so the sweep
+ * `application/ld+json` block, all marked `data-cored-meta` so the sweep
  * only removes what this module owns.
  *
  * The structured-data lifecycle is the risky half: a `Person` block left
@@ -13,7 +13,7 @@ import { clearHeadMeta, setHeadMeta } from '../src/composables/useHeadMeta'
  * A `null`/omitted `jsonLd` must therefore *remove* the previous block.
  */
 
-const JSONLD = 'script[type="application/ld+json"][data-monolith-meta]'
+const JSONLD = 'script[type="application/ld+json"][data-cored-meta]'
 
 function jsonLdBlocks(): HTMLScriptElement[] {
   return Array.from(document.head.querySelectorAll<HTMLScriptElement>(JSONLD))
@@ -40,8 +40,8 @@ describe('setHeadMeta jsonLd', () => {
       '@type': 'Person',
       name: 'Aoi',
     })
-    expect(document.head.querySelector('meta[property="og:title"][data-monolith-meta]')?.getAttribute('content')).toBe('Aoi')
-    expect(document.head.querySelector('link[rel="canonical"][data-monolith-meta]')?.getAttribute('href')).toBe('https://example.test/s/f/01a0a300')
+    expect(document.head.querySelector('meta[property="og:title"][data-cored-meta]')?.getAttribute('content')).toBe('Aoi')
+    expect(document.head.querySelector('link[rel="canonical"][data-cored-meta]')?.getAttribute('href')).toBe('https://example.test/s/f/01a0a300')
   })
 
   it('replaces the block on navigation instead of stacking a second one', () => {
@@ -80,7 +80,7 @@ describe('clearHeadMeta', () => {
 
     clearHeadMeta()
 
-    expect(document.head.querySelectorAll('[data-monolith-meta]')).toHaveLength(0)
+    expect(document.head.querySelectorAll('[data-cored-meta]')).toHaveLength(0)
     expect(document.head.querySelector('meta[name="description"]')?.getAttribute('content')).toBe('static from index.html')
   })
 })

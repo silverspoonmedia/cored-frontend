@@ -9,7 +9,7 @@
  * unregisters on unmount.
  *
  * Pure module-level singleton — no reactive state, no Pinia. This mirrors
- * Monolith Blade's `window.dataTables[tableId].ajax.reload()` pattern.
+ * the old Blade layer's `window.dataTables[tableId].ajax.reload()` pattern.
  */
 
 const registry = new Map<string, Set<() => void>>()

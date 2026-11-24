@@ -21,25 +21,25 @@ describe('SPA request marker', () => {
     expect(headers.get(SPA_REQUEST_HEADER)).toBe(SPA_REQUEST_HEADER_VALUE)
   })
 
-  it('maps SPA zh-CN to canonical backend zh_CN', async () => {
-    setLocale('zh-CN', { reload: false })
+  it('sends the canonical backend code for Indonesian', async () => {
+    setLocale('id', { reload: false })
     // Await the lazy chunk (core + feature messages) so the dynamic import is
     // not left in flight when the test environment tears down.
-    await ensureLocale('zh-CN')
+    await ensureLocale('id')
     const headers = new Headers()
 
     applySpaRequestHeader(headers)
 
-    expect(headers.get(SPA_LOCALE_HEADER)).toBe('zh_CN')
+    expect(headers.get(SPA_LOCALE_HEADER)).toBe('id')
   })
 
   it('uses active locale for every request', async () => {
-    setLocale('ar', { reload: false })
-    await ensureLocale('ar')
+    setLocale('id', { reload: false })
+    await ensureLocale('id')
     const headers = new Headers()
 
     applySpaRequestHeader(headers)
 
-    expect(headers.get(SPA_LOCALE_HEADER)).toBe('ar')
+    expect(headers.get(SPA_LOCALE_HEADER)).toBe('id')
   })
 })

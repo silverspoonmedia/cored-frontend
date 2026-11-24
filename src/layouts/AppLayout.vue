@@ -94,7 +94,7 @@ watch(themeEffective, () => syncOverlayScrollbarTheme())
     </main>
 
     <footer class="app-footer">
-      <div class="float-end d-none d-sm-inline">Monolith</div>
+      <div class="float-end d-none d-sm-inline">Cored</div>
       <strong>{{ t('ui.copyright', { year: new Date().getFullYear() }) }}</strong> {{ t('ui.all_rights_reserved') }}
     </footer>
   </div>

@@ -1,14 +1,14 @@
 # Deployment — GitHub Actions → Cloudflare Workers
 
-One codebase, three Workers. Pushes to specific branches auto-deploy via GitHub Actions; the same environments can be deployed manually with `wrangler`. Invariants: [.cursor/rules/deployment.mdc](../.cursor/rules/deployment.mdc). Integration contract with the Laravel backend: `monolith/docs/integration/vue-workers-spa.md`.
+One codebase, three Workers. Pushes to specific branches auto-deploy via GitHub Actions; the same environments can be deployed manually with `wrangler`. Invariants: [.cursor/rules/deployment.mdc](../.cursor/rules/deployment.mdc). Integration contract with the Laravel backend: `cored-backend/docs/integration/vue-workers-spa.md`.
 
 ## Deploy map
 
 | Git branch | Vite mode | Env file baked | Wrangler env | Worker name |
 |------------|-----------|----------------|--------------|-------------|
-| `main` | `production` | `.env.production` | `production` | `monolith-spa-prod` |
-| `main-sandbox` | `sandbox` | `.env.sandbox` | `sandbox` | `monolith-spa-sandbox` |
-| `main-staging` | `staging` | `.env.staging` | `staging` | `monolith-spa-staging` |
+| `main` | `production` | `.env.production` | `production` | `cored-spa-prod` |
+| `main-sandbox` | `sandbox` | `.env.sandbox` | `sandbox` | `cored-spa-sandbox` |
+| `main-staging` | `staging` | `.env.staging` | `staging` | `cored-spa-staging` |
 
 The branch name is decoupled from the environment name: `main-sandbox` / `main-staging` are long-lived integration branches cut from `main`, while the Vite mode and Wrangler env stay `sandbox` / `staging`. `VITE_*` values are baked from the tracked mode file (the mode file wins over `.env.local`); `wrangler.jsonc` `vars` never reach the bundle.
 
@@ -59,7 +59,7 @@ Adding an environment (new branch + Worker) touches seven files. Miss the resolv
 
 ## Backend coupling
 
-Each backend environment sets `SPA_URL` to the matching SPA origin, so CORS and SPA-minted URLs (password reset, email verify, iPaymu return) point at the right Worker. A Monolith instance accepts only origins in its allowlist (`APP_URL` + `SPA_URL` + `CORS_EXTRA_ORIGINS`).
+Each backend environment sets `SPA_URL` to the matching SPA origin, so CORS and SPA-minted URLs (password reset, email verify, iPaymu return) point at the right Worker. A `cored-backend` instance accepts only origins in its allowlist (`APP_URL` + `SPA_URL` + `CORS_EXTRA_ORIGINS`).
 
 ## Troubleshooting
 
@@ -72,8 +72,8 @@ Each backend environment sets `SPA_URL` to the matching SPA origin, so CORS and 
 | Bundle points at the wrong API origin | Build/deploy pairing broken (`--mode` ≠ `--env`), or the wrong branch deployed — `npm run check:env` catches a wrong origin before the build |
 | `check:env` fails with "points at a sandbox host" | `.env.production` / `.env.staging` `VITE_API_BASE_URL` still names the sandbox API; set that environment's own origin |
 | Actions auth error code 10000 | `CLOUDFLARE_API_TOKEN` missing/expired or lacking `Workers Scripts:Edit` |
-| Login works locally but no cookie on the deployed origin | Monolith `SPA_URL` does not match the SPA origin |
+| Login works locally but no cookie on the deployed origin | `cored-backend` `SPA_URL` does not match the SPA origin |
 | Random "CORS error" / `TypeError: Failed to fetch`, clears on retry | Another tab rotated the shared CSRF cookie mid-request — `src/api/netRetry.ts`, invariants in `api-client.mdc` |
 | "CORS error" only on `POST …/broadcasting/auth`, never clears | URL is not `/api/v1/…` (hit the backend web twin) or the CSRF settle gate was bypassed |
-| CSV/file download saves with a generic name | Monolith `config/cors.php` `exposed_headers` missing `Content-Disposition` |
+| CSV/file download saves with a generic name | `cored-backend` `config/cors.php` `exposed_headers` missing `Content-Disposition` |
 | Realtime silent | `VITE_PUSHER_APP_KEY` empty in that environment's tracked env file |

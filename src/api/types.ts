@@ -24,7 +24,7 @@ export interface QueryRowActionConfirm {
   text: string
 }
 
-/** Query-mode list row action emitted by Monolith. Views must not invent keys. */
+/** Query-mode list row action emitted by the backend. Views must not invent keys. */
 export interface QueryRowAction {
   key: string
   label: string

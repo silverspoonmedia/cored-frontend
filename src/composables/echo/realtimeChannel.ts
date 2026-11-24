@@ -24,7 +24,7 @@ export interface RealtimeChannel<H> {
   unsubscribe(handlers: H): void
   /**
    * Rebind to a different channel name (dynamic names such as
-   * `settings.{group}` or `archivd.workspace.{id}`). `null` detaches until the
+   * `settings.{group}` or `purchase.{id}`). `null` detaches until the
    * next retarget. No-op when the name is unchanged.
    */
   retarget(name: string | null): void
@@ -103,7 +103,7 @@ export interface KeyedRealtimeChannel<K, H> {
 
 /**
  * Family of channels addressed by a key (`payments.invoice.{id}`,
- * `archivd.workspace.{id}`, `services.purchase.{id}`). Each key gets its own
+ * `purchase.{id}`, `services.purchase.{id}`). Each key gets its own
  * ref-counted channel, created lazily and dropped when its last handler
  * detaches — so N simultaneous entities never share (or tear down) one channel.
  */

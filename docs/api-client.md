@@ -14,9 +14,9 @@ The only HTTP layer. Views and composables never call `fetch` directly against t
 
 | Need | Path |
 |------|------|
-| Backend envelope + error mapping | `monolith/docs/platform/api-envelope.md` |
-| Batch contract + invocation budget | `monolith/docs/integration/vue-workers-spa.md` |
-| Response data minimization | `monolith/docs/platform/reference-security.md#response-data-minimization-mandatory` |
+| Backend envelope + error mapping | `cored-backend/docs/platform/api-envelope.md` |
+| Batch contract + invocation budget | `cored-backend/docs/integration/vue-workers-spa.md` |
+| Response data minimization | `cored-backend/docs/platform/reference-security.md#response-data-minimization-mandatory` |
 | Realtime authorizer + channels | `api-client.mdc` · [ui-patterns.md](ui-patterns.md) |
 | Tests | [testing.md](testing.md) — `client.test.ts`, `csrf.test.ts`, `netRetry.test.ts`, `baseUrl.test.ts`, `requestHeaders.test.ts` |
 

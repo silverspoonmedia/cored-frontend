@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { allDuplicateEnglishKeys, isDuplicateEnglishAllowed } from './lib/duplicate-english-allowlist.mjs'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const locales = ['en', 'id', 'ja', 'ko', 'zh-CN', 'ar', 'ru']
+const locales = ['en', 'id']
 const nonEnglishLocales = locales.slice(1)
 
 function flatten(value, prefix = '', output = {}) {

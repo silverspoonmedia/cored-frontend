@@ -12,7 +12,7 @@ interface LookupPayload {
 /**
  * Pre-hydrate Select2 selected options for AJAX-backed menu fields.
  *
- * Mirrors Monolith's LookupService hydrate* methods — pass `ids[]` to fetch
+ * Mirrors the backend's LookupService hydrate* methods — pass `ids[]` to fetch
  * `{id, text}` for already-selected values so they render without a search.
  */
 export function useLookups() {

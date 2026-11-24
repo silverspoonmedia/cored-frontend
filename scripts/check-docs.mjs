@@ -71,9 +71,10 @@ function docKind(relativeToDocs) {
   const name = relativeToDocs.split('/').pop()
 
   if (relativeToDocs === 'README.md') return { name: 'index', budget: 150 }
+  if (['billing-edge-cases.md', 'daily-free-trial.md', 'reference-edge-cases.md'].includes(name))
+    return { name: 'edge-case', budget: 200 }
   if (name.startsWith('reference')) return { name: 'deep-dive', budget: 400 }
   if (name === 'naming-conventions.md') return { name: 'glossary', budget: 200 }
-  if (['billing-edge-cases.md', 'daily-free-trial.md'].includes(name)) return { name: 'edge-case', budget: 200 }
 
   return { name: 'brief', budget: 90 }
 }

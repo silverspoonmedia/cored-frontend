@@ -2044,7 +2044,7 @@
         },
         "intro": {
           "title": "Cara kerja perutean checkout kanal pembayaran",
-          "lead": "Pelanggan memilih kanal logis (QRIS, VA bank, dompet digital). Monolith lalu mencoba rute gateway sesuai kebijakan (peran rute, lalu prioritas) hingga instruksi pembayaran terbentuk.",
+          "lead": "Pelanggan memilih kanal logis (QRIS, VA bank, dompet digital). Backend lalu mencoba rute gateway sesuai kebijakan (peran rute, lalu prioritas) hingga instruksi pembayaran terbentuk.",
           "steps": [
             {
               "title": "Aktifkan kanal",

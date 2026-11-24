@@ -38,7 +38,7 @@ function clearLeftoverTokenStorage(): void {
 }
 
 const authChannel: BroadcastChannel | null =
-  typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('monolith-auth') : null
+  typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('cored-auth') : null
 
 let isRefreshing = false
 let pendingRequestId: string | null = null
