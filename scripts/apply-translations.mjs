@@ -19,9 +19,9 @@
 //                  file grouped the way a human would have written it
 //         leaf   — literal key NAME to store inside the deepest existing parent
 //                  object (settings labels are literal dotted keys such as
-//                  `microstock.ai.vision.connection`, not nested objects), e.g.
-//                  key `web.settings.fields.microstock.ai.vision.connection`
-//                  + leaf `microstock.ai.vision.connection` inserts one flat key
+//                  `platform.auth.default_role`, not nested objects), e.g.
+//                  key `web.settings.fields.platform.auth.default_role`
+//                  + leaf `platform.auth.default_role` inserts one flat key
 //                  into `web.settings.fields`. Must be a string.
 //         surface/source — per-entry override of the curation-log metadata
 //
@@ -128,8 +128,8 @@ const createAllowed = (entry) => entry.create ?? map.meta?.create ?? false;
 
 /**
  * Deepest existing object on the key's path, plus the segments still to create.
- * `web.settings.fields` + `microstock.ai.vision.connection` resolves to the
- * `fields` object with `['microstock','ai','vision','connection']` left over;
+ * `web.settings.fields` + `platform.auth.default_role` resolves to the
+ * `fields` object with `['platform','auth','default_role']` left over;
  * `entry.leaf` then inserts that dotted name as ONE literal key, which is how
  * settings labels are stored.
  */

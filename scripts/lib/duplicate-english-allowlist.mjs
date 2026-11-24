@@ -4,8 +4,8 @@
 // the accepted term in that locale. That is a per-locale property: Indonesian
 // IT vocabulary keeps `Status`, `Folder` and `Settlement`, while Korean and
 // Chinese translate the very same key. A flat key-only list silences every
-// locale at once, which is how `ko.ui.copyright` and
-// `zh-CN.web.archivd.title` stayed English while both were allowlisted.
+// locale at once, which is how one retired locale stayed English in a product
+// screen while both were allowlisted.
 //
 // Add a key to `globalDuplicateEnglishKeys` only when it is machine-contract
 // text or a brand; otherwise add it to the one locale that legitimately needs
@@ -22,10 +22,6 @@ export const globalDuplicateEnglishKeys = new Set([
   'http-statuses.200',
   'product-activations.tier_n/a',
   'ui.swal.ok',
-  'web.archivd.blocklist_sha256',
-  'web.archivd.blocklist_sha256_col',
-  'web.archivd.char_count',
-  'web.archivd.title',
   'web.identity-connections.discord_heading',
   'web.identity-connections.provider_heading',
   'web.payments.channels.kinds.qris',
@@ -33,7 +29,6 @@ export const globalDuplicateEnglishKeys = new Set([
   'web.payments.income.filters.gateway_midtrans',
   'web.payments.subscriptions.fields.date_hint',
   'web.services.show.stack_quantity_equation',
-  'web.settings.groups.archivd',
 ])
 
 /**
@@ -57,11 +52,6 @@ export const localeDuplicateEnglishKeys = {
     'web.ai-connections.columns.slug',
     'web.ai-connections.columns.status',
     'web.ai-connections.fields.slug',
-    'web.archivd.lock_collection_folder',
-    'web.archivd.public.folder',
-    'web.archivd.type_audio',
-    'web.archivd.type_folder',
-    'web.archivd.type_video',
     'web.currencies.columns.settlement',
     'web.currencies.settlement_col',
     'web.error-log.columns.status',
@@ -118,8 +108,8 @@ export const localeDuplicateEnglishKeys = {
 /**
  * Whether `key` may keep the English value in `locale`.
  *
- * @param {string} key dotted translation key, e.g. `web.archivd.title`
- * @param {string} locale SPA locale code, e.g. `zh-CN`
+ * @param {string} key dotted translation key, e.g. `web.settings.groups.platform`
+ * @param {string} locale SPA locale code, e.g. `id`
  * @returns {boolean}
  */
 export function isDuplicateEnglishAllowed(key, locale) {

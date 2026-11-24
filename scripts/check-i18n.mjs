@@ -34,9 +34,9 @@ function flatten(value, prefix = '', output = new Map()) {
   return output
 }
 
-// Flattening hides structure, so a locale that groups `microstock.ai.vision.connection`
+// Flattening hides structure, so a locale that groups `platform.auth.default_role`
 // as nested objects looks identical to one that stores it as the single literal key
-// `fields['microstock.ai.vision.connection']`. Settings labels are read through
+// `fields['platform.auth.default_role']`. Settings labels are read through
 // lookupDotted(), which accepts both, but a divergent shape breaks any tooling that
 // addresses the literal key (and silently mis-places newly added settings). Track
 // containers so the shapes have to match en.

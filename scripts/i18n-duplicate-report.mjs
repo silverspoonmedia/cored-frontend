@@ -28,7 +28,7 @@ function tokens(value) {
 
 function classify(key, value, locale) {
   if (isDuplicateEnglishAllowed(key, locale)) {
-    if (/marketplaces|discord_heading|microstock_title/.test(key)) return 'brand'
+    if (/marketplaces|discord_heading/.test(key)) return 'brand'
     if (/placeholder|equation|provider_heading/.test(key)) return 'format'
     return 'identifier'
   }

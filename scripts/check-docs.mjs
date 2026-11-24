@@ -64,7 +64,7 @@ const siblingRepoIsPresent = () => existsSync(join(SIBLING, '.cursor', 'rules'))
  * `reference-<topic>.md` siblings; the `reference` prefix keeps every one of them
  * a deep dive, so each is still linked from the brief in the same directory.
  *
- * @param {string} relativeToDocs path relative to docs/, e.g. `archivd/reference.md`
+ * @param {string} relativeToDocs path relative to docs/, e.g. `platform/brief.md`
  * @returns {{name: string, budget: number}}
  */
 function docKind(relativeToDocs) {
@@ -139,7 +139,7 @@ function splitAnchor(link) {
  * Letters, numbers, marks, connector punctuation (`_`), ASCII hyphens and spaces
  * survive; everything else — emphasis markers, backticks, em dashes and other
  * punctuation — is dropped. Each space then becomes one hyphen, and the spaces are
- * **not** collapsed, so `Archivd — product domain` slugs as `archivd--product-domain`
+ * **not** collapsed, so `Settings — Platform` slugs as `settings--platform`
  * (the em dash is removed, leaving the two spaces that flanked it).
  */
 function slugify(heading) {
