@@ -78,7 +78,7 @@ function malformedPlaceholders(value) {
  * message: interpolation is `{name}` after whitespace or punctuation. It means a
  * literal colon in the source was rewritten to the placeholder sigil — the way
  * `php artisan payments:sync-routing-policy` became `payments{sync}-routing-policy`
- * in all seven locales. Balanced braces and matching token sets cannot see it,
+ * in every supported locale. Balanced braces and matching token sets cannot see it,
  * because the token is not part of the intended message at all.
  */
 function gluedPlaceholder(value) {
