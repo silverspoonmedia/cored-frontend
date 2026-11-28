@@ -16,3 +16,5 @@ A **customer-visible** screen is not shipped until its page in the sibling `docs
 A **user-facing** capability is not shipped until its page in the sibling `docs` repo says so. A screen a customer can reach without a page is an incomplete change, not a follow-up — the page ships in the same task (`docs` repo: `.cursor/rules/docs-sync.mdc`).
 
 Never add API endpoints, business logic, or persistence here. This repo is the sole browser UI; `cored-backend` is the only backend.
+
+- **Plan mode keeps its to-dos current.** Every plan carries a `todos:` list before it is presented — `todos: []` is a defect, not a small plan. Flip each to-do `in_progress` → `completed` as the work lands, add what research discovers, and re-issue the list when scope moves. Stale to-dos mean unfinished.

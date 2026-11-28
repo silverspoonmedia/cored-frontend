@@ -6,3 +6,7 @@ Before the first edit of a task, run `git branch --show-current` in every repo y
 - **Any other branch** means the user prepared it on purpose — work there; do not create another, do not switch away.
 
 One branch per repo, same slug across a multi-repo task; an existing `{type}/{slug}` is reused with `git switch`, never recreated. An explicit user instruction to stay on a protected branch wins — say so, then proceed. Report the branch you created in one line.
+
+- **Commit approval.** Never run `git commit` on your own initiative. One approval covers the series: the user's "go ahead"/"ok" unlocks commits within the scope you stated, and a new unrelated scope needs a new approval. State the files and the intended message before the first commit of a series.
+- **Strict test before commit.** A commit is allowed only when the result is backed by test evidence: the test covering the change was **run** in this working tree and **passed**, and the commit message names it. "Should pass", "unrelated failure", skipped, or never run is no commit — fix it, or report the gap and stop. A behaviour with no covering test is reported as a gap; it is never declared green.
+- **`wrap up the docs` is the one exception** to the approval line only: the keyword is the approval for its own branch → gates → PR → squash-merge sequence. It is **not** an exception to the strict test line — the gates are its tests, and none may be skipped.
